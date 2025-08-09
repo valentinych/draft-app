@@ -1,6 +1,6 @@
 import os
 from flask import Blueprint, render_template, flash, redirect, url_for
-from .state import ucl_players
+from . import state
 from .config import UCL_CACHE_DIR
 from .services import session_req, HEADERS_GENERIC, load_json, save_json
 
@@ -8,7 +8,7 @@ bp = Blueprint("stats", __name__)
 
 @bp.route("/stats/<int:pid>")
 def index(pid):
-    plyr = next((p for p in ucl_players if p['playerId'] == pid), None)
+    plyr = next((p for p in state.ucl_players if p['playerId'] == pid), None)
     if not plyr:
         flash('Игрок не найден', 'error')
         return redirect(url_for('ucl.index'))
