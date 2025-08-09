@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Вход{% endblock %}
+
+{% block content %}
+  <div class="box" style="max-width: 400px; margin: auto;">
+    <h1 class="title has-text-centered">Вход</h1>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, msg in messages %}
+          <div class="notification is-{{ 'danger' if category=='error' else 'info' }}">
+            {{ msg }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <form method="post">
+      <div class="field">
+        <label class="label">ID пользователя</label>
+        <div class="control">
+          <input class="input" type="text" name="id" placeholder="Ваш ID" required>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="label">Пароль (4 цифры)</label>
+        <div class="control">
+          <input class="input" type="password" name="password" maxlength="4" placeholder="••••" required>
+        </div>
+      </div>
+
+      <div class="field mt-4">
+        <div class="control">
+          <button class="button is-primary is-fullwidth">Войти</button>
+        </div>
+      </div>
+    </form>
+  </div>
+{% endblock %}

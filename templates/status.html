@@ -1,0 +1,125 @@
+{# templates/status.html #}
+{% extends "base.html" %}
+
+{% block title %}{{ draft_title or 'Статус драфта' }}{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="container">
+
+    <div class="level mb-4">
+      <div class="level-left">
+        <h2 class="title">{{ draft_title or 'Статус драфта' }}</h2>
+      </div>
+      <div class="level-right">
+        <a href="{{ url_for('logout') }}" class="button is-light">Выйти</a>
+      </div>
+    </div>
+
+    <div class="tabs is-toggle is-small">
+      <ul>
+        <li class="{% if view == 'picks' %}is-active{% endif %}">
+          <a href="{{ url_for(status_endpoint, view='picks') }}">Пики</a>
+        </li>
+        <li class="{% if view == 'rosters' %}is-active{% endif %}">
+          <a href="{{ url_for(status_endpoint, view='rosters') }}">Составы</a>
+        </li>
+      </ul>
+    </div>
+
+    {% set banner = 'Драфт завершён' if draft_completed else '' %}
+
+    {% if view == 'picks' %}
+      <p class="mb-2">
+        {% if banner %}
+          <span class="tag is-danger is-light">{{ banner }}</span>
+        {% else %}
+          Следующий ход: <strong>{{ next_user }}</strong>{% if next_round %} (Раунд {{ next_round }}){% endif %}
+        {% endif %}
+      </p>
+
+      <table class="table is-striped is-narrow is-hoverable is-fullwidth has-text-centered">
+        <thead>
+          <tr>
+            <th>Раунд</th>
+            <th>Фэнтези-игрок</th>
+            <th>Имя</th>
+            <th>Клуб</th>
+            <th>Позиция</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for rec in pick_list %}
+          <tr>
+            <td>{{ rec.round }}</td>
+            <td>{{ rec.user }}</td>
+            <td>{{ rec.player.fullName }}</td>
+            <td>{{ rec.player.clubName }}</td>
+            <td>{{ rec.player.position }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+    {% elif view == 'rosters' %}
+      <p class="mb-2">
+        {% if banner %}
+          <span class="tag is-danger is-light">{{ banner }}</span>
+        {% else %}
+          Следующий ход: <strong>{{ next_user }}</strong>{% if next_round %} (Раунд {{ next_round }}){% endif %}
+        {% endif %}
+      </p>
+
+      {% for user in users %}
+        <div class="box" style="max-width: 1100px; margin: 0 auto;">
+          <h3 class="title is-6">{{ user }}</h3>
+          <table class="table is-striped is-narrow is-hoverable is-fullwidth has-text-centered" style="font-size: 0.85rem;">
+            <thead>
+              <tr>
+                <th>Позиция</th>
+                <th>Игрок</th>
+                <th>Клуб</th>
+                {% for r in rounds_range %}
+                  {% set dl = gw_deadlines.get(r) if gw_deadlines else None %}
+                  <th>GW {{ r }}{% if dl %}<br><small>{{ dl }}</small>{% endif %}</th>
+                {% endfor %}
+                <th>Σ</th>
+                <th>#пик</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for slot in position_slots %}
+                {% set lst = rosters_grouped[user].get(slot.position, []) %}
+                {% set found = (lst[slot.slot_index] if slot.slot_index < lst|length else None) %}
+
+                <tr>
+                  <td>{{ slot.position }}</td>
+                  {% if found %}
+                    <td>{{ found.fullName }}</td>
+                    <td>{{ found.clubName }}</td>
+                    {% set pid = found.playerId %}
+                    {% for v in rosters_points[user].get(pid, []) %}
+                      <td>{{ v }}</td>
+                    {% endfor %}
+                    <td>{{ rosters_sum[user].get(pid, 0) }}</td>
+                    <td>{{ pick_numbers[user].get(pid, '-') }}</td>
+                  {% else %}
+                    <td></td>
+                    <td></td>
+                    {% for r in rounds_range %}
+                      <td></td>
+                    {% endfor %}
+                    <td></td>
+                    <td></td>
+                  {% endif %}
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% endfor %}
+    {% endif %}
+
+  </div>
+</section>
+{% endblock %}

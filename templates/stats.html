@@ -1,0 +1,44 @@
+{# templates/stats.html #}
+{% extends "base.html" %}
+
+{% block title %}Статистика {{ player.fullName }}{% endblock %}
+
+{% block content %}
+  <h1 class="title">Статистика: {{ player.fullName }}</h1>
+  <h2 class="subtitle">{{ player.clubName }}, {{ player.position }}</h2>
+
+  <table class="table is-striped is-narrow has-text-centered">
+    <thead>
+      <tr>
+        <th>Тур</th>
+        <th>Очки</th>
+        <th>Гол</th>
+        <th>Пас</th>
+        <th>CS</th>
+        <th>ЖК</th>
+        <th>КК</th>
+        <th>OG</th>
+        <th>Минут</th>
+        <th>Игрок матча</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in stats_list %}
+      <tr>
+        <td><span class="has-text-weight-bold is-size-5">{{ row.mdId }}</span></td>
+        <td><span class="has-text-weight-bold is-size-5">{{ row.tPoints }}</span></td>
+        <td>{{ row.gS }}</td>
+        <td>{{ row.gA }}</td>
+        <td>{{ row.cS }}</td>
+        <td>{{ row.yC }}</td>
+        <td>{{ row.rC }}</td>
+        <td>{{ row.oG }}</td>
+        <td>{{ row.oF }}</td>
+        <td>{{ row.mOM }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <a class="button mt-4" href="{{ url_for('ucl') }}">Назад к списку игроков</a>
+{% endblock %}

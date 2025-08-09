@@ -1,0 +1,25 @@
+{# templates/home.html #}
+{% extends "base.html" %}
+
+{% block title %}Драфты{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="container">
+    <div class="level">
+      <div class="level-left">
+        <h1 class="title">Выберите драфт</h1>
+      </div>
+      <div class="level-right">
+        <a href="{{ url_for('logout') }}" class="button is-light">Выйти</a>
+      </div>
+    </div>
+
+    <div class="buttons">
+      <a class="button is-primary is-large" href="{{ url_for('ucl') }}">UCL Драфт</a>
+      <a class="button is-link   is-large" href="{{ url_for('epl') }}">EPL Драфт</a>
+      <a class="button is-info   is-large" href="{{ url_for('top4') }}">Топ-4 Драфт</a>
+    </div>
+  </div>
+</section>
+{% endblock %}
