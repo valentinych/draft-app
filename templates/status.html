@@ -40,9 +40,9 @@
       </thead>
       <tbody>
         {% if pick_list %}
-          {% for i, row in enumerate(pick_list, start=1) %}
+          {% for row in pick_list %}
             <tr>
-              <td class="nowrap">{{ i }}</td>
+              <td class="nowrap">{{ loop.index }}</td>
               <td class="nowrap">{{ row.round }}</td>
               <td>{{ row.user }}</td>
               <td>
