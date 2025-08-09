@@ -1,125 +1,143 @@
-{# templates/status.html #}
 {% extends "base.html" %}
-
-{% block title %}{{ draft_title or 'Статус драфта' }}{% endblock %}
-
+{% block title %}{{ draft_title }} — Состояние{% endblock %}
 {% block content %}
-<section class="section">
-  <div class="container">
-
-    <div class="level mb-4">
-      <div class="level-left">
-        <h2 class="title">{{ draft_title or 'Статус драфта' }}</h2>
-      </div>
-      <div class="level-right">
-        <a href="{{ url_for('logout') }}" class="button is-light">Выйти</a>
-      </div>
+<div class="level">
+  <div class="level-left">
+    <h1 class="title">{{ draft_title }} — Состояние</h1>
+  </div>
+  <div class="level-right">
+    <div class="buttons">
+      <a class="button {% if view=='picks' %}is-info{% endif %}" href="{{ url_for(status_endpoint, view='picks') }}">Пики</a>
+      <a class="button {% if view=='rosters' %}is-info{% endif %}" href="{{ url_for(status_endpoint, view='rosters') }}">Составы</a>
     </div>
+  </div>
+</div>
 
-    <div class="tabs is-toggle is-small">
-      <ul>
-        <li class="{% if view == 'picks' %}is-active{% endif %}">
-          <a href="{{ url_for(status_endpoint, view='picks') }}">Пики</a>
-        </li>
-        <li class="{% if view == 'rosters' %}is-active{% endif %}">
-          <a href="{{ url_for(status_endpoint, view='rosters') }}">Составы</a>
-        </li>
-      </ul>
-    </div>
+{% if draft_completed %}
+  <article class="message is-success">
+    <div class="message-body"><strong>Драфт завершён.</strong></div>
+  </article>
+{% else %}
+  {% if next_user %}
+    <p class="mb-4">Сейчас пик: <strong>{{ next_user }}</strong>
+      {% if next_round %}<span class="tag is-light ml-2">Раунд {{ next_round }}</span>{% endif %}
+    </p>
+  {% endif %}
+{% endif %}
 
-    {% set banner = 'Драфт завершён' if draft_completed else '' %}
-
-    {% if view == 'picks' %}
-      <p class="mb-2">
-        {% if banner %}
-          <span class="tag is-danger is-light">{{ banner }}</span>
-        {% else %}
-          Следующий ход: <strong>{{ next_user }}</strong>{% if next_round %} (Раунд {{ next_round }}){% endif %}
-        {% endif %}
-      </p>
-
-      <table class="table is-striped is-narrow is-hoverable is-fullwidth has-text-centered">
-        <thead>
-          <tr>
-            <th>Раунд</th>
-            <th>Фэнтези-игрок</th>
-            <th>Имя</th>
-            <th>Клуб</th>
-            <th>Позиция</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for rec in pick_list %}
-          <tr>
-            <td>{{ rec.round }}</td>
-            <td>{{ rec.user }}</td>
-            <td>{{ rec.player.fullName }}</td>
-            <td>{{ rec.player.clubName }}</td>
-            <td>{{ rec.player.position }}</td>
-          </tr>
+{% if view == 'picks' %}
+  <div class="table-container">
+    <table class="table is-striped is-hoverable is-fullwidth is-compact">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Раунд</th>
+          <th>Фэнтези-игрок</th>
+          <th>Футболист</th>
+          <th>Клуб</th>
+          <th>Позиция</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% if pick_list %}
+          {% for i, row in enumerate(pick_list, start=1) %}
+            <tr>
+              <td class="nowrap">{{ i }}</td>
+              <td class="nowrap">{{ row.round }}</td>
+              <td>{{ row.user }}</td>
+              <td>
+                {{ row.player.fullName }}
+                {% if draft_title.startswith('UCL') %}
+                  <a class="button is-small is-text" href="{{ url_for('stats.index', pid=row.player.playerId) }}">(стат)</a>
+                {% endif %}
+              </td>
+              <td>{{ row.player.clubName }}</td>
+              <td>{{ row.player.position }}</td>
+            </tr>
           {% endfor %}
-        </tbody>
-      </table>
-
-    {% elif view == 'rosters' %}
-      <p class="mb-2">
-        {% if banner %}
-          <span class="tag is-danger is-light">{{ banner }}</span>
         {% else %}
-          Следующий ход: <strong>{{ next_user }}</strong>{% if next_round %} (Раунд {{ next_round }}){% endif %}
+          <tr><td colspan="6" class="has-text-centered muted">Пока нет пиков.</td></tr>
         {% endif %}
-      </p>
+      </tbody>
+    </table>
+  </div>
+{% else %}
+  {# view == 'rosters' #}
 
-      {% for user in users %}
-        <div class="box" style="max-width: 1100px; margin: 0 auto;">
-          <h3 class="title is-6">{{ user }}</h3>
-          <table class="table is-striped is-narrow is-hoverable is-fullwidth has-text-centered" style="font-size: 0.85rem;">
+  {% if gw_deadlines and gw_deadlines|length > 0 %}
+    <div class="box">
+      <p class="mb-2"><strong>Дедлайны ближайших туров (EPL):</strong></p>
+      <div class="tags">
+        {% for gw in rounds_range %}
+          <span class="tag is-light">GW {{ gw }}: {{ gw_deadlines.get(gw, '—') }}</span>
+        {% endfor %}
+      </div>
+      <p class="muted small">Показываем текущий GW и окно ±5 туров.</p>
+    </div>
+  {% endif %}
+
+  {% set rounds_count = rounds_range|length %}
+  {% for user in users %}
+    <div class="card mb-5">
+      <header class="card-header">
+        <p class="card-header-title">
+          {{ user }}
+        </p>
+      </header>
+      <div class="card-content">
+        <div class="table-container">
+          <table class="table is-fullwidth is-compact">
             <thead>
               <tr>
-                <th>Позиция</th>
+                <th class="nowrap">Позиция</th>
                 <th>Игрок</th>
                 <th>Клуб</th>
                 {% for r in rounds_range %}
-                  {% set dl = gw_deadlines.get(r) if gw_deadlines else None %}
-                  <th>GW {{ r }}{% if dl %}<br><small>{{ dl }}</small>{% endif %}</th>
+                  <th class="points-cell">R{{ r }}</th>
                 {% endfor %}
-                <th>Σ</th>
-                <th>#пик</th>
+                <th class="points-cell">Σ</th>
+                <th class="points-cell">Pick#</th>
               </tr>
             </thead>
             <tbody>
+              {# перебор слотов по позициям в заданном порядке #}
               {% for slot in position_slots %}
-                {% set lst = rosters_grouped[user].get(slot.position, []) %}
-                {% set found = (lst[slot.slot_index] if slot.slot_index < lst|length else None) %}
-
+                {% set pos = slot.position %}
+                {% set idx = slot.slot_index %}
+                {% set p = rosters_grouped[user][pos][idx] if rosters_grouped.get(user) and rosters_grouped[user].get(pos) and rosters_grouped[user][pos]|length > idx else None %}
                 <tr>
-                  <td>{{ slot.position }}</td>
-                  {% if found %}
-                    <td>{{ found.fullName }}</td>
-                    <td>{{ found.clubName }}</td>
-                    {% set pid = found.playerId %}
-                    {% for v in rosters_points[user].get(pid, []) %}
-                      <td>{{ v }}</td>
+                  <td class="nowrap">{{ pos }}</td>
+                  <td>
+                    {% if p %}
+                      {{ p.fullName }}
+                      {% if draft_title.startswith('UCL') %}
+                        <a class="button is-small is-text" href="{{ url_for('stats.index', pid=p.playerId) }}">(стат)</a>
+                      {% endif %}
+                    {% else %} {% endif %}
+                  </td>
+                  <td>{% if p %}{{ p.clubName }}{% endif %}</td>
+
+                  {% if p %}
+                    {% set pid = p.playerId %}
+                    {% for val in rosters_points[user][pid] %}
+                      <td class="points-cell">
+                        {% if loop.first %}<span class="boldish">{{ val }}</span>{% else %}{{ val }}{% endif %}
+                      </td>
                     {% endfor %}
-                    <td>{{ rosters_sum[user].get(pid, 0) }}</td>
-                    <td>{{ pick_numbers[user].get(pid, '-') }}</td>
+                    <td class="points-cell boldish">{{ rosters_sum[user][pid] }}</td>
+                    <td class="points-cell">{{ pick_numbers.get(user, {}).get(pid, '—') }}</td>
                   {% else %}
-                    <td></td>
-                    <td></td>
-                    {% for r in rounds_range %}
-                      <td></td>
-                    {% endfor %}
-                    <td></td>
-                    <td></td>
+                    {% for _ in range(rounds_count) %}<td class="points-cell">—</td>{% endfor %}
+                    <td class="points-cell">—</td>
+                    <td class="points-cell">—</td>
                   {% endif %}
                 </tr>
               {% endfor %}
             </tbody>
           </table>
         </div>
-      {% endfor %}
-    {% endif %}
-
-  </div>
-</section>
+      </div>
+    </div>
+  {% endfor %}
+{% endif %}
 {% endblock %}

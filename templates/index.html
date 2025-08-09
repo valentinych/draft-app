@@ -1,119 +1,105 @@
-{# templates/index.html #}
 {% extends "base.html" %}
-
-{% block title %}{{ draft_title or 'Fantasy Draft' }}{% endblock %}
-
+{% block title %}{{ draft_title }}{% endblock %}
 {% block content %}
-<section class="section">
-  <div class="container">
+<div class="level">
+  <div class="level-left">
+    <h1 class="title">{{ draft_title }}</h1>
+  </div>
+  <div class="level-right">
+    {% if status_url %}
+      <a href="{{ status_url }}" class="button is-info">Состояние драфта</a>
+    {% endif %}
+  </div>
+</div>
 
-    <div class="level mb-4">
-      <div class="level-left">
-        <div class="level-item">
-          <h2 class="title">{{ draft_title or 'Fantasy Draft' }}</h2>
-        </div>
-      </div>
-      <div class="level-right">
-        <div class="level-item">
-          <a href="{{ status_url }}" class="button is-info">
-            Состояние драфта
-          </a>
-        </div>
-        <div class="level-item">
-          <a href="{{ url_for('logout') }}" class="button is-light">
-            Выйти
-          </a>
-        </div>
+{% if draft_completed %}
+  <article class="message is-success">
+    <div class="message-body">
+      <strong>Драфт завершён.</strong> Пики больше недоступны.
+    </div>
+  </article>
+{% else %}
+  <p class="mb-3">
+    Сейчас пик: <strong>{{ next_user }}</strong>
+    {% if next_round %}<span class="tag is-light ml-2">Раунд {{ next_round }}</span>{% endif %}
+  </p>
+{% endif %}
+
+<form class="box mb-4" method="get">
+  <div class="columns">
+    <div class="column is-4">
+      <label class="label">Клуб</label>
+      <div class="select is-fullwidth">
+        <select name="club" onchange="this.form.submit()">
+          <option value="">— Любой —</option>
+          {% for c in clubs %}
+          <option value="{{ c }}" {% if c==club_filter %}selected{% endif %}>{{ c }}</option>
+          {% endfor %}
+        </select>
       </div>
     </div>
-
-    <h3 class="subtitle">
-      Ход: <strong>{{ next_user }}</strong>
-      {% if next_round %} (Раунд {{ next_round }}){% endif %}
-    </h3>
-
-    <form method="get" class="mb-4">
-      <div class="field is-grouped">
-        <div class="control">
-          <div class="select">
-            <select name="club">
-              <option value="">— Все клубы —</option>
-              {% for club in clubs %}
-                <option value="{{ club }}" {% if club == club_filter %}selected{% endif %}>
-                  {{ club }}
-                </option>
-              {% endfor %}
-            </select>
-          </div>
-        </div>
-        <div class="control">
-          <div class="select">
-            <select name="position">
-              <option value="">— Все позиции —</option>
-              {% for pos in positions %}
-                <option value="{{ pos }}" {% if pos == pos_filter %}selected{% endif %}>
-                  {{ pos }}
-                </option>
-              {% endfor %}
-            </select>
-          </div>
-        </div>
-        <div class="control">
-          <button type="submit" class="button">Фильтровать</button>
-        </div>
-      </div>
-    </form>
-
-    <form method="post">
-      <table class="table is-striped is-narrow is-hoverable is-fullwidth has-text-centered">
-        <thead>
-          <tr>
-            <th>Имя</th>
-            <th>Клуб</th>
-            <th>Позиция</th>
-            {% if draft_title == 'EPL Fantasy Draft' %}
-              <th>Цена</th>
-            {% endif %}
-            <th>Действия</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for p in players %}
-            {% set pickable = (current_user == next_user) or (current_user == 'Руслан') %}
-            <tr>
-              <td>{{ p.fullName }}</td>
-              <td>{{ p.clubName }}</td>
-              <td>{{ p.position }}</td>
-              {% if draft_title == 'EPL Fantasy Draft' %}
-                <td>
-                  {% if p.price is defined %}
-                    £{{ '%.1f' % p.price }}m
-                  {% else %}
-                    -
-                  {% endif %}
-                </td>
-              {% endif %}
-              <td class="has-text-centered">
-                <button
-                  class="button is-small is-primary"
-                  type="submit"
-                  name="player_id"
-                  value="{{ p.playerId }}"
-                  {% if not pickable %}disabled{% endif %}>
-                  Выбрать
-                </button>
-                {% if draft_title == 'UCL Fantasy Draft' %}
-                  <a class="button is-small is-link" href="{{ url_for('stats', pid=p.playerId) }}">
-                    Статистика
-                  </a>
-                {% endif %}
-              </td>
-            </tr>
+    <div class="column is-4">
+      <label class="label">Позиция</label>
+      <div class="select is-fullwidth">
+        <select name="position" onchange="this.form.submit()">
+          <option value="">— Любая —</option>
+          {% for p in positions %}
+          <option value="{{ p }}" {% if p==pos_filter %}selected{% endif %}>{{ p }}</option>
           {% endfor %}
-        </tbody>
-      </table>
-    </form>
-
+        </select>
+      </div>
+    </div>
+    <div class="column is-4">
+      <label class="label">&nbsp;</label>
+      <a href="{{ request.path }}" class="button is-light is-fullwidth">Сбросить фильтры</a>
+    </div>
   </div>
-</section>
+</form>
+
+<div class="table-container">
+  <table class="table is-striped is-hoverable is-fullwidth is-compact">
+    <thead>
+      <tr>
+        <th>Игрок</th>
+        <th>Клуб</th>
+        <th>Позиция</th>
+        {% if players and players[0].get('price') is not none %}
+          <th class="has-text-right">Цена</th>
+        {% endif %}
+        <th style="width:1%;"></th>
+        <th style="width:1%;"></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% if players %}
+        {% for p in players %}
+        <tr>
+          <td>{{ p.fullName }}</td>
+          <td>{{ p.clubName }}</td>
+          <td>{{ p.position }}</td>
+          {% if p.get('price') is not none %}
+            <td class="has-text-right">{{ '%.1f'|format(p.price) }}</td>
+          {% endif %}
+          <td>
+            {% if request.path.startswith('/ucl') %}
+              <a class="button is-small is-link" href="{{ url_for('stats.index', pid=p.playerId) }}">Статистика</a>
+            {% endif %}
+          </td>
+          <td>
+            <form method="post" action="{{ request.full_path.split('?')[0] }}?club={{ club_filter }}&position={{ pos_filter }}">
+              <input type="hidden" name="player_id" value="{{ p.playerId }}">
+              {% set disabled = draft_completed or (next_user and current_user != next_user and not session.get('godmode')) %}
+              <button class="button is-small is-primary" type="submit" {% if disabled %}disabled{% endif %}>
+                Выбрать
+              </button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      {% else %}
+        <tr><td colspan="6" class="has-text-centered muted">Нет доступных игроков по текущим фильтрам.</td></tr>
+      {% endif %}
+    </tbody>
+  </table>
+</div>
 {% endblock %}

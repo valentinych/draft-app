@@ -1,37 +1,72 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <title>{% block title %}Fantasy Draft{% endblock %}</title>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.3/css/bulma.min.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Bulma CDN для аккуратных кнопок/таблиц -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+  <style>
+    .container.is-narrow { max-width: 1100px; }
+    .table.is-compact td, .table.is-compact th { padding: 6px 8px; }
+    .navbar.is-spaced { padding: 0.5rem 1rem; }
+    .points-cell { text-align:center; }
+    .boldish { font-weight: 700; }
+    .muted { color:#777; }
+    .nowrap { white-space: nowrap; }
+    .small { font-size: 0.9rem; }
+  </style>
 </head>
 <body>
-  <!-- Навигационная панель -->
-  <nav class="navbar is-light" role="navigation" aria-label="main navigation">
+  <nav class="navbar is-dark is-spaced" role="navigation" aria-label="main navigation">
     <div class="navbar-brand">
-      <a class="navbar-item" href="{{ url_for('home') }}">
-        Fantasy Draft
+      <a class="navbar-item" href="{{ url_for('home.index') }}">
+        <strong>Fantasy Draft</strong>
+      </a>
+      <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="mainNavbar"
+         onclick="document.querySelector('#mainNavbar').classList.toggle('is-active'); this.classList.toggle('is-active');">
+        <span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span>
       </a>
     </div>
 
-    <div class="navbar-menu">
+    <div id="mainNavbar" class="navbar-menu">
+      <div class="navbar-start">
+        <a class="navbar-item" href="{{ url_for('home.index') }}">Главная</a>
+        <a class="navbar-item" href="{{ url_for('ucl.index') }}">UCL Драфт</a>
+        <a class="navbar-item" href="{{ url_for('epl.index') }}">EPL Драфт</a>
+        <a class="navbar-item" href="{{ url_for('home.top4') }}">Топ-4</a>
+      </div>
       <div class="navbar-end">
         {% if session.get('user_name') %}
-        <div class="navbar-item">
-          Здравствуйте, <strong>{{ session.user_name }}</strong>
-        </div>
-        <div class="navbar-item">
-          <a class="button is-light" href="{{ url_for('logout') }}">
-            Выйти
-          </a>
-        </div>
+          <div class="navbar-item"><span class="tag is-info is-light">👤 {{ session.get('user_name') }}</span></div>
+          {% if session.get('godmode') %}
+            <div class="navbar-item"><span class="tag is-warning is-light">GODMODE</span></div>
+          {% endif %}
+          <div class="navbar-item">
+            <a class="button is-light" href="{{ url_for('auth.logout') }}">Logout</a>
+          </div>
+        {% else %}
+          <div class="navbar-item">
+            <a class="button is-primary" href="{{ url_for('auth.login') }}">Login</a>
+          </div>
         {% endif %}
       </div>
     </div>
   </nav>
 
   <section class="section">
-    <div class="container">
+    <div class="container is-narrow">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <div class="mb-4">
+            {% for category, message in messages %}
+              <div class="notification is-{{ 'danger' if category=='error' else category }}">
+                {{ message }}
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
       {% block content %}{% endblock %}
     </div>
   </section>
