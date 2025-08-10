@@ -129,20 +129,13 @@ def status():
             rosters_sum[user][pid] = 0
 
     return render_template(
-        'status.html',
-        draft_title='EPL Fantasy Draft',
-        status_endpoint='epl.status',
-        view='rosters',
-        users=EPL_USERS,
-        rosters=state.epl_state['rosters'],
-        rosters_grouped=rosters_grouped,
-        position_slots=position_slots,
-        rounds_range=rounds_range,
-        rosters_points=rosters_points,
-        rosters_sum=rosters_sum,
-        pick_numbers=pick_numbers,
-        next_user=None if completed else next_user,
-        next_round=None if completed else next_round,
-        draft_completed=completed,
-        gw_deadlines=gw_deadlines
+        "index.html",
+        draft_title="EPL Fantasy Draft",
+        players=players,
+        clubs=clubs, positions=positions,
+        club_filter=club_filter, pos_filter=pos_filter,
+        current_user=session.get("user_name"),
+        next_user=next_user, next_round=next_round,
+        draft_completed=draft_completed,
+        status_url=url_for("status.status", league="epl"),
     )

@@ -1,105 +1,202 @@
 {% extends "base.html" %}
 {% block title %}{{ draft_title }}{% endblock %}
 {% block content %}
-<div class="level">
-  <div class="level-left">
-    <h1 class="title">{{ draft_title }}</h1>
+
+<div class="page">
+  <!-- Верхняя панель: фильтры слева, ссылка на статус справа -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <h1 class="page-title">{{ draft_title }}</h1>
+
+      <form id="filters-form" method="get" class="filters">
+        <div class="fld">
+          <label for="club">Клуб</label>
+          <select name="club" id="club">
+            <option value="">— Любой —</option>
+            {% for c in clubs %}
+              <option value="{{ c }}" {% if c == club_filter %}selected{% endif %}>{{ c }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="fld">
+          <label for="position">Позиция</label>
+          <select name="position" id="position">
+            <option value="">— Любая —</option>
+            {% for p in positions %}
+              <option value="{{ p }}" {% if p == pos_filter %}selected{% endif %}>{{ p }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="fld toggles">
+          <label class="toggle">
+            <input type="checkbox" id="wishlist-only-toggle" />
+            <span>Show wishlist only</span>
+            <span id="wishlist-count" class="badge">0</span>
+          </label>
+
+          <label class="toggle">
+            <input type="checkbox" id="can-pick-toggle" />
+            <span>Can Pick</span>
+          </label>
+        </div>
+
+        <div class="fld">
+          <a class="btn-link" href="{{ request.path }}">Сбросить</a>
+        </div>
+      </form>
+    </div>
+
+    <div class="topbar-right">
+      {% if status_url %}
+        <a class="btn" href="{{ status_url }}">Состояние драфта</a>
+      {% endif %}
+    </div>
   </div>
-  <div class="level-right">
-    {% if status_url %}
-      <a href="{{ status_url }}" class="button is-info">Состояние драфта</a>
+
+  <!-- Инфоблок о ходе драфта -->
+  <div class="meta">
+    {% if draft_completed %}
+      <div class="badge badge-muted">Драфт завершён</div>
+    {% else %}
+      {% if next_user %}
+        Сейчас пик: <strong>{{ next_user }}</strong>{% if next_round %}, Раунд {{ next_round }}{% endif %}
+      {% endif %}
     {% endif %}
   </div>
+
+  {% set show_price = players and players[0].get('price') is not none %}
+  {% set league_key = 'epl' if request.path.startswith('/epl') else ('ucl' if request.path.startswith('/ucl') else 'top4') %}
+
+  {% if players %}
+    <div class="table-wrap">
+      <table id="players" class="players-table"
+             data-league="{{ league_key }}"
+             data-manager="{{ current_user or '' }}">
+        <thead>
+          <tr>
+            <th title="Wishlist" class="col-wl">WL</th>
+            <th>Игрок</th>
+            <th>Клуб</th>
+            <th>Позиция</th>
+            {% if show_price %}<th class="num">Цена</th>{% endif %}
+            <th class="num">Действия</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in players %}
+          {% set disabled = draft_completed or (next_user and current_user != next_user and not session.get('godmode')) %}
+          <tr data-player-id="{{ p.playerId }}"
+              data-can-pick="{{ '1' if (p.canPick is defined and p.canPick and (not disabled)) else '0' }}">
+            <td class="wishlist-cell">
+              <input type="checkbox" class="wishlist-toggle" data-player-id="{{ p.playerId }}" />
+            </td>
+            <td>
+              {{ p.fullName }}
+              {% if request.path.startswith('/ucl') %}
+                &nbsp;<a href="{{ url_for('stats.index', pid=p.playerId) }}" target="_blank" rel="noopener">(стат)</a>
+              {% endif %}
+            </td>
+            <td>{{ p.clubName }}</td>
+            <td>{{ p.position }}</td>
+            {% if show_price %}<td class="num">{{ '%.1f'|format(p.price) }}</td>{% endif %}
+            <td class="num">
+              <form method="post" style="display:inline;">
+                <input type="hidden" name="player_id" value="{{ p.playerId }}" />
+                <button type="submit" {% if disabled %}disabled{% endif %}>Выбрать</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p>Нет доступных игроков по текущим фильтрам.</p>
+  {% endif %}
 </div>
 
-{% if draft_completed %}
-  <article class="message is-success">
-    <div class="message-body">
-      <strong>Драфт завершён.</strong> Пики больше недоступны.
-    </div>
-  </article>
-{% else %}
-  <p class="mb-3">
-    Сейчас пик: <strong>{{ next_user }}</strong>
-    {% if next_round %}<span class="tag is-light ml-2">Раунд {{ next_round }}</span>{% endif %}
-  </p>
-{% endif %}
+<style>
+  /* Общий контейнер как на странице статуса: узкая центральная колонка */
+  .page { max-width: 960px; margin: 0 auto; padding: 0 16px; }
 
-<form class="box mb-4" method="get">
-  <div class="columns">
-    <div class="column is-4">
-      <label class="label">Клуб</label>
-      <div class="select is-fullwidth">
-        <select name="club" onchange="this.form.submit()">
-          <option value="">— Любой —</option>
-          {% for c in clubs %}
-          <option value="{{ c }}" {% if c==club_filter %}selected{% endif %}>{{ c }}</option>
-          {% endfor %}
-        </select>
-      </div>
-    </div>
-    <div class="column is-4">
-      <label class="label">Позиция</label>
-      <div class="select is-fullwidth">
-        <select name="position" onchange="this.form.submit()">
-          <option value="">— Любая —</option>
-          {% for p in positions %}
-          <option value="{{ p }}" {% if p==pos_filter %}selected{% endif %}>{{ p }}</option>
-          {% endfor %}
-        </select>
-      </div>
-    </div>
-    <div class="column is-4">
-      <label class="label">&nbsp;</label>
-      <a href="{{ request.path }}" class="button is-light is-fullwidth">Сбросить фильтры</a>
-    </div>
-  </div>
-</form>
+  /* Верхняя панель — одна линия: слева фильтры, справа кнопка */
+  .topbar { display: flex; gap: 16px; align-items: flex-start; justify-content: space-between; margin: 8px 0 12px; }
+  .topbar-left { display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+  .topbar-right { display: flex; align-items: center; gap: 10px; }
 
-<div class="table-container">
-  <table class="table is-striped is-hoverable is-fullwidth is-compact">
-    <thead>
-      <tr>
-        <th>Игрок</th>
-        <th>Клуб</th>
-        <th>Позиция</th>
-        {% if players and players[0].get('price') is not none %}
-          <th class="has-text-right">Цена</th>
-        {% endif %}
-        <th style="width:1%;"></th>
-        <th style="width:1%;"></th>
-      </tr>
-    </thead>
-    <tbody>
-      {% if players %}
-        {% for p in players %}
-        <tr>
-          <td>{{ p.fullName }}</td>
-          <td>{{ p.clubName }}</td>
-          <td>{{ p.position }}</td>
-          {% if p.get('price') is not none %}
-            <td class="has-text-right">{{ '%.1f'|format(p.price) }}</td>
-          {% endif %}
-          <td>
-            {% if request.path.startswith('/ucl') %}
-              <a class="button is-small is-link" href="{{ url_for('stats.index', pid=p.playerId) }}">Статистика</a>
-            {% endif %}
-          </td>
-          <td>
-            <form method="post" action="{{ request.full_path.split('?')[0] }}?club={{ club_filter }}&position={{ pos_filter }}">
-              <input type="hidden" name="player_id" value="{{ p.playerId }}">
-              {% set disabled = draft_completed or (next_user and current_user != next_user and not session.get('godmode')) %}
-              <button class="button is-small is-primary" type="submit" {% if disabled %}disabled{% endif %}>
-                Выбрать
-              </button>
-            </form>
-          </td>
-        </tr>
-        {% endfor %}
-      {% else %}
-        <tr><td colspan="6" class="has-text-centered muted">Нет доступных игроков по текущим фильтрам.</td></tr>
-      {% endif %}
-    </tbody>
-  </table>
-</div>
+  .page-title { margin: 0; font-size: 20px; line-height: 1.2; }
+
+  /* Фильтры слева в строку, с переносом */
+  .filters {
+    display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: end;
+  }
+  .fld { display: grid; gap: 6px; }
+  .fld label { font-size: 13px; color: #555; }
+  .fld select {
+    min-width: 150px; padding: 6px 10px;
+    border: 1px solid #d7d7d7; border-radius: 8px; background: #fff;
+  }
+
+  .toggles { display: flex; gap: 12px; align-items: center; }
+  .toggle { user-select: none; display: inline-flex; align-items: center; gap: 8px; }
+  .badge { background:#222; color:#fff; border-radius:999px; padding:2px 10px; font-size:12px; }
+  .badge-muted { background:#f0f0f0; color:#555; padding:4px 8px; border-radius: 8px; }
+
+  /* Кнопки, стараемся ближе к стилю статуса */
+  .btn { display:inline-block; padding:8px 12px; border-radius:8px; border:1px solid #d7d7d7; background:#fff; text-decoration:none; color:#111; }
+  .btn:hover { background:#f6f7fb; }
+  .btn-link { text-decoration:none; color:#555; padding:6px 0; }
+
+  .meta { margin: 8px 0 12px; color:#444; }
+
+  /* Таблица — разреженные строки + зебра + hover + wishlist-подсветка */
+  .table-wrap { overflow: auto; border-radius: 10px; border: 1px solid #ececec; }
+  table.players-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 14px; }
+  .players-table thead th {
+    position: sticky; top: 0; background: #f6f7fb; color:#333; text-align: left;
+    padding: 12px 12px; border-bottom: 1px solid #e6e6e6; z-index: 1;
+  }
+  .players-table th.col-wl, .players-table td.wishlist-cell { width: 44px; text-align: center; }
+  .players-table td { padding: 14px 12px; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }
+  .players-table td.num, .players-table th.num { text-align: right; }
+
+  .players-table tbody tr:nth-child(odd)  { background: #fafafa; }
+  .players-table tbody tr:nth-child(even) { background: #f5f7fb; }
+  .players-table tbody tr:hover { background: #eef5ff; }
+
+  .players-table tbody tr.is-wishlist {
+    background: rgba(255, 215, 0, .18) !important;
+    box-shadow: inset 0 0 0 1px rgba(180,140,0,.25);
+  }
+</style>
+
+<script>
+  // Автоприменение серверных фильтров (club/position) по изменению
+  (function(){
+    const form = document.getElementById('filters-form');
+    if (!form) return;
+    const selects = form.querySelectorAll('select');
+    selects.forEach(sel => sel.addEventListener('change', () => form.submit()));
+  })();
+
+  // Фолбэк для data-can-pick (если backend не задал p.canPick)
+  (function(){
+    const table = document.getElementById('players');
+    if (!table) return;
+    table.querySelectorAll('tbody tr').forEach(tr => {
+      const hasAttr = tr.hasAttribute('data-can-pick') && tr.getAttribute('data-can-pick') !== '';
+      if (hasAttr && tr.getAttribute('data-can-pick') !== '0' && tr.getAttribute('data-can-pick') !== '1') {
+        tr.setAttribute('data-can-pick', '0');
+      }
+      if (!hasAttr || tr.getAttribute('data-can-pick') === '0') {
+        const btn = tr.querySelector('button[type="submit"]');
+        if (btn && !btn.disabled) tr.setAttribute('data-can-pick', '1');
+      }
+    });
+  })();
+</script>
+
+<script src="{{ url_for('static', filename='wishlist.js') }}"></script>
 {% endblock %}

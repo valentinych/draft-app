@@ -1,143 +1,141 @@
 {% extends "base.html" %}
-{% block title %}{{ draft_title }} — Состояние{% endblock %}
+{% block title %}{{ title or "EPL Fantasy Draft — Состояние драфта" }}{% endblock %}
 {% block content %}
-<div class="level">
-  <div class="level-left">
-    <h1 class="title">{{ draft_title }} — Состояние</h1>
-  </div>
-  <div class="level-right">
-    <div class="buttons">
-      <a class="button {% if view=='picks' %}is-info{% endif %}" href="{{ url_for(status_endpoint, view='picks') }}">Пики</a>
-      <a class="button {% if view=='rosters' %}is-info{% endif %}" href="{{ url_for(status_endpoint, view='rosters') }}">Составы</a>
+
+<div class="page">
+  <div class="topbar">
+    <div class="topbar-left">
+      <h1 class="page-title">{{ title or "Состояние драфта" }}</h1>
+      <div class="meta">
+        {% if draft_completed %}
+          <span class="badge badge-muted">Драфт завершён</span>
+        {% else %}
+          {% if next_user %}
+            Сейчас пик: <strong>{{ next_user }}</strong>{% if next_round %}, Раунд {{ next_round }}{% endif %}
+          {% else %}
+            <span class="badge badge-muted">Идёт драфт</span>
+          {% endif %}
+        {% endif %}
+      </div>
+    </div>
+    <div class="topbar-right">
+      <a class="btn" href="{{ draft_url or url_for('epl.index') }}">Вернуться к драфту</a>
     </div>
   </div>
-</div>
 
-{% if draft_completed %}
-  <article class="message is-success">
-    <div class="message-body"><strong>Драфт завершён.</strong></div>
-  </article>
-{% else %}
-  {% if next_user %}
-    <p class="mb-4">Сейчас пик: <strong>{{ next_user }}</strong>
-      {% if next_round %}<span class="tag is-light ml-2">Раунд {{ next_round }}</span>{% endif %}
-    </p>
-  {% endif %}
-{% endif %}
-
-{% if view == 'picks' %}
-  <div class="table-container">
-    <table class="table is-striped is-hoverable is-fullwidth is-compact">
-      <thead>
-        <tr>
-          <th>#</th>
-          <th>Раунд</th>
-          <th>Фэнтези-игрок</th>
-          <th>Футболист</th>
-          <th>Клуб</th>
-          <th>Позиция</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% if pick_list %}
-          {% for row in pick_list %}
-            <tr>
-              <td class="nowrap">{{ loop.index }}</td>
-              <td class="nowrap">{{ row.round }}</td>
-              <td>{{ row.user }}</td>
-              <td>
-                {{ row.player.fullName }}
-                {% if draft_title.startswith('UCL') %}
-                  <a class="button is-small is-text" href="{{ url_for('stats.index', pid=row.player.playerId) }}">(стат)</a>
-                {% endif %}
-              </td>
-              <td>{{ row.player.clubName }}</td>
-              <td>{{ row.player.position }}</td>
-            </tr>
+  {# ---- Сводка по ограничениям/правилам, если переданы ---- #}
+  {% set limits = limits or rules or draft_limits %}
+  {% if limits %}
+    <div class="card">
+      <div class="card-title">Ограничения драфта</div>
+      <div class="card-body">
+        <ul class="bullets">
+          {% for k,v in limits.items() %}
+            <li><strong>{{ k }}</strong>: {{ v }}</li>
           {% endfor %}
-        {% else %}
-          <tr><td colspan="6" class="has-text-centered muted">Пока нет пиков.</td></tr>
-        {% endif %}
-      </tbody>
-    </table>
-  </div>
-{% else %}
-  {# view == 'rosters' #}
+        </ul>
+      </div>
+    </div>
+  {% endif %}
 
-  {% if gw_deadlines and gw_deadlines|length > 0 %}
-    <div class="box">
-      <p class="mb-2"><strong>Дедлайны ближайших туров (EPL):</strong></p>
-      <div class="tags">
-        {% for gw in rounds_range %}
-          <span class="tag is-light">GW {{ gw }}: {{ gw_deadlines.get(gw, '—') }}</span>
+  {# ---- Таблица пиков по раундам, если есть ---- #}
+  {% set picks = picks or draft_picks or picks_by_round %}
+  {% if picks %}
+    <div class="card">
+      <div class="card-title">Пики по раундам</div>
+      <div class="table-wrap">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th class="num">Раунд</th>
+              <th>Драфтер</th>
+              <th>Игрок</th>
+              <th>Клуб</th>
+              <th>Позиция</th>
+              <th class="num">Время</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in picks %}
+              <tr>
+                <td class="num">{{ row.round or row.get('round') }}</td>
+                <td>{{ row.user or row.manager or row.get('user') or row.get('manager') }}</td>
+                <td>{{ row.player_name or row.fullName or row.get('player') }}</td>
+                <td>{{ row.club or row.clubName }}</td>
+                <td>{{ row.pos or row.position }}</td>
+                <td class="num">
+                  {% set ts = row.ts or row.timestamp %}
+                  {{ ts if ts else '' }}
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  {% endif %}
+
+  {# ---- Составы по менеджерам (если переданы) ---- #}
+  {% set squads = squads or teams or squads_by_manager %}
+  {% if squads %}
+    <div class="card">
+      <div class="card-title">Составы по менеджерам</div>
+      <div class="grid">
+        {% for manager, roster in (squads.items() if squads.items is defined else squads) %}
+          <div class="panel">
+            <div class="panel-title">{{ manager }}</div>
+            {% if roster %}
+              <ul class="bullets">
+                {% for p in roster %}
+                  <li>{{ p.fullName or p.name or p.player_name }} — {{ p.position or p.pos }}{% if p.clubName or p.club %} ({{ p.clubName or p.club }}){% endif %}</li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <div class="muted">Пока пусто</div>
+            {% endif %}
+          </div>
         {% endfor %}
       </div>
-      <p class="muted small">Показываем текущий GW и окно ±5 туров.</p>
     </div>
   {% endif %}
 
-  {% set rounds_count = rounds_range|length %}
-  {% for user in users %}
-    <div class="card mb-5">
-      <header class="card-header">
-        <p class="card-header-title">
-          {{ user }}
-        </p>
-      </header>
-      <div class="card-content">
-        <div class="table-container">
-          <table class="table is-fullwidth is-compact">
-            <thead>
-              <tr>
-                <th class="nowrap">Позиция</th>
-                <th>Игрок</th>
-                <th>Клуб</th>
-                {% for r in rounds_range %}
-                  <th class="points-cell">R{{ r }}</th>
-                {% endfor %}
-                <th class="points-cell">Σ</th>
-                <th class="points-cell">Pick#</th>
-              </tr>
-            </thead>
-            <tbody>
-              {# перебор слотов по позициям в заданном порядке #}
-              {% for slot in position_slots %}
-                {% set pos = slot.position %}
-                {% set idx = slot.slot_index %}
-                {% set p = rosters_grouped[user][pos][idx] if rosters_grouped.get(user) and rosters_grouped[user].get(pos) and rosters_grouped[user][pos]|length > idx else None %}
-                <tr>
-                  <td class="nowrap">{{ pos }}</td>
-                  <td>
-                    {% if p %}
-                      {{ p.fullName }}
-                      {% if draft_title.startswith('UCL') %}
-                        <a class="button is-small is-text" href="{{ url_for('stats.index', pid=p.playerId) }}">(стат)</a>
-                      {% endif %}
-                    {% else %} {% endif %}
-                  </td>
-                  <td>{% if p %}{{ p.clubName }}{% endif %}</td>
+  {# ---- Если нет ни одного блока данных ---- #}
+  {% if not limits and not picks and not squads %}
+    <div class="muted">Пока нет данных для отображения. Проверь логику формирования контекста во вьюхе страницы статуса.</div>
+  {% endif %}
+</div>
 
-                  {% if p %}
-                    {% set pid = p.playerId %}
-                    {% for val in rosters_points[user][pid] %}
-                      <td class="points-cell">
-                        {% if loop.first %}<span class="boldish">{{ val }}</span>{% else %}{{ val }}{% endif %}
-                      </td>
-                    {% endfor %}
-                    <td class="points-cell boldish">{{ rosters_sum[user][pid] }}</td>
-                    <td class="points-cell">{{ pick_numbers.get(user, {}).get(pid, '—') }}</td>
-                  {% else %}
-                    {% for _ in range(rounds_count) %}<td class="points-cell">—</td>{% endfor %}
-                    <td class="points-cell">—</td>
-                    <td class="points-cell">—</td>
-                  {% endif %}
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  {% endfor %}
-{% endif %}
+<style>
+  .page { max-width: 960px; margin: 0 auto; padding: 0 16px; }
+  .topbar { display: flex; gap: 16px; align-items: flex-start; justify-content: space-between; margin: 8px 0 12px; }
+  .topbar-left { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+  .topbar-right { display: flex; align-items: center; gap: 10px; }
+  .page-title { margin: 0; font-size: 20px; line-height: 1.2; }
+
+  .btn { display:inline-block; padding:8px 12px; border-radius:8px; border:1px solid #d7d7d7; background:#fff; text-decoration:none; color:#111; }
+  .btn:hover { background:#f6f7fb; }
+
+  .badge { background:#222; color:#fff; border-radius:999px; padding:2px 10px; font-size:12px; }
+  .badge-muted { background:#f0f0f0; color:#555; padding:4px 8px; border-radius: 8px; }
+  .muted { color:#666; }
+
+  .card { border:1px solid #ececec; border-radius:10px; margin:14px 0; overflow: hidden; }
+  .card-title { background:#f6f7fb; padding:10px 12px; font-weight:600; border-bottom:1px solid #e6e6e6; }
+  .card-body { padding:10px 12px; }
+
+  .table-wrap { overflow:auto; }
+  table.tbl { width:100%; border-collapse: separate; border-spacing: 0; font-size:14px; }
+  table.tbl thead th { text-align:left; background:#f6f7fb; padding:10px 12px; border-bottom:1px solid #e6e6e6; position:sticky; top:0; z-index:1; }
+  table.tbl td { padding:12px 12px; border-bottom:1px solid #f0f0f0; vertical-align:middle; }
+  table.tbl td.num, table.tbl th.num { text-align:right; }
+  table.tbl tbody tr:nth-child(odd)  { background:#fafafa; }
+  table.tbl tbody tr:nth-child(even) { background:#f5f7fb; }
+
+  .grid { display:grid; grid-template-columns: repeat(auto-fill,minmax(260px,1fr)); gap:12px; padding:12px; }
+  .panel { border:1px solid #ececec; border-radius:10px; }
+  .panel-title { padding:10px 12px; background:#fafafa; border-bottom:1px solid #f0f0f0; font-weight:600; }
+  .bullets { margin:0; padding:10px 16px; list-style:disc; }
+  .bullets li { margin:4px 0; }
+</style>
+
 {% endblock %}

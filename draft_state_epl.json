@@ -1,13 +1,140 @@
 {
   "rosters": {
-    "Макс": [],
-    "Саша": [],
-    "Андрей": [],
-    "Сергей": [],
-    "Ксана": [],
-    "Женя": [],
-    "Руслан": [],
-    "Куль": []
+    "Макс": [
+      {
+        "playerId": 381,
+        "fullName": "M.Salah",
+        "clubName": "LIV",
+        "position": "Midfielder",
+        "price": 14.5
+      },
+      {
+        "playerId": 224,
+        "fullName": "Cucurella",
+        "clubName": "CHE",
+        "position": "Defender",
+        "price": 6.0
+      },
+      {
+        "playerId": 17,
+        "fullName": "Ødegaard",
+        "clubName": "ARS",
+        "position": "Midfielder",
+        "price": 8.0
+      }
+    ],
+    "Саша": [
+      {
+        "playerId": 64,
+        "fullName": "Watkins",
+        "clubName": "AVL",
+        "position": "Forward",
+        "price": 9.0
+      },
+      {
+        "playerId": 5,
+        "fullName": "Gabriel",
+        "clubName": "ARS",
+        "position": "Defender",
+        "price": 6.0
+      }
+    ],
+    "Андрей": [
+      {
+        "playerId": 430,
+        "fullName": "Haaland",
+        "clubName": "MCI",
+        "position": "Forward",
+        "price": 14.0
+      },
+      {
+        "playerId": 579,
+        "fullName": "Son",
+        "clubName": "TOT",
+        "position": "Midfielder",
+        "price": 8.5
+      }
+    ],
+    "Сергей": [
+      {
+        "playerId": 382,
+        "fullName": "Wirtz",
+        "clubName": "LIV",
+        "position": "Midfielder",
+        "price": 8.5
+      },
+      {
+        "playerId": 383,
+        "fullName": "Luis Díaz",
+        "clubName": "LIV",
+        "position": "Midfielder",
+        "price": 8.0
+      }
+    ],
+    "Ксана": [
+      {
+        "playerId": 235,
+        "fullName": "Palmer",
+        "clubName": "CHE",
+        "position": "Midfielder",
+        "price": 10.5
+      },
+      {
+        "playerId": 450,
+        "fullName": "Cunha",
+        "clubName": "MUN",
+        "position": "Midfielder",
+        "price": 8.0
+      }
+    ],
+    "Женя": [
+      {
+        "playerId": 499,
+        "fullName": "Isak",
+        "clubName": "NEW",
+        "position": "Forward",
+        "price": 10.5
+      },
+      {
+        "playerId": 16,
+        "fullName": "Saka",
+        "clubName": "ARS",
+        "position": "Midfielder",
+        "price": 10.0
+      }
+    ],
+    "Руслан": [
+      {
+        "playerId": 666,
+        "fullName": "Gyökeres",
+        "clubName": "ARS",
+        "position": "Forward",
+        "price": 9.0
+      },
+      {
+        "playerId": 413,
+        "fullName": "Marmoush",
+        "clubName": "MCI",
+        "position": "Midfielder",
+        "price": 8.5
+      }
+    ],
+    "Куль": [
+      {
+        "playerId": 661,
+        "fullName": "Ekitiké",
+        "clubName": "LIV",
+        "position": "Forward",
+        "price": 8.5
+      },
+      {
+        "playerId": 449,
+        "fullName": "B.Fernandes",
+        "clubName": "MUN",
+        "position": "Midfielder",
+        "price": 9.0
+      }
+    ]
   },
   "draft_order": [
     "Макс",
@@ -187,6 +314,177 @@
     "Саша",
     "Макс"
   ],
-  "current_pick_index": 0,
-  "picks": []
+  "current_pick_index": 17,
+  "picks": [
+    {
+      "user": "Макс",
+      "player": {
+        "playerId": 381,
+        "fullName": "M.Salah",
+        "clubName": "LIV",
+        "position": "Midfielder",
+        "price": 14.5
+      }
+    },
+    {
+      "user": "Саша",
+      "player": {
+        "playerId": 64,
+        "fullName": "Watkins",
+        "clubName": "AVL",
+        "position": "Forward",
+        "price": 9.0
+      }
+    },
+    {
+      "user": "Андрей",
+      "player": {
+        "playerId": 430,
+        "fullName": "Haaland",
+        "clubName": "MCI",
+        "position": "Forward",
+        "price": 14.0
+      }
+    },
+    {
+      "user": "Сергей",
+      "player": {
+        "playerId": 382,
+        "fullName": "Wirtz",
+        "clubName": "LIV",
+        "position": "Midfielder",
+        "price": 8.5
+      }
+    },
+    {
+      "user": "Ксана",
+      "player": {
+        "playerId": 235,
+        "fullName": "Palmer",
+        "clubName": "CHE",
+        "position": "Midfielder",
+        "price": 10.5
+      }
+    },
+    {
+      "user": "Женя",
+      "player": {
+        "playerId": 499,
+        "fullName": "Isak",
+        "clubName": "NEW",
+        "position": "Forward",
+        "price": 10.5
+      }
+    },
+    {
+      "user": "Руслан",
+      "player": {
+        "playerId": 666,
+        "fullName": "Gyökeres",
+        "clubName": "ARS",
+        "position": "Forward",
+        "price": 9.0
+      }
+    },
+    {
+      "user": "Куль",
+      "player": {
+        "playerId": 661,
+        "fullName": "Ekitiké",
+        "clubName": "LIV",
+        "position": "Forward",
+        "price": 8.5
+      }
+    },
+    {
+      "user": "Куль",
+      "player": {
+        "playerId": 449,
+        "fullName": "B.Fernandes",
+        "clubName": "MUN",
+        "position": "Midfielder",
+        "price": 9.0
+      }
+    },
+    {
+      "user": "Руслан",
+      "player": {
+        "playerId": 413,
+        "fullName": "Marmoush",
+        "clubName": "MCI",
+        "position": "Midfielder",
+        "price": 8.5
+      }
+    },
+    {
+      "user": "Женя",
+      "player": {
+        "playerId": 16,
+        "fullName": "Saka",
+        "clubName": "ARS",
+        "position": "Midfielder",
+        "price": 10.0
+      }
+    },
+    {
+      "user": "Ксана",
+      "player": {
+        "playerId": 450,
+        "fullName": "Cunha",
+        "clubName": "MUN",
+        "position": "Midfielder",
+        "price": 8.0
+      }
+    },
+    {
+      "user": "Сергей",
+      "player": {
+        "playerId": 383,
+        "fullName": "Luis Díaz",
+        "clubName": "LIV",
+        "position": "Midfielder",
+        "price": 8.0
+      }
+    },
+    {
+      "user": "Андрей",
+      "player": {
+        "playerId": 579,
+        "fullName": "Son",
+        "clubName": "TOT",
+        "position": "Midfielder",
+        "price": 8.5
+      }
+    },
+    {
+      "user": "Саша",
+      "player": {
+        "playerId": 5,
+        "fullName": "Gabriel",
+        "clubName": "ARS",
+        "position": "Defender",
+        "price": 6.0
+      }
+    },
+    {
+      "user": "Макс",
+      "player": {
+        "playerId": 224,
+        "fullName": "Cucurella",
+        "clubName": "CHE",
+        "position": "Defender",
+        "price": 6.0
+      }
+    },
+    {
+      "user": "Макс",
+      "player": {
+        "playerId": 17,
+        "fullName": "Ødegaard",
+        "clubName": "ARS",
+        "position": "Midfielder",
+        "price": 8.0
+      }
+    }
+  ]
 }
