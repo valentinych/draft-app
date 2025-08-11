@@ -1,177 +1,153 @@
-import os
-from flask import Blueprint, render_template, request, redirect, url_for, flash, session
-from . import state
-from .config import (
-    UCL_USERS, UCL_POSITION_LIMITS, UCL_POSITION_MAP,
-    POSITION_ORDER
-)
+from __future__ import annotations
+import json
+from pathlib import Path
+from typing import Any, Dict, List
+from flask import Blueprint, render_template, request, session, url_for
 
 bp = Blueprint("ucl", __name__)
 
-def can_pick_ucl(user, plyr):
-    # уникальность клуба
-    clubs = {x['clubName'] for x in state.ucl_state['rosters'][user]}
-    if plyr['clubName'] in clubs:
-        return False, 'У вас уже есть игрок этого клуба.'
-    # лимит по позиции
-    cnt = sum(1 for x in state.ucl_state['rosters'][user] if x['position'] == plyr['position'])
-    if cnt >= UCL_POSITION_LIMITS[plyr['position']]:
-        return False, f"Максимум {UCL_POSITION_LIMITS[plyr['position']]} игроков на позиции {plyr['position']}."
-    return True, ''
+# --- файлы данных (подгони пути под свой проект при необходимости) ---
+BASE_DIR = Path(__file__).resolve().parent.parent
+UCL_STATE = BASE_DIR / "draft_state_ucl.json"
+UCL_PLAYERS = BASE_DIR / "players_70_en_3.json"  # список игроков UCL (есть в репо)
 
-@bp.route("/ucl", methods=["GET", "POST"])
-def index():
-    current_user = session.get('user_name')
-    club_filter = request.args.get('club', '')
-    pos_filter  = request.args.get('position', '')
+# ----------------- helpers -----------------
+def _json_load(p: Path) -> Any:
+    try:
+        return json.loads(p.read_text(encoding="utf-8")) if p.exists() else None
+    except Exception:
+        return None
 
-    completed = state.draft_is_completed(state.ucl_state, UCL_POSITION_LIMITS, len(UCL_USERS))
+def _players_from_ucl(raw: Any) -> List[Dict[str, Any]]:
+    """
+    Унификация списка игроков UCL JSON -> [{playerId, fullName, clubName, position, price}, ...]
+    В players_70_en_3.json обычно список словарей с нужными полями.
+    """
+    out: List[Dict[str, Any]] = []
+    if isinstance(raw, list):
+        for p in raw:
+            pid = p.get("playerId") or p.get("id") or p.get("pid")
+            if pid is None:
+                continue
+            out.append(
+                {
+                    "playerId": int(pid),
+                    "fullName": p.get("fullName") or p.get("name"),
+                    "clubName": p.get("clubName") or p.get("club") or p.get("team"),
+                    "position": p.get("position") or p.get("pos"),
+                    "price": p.get("price") if isinstance(p.get("price"), (int, float)) else None,
+                }
+            )
+    elif isinstance(raw, dict) and isinstance(raw.get("players"), list):
+        for p in raw["players"]:
+            pid = p.get("playerId") or p.get("id")
+            if pid is None:
+                continue
+            out.append(
+                {
+                    "playerId": int(pid),
+                    "fullName": p.get("fullName") or p.get("name"),
+                    "clubName": p.get("clubName") or p.get("team"),
+                    "position": p.get("position"),
+                    "price": p.get("price") if isinstance(p.get("price"), (int, float)) else None,
+                }
+            )
+    return out
 
-    if request.method == "POST":
-        if completed:
-            flash('Драфт завершён. Пики больше недоступны.', 'warning')
-            return redirect(url_for('ucl.index', club=club_filter, position=pos_filter))
+def _uniq_sorted(values: List[str]) -> List[str]:
+    return sorted({v for v in values if v})
 
-        idx = state.ucl_state['current_pick_index']
-        next_user = state.ucl_state['draft_order'][idx] if idx < len(state.ucl_state['draft_order']) else None
+def _apply_filters(players: List[Dict[str, Any]], club: str, pos: str) -> List[Dict[str, Any]]:
+    if club:
+        players = [p for p in players if (p.get("clubName") or "") == club]
+    if pos:
+        players = [p for p in players if (p.get("position") or "") == pos]
+    return players
 
-        if current_user != next_user and not session.get('godmode'):
-            flash('Сейчас не ваш ход.', 'error')
-            return redirect(url_for('ucl.index', club=club_filter, position=pos_filter))
+def _build_status_context_ucl() -> Dict[str, Any]:
+    state = _json_load(UCL_STATE) or {}
+    players_raw = _json_load(UCL_PLAYERS) or []
+    pidx = {str(p["playerId"]): p for p in _players_from_ucl(players_raw)}
 
-        acting_user = next_user if session.get('godmode') else current_user
-        if state.user_is_full(state.ucl_state['rosters'][acting_user], UCL_POSITION_LIMITS):
-            flash('Ваш состав уже заполнен по всем позициям.', 'warning')
-            return redirect(url_for('ucl.index', club=club_filter, position=pos_filter))
+    limits = state.get("limits") or {"Max from club": 3, "Min GK": 1, "Min DEF": 3, "Min MID": 3, "Min FWD": 1}
 
-        pid = int(request.form.get('player_id') or 0)
-        plyr = next(x for x in state.ucl_players if x['playerId'] == pid)
-
-        ok, msg = can_pick_ucl(acting_user, plyr)
-        if not ok:
-            flash(msg, 'error')
-        else:
-            state.ucl_state['rosters'][acting_user].append(plyr)
-            state.ucl_state['picks'].append({'user': acting_user, 'player': plyr})
-            state.ucl_state['current_pick_index'] += 1
-            state.save_ucl_state()
-        return redirect(url_for('ucl.index', club=club_filter, position=pos_filter))
-
-    # GET
-    drafted_ids = [rec['player']['playerId'] for rec in state.ucl_state['picks']]
-    filtered = [
-        p for p in state.ucl_players
-        if p['playerId'] not in drafted_ids
-        and (not club_filter or p['clubName'] == club_filter)
-        and (not pos_filter or p['position'] == pos_filter)
-    ]
-
-    idx = state.ucl_state['current_pick_index']
-    next_user = state.ucl_state['draft_order'][idx] if (idx < len(state.ucl_state['draft_order'])) else None
-    next_round = idx // len(UCL_USERS) + 1 if next_user else None
-
-    return render_template(
-        'index.html',
-        draft_title='UCL Fantasy Draft',
-        players=([] if completed else filtered),
-        clubs=sorted({p['clubName'] for p in state.ucl_players}),
-        positions=sorted({p['position'] for p in state.ucl_players}),
-        club_filter=club_filter,
-        pos_filter=pos_filter,
-        next_user=None if completed else next_user,
-        next_round=None if completed else next_round,
-        rosters=state.ucl_state['rosters'],
-        position_limits=UCL_POSITION_LIMITS,
-        current_user=current_user,
-        status_url=url_for('ucl.status'),
-        draft_completed=completed
-    )
-
-@bp.route("/ucl/status")
-def status():
-    from .config import UCL_CACHE_DIR
-    from .services import load_json
-
-    view = request.args.get('view', 'picks')
-    idx = state.ucl_state['current_pick_index']
-    next_user = state.ucl_state['draft_order'][idx] if idx < len(state.ucl_state['draft_order']) else None
-    next_round = idx // len(UCL_USERS) + 1 if next_user else None
-    completed = state.draft_is_completed(state.ucl_state, UCL_POSITION_LIMITS, len(UCL_USERS))
-
-    if view == 'picks':
-        pick_list = []
-        for i, rec in enumerate(state.ucl_state['picks']):
-            pick_list.append({'round': i // len(UCL_USERS) + 1,
-                              'user': rec['user'], 'player': rec['player']})
-        return render_template(
-            'status.html',
-            draft_title='UCL Fantasy Draft',
-            status_endpoint='ucl.status',
-            view='picks',
-            pick_list=pick_list,
-            next_user=None if completed else next_user,
-            next_round=None if completed else next_round,
-            draft_completed=completed,
-            gw_deadlines={}
+    picks: List[Dict[str, Any]] = []
+    for row in state.get("picks", []):
+        pid = str(row.get("playerId") or row.get("id") or "")
+        meta = pidx.get(pid, {})
+        picks.append(
+            {
+                "round": row.get("round"),
+                "user": row.get("user") or row.get("manager") or row.get("drafter"),
+                "player_name": row.get("player_name") or meta.get("fullName"),
+                "club": row.get("club") or meta.get("clubName"),
+                "pos": row.get("pos") or meta.get("position"),
+                "ts": row.get("ts") or row.get("timestamp"),
+            }
         )
 
-    # rosters
-    rounds_range = list(range(1, 18))
-    position_slots = []
-    for pos in ['Goalkeeper', 'Defender', 'Midfielder', 'Forward']:
-        for i in range(UCL_POSITION_LIMITS[pos]):
-            position_slots.append({'position': pos, 'slot_index': i})
+    squads = state.get("squads") or state.get("teams") or {}
+    if not squads and picks:
+        tmp: Dict[str, List[Dict[str, Any]]] = {}
+        for r in picks:
+            m = r.get("user") or "Unknown"
+            tmp.setdefault(m, [])
+            tmp[m].append({"fullName": r.get("player_name"), "position": r.get("pos"), "clubName": r.get("club")})
+        squads = tmp
 
-    rosters_points, rosters_sum, pick_numbers, rosters_grouped = {}, {}, {}, {}
+    return {
+        "title": "UCL Fantasy Draft — Состояние драфта",
+        "draft_url": url_for("ucl.index"),
+        "limits": limits,
+        "picks": picks,
+        "squads": squads,
+        "draft_completed": bool(state.get("draft_completed")),
+        "next_user": state.get("next_user"),
+        "next_round": state.get("next_round"),
+    }
 
-    for num, rec in enumerate(ucl_state['picks'], start=1):
-        pick_numbers.setdefault(rec['user'], {})[rec['player']['playerId']] = num
+# ----------------- routes -----------------
+@bp.get("/ucl")
+def index():
+    draft_title = "UCL Fantasy Draft"
 
-    for user in UCL_USERS:
-        # сгруппируем по позиции
-        grouped = {'Goalkeeper': [], 'Defender': [], 'Midfielder': [], 'Forward': []}
-        for p in state.ucl_state['rosters'][user]:
-            grouped[p['position']].append(p)
-        rosters_grouped[user] = grouped
+    # load data
+    raw = _json_load(UCL_PLAYERS) or []
+    players = _players_from_ucl(raw)
 
-        rosters_points[user] = {}
-        rosters_sum[user] = {}
-        for plyr in state.ucl_state['rosters'][user]:
-            pid = plyr['playerId']
-            cache = os.path.join(UCL_CACHE_DIR, f'popupstats_70_{pid}.json')
-            pts_map, total = {}, 0
-            j = load_json(cache, default=None)
-            if j:
-                dv = j.get('data', {}).get('value', {})
-                for itm in dv.get('matchdayPoints', []):
-                    if 'mdId' in itm:
-                        pts_map[str(itm['mdId'])] = itm.get('tPoints', '-')
-            lst = []
-            for r in rounds_range:
-                v = pts_map.get(str(r), '-')
-                lst.append(v)
-                try:
-                    total += int(v)
-                except Exception:
-                    pass
-            rosters_points[user][pid] = lst
-            rosters_sum[user][pid] = total
+    # filters
+    club_filter = request.args.get("club", "").strip()
+    pos_filter = request.args.get("position", "").strip()
+
+    # options for filters
+    clubs = _uniq_sorted([p.get("clubName") for p in players])
+    positions = _uniq_sorted([p.get("position") for p in players])
+
+    # apply filters
+    filtered = _apply_filters(players, club_filter, pos_filter)
+
+    # state summary for header
+    state = _json_load(UCL_STATE) or {}
+    next_user = state.get("next_user")
+    next_round = state.get("next_round")
+    draft_completed = bool(state.get("draft_completed"))
 
     return render_template(
-        'status.html',
-        draft_title='UCL Fantasy Draft',
-        status_endpoint='ucl.status',
-        view='rosters',
-        users=UCL_USERS,
-        rosters=ucl_state['rosters'],
-        rosters_grouped=rosters_grouped,
-        position_slots=position_slots,
-        rounds_range=rounds_range,
-        rosters_points=rosters_points,
-        rosters_sum=rosters_sum,
-        pick_numbers=pick_numbers,
-        next_user=None if completed else next_user,
-        next_round=None if completed else next_round,
-        draft_completed=completed,
-        gw_deadlines={}
+        "index.html",
+        draft_title=draft_title,
+        players=filtered,
+        clubs=clubs,
+        positions=positions,
+        club_filter=club_filter,
+        pos_filter=pos_filter,
+        current_user=session.get("user_name"),
+        next_user=next_user,
+        next_round=next_round,
+        draft_completed=draft_completed,
+        status_url=url_for("ucl.status"),
     )
+
+@bp.get("/ucl/status")
+def status():
+    ctx = _build_status_context_ucl()
+    return render_template("status.html", **ctx)
