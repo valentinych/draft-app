@@ -6,15 +6,27 @@ from datetime import datetime
 
 import requests
 
+# === S3 ===
+try:
+    import boto3
+    from botocore.config import Config as BotoConfig
+except Exception:  # boto3 может быть не установлен локально
+    boto3 = None
+    BotoConfig = None
+
 # -------- Paths / constants --------
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Локальные файлы (фолбэк)
 EPL_STATE = BASE_DIR / "draft_state_epl.json"
 EPL_FPL   = BASE_DIR / "players_fpl_bootstrap.json"
 WISHLIST_DIR = BASE_DIR / "data" / "wishlist" / "epl"
 
+# Кеш element-summary
 CACHE_DIR = BASE_DIR / "data" / "cache" / "element_summary"
 CACHE_TTL_SEC = 24 * 3600  # 24h
 
+# FPL bootstrap
 FPL_BOOTSTRAP_URL = "https://fantasy.premierleague.com/api/bootstrap-static/"
 BOOTSTRAP_TTL_SEC = 3600  # 1 час
 
@@ -27,7 +39,7 @@ POS_CANON = {
 DEFAULT_SLOTS = {"GK": 3, "DEF": 7, "MID": 8, "FWD": 4}
 LAST_SEASON = "2024/25"
 
-# -------- JSON I/O --------
+# -------- JSON I/O (локально) --------
 def json_load(p: Path) -> Any:
     try:
         if p.exists():
@@ -43,6 +55,64 @@ def json_dump_atomic(p: Path, data: Any):
     with open(tmp, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
     os.replace(tmp, p)
+
+# ======================
+#        S3 I/O
+# ======================
+def _s3_enabled() -> bool:
+    # Включаем, если есть bucket и ключ для state; wishlist использует тот же bucket и prefix.
+    return bool(os.getenv("DRAFT_S3_BUCKET") and os.getenv("DRAFT_S3_STATE_KEY"))
+
+def _s3_bucket() -> Optional[str]:
+    return os.getenv("DRAFT_S3_BUCKET")
+
+def _s3_state_key() -> Optional[str]:
+    return os.getenv("DRAFT_S3_STATE_KEY")
+
+def _s3_wishlist_prefix() -> str:
+    # Можно переопределить префикс через ENV, по умолчанию wishlist/epl
+    return os.getenv("DRAFT_S3_WISHLIST_PREFIX", "wishlist/epl")
+
+def _s3_client():
+    if not boto3:
+        return None
+    cfg = BotoConfig(
+        retries={"max_attempts": 3, "mode": "standard"},
+        connect_timeout=5,
+        read_timeout=8,
+    )
+    region = os.getenv("AWS_REGION") or os.getenv("AWS_DEFAULT_REGION") or "us-east-1"
+    return boto3.client("s3", region_name=region, config=cfg)
+
+def _s3_get_json(bucket: str, key: str) -> Optional[dict]:
+    cli = _s3_client()
+    if not cli:
+        return None
+    try:
+        obj = cli.get_object(Bucket=bucket, Key=key)
+        body = obj["Body"].read()
+        return json.loads(body.decode("utf-8"))
+    except Exception as e:
+        print(f"[EPL:S3] get_object failed: s3://{bucket}/{key} -> {e}")
+        return None
+
+def _s3_put_json(bucket: str, key: str, data: dict) -> bool:
+    cli = _s3_client()
+    if not cli:
+        return False
+    try:
+        body = json.dumps(data, ensure_ascii=False, indent=2).encode("utf-8")
+        cli.put_object(
+            Bucket=bucket,
+            Key=key,
+            Body=body,
+            ContentType="application/json; charset=utf-8",
+            CacheControl="no-cache",
+        )
+        return True
+    except Exception as e:
+        print(f"[EPL:S3] put_object failed: s3://{bucket}/{key} -> {e}")
+        return False
 
 # -------- Bootstrap fetch/refresh (1h TTL) --------
 def ensure_fpl_bootstrap_fresh() -> dict:
@@ -124,9 +194,25 @@ def photo_url_for(pid: int) -> Optional[str]:
                 return f"https://resources.premierleague.com/premierleague/photos/players/110x140/p{code}.png"
     return None
 
-# -------- State --------
+# ======================
+#      STATE (S3)
+# ======================
 def load_state() -> Dict[str, Any]:
-    state = json_load(EPL_STATE) or {}
+    """
+    Загружаем состояние из S3 (если настроено), иначе — из локального файла.
+    """
+    if _s3_enabled():
+        bucket = _s3_bucket()
+        key    = _s3_state_key()
+        data = _s3_get_json(bucket, key) if bucket and key else None
+        if isinstance(data, dict):
+            state = data
+        else:
+            state = {}
+    else:
+        state = json_load(EPL_STATE) or {}
+
+    # normalize defaults
     state.setdefault("rosters", {})
     state.setdefault("picks", [])
     state.setdefault("draft_order", [])
@@ -136,7 +222,20 @@ def load_state() -> Dict[str, Any]:
     limits.setdefault("Max from club", 3)
     return state
 
-def save_state(state: Dict[str, Any]): json_dump_atomic(EPL_STATE, state)
+def save_state(state: Dict[str, Any]):
+    """
+    Сохраняем состояние в S3 (если настроено), иначе — локально.
+    """
+    if _s3_enabled():
+        bucket = _s3_bucket()
+        key    = _s3_state_key()
+        if bucket and key:
+            ok = _s3_put_json(bucket, key, state)
+            if ok:
+                return
+        # если не удалось — не роняем приложение, пишем локально как фолбэк
+        print("[EPL:S3] save_state fallback to local file")
+    json_dump_atomic(EPL_STATE, state)
 
 def who_is_on_clock(state: Dict[str, Any]) -> Optional[str]:
     try:
@@ -280,13 +379,38 @@ def build_status_context() -> Dict[str, Any]:
         "draft_started_at": state.get("draft_started_at"),
     }
 
-# -------- wishlist storage --------
-def wishlist_path(manager: str) -> Path:
+# ======================
+#   WISHLIST (S3)
+# ======================
+def _wishlist_s3_key(manager: str) -> str:
+    # Имя файла менеджера: безопасное (без '/')
     safe = manager.replace("/", "_")
-    return WISHLIST_DIR / f"{safe}.json"
+    prefix = _s3_wishlist_prefix().strip().strip("/")
+    return f"{prefix}/{safe}.json"
 
 def wishlist_load(manager: str) -> List[int]:
-    p = wishlist_path(manager)
+    """
+    Загружаем wishlist менеджера из S3 (если включено), иначе — локальный файл.
+    """
+    if _s3_enabled():
+        bucket = _s3_bucket()
+        key = _wishlist_s3_key(manager)
+        data = _s3_get_json(bucket, key) if bucket else None
+        if isinstance(data, list):
+            try:
+                return [int(x) for x in data]
+            except Exception:
+                return []
+        if isinstance(data, dict) and "ids" in data:
+            try:
+                return [int(x) for x in data.get("ids") or []]
+            except Exception:
+                return []
+        # если ничего нет — пустой список
+        return []
+
+    # локальный фолбэк
+    p = WISHLIST_DIR / f"{manager.replace('/', '_')}.json"
     try:
         data = json_load(p)
         if isinstance(data, list):
@@ -296,5 +420,19 @@ def wishlist_load(manager: str) -> List[int]:
     return []
 
 def wishlist_save(manager: str, ids: List[int]) -> None:
+    """
+    Сохраняем wishlist менеджера в S3 (если включено), иначе — локально.
+    """
+    ids_norm = [int(x) for x in ids]
+    if _s3_enabled():
+        bucket = _s3_bucket()
+        key = _wishlist_s3_key(manager)
+        payload = ids_norm  # храним просто как JSON-массив
+        if bucket and _s3_put_json(bucket, key, payload):
+            return
+        print(f"[EPL:S3] wishlist_save fallback to local for manager={manager}")
+
+    # локальный фолбэк
     WISHLIST_DIR.mkdir(parents=True, exist_ok=True)
-    json_dump_atomic(wishlist_path(manager), [int(x) for x in ids])
+    p = WISHLIST_DIR / f"{manager.replace('/', '_')}.json"
+    json_dump_atomic(p, ids_norm)

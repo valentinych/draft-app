@@ -1,11 +1,59 @@
 {
   "rosters": {
-    "Ксана": [],
-    "Саша": [],
-    "Руслан": [],
-    "Тёма": [],
-    "Сергей": [],
-    "Андрей": [],
+    "Ксана": [
+      {
+        "playerId": 430,
+        "fullName": "Erling Haaland",
+        "clubName": "MCI",
+        "position": "FWD",
+        "price": 14.0
+      }
+    ],
+    "Саша": [
+      {
+        "playerId": 381,
+        "fullName": "Mohamed Salah",
+        "clubName": "LIV",
+        "position": "MID",
+        "price": 14.5
+      }
+    ],
+    "Руслан": [
+      {
+        "playerId": 499,
+        "fullName": "Alexander Isak",
+        "clubName": "NEW",
+        "position": "FWD",
+        "price": 10.5
+      }
+    ],
+    "Тёма": [
+      {
+        "playerId": 235,
+        "fullName": "Cole Palmer",
+        "clubName": "CHE",
+        "position": "MID",
+        "price": 10.5
+      }
+    ],
+    "Сергей": [
+      {
+        "playerId": 16,
+        "fullName": "Bukayo Saka",
+        "clubName": "ARS",
+        "position": "MID",
+        "price": 10.0
+      }
+    ],
+    "Андрей": [
+      {
+        "playerId": 666,
+        "fullName": "Viktor Gyökeres",
+        "clubName": "ARS",
+        "position": "FWD",
+        "price": 9.0
+      }
+    ],
     "Женя": [],
     "Макс": []
   },
@@ -187,6 +235,78 @@
     "Саша",
     "Ксана"
   ],
-  "current_pick_index": 0,
-  "picks": []
+  "current_pick_index": 6,
+  "picks": [
+    {
+      "user": "Ксана",
+      "player": {
+        "playerId": 430,
+        "fullName": "Erling Haaland",
+        "clubName": "MCI",
+        "position": "FWD",
+        "price": 14.0
+      },
+      "ts": "2025-08-11T14:31:01"
+    },
+    {
+      "user": "Саша",
+      "player": {
+        "playerId": 381,
+        "fullName": "Mohamed Salah",
+        "clubName": "LIV",
+        "position": "MID",
+        "price": 14.5
+      },
+      "ts": "2025-08-11T14:31:17"
+    },
+    {
+      "user": "Руслан",
+      "player": {
+        "playerId": 499,
+        "fullName": "Alexander Isak",
+        "clubName": "NEW",
+        "position": "FWD",
+        "price": 10.5
+      },
+      "ts": "2025-08-11T14:31:29"
+    },
+    {
+      "user": "Тёма",
+      "player": {
+        "playerId": 235,
+        "fullName": "Cole Palmer",
+        "clubName": "CHE",
+        "position": "MID",
+        "price": 10.5
+      },
+      "ts": "2025-08-11T14:38:16"
+    },
+    {
+      "user": "Сергей",
+      "player": {
+        "playerId": 16,
+        "fullName": "Bukayo Saka",
+        "clubName": "ARS",
+        "position": "MID",
+        "price": 10.0
+      },
+      "ts": "2025-08-11T14:39:54"
+    },
+    {
+      "user": "Андрей",
+      "player": {
+        "playerId": 666,
+        "fullName": "Viktor Gyökeres",
+        "clubName": "ARS",
+        "position": "FWD",
+        "price": 9.0
+      },
+      "ts": "2025-08-11T14:48:06"
+    }
+  ],
+  "draft_started_at": "2025-08-11T14:30:00",
+  "limits": {
+    "Max from club": 22
+  },
+  "next_user": "Женя"
 }
