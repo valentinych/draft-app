@@ -1,26 +1,27 @@
 from __future__ import annotations
 from flask import Blueprint, render_template, request, session, url_for, redirect, abort, flash, jsonify
 from datetime import datetime
-from typing import Any, Dict, List
+from typing import Any
 
 from .epl_services import (
-    BASE_DIR, EPL_FPL, LAST_SEASON,
+    LAST_SEASON, EPL_FPL,
+    ensure_fpl_bootstrap_fresh,
     players_from_fpl, players_index, nameclub_index,
-    load_state, save_state, who_is_on_clock, slots_from_state,
+    load_state, save_state, who_is_on_clock,
     picked_fpl_ids_from_state, annotate_can_pick,
     build_status_context,
     wishlist_load, wishlist_save,
     fetch_element_summary, fp_last_from_summary, photo_url_for,
 )
 
-import json
-
 bp = Blueprint("epl", __name__)
 
 @bp.route("/epl", methods=["GET", "POST"])
 def index():
     draft_title = "EPL Fantasy Draft"
-    bootstrap = _json_load(EPL_FPL) or {}
+
+    # Всегда получаем актуальный bootstrap (файл обновится, если старше 1 часа)
+    bootstrap = ensure_fpl_bootstrap_fresh()
     players = players_from_fpl(bootstrap)
     pidx = players_index(players)
     nidx = nameclub_index(players)
@@ -69,9 +70,11 @@ def index():
         save_state(state)
         return redirect(url_for("epl.index"))
 
+    # Скрываем уже выбранных
     picked_ids = picked_fpl_ids_from_state(state, nidx)
     players = [p for p in players if str(p["playerId"]) not in picked_ids]
 
+    # Фильтры
     club_filter = (request.args.get("club") or "").strip()
     pos_filter  = (request.args.get("position") or "").strip()
     clubs = sorted({p.get("clubName") for p in players if p.get("clubName")})
@@ -88,12 +91,14 @@ def index():
     if pos_filter:
         players = [p for p in players if (p.get("position") or "") == pos_filter]
 
+    # Сортировка по цене по умолчанию
     sort_field = request.args.get("sort") or "price"
     sort_dir = request.args.get("dir") or "desc"
     reverse = sort_dir == "desc"
     if sort_field == "price":
         players.sort(key=lambda p: (p.get("price") is None, p.get("price")), reverse=reverse)
 
+    # canPick для фильтра
     annotate_can_pick(players, state, current_user)
 
     return render_template(
@@ -218,11 +223,3 @@ def fp_last_batch():
     for pid in ids:
         fp[str(pid)] = fp_last_from_summary(fetch_element_summary(pid)) or 0
     return jsonify({"fp": fp, "season": LAST_SEASON})
-
-# ---- tiny helper ----
-def _json_load(path) -> Any:
-    try:
-        with open(path, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except Exception:
-        return {}

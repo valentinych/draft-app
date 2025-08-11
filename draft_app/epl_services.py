@@ -15,6 +15,9 @@ WISHLIST_DIR = BASE_DIR / "data" / "wishlist" / "epl"
 CACHE_DIR = BASE_DIR / "data" / "cache" / "element_summary"
 CACHE_TTL_SEC = 24 * 3600  # 24h
 
+FPL_BOOTSTRAP_URL = "https://fantasy.premierleague.com/api/bootstrap-static/"
+BOOTSTRAP_TTL_SEC = 3600  # 1 час
+
 POS_CANON = {
     "Goalkeeper": "GK", "GK": "GK",
     "Defender": "DEF", "DEF": "DEF",
@@ -41,7 +44,32 @@ def json_dump_atomic(p: Path, data: Any):
         json.dump(data, f, ensure_ascii=False, indent=2)
     os.replace(tmp, p)
 
-# -------- Players (bootstrap) --------
+# -------- Bootstrap fetch/refresh (1h TTL) --------
+def ensure_fpl_bootstrap_fresh() -> dict:
+    """
+    Возвращает свежие данные bootstrap-static.
+    Если локальный файл отсутствует/старше 1 часа/некорректен — скачивает новый и перезаписывает.
+    """
+    try:
+        if EPL_FPL.exists():
+            age = time.time() - EPL_FPL.stat().st_mtime
+            if age <= BOOTSTRAP_TTL_SEC:
+                data = json_load(EPL_FPL)
+                if isinstance(data, dict) and data.get("elements"):
+                    return data
+        # Нужно обновить
+        r = requests.get(FPL_BOOTSTRAP_URL, timeout=10)
+        r.raise_for_status()
+        data = r.json()
+        if isinstance(data, dict) and data.get("elements"):
+            json_dump_atomic(EPL_FPL, data)
+            return data
+    except Exception as e:
+        print(f"[EPL] Failed to fetch bootstrap-static: {e}")
+    # fallback — что есть на диске
+    return json_load(EPL_FPL) or {}
+
+# -------- Players (bootstrap → internal model) --------
 def players_from_fpl(bootstrap: Any) -> List[Dict[str, Any]]:
     out: List[Dict[str, Any]] = []
     if not isinstance(bootstrap, dict):
@@ -105,18 +133,18 @@ def load_state() -> Dict[str, Any]:
     state.setdefault("current_pick_index", 0)
     state.setdefault("draft_started_at", None)
     limits = state.setdefault("limits", {})
-    limits.setdefault("Max from club", 22)
+    limits.setdefault("Max from club", 3)
     return state
 
 def save_state(state: Dict[str, Any]): json_dump_atomic(EPL_STATE, state)
 
 def who_is_on_clock(state: Dict[str, Any]) -> Optional[str]:
     try:
-      order = state.get("draft_order") or []
-      idx = int(state.get("current_pick_index", 0))
-      return order[idx] if 0 <= idx < len(order) else None
+        order = state.get("draft_order") or []
+        idx = int(state.get("current_pick_index", 0))
+        return order[idx] if 0 <= idx < len(order) else None
     except Exception:
-      return None
+        return None
 
 def slots_from_state(state: Dict[str, Any]) -> Dict[str, int]:
     limits = state.get("limits") or {}
@@ -162,7 +190,7 @@ def annotate_can_pick(players: List[Dict[str, Any]], state: Dict[str, Any], curr
         return
     roster = (state.get("rosters") or {}).get(current_user, []) or []
     slots = slots_from_state(state)
-    max_from_club = (state.get("limits") or {}).get("Max from club", 22)
+    max_from_club = (state.get("limits") or {}).get("Max from club", 3)
     pos_counts = {"GK":0, "DEF":0, "MID":0, "FWD":0}
     club_counts: Dict[str,int] = {}
     for pl in roster:
