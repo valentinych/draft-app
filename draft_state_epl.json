@@ -7,7 +7,8 @@
     "Ксана": [],
     "Женя": [],
     "Руслан": [],
-    "Куль": []
+    "Куль": [],
+    "GOD": []
   },
   "draft_order": [
     "Макс",
@@ -188,5 +189,11 @@
     "Макс"
   ],
   "current_pick_index": 0,
-  "picks": []
+  "picks": [],
+  "draft_started_at": "2025-08-11T13:48:21",
+  "next_user": "Макс",
+  "limits": {
+    "Max from club": 3
+  },
+  "draft_completed": false
 }

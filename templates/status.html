@@ -1,5 +1,12 @@
 {% extends "base.html" %}
 {% block title %}{{ title or "EPL Fantasy Draft — Состояние драфта" }}{% endblock %}
+
+{% if debug_counts %}
+  <div style="margin:8px 0;color:#666;font-size:12px">
+    players_total={{ debug_counts.players_total }}
+  </div>
+{% endif %}
+
 {% block content %}
 
 <div class="page">
@@ -7,6 +14,9 @@
     <div class="topbar-left">
       <h1 class="page-title">{{ title or "Состояние драфта" }}</h1>
       <div class="meta">
+        {% if draft_started_at %}
+          <span class="badge">Старт: {{ draft_started_at }}</span>
+        {% endif %}
         {% if draft_completed %}
           <span class="badge badge-muted">Драфт завершён</span>
         {% else %}
@@ -23,50 +33,31 @@
     </div>
   </div>
 
-  {# ---- Сводка по ограничениям/правилам, если переданы ---- #}
-  {% set limits = limits or rules or draft_limits %}
-  {% if limits %}
-    <div class="card">
-      <div class="card-title">Ограничения драфта</div>
-      <div class="card-body">
-        <ul class="bullets">
-          {% for k,v in limits.items() %}
-            <li><strong>{{ k }}</strong>: {{ v }}</li>
-          {% endfor %}
-        </ul>
-      </div>
-    </div>
-  {% endif %}
-
-  {# ---- Таблица пиков по раундам, если есть ---- #}
-  {% set picks = picks or draft_picks or picks_by_round %}
+  {# ---- Пики по времени ---- #}
   {% if picks %}
     <div class="card">
-      <div class="card-title">Пики по раундам</div>
+      <div class="card-title">Пики</div>
       <div class="table-wrap">
         <table class="tbl">
           <thead>
             <tr>
-              <th class="num">Раунд</th>
+              <th class="num">#</th>
               <th>Драфтер</th>
               <th>Игрок</th>
-              <th>Клуб</th>
               <th>Позиция</th>
+              <th>Клуб</th>
               <th class="num">Время</th>
             </tr>
           </thead>
           <tbody>
             {% for row in picks %}
               <tr>
-                <td class="num">{{ row.round or row.get('round') }}</td>
-                <td>{{ row.user or row.manager or row.get('user') or row.get('manager') }}</td>
-                <td>{{ row.player_name or row.fullName or row.get('player') }}</td>
-                <td>{{ row.club or row.clubName }}</td>
-                <td>{{ row.pos or row.position }}</td>
-                <td class="num">
-                  {% set ts = row.ts or row.timestamp %}
-                  {{ ts if ts else '' }}
-                </td>
+                <td class="num">{{ loop.index }}</td>
+                <td>{{ row.user }}</td>
+                <td>{{ row.player_name }}</td>
+                <td>{{ row.pos }}</td>
+                <td>{{ row.club }}</td>
+                <td class="num">{{ row.ts or "" }}</td>
               </tr>
             {% endfor %}
           </tbody>
@@ -75,33 +66,52 @@
     </div>
   {% endif %}
 
-  {# ---- Составы по менеджерам (если переданы) ---- #}
-  {% set squads = squads or teams or squads_by_manager %}
-  {% if squads %}
+  {# ---- Составы по менеджерам: GK -> DEF -> MID -> FWD, с пустыми слотами ---- #}
+  {% if squads_grouped %}
     <div class="card">
       <div class="card-title">Составы по менеджерам</div>
       <div class="grid">
-        {% for manager, roster in (squads.items() if squads.items is defined else squads) %}
+        {% for manager, g in squads_grouped.items() %}
           <div class="panel">
             <div class="panel-title">{{ manager }}</div>
-            {% if roster %}
-              <ul class="bullets">
-                {% for p in roster %}
-                  <li>{{ p.fullName or p.name or p.player_name }} — {{ p.position or p.pos }}{% if p.clubName or p.club %} ({{ p.clubName or p.club }}){% endif %}</li>
-                {% endfor %}
-              </ul>
-            {% else %}
-              <div class="muted">Пока пусто</div>
-            {% endif %}
+            <div class="panel-body">
+              <div class="block">
+                <div class="block-title">GK</div>
+                <ul class="bullets">
+                  {% for p in g.GK %}
+                    <li>{{ p.fullName if p else "—" }}</li>
+                  {% endfor %}
+                </ul>
+              </div>
+              <div class="block">
+                <div class="block-title">DEF</div>
+                <ul class="bullets">
+                  {% for p in g.DEF %}
+                    <li>{{ p.fullName if p else "—" }}</li>
+                  {% endfor %}
+                </ul>
+              </div>
+              <div class="block">
+                <div class="block-title">MID</div>
+                <ul class="bullets">
+                  {% for p in g.MID %}
+                    <li>{{ p.fullName if p else "—" }}</li>
+                  {% endfor %}
+                </ul>
+              </div>
+              <div class="block">
+                <div class="block-title">FWD</div>
+                <ul class="bullets">
+                  {% for p in g.FWD %}
+                    <li>{{ p.fullName if p else "—" }}</li>
+                  {% endfor %}
+                </ul>
+              </div>
+            </div>
           </div>
         {% endfor %}
       </div>
     </div>
-  {% endif %}
-
-  {# ---- Если нет ни одного блока данных ---- #}
-  {% if not limits and not picks and not squads %}
-    <div class="muted">Пока нет данных для отображения. Проверь логику формирования контекста во вьюхе страницы статуса.</div>
   {% endif %}
 </div>
 
@@ -134,8 +144,10 @@
   .grid { display:grid; grid-template-columns: repeat(auto-fill,minmax(260px,1fr)); gap:12px; padding:12px; }
   .panel { border:1px solid #ececec; border-radius:10px; }
   .panel-title { padding:10px 12px; background:#fafafa; border-bottom:1px solid #f0f0f0; font-weight:600; }
-  .bullets { margin:0; padding:10px 16px; list-style:disc; }
-  .bullets li { margin:4px 0; }
+  .panel-body { padding:10px 12px; display:grid; grid-template-columns: repeat(2,1fr); gap:8px 16px; }
+  .block-title { font-weight:600; margin-bottom:6px; }
+  .bullets { margin:0; padding-left:16px; list-style:disc; }
+  .bullets li { margin:3px 0; }
 </style>
 
 {% endblock %}

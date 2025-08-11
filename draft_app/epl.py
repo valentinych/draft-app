@@ -1,31 +1,35 @@
 from __future__ import annotations
 import json, os, tempfile
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple, Set
 from datetime import datetime
-from flask import Blueprint, render_template, request, session, url_for, redirect, abort, flash
+from flask import Blueprint, render_template, request, session, url_for, redirect, abort, flash, jsonify
 
 bp = Blueprint("epl", __name__)
 
-# --- файлы данных ---
+# ----------------- конфиг путей -----------------
 BASE_DIR = Path(__file__).resolve().parent.parent
 EPL_STATE = BASE_DIR / "draft_state_epl.json"
-EPL_PLAYERS = BASE_DIR / "players_fpl_bootstrap.json"  # FPL bootstrap
+EPL_FPL   = BASE_DIR / "players_fpl_bootstrap.json"  # источник игроков
+WISHLIST_DIR = BASE_DIR / "data" / "wishlist" / "epl"
 
-# --- константы позиций / слоты для блока "Составы по менеджерам" ---
+# ----------------- константы -----------------
 POS_CANON = {
     "Goalkeeper": "GK", "GK": "GK",
     "Defender": "DEF", "DEF": "DEF",
     "Midfielder": "MID", "MID": "MID",
     "Forward": "FWD", "FWD": "FWD",
 }
-DEFAULT_SLOTS = {"GK": 3, "DEF": 7, "MID": 8, "FWD": 4}  # при необходимости поправь под свои правила
-
+# размер состава
+DEFAULT_SLOTS = {"GK": 3, "DEF": 7, "MID": 8, "FWD": 4}
 
 # ----------------- I/O helpers -----------------
 def _json_load(p: Path) -> Any:
     try:
-        return json.loads(p.read_text(encoding="utf-8")) if p.exists() else None
+        if p.exists():
+            t = p.read_text(encoding="utf-8")
+            return json.loads(t)
+        return None
     except Exception:
         return None
 
@@ -37,21 +41,15 @@ def _json_dump_atomic(p: Path, data: Any):
         json.dump(data, f, ensure_ascii=False, indent=2)
     os.replace(tmp, p)
 
-
-# ----------------- players -----------------
+# ----------------- players: FPL bootstrap -----------------
 def _players_from_fpl(bootstrap: Any) -> List[Dict[str, Any]]:
-    """
-    Преобразует FPL bootstrap в унифицированный список игроков.
-    Выход: [{playerId, shortName, fullName, clubName, position, price}, ...]
-    """
     out: List[Dict[str, Any]] = []
     if not isinstance(bootstrap, dict):
         return out
-
     elements = bootstrap.get("elements") or []
     teams = {t.get("id"): t.get("name") for t in (bootstrap.get("teams") or [])}
+    short = {t.get("id"): (t.get("short_name") or "").upper() for t in (bootstrap.get("teams") or [])}
     pos_map = {1: "GK", 2: "DEF", 3: "MID", 4: "FWD"}
-
     for e in elements:
         pid = e.get("id")
         if pid is None:
@@ -60,66 +58,60 @@ def _players_from_fpl(bootstrap: Any) -> List[Dict[str, Any]]:
         second = (e.get("second_name") or "").strip()
         web = (e.get("web_name") or second or "").strip()
         full = f"{first} {second}".strip()
-        out.append(
-            {
-                "playerId": int(pid),
-                "shortName": web,           # краткое имя
-                "fullName": full,           # полное имя
-                "clubName": teams.get(e.get("team")) or str(e.get("team")),
-                "position": pos_map.get(e.get("element_type")),
-                # FPL хранит цену в десятых (55 => 5.5)
-                "price": (e.get("now_cost") / 10.0) if isinstance(e.get("now_cost"), (int, float)) else None,
-            }
-        )
+        club_full = teams.get(e.get("team")) or str(e.get("team"))
+        club_abbr = short.get(e.get("team")) or (club_full or "").upper()
+        out.append({
+            "playerId": int(pid),
+            "shortName": web,
+            "fullName": full,
+            "clubName": club_abbr,
+            "clubFull": club_full,
+            "position": pos_map.get(e.get("element_type")),
+            "price": (e.get("now_cost") / 10.0) if isinstance(e.get("now_cost"), (int, float)) else None,
+        })
     return out
 
 def _players_index(plist: List[Dict[str, Any]]) -> Dict[str, Dict[str, Any]]:
     return {str(p["playerId"]): p for p in plist}
 
+def _nameclub_index(plist: List[Dict[str, Any]]) -> Dict[Tuple[str,str], Set[str]]:
+    def _norm(s: Optional[str]) -> str:
+        if not s: return ""
+        return " ".join(str(s).replace(".", " ").split()).lower()
+    idx: Dict[Tuple[str,str], Set[str]] = {}
+    for p in plist:
+        pid = str(p["playerId"])
+        club = (p.get("clubName") or "").upper()
+        for nm in (p.get("shortName"), p.get("fullName")):
+            key = (_norm(nm), club)
+            if not key[0] or not club: continue
+            idx.setdefault(key, set()).add(pid)
+    return idx
 
 # ----------------- state helpers -----------------
 def _load_state() -> Dict[str, Any]:
     state = _json_load(EPL_STATE) or {}
-    state.setdefault("rosters", {})         # составы по менеджерам
-    state.setdefault("picks", [])           # список пиков
-    state.setdefault("draft_order", [])     # порядок драфта
+    state.setdefault("rosters", {})
+    state.setdefault("picks", [])
+    state.setdefault("draft_order", [])
     state.setdefault("current_pick_index", 0)
-    # время старта драфта
     state.setdefault("draft_started_at", None)
+    limits = state.setdefault("limits", {})
+    limits.setdefault("Max from club", 3)
     return state
 
 def _save_state(state: Dict[str, Any]):
     _json_dump_atomic(EPL_STATE, state)
 
-def _picked_ids_from_state(state: Dict[str, Any]) -> set[str]:
-    picked: set[str] = set()
-    # из составов
-    for arr in (state.get("rosters") or {}).values():
-        if isinstance(arr, list):
-            for pl in arr:
-                pid = pl.get("playerId") or pl.get("id")
-                if pid is not None:
-                    picked.add(str(pid))
-    # из пиков (на случай, если roster отстаёт)
-    for row in (state.get("picks") or []):
-        pl = (row or {}).get("player") or {}
-        pid = pl.get("playerId") or pl.get("id")
-        if pid is not None:
-            picked.add(str(pid))
-    return picked
-
 def _who_is_on_the_clock(state: Dict[str, Any]) -> Optional[str]:
     try:
         order = state.get("draft_order") or []
         idx = int(state.get("current_pick_index", 0))
-        if 0 <= idx < len(order):
-            return order[idx]
-        return None
+        return order[idx] if 0 <= idx < len(order) else None
     except Exception:
         return None
 
 def _slots_from_state(state: Dict[str, Any]) -> Dict[str, int]:
-    """Читаем желаемые слоты из state['limits']['Slots'] либо берём дефолт."""
     limits = state.get("limits") or {}
     slots = (limits.get("Slots") if isinstance(limits, dict) else None) or {}
     merged = DEFAULT_SLOTS.copy()
@@ -129,63 +121,66 @@ def _slots_from_state(state: Dict[str, Any]) -> Dict[str, int]:
                 merged[k] = v
     return merged
 
+def _picked_fpl_ids_from_state(
+    state: Dict[str, Any],
+    nameclub_idx: Dict[Tuple[str,str], Set[str]]
+) -> Set[str]:
+    def _norm(s: Optional[str]) -> str:
+        if not s: return ""
+        return " ".join(str(s).replace(".", " ").split()).lower()
+    picked: Set[str] = set()
+    def add_by_player(pl: Dict[str, Any]):
+        nm  = _norm(pl.get("player_name") or pl.get("fullName"))
+        club = (pl.get("clubName") or "").upper()
+        if nm and club:
+            ids = nameclub_idx.get((nm, club))
+            if ids: picked.update(ids)
+    for arr in (state.get("rosters") or {}).values():
+        if isinstance(arr, list):
+            for pl in arr:
+                if isinstance(pl, dict): add_by_player(pl)
+    for row in (state.get("picks") or []):
+        pl = (row or {}).get("player") or {}
+        if isinstance(pl, dict): add_by_player(pl)
+    return picked
 
-# ----------------- status context -----------------
+# ----------------- статусный контекст -----------------
 def _build_status_context_epl() -> Dict[str, Any]:
     state = _load_state()
-
-    bootstrap = _json_load(EPL_PLAYERS) or {}
+    bootstrap = _json_load(EPL_FPL) or {}
     plist = _players_from_fpl(bootstrap)
-    pidx = _players_index(plist)
 
-    # limits
-    limits = state.get("limits") or {"Max from club": 3, "Min GK": 1, "Min DEF": 3, "Min MID": 3, "Min FWD": 1}
-
-    # picks (учитываем вложенное player и поле ts)
+    limits = state.get("limits") or {}
     picks: List[Dict[str, Any]] = []
     for row in state.get("picks", []):
-        user = row.get("user")
         pl = row.get("player") or {}
-        pid = str(pl.get("playerId") or pl.get("id") or "")
-        meta = pidx.get(pid, {})
-        pname = pl.get("player_name") or meta.get("shortName") or pl.get("fullName") or meta.get("fullName")
         picks.append({
             "round": row.get("round"),
-            "user": user,
-            "player_name": pname,
-            "club": pl.get("clubName") or meta.get("clubName"),
-            "pos": POS_CANON.get(pl.get("position")) or meta.get("position"),
-            "ts": row.get("ts"),  # ISO-строка
+            "user": row.get("user"),
+            "player_name": pl.get("player_name") or pl.get("fullName"),
+            "club": pl.get("clubName"),
+            "pos": POS_CANON.get(pl.get("position")) or pl.get("position"),
+            "ts": row.get("ts"),
         })
 
-    # squads: rosters -> сгруппировать GK, DEF, MID, FWD и дополнить пустыми слотами
-    rosters = state.get("rosters") or {}
-    slots = _slots_from_state(state)  # {"GK":2,"DEF":5,"MID":5,"FWD":3}
+    slots = _slots_from_state(state)
     squads_grouped: Dict[str, Dict[str, List[Dict[str, Any] | None]]] = {}
-
-    def canon_pos(x: Any) -> str:
-        return POS_CANON.get(str(x)) or str(x)
-
-    for manager, arr in rosters.items():
+    for manager, arr in (state.get("rosters") or {}).items():
         g = {"GK": [], "DEF": [], "MID": [], "FWD": []}
-        for pl in (arr or []):
-            pid = str(pl.get("playerId") or pl.get("id") or "")
-            meta = pidx.get(pid, {})
-            pos = canon_pos(pl.get("position") or meta.get("position"))
-            if pos not in g:
-                continue
-            g[pos].append({
-                "fullName": pl.get("player_name") or pl.get("fullName") or meta.get("shortName") or meta.get("fullName"),
-                "position": pos,
-                "clubName": pl.get("clubName") or meta.get("clubName"),
-            })
-        # дополнить пустыми
+        for pl in arr or []:
+            pos = POS_CANON.get(pl.get("position")) or pl.get("position")
+            if pos in g:
+                g[pos].append({
+                    "fullName": pl.get("player_name") or pl.get("fullName"),
+                    "position": pos,
+                    "clubName": pl.get("clubName"),
+                })
         for pos in ("GK", "DEF", "MID", "FWD"):
             need = max(0, slots.get(pos, 0) - len(g[pos]))
             g[pos].extend([None] * need)
         squads_grouped[manager] = g
 
-    ctx: Dict[str, Any] = {
+    return {
         "title": "EPL Fantasy Draft — Состояние драфта",
         "draft_url": url_for("epl.index"),
         "limits": limits,
@@ -196,19 +191,65 @@ def _build_status_context_epl() -> Dict[str, Any]:
         "next_round": state.get("next_round"),
         "draft_started_at": state.get("draft_started_at"),
     }
-    return ctx
 
+# ----------------- расчёт флага canPick -----------------
+def _annotate_can_pick(players: List[Dict[str, Any]], state: Dict[str, Any], current_user: Optional[str]) -> None:
+    if not current_user:
+        for p in players: p["canPick"] = False
+        return
+    draft_completed = bool(state.get("draft_completed", False))
+    on_clock = (state.get("next_user") or _who_is_on_the_clock(state)) == current_user
+    if draft_completed or not on_clock:
+        for p in players: p["canPick"] = False
+        return
+    roster = (state.get("rosters") or {}).get(current_user, []) or []
+    slots = _slots_from_state(state)
+    max_from_club = (state.get("limits") or {}).get("Max from club", 3)
+    pos_counts: Dict[str, int] = {"GK":0, "DEF":0, "MID":0, "FWD":0}
+    club_counts: Dict[str, int] = {}
+    for pl in roster:
+        pos = POS_CANON.get(pl.get("position")) or pl.get("position")
+        if pos in pos_counts: pos_counts[pos] += 1
+        club = (pl.get("clubName") or "").upper()
+        if club: club_counts[club] = club_counts.get(club, 0) + 1
+    for p in players:
+        pos = p.get("position")
+        club = (p.get("clubName") or "").upper()
+        can_pos = pos in slots and pos_counts.get(pos, 0) < slots[pos]
+        can_club = club_counts.get(club, 0) < max_from_club if club else True
+        p["canPick"] = bool(can_pos and can_club)
 
-# ----------------- routes -----------------
+# ----------------- wishlist storage -----------------
+def _wishlist_path(manager: str) -> Path:
+    safe = manager.replace("/", "_")
+    return WISHLIST_DIR / f"{safe}.json"
+
+def _wishlist_load(manager: str) -> List[int]:
+    p = _wishlist_path(manager)
+    try:
+        data = _json_load(p)
+        if isinstance(data, list):
+            return [int(x) for x in data]
+    except Exception:
+        pass
+    return []
+
+def _wishlist_save(manager: str, ids: List[int]) -> None:
+    WISHLIST_DIR.mkdir(parents=True, exist_ok=True)
+    _json_dump_atomic(_wishlist_path(manager), [int(x) for x in ids])
+
+# ----------------- маршруты: страница драфта -----------------
 @bp.route("/epl", methods=["GET", "POST"])
 def index():
     draft_title = "EPL Fantasy Draft"
 
-    # загрузим игроков и стейт
-    bootstrap = _json_load(EPL_PLAYERS) or {}
+    # Загрузка игроков
+    bootstrap = _json_load(EPL_FPL) or {}
     players = _players_from_fpl(bootstrap)
     pidx = _players_index(players)
+    nameclub_idx = _nameclub_index(players)
 
+    # Загрузка state
     state = _load_state()
     next_user = state.get("next_user") or _who_is_on_the_clock(state)
     next_round = state.get("next_round")
@@ -216,31 +257,20 @@ def index():
     current_user = session.get("user_name")
     godmode = bool(session.get("godmode"))
 
-    # --- обработка пика (POST) ---
+    # POST: пик игрока
     if request.method == "POST":
         if draft_completed:
-            flash("Драфт завершён", "warning")
-            return redirect(url_for("epl.index"))
-
+            flash("Драфт завершён", "warning"); return redirect(url_for("epl.index"))
         player_id = request.form.get("player_id")
         if not player_id or player_id not in pidx:
-            flash("Некорректный игрок", "danger")
-            return redirect(url_for("epl.index"))
-
-        # защита: пик только в свой ход (кроме godmode)
+            flash("Некорректный игрок", "danger"); return redirect(url_for("epl.index"))
         if not godmode and (not current_user or current_user != next_user):
             abort(403)
-
-        picked_ids = _picked_ids_from_state(state)
-        if str(player_id) in picked_ids:
-            flash("Игрок уже выбран", "warning")
-            return redirect(url_for("epl.index"))
-
-        # зафиксируем время старта драфта при первом пике
+        picked_fpl_ids = _picked_fpl_ids_from_state(state, nameclub_idx)
+        if str(player_id) in picked_fpl_ids:
+            flash("Игрок уже выбран", "warning"); return redirect(url_for("epl.index"))
         if not state.get("draft_started_at"):
             state["draft_started_at"] = datetime.now().isoformat(timespec="seconds")
-
-        # запись пика с временем
         meta = pidx[str(player_id)]
         pick_row = {
             "user": current_user,
@@ -254,12 +284,7 @@ def index():
             "ts": datetime.now().isoformat(timespec="seconds"),
         }
         state.setdefault("picks", []).append(pick_row)
-
-        # добавим в состав менеджера
-        roster = state["rosters"].setdefault(current_user, [])
-        roster.append(pick_row["player"])
-
-        # продвинем очередь
+        state.setdefault("rosters", {}).setdefault(current_user, []).append(pick_row["player"])
         try:
             state["current_pick_index"] = int(state.get("current_pick_index", 0)) + 1
             order = state.get("draft_order", [])
@@ -267,49 +292,42 @@ def index():
                 state["next_user"] = order[state["current_pick_index"]]
         except Exception:
             pass
-
         _save_state(state)
         return redirect(url_for("epl.index"))
 
-    # --- GET: список игроков, фильтры, сортировка ---
+    # GET: скрываем уже выбранных
+    picked_fpl_ids = _picked_fpl_ids_from_state(state, nameclub_idx)
+    players = [p for p in players if str(p["playerId"]) not in picked_fpl_ids]
 
-    # скрыть уже выбранных
-    picked_ids = _picked_ids_from_state(state)
-    players = [p for p in players if str(p["playerId"]) not in picked_ids]
-
-    # --- НОВОЕ: карта аббревиатур клубов -> полное имя (из FPL teams.short_name) ---
-    teams = bootstrap.get("teams") or []
-    abbr2name = {str(t.get("short_name")).upper(): t.get("name") for t in teams if t.get("short_name") and t.get("name")}
-
-    # filters (поддержка аббревиатур, например ?club=ARS)
+    # Фильтры
     club_filter = (request.args.get("club") or "").strip()
-    pos_filter = (request.args.get("position") or "").strip()
-
-    # опции для селектов
+    pos_filter  = (request.args.get("position") or "").strip()
     clubs = sorted({p.get("clubName") for p in players if p.get("clubName")})
     positions = sorted({p.get("position") for p in players if p.get("position")})
 
-    # нормализуем клуб: если передана аббревиатура (ARS/LIV/...), переведём в полное имя
+    # поддержим полные имена клубов: Arsenal -> ARS
+    teams = bootstrap.get("teams") or []
+    abbr2name = {str(t.get("short_name")).upper(): t.get("name") for t in teams if t.get("short_name") and t.get("name")}
+    name2abbr = {v.upper(): k for k, v in abbr2name.items()}
     if club_filter and club_filter not in clubs:
-        club_maybe = abbr2name.get(club_filter.upper())
-        if club_maybe:
-            club_filter = club_maybe
-        else:
-            # неизвестное значение фильтра — безопасно игнорируем
-            club_filter = ""
-
-    # применяем фильтры
+        club_filter = name2abbr.get(club_filter.upper(), "")
     if club_filter:
-        players = [p for p in players if (p.get("clubName") or "") == club_filter]
+        club_key = club_filter.upper()
+        players = [p for p in players if (p.get("clubName") or "").upper() == club_key]
     if pos_filter:
         players = [p for p in players if (p.get("position") or "") == pos_filter]
 
-    # сортировка по цене (?sort=price&dir=asc|desc)
-    sort_field = request.args.get("sort")
-    sort_dir = request.args.get("dir", "asc")
+    # Сортировка по цене (?sort=price&dir=asc|desc)
+    sort_field = request.args.get("sort") or "price"
+    sort_dir = request.args.get("dir") or "desc"
     reverse = sort_dir == "desc"
+
     if sort_field == "price":
         players.sort(key=lambda p: (p.get("price") is None, p.get("price")), reverse=reverse)
+
+
+    # Рассчитать canPick для фильтра “Can Pick”
+    _annotate_can_pick(players, state, current_user)
 
     return render_template(
         "index.html",
@@ -330,3 +348,94 @@ def index():
 def status():
     ctx = _build_status_context_epl()
     return render_template("status.html", **ctx)
+
+@bp.post("/epl/undo")
+def undo_last_pick():
+    # Только для godmode
+    if not session.get("godmode"):
+        abort(403)
+
+    state = _load_state()
+    picks = state.get("picks") or []
+    if not picks:
+        flash("Нет пиков для отмены", "warning")
+        return redirect(url_for("epl.index"))
+
+    last = picks.pop()  # снять последний пик
+    user = last.get("user")
+    pl = (last.get("player") or {})
+    pid = pl.get("playerId")
+
+    # убрать игрока из состава соответствующего менеджера
+    roster = (state.get("rosters") or {}).get(user)
+    if isinstance(roster, list) and pid is not None:
+        for i, it in enumerate(roster):
+            if (isinstance(it, dict) and (it.get("playerId") == pid or it.get("id") == pid)):
+                roster.pop(i)
+                break
+
+    # откатить очередь
+    try:
+        idx = int(state.get("current_pick_index", 0)) - 1
+        if idx < 0:
+            idx = 0
+        state["current_pick_index"] = idx
+        order = state.get("draft_order", [])
+        if 0 <= idx < len(order):
+            state["next_user"] = order[idx]
+        else:
+            state["next_user"] = None
+    except Exception:
+        pass
+
+    # на всякий случай снимаем флаг завершения
+    state["draft_completed"] = False
+
+    _save_state(state)
+    flash("Последний пик отменён", "success")
+    return redirect(url_for("epl.index"))
+
+
+# ----------------- API: wishlist -----------------
+@bp.route("/epl/api/wishlist", methods=["GET", "PATCH", "POST"])
+def wishlist_api():
+    """
+    GET    -> вернуть текущий список id для session user
+    PATCH  -> {"add":[...], "remove":[...]} (оба поля опциональны)
+    POST   -> {"ids":[...]} полная замена
+    """
+    user = session.get("user_name")
+    if not user:
+        return jsonify({"error": "not authenticated"}), 401
+
+    if request.method == "GET":
+        ids = _wishlist_load(user)
+        return jsonify({"manager": user, "ids": ids})
+
+    # Модификация — только для своего списка
+    if request.method == "PATCH":
+        payload = request.get_json(silent=True) or {}
+        to_add = payload.get("add") or []
+        to_rm  = payload.get("remove") or []
+        try:
+            cur = set(_wishlist_load(user))
+            cur.update(int(x) for x in to_add)
+            cur.difference_update(int(x) for x in to_rm)
+            ids = sorted(cur)
+            _wishlist_save(user, ids)
+            return jsonify({"ok": True, "ids": ids})
+        except Exception as e:
+            return jsonify({"error": "bad payload", "details": str(e)}), 400
+
+    if request.method == "POST":
+        payload = request.get_json(silent=True) or {}
+        ids = payload.get("ids")
+        if not isinstance(ids, list):
+            return jsonify({"error": "ids must be list"}), 400
+        try:
+            _wishlist_save(user, [int(x) for x in ids])
+            return jsonify({"ok": True, "ids": _wishlist_load(user)})
+        except Exception as e:
+            return jsonify({"error": "cannot save", "details": str(e)}), 400
+
+    return jsonify({"error": "method not allowed"}), 405
