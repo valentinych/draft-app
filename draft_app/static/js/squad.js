@@ -115,17 +115,27 @@ document.addEventListener('DOMContentLoaded',()=>{
   placePreset();
   const modal=initPlayerModal();
 
-  function iconHandler(e){
+  function iconHover(e){
     const icon=e.target.closest('.flag, .info-icon');
     if(icon && modal){
-      e.stopPropagation();
       const pl=icon.closest('.player');
       if(pl) modal.show(pl);
     }
   }
+  function iconClick(e){
+    const icon=e.target.closest('.flag, .info-icon');
+    if(icon){
+      e.stopPropagation();
+      if(modal){
+        const pl=icon.closest('.player');
+        if(pl) modal.show(pl);
+      }
+    }
+  }
 
   const roster=document.getElementById('roster');
-  roster.addEventListener('click',iconHandler);
+  roster.addEventListener('mouseover',iconHover);
+  roster.addEventListener('click',iconClick);
 
   if(editable){
     roster.addEventListener('click',e=>{
@@ -134,7 +144,8 @@ document.addEventListener('DOMContentLoaded',()=>{
     });
     ALL_POSITIONS.forEach(pos=>{
       const wrap=document.getElementById('slot-'+pos);
-      wrap.addEventListener('click',iconHandler);
+      wrap.addEventListener('mouseover',iconHover);
+      wrap.addEventListener('click',iconClick);
       wrap.addEventListener('click',e=>{
         const p=e.target.closest('.player');
         if(p) handlePlayerClick(p);
@@ -155,7 +166,8 @@ document.addEventListener('DOMContentLoaded',()=>{
   }else{
     ALL_POSITIONS.forEach(pos=>{
       const wrap=document.getElementById('slot-'+pos);
-      wrap.addEventListener('click',iconHandler);
+      wrap.addEventListener('mouseover',iconHover);
+      wrap.addEventListener('click',iconClick);
     });
   }
 });
