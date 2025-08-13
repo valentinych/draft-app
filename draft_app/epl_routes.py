@@ -1,6 +1,7 @@
 from __future__ import annotations
 from flask import Blueprint, render_template, request, session, url_for, redirect, abort, flash, jsonify
 from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 from typing import Any, Dict
 
 from .epl_services import (
@@ -280,24 +281,79 @@ def lineups():
     gw = request.args.get("gw", type=int) or 1
     state = load_state()
     lineups_state = state.get("lineups") or {}
+    rosters = state.get("rosters") or {}
     bootstrap = ensure_fpl_bootstrap_fresh()
     players = players_from_fpl(bootstrap)
     pidx = players_index(players)
     pts = points_for_gw(gw)
-    managers = sorted([m for m, gws in lineups_state.items() if str(gw) in (gws or {})])
-    table: Dict[str, list] = {}
+    managers = sorted(rosters.keys())
+    table: Dict[str, dict] = {}
+    status: Dict[str, bool] = {}
     for m in managers:
-        lineup = (lineups_state.get(m) or {}).get(str(gw), {})
-        arr = []
-        for pid in lineup.get("players") or []:
-            meta = pidx.get(str(pid), {})
-            name = meta.get("shortName") or meta.get("fullName") or str(pid)
-            arr.append({
-                "name": name,
-                "points": pts.get(int(pid), 0),
-            })
-        table[m] = arr
-    return render_template("lineups.html", gw=gw, managers=managers, lineups=table)
+        lineup = (lineups_state.get(m) or {}).get(str(gw))
+        starters = []
+        bench = []
+        if lineup:
+            for pid in lineup.get("players") or []:
+                meta = pidx.get(str(pid), {})
+                name = meta.get("shortName") or meta.get("fullName") or str(pid)
+                starters.append({
+                    "name": name,
+                    "pos": meta.get("position"),
+                    "points": pts.get(int(pid), 0),
+                })
+            for pid in lineup.get("bench") or []:
+                meta = pidx.get(str(pid), {})
+                name = meta.get("shortName") or meta.get("fullName") or str(pid)
+                bench.append({
+                    "name": name,
+                    "pos": meta.get("position"),
+                    "points": pts.get(int(pid), 0),
+                })
+            status[m] = True
+        else:
+            for pl in rosters.get(m, []) or []:
+                pid = pl.get("playerId") or pl.get("id")
+                meta = pidx.get(str(pid), {})
+                name = pl.get("fullName") or meta.get("shortName") or meta.get("fullName") or str(pid)
+                starters.append({
+                    "name": name,
+                    "pos": pl.get("position") or meta.get("position"),
+                    "points": pts.get(int(pid), 0),
+                })
+            status[m] = False
+        table[m] = {
+            "starters": starters,
+            "bench": bench,
+            "has_lineup": status[m],
+        }
+
+    deadline = None
+    for ev in (bootstrap.get("events") or []):
+        if int(ev.get("id", 0)) == int(gw):
+            dl = ev.get("deadline_time")
+            if dl:
+                try:
+                    deadline = datetime.fromisoformat(dl.replace("Z", "+00:00"))
+                except Exception:
+                    pass
+            break
+
+    deadline_warsaw = None
+    deadline_minsk = None
+    if deadline:
+        deadline_warsaw = deadline.astimezone(ZoneInfo("Europe/Warsaw"))
+        deadline_minsk = deadline.astimezone(ZoneInfo("Europe/Minsk"))
+
+    return render_template(
+        "lineups.html",
+        gw=gw,
+        managers=managers,
+        lineups=table,
+        status=status,
+        deadline_warsaw=deadline_warsaw,
+        deadline_minsk=deadline_minsk,
+    )
 
 @bp.post("/epl/undo")
 def undo_last_pick():
