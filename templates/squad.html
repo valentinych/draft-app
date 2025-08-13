@@ -52,15 +52,21 @@
           <h3>FWD</h3>
           <div class="slots" id="slot-FWD"></div>
         </div>
+        <div class="lineup-pos" data-pos="BENCH">
+          <h3>Запасные</h3>
+          <div class="slots" id="slot-BENCH" data-max="4"></div>
+        </div>
       </div>
     </div>
   </div>
   <input type="hidden" name="player_ids" id="player_ids" />
+  <input type="hidden" name="bench_ids" id="bench_ids" />
   <div class="field">
     <button type="submit" class="button is-primary" {% if not editable %}disabled{% endif %}>Сохранить</button>
   </div>
 </form>
 <script id="lineup-data" type="application/json">{{ lineup|map(attribute='playerId')|list|tojson }}</script>
+<script id="bench-data" type="application/json">{{ bench|map(attribute='playerId')|list|tojson }}</script>
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 <script src="{{ url_for('static', filename='js/squad.js') }}"></script>
 {% endblock %}
