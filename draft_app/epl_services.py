@@ -155,8 +155,9 @@ def players_from_fpl(bootstrap: Any) -> List[Dict[str, Any]]:
         second = (e.get("second_name") or "").strip()
         web = (e.get("web_name") or second or "").strip()
         full = f"{first} {second}".strip()
-        club_full = teams.get(e.get("team")) or str(e.get("team"))
-        club_abbr = short.get(e.get("team")) or (club_full or "").upper()
+        team_id = e.get("team")
+        club_full = teams.get(team_id) or str(team_id)
+        club_abbr = short.get(team_id) or (club_full or "").upper()
         out.append({
             "playerId": int(pid),
             "shortName": web,
@@ -165,6 +166,7 @@ def players_from_fpl(bootstrap: Any) -> List[Dict[str, Any]]:
             "clubFull": club_full,
             "position": pos_map.get(e.get("element_type")),
             "price": (e.get("now_cost") / 10.0) if isinstance(e.get("now_cost"), (int, float)) else None,
+            "teamId": int(team_id) if team_id is not None else None,
         })
     return out
 
@@ -200,6 +202,56 @@ def photo_url_for(pid: int) -> Optional[str]:
         "https://resources.premierleague.com/"
         "premierleague25/photos/players/110x140/placeholder.png"
     )
+
+
+# -------- Fixtures and points --------
+def fixtures_for_gw(gw: int, bootstrap: Optional[Dict[str, Any]] = None) -> Dict[int, str]:
+    """Return mapping of teamId -> '(H) OPP' or '(A) OPP' for given gameweek."""
+    if bootstrap is None:
+        bootstrap = ensure_fpl_bootstrap_fresh()
+    teams = {int(t.get("id")): (t.get("short_name") or "").upper() for t in (bootstrap.get("teams") or [])}
+    mapping: Dict[int, str] = {}
+    try:
+        url = f"https://fantasy.premierleague.com/api/fixtures/?event={int(gw)}"
+        r = requests.get(url, timeout=10)
+        r.raise_for_status()
+        fixtures = r.json() or []
+    except Exception:
+        fixtures = []
+    for fxt in fixtures:
+        try:
+            home = int(fxt.get("team_h"))
+            away = int(fxt.get("team_a"))
+        except Exception:
+            continue
+        home_opp = teams.get(away, "")
+        away_opp = teams.get(home, "")
+        if home_opp:
+            mapping[home] = f"(H) {home_opp}"
+        if away_opp:
+            mapping[away] = f"(A) {away_opp}"
+    return mapping
+
+
+def points_for_gw(gw: int) -> Dict[int, int]:
+    """Return mapping playerId -> total points for given gameweek."""
+    url = f"https://fantasy.premierleague.com/api/event/{int(gw)}/live/"
+    try:
+        r = requests.get(url, timeout=10)
+        r.raise_for_status()
+        data = r.json() or {}
+    except Exception:
+        data = {}
+    pts: Dict[int, int] = {}
+    for el in data.get("elements", []):
+        pid = el.get("id")
+        if pid is None:
+            continue
+        try:
+            pts[int(pid)] = int((el.get("stats") or {}).get("total_points") or 0)
+        except Exception:
+            pts[int(pid)] = 0
+    return pts
 
 # ======================
 #      STATE (S3)

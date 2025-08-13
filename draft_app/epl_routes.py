@@ -12,6 +12,7 @@ from .epl_services import (
     build_status_context,
     wishlist_load, wishlist_save,
     fetch_element_summary, fp_last_from_summary, photo_url_for,
+    fixtures_for_gw, points_for_gw,
 )
 from .lineup_store import load_lineup, save_lineup
 
@@ -145,6 +146,7 @@ def squad():
     bootstrap = ensure_fpl_bootstrap_fresh()
     players = players_from_fpl(bootstrap)
     pidx = players_index(players)
+    fixtures_map = fixtures_for_gw(gw, bootstrap)
 
     state = load_state()
     roster = (state.get("rosters") or {}).get(user, []) or []
@@ -159,6 +161,7 @@ def squad():
     for pl in roster:
         pid = pl.get("playerId") or pl.get("id")
         meta = pidx.get(str(pid), {})
+        team_id = meta.get("teamId")
         roster_ext.append({
             "playerId": pid,
             "fullName": pl.get("fullName") or meta.get("fullName"),
@@ -166,6 +169,7 @@ def squad():
             "position": pl.get("position") or meta.get("position"),
             "clubName": pl.get("clubName") or meta.get("clubName"),
             "photo": photo_url_for(pid),
+            "fixture": fixtures_map.get(team_id, ""),
         })
 
     pos_order = {"GK": 0, "DEF": 1, "MID": 2, "FWD": 3}
@@ -176,6 +180,7 @@ def squad():
     for pid in lineup_ids:
         meta = pidx.get(str(pid))
         if meta:
+            team_id = meta.get("teamId")
             lineup_ext.append({
                 "playerId": int(pid),
                 "fullName": meta.get("fullName"),
@@ -183,12 +188,14 @@ def squad():
                 "position": meta.get("position"),
                 "clubName": meta.get("clubName"),
                 "photo": photo_url_for(pid),
+                "fixture": fixtures_map.get(team_id, ""),
             })
 
     bench_ext = []
     for pid in bench_ids:
         meta = pidx.get(str(pid))
         if meta:
+            team_id = meta.get("teamId")
             bench_ext.append({
                 "playerId": int(pid),
                 "fullName": meta.get("fullName"),
@@ -196,6 +203,7 @@ def squad():
                 "position": meta.get("position"),
                 "clubName": meta.get("clubName"),
                 "photo": photo_url_for(pid),
+                "fixture": fixtures_map.get(team_id, ""),
             })
 
     # Check deadline
@@ -263,7 +271,33 @@ def squad():
         formations=FORMATIONS,
         formation=formation,
         editable=editable,
+        deadline=deadline,
     )
+
+
+@bp.get("/epl/lineups")
+def lineups():
+    gw = request.args.get("gw", type=int) or 1
+    state = load_state()
+    lineups_state = state.get("lineups") or {}
+    bootstrap = ensure_fpl_bootstrap_fresh()
+    players = players_from_fpl(bootstrap)
+    pidx = players_index(players)
+    pts = points_for_gw(gw)
+    managers = sorted([m for m, gws in lineups_state.items() if str(gw) in (gws or {})])
+    table: Dict[str, list] = {}
+    for m in managers:
+        lineup = (lineups_state.get(m) or {}).get(str(gw), {})
+        arr = []
+        for pid in lineup.get("players") or []:
+            meta = pidx.get(str(pid), {})
+            name = meta.get("shortName") or meta.get("fullName") or str(pid)
+            arr.append({
+                "name": name,
+                "points": pts.get(int(pid), 0),
+            })
+        table[m] = arr
+    return render_template("lineups.html", gw=gw, managers=managers, lineups=table)
 
 @bp.post("/epl/undo")
 def undo_last_pick():
