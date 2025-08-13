@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Мой состав — EPL Драфт{% endblock %}
+{% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/squad.css') }}"/>
+<h1 class="title">Мой состав на Gameweek {{ gw }}</h1>
+<form method="post" id="lineup-form">
+  <div class="field is-grouped">
+    <div class="control">
+      <label class="label">Gameweek</label>
+      <input class="input" type="number" name="gw" value="{{ gw }}" min="1" />
+    </div>
+    <div class="control">
+      <label class="label">Схема</label>
+      <div class="select">
+        <select id="formation" name="formation">
+          {% for f in formations %}
+            <option value="{{ f }}" {% if f==formation %}selected{% endif %}>{{ f }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+  </div>
+  <div class="columns">
+    <div class="column is-half">
+      <h2 class="subtitle">Состав</h2>
+      <div id="roster" class="player-list">
+        {% for p in roster %}
+          <div class="player" data-id="{{ p.playerId }}" data-pos="{{ p.position }}">
+            {% if p.photo %}<img src="{{ p.photo }}" alt="" />{% endif %}
+            <span>{{ p.fullName }}</span>
+            <small>{{ p.position }}</small>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="column is-half">
+      <h2 class="subtitle">Стартовые 11</h2>
+      <div id="lineup" class="lineup" data-editable="{{ '1' if editable else '0' }}">
+        <div class="lineup-pos" data-pos="GK">
+          <h3>GK</h3>
+          <div class="slots" id="slot-GK"></div>
+        </div>
+        <div class="lineup-pos" data-pos="DEF">
+          <h3>DEF</h3>
+          <div class="slots" id="slot-DEF"></div>
+        </div>
+        <div class="lineup-pos" data-pos="MID">
+          <h3>MID</h3>
+          <div class="slots" id="slot-MID"></div>
+        </div>
+        <div class="lineup-pos" data-pos="FWD">
+          <h3>FWD</h3>
+          <div class="slots" id="slot-FWD"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <input type="hidden" name="player_ids" id="player_ids" />
+  <div class="field">
+    <button type="submit" class="button is-primary" {% if not editable %}disabled{% endif %}>Сохранить</button>
+  </div>
+</form>
+<script id="lineup-data" type="application/json">{{ lineup|map(attribute='playerId')|list|tojson }}</script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<script src="{{ url_for('static', filename='js/squad.js') }}"></script>
+{% endblock %}

@@ -1,7 +1,7 @@
 from __future__ import annotations
 from flask import Blueprint, render_template, request, session, url_for, redirect, abort, flash, jsonify
 from datetime import datetime
-from typing import Any
+from typing import Any, Dict
 
 from .epl_services import (
     LAST_SEASON, EPL_FPL,
@@ -15,6 +15,10 @@ from .epl_services import (
 )
 
 bp = Blueprint("epl", __name__)
+
+FORMATIONS = [
+    "5-3-2", "5-4-1", "4-3-3", "4-4-2", "4-5-1", "3-4-3", "3-5-2"
+]
 
 @bp.route("/epl", methods=["GET", "POST"])
 def index():
@@ -120,6 +124,119 @@ def index():
 def status():
     ctx = build_status_context()
     return render_template("status.html", **ctx)
+
+
+def _formation_counts(fmt: str) -> Dict[str, int]:
+    try:
+        d, m, f = [int(x) for x in fmt.split("-")]
+        return {"GK": 1, "DEF": d, "MID": m, "FWD": f}
+    except Exception:
+        return {"GK": 1, "DEF": 4, "MID": 4, "FWD": 2}
+
+
+@bp.route("/epl/squad", methods=["GET", "POST"])
+def squad():
+    user = session.get("user_name")
+    if not user:
+        return redirect(url_for("auth.login"))
+
+    gw = request.values.get("gw", type=int) or 1
+    bootstrap = ensure_fpl_bootstrap_fresh()
+    players = players_from_fpl(bootstrap)
+    pidx = players_index(players)
+
+    state = load_state()
+    roster = (state.get("rosters") or {}).get(user, []) or []
+    lineup_state = state.setdefault("lineups", {}).setdefault(user, {})
+    selected = lineup_state.get(str(gw), {})
+    formation = selected.get("formation", "4-4-2")
+    lineup_ids = [str(x) for x in (selected.get("players") or [])]
+
+    # Add photos
+    roster_ext = []
+    for pl in roster:
+        pid = pl.get("playerId") or pl.get("id")
+        meta = pidx.get(str(pid), {})
+        roster_ext.append({
+            "playerId": pid,
+            "fullName": pl.get("fullName") or meta.get("fullName"),
+            "position": pl.get("position") or meta.get("position"),
+            "clubName": pl.get("clubName") or meta.get("clubName"),
+            "photo": photo_url_for(pid),
+        })
+
+    # Preselected players with photos
+    lineup_ext = []
+    for pid in lineup_ids:
+        meta = pidx.get(str(pid))
+        if meta:
+            lineup_ext.append({
+                "playerId": int(pid),
+                "fullName": meta.get("fullName"),
+                "position": meta.get("position"),
+                "clubName": meta.get("clubName"),
+                "photo": photo_url_for(pid),
+            })
+
+    # Check deadline
+    deadline = None
+    for ev in (bootstrap.get("events") or []):
+        if int(ev.get("id", 0)) == int(gw):
+            dl = ev.get("deadline_time")
+            if dl:
+                try:
+                    deadline = datetime.fromisoformat(dl.replace("Z", "+00:00"))
+                except Exception:
+                    pass
+            break
+    editable = True
+    if deadline:
+        editable = datetime.utcnow() < deadline
+
+    if request.method == "POST" and editable:
+        formation = request.form.get("formation", "4-4-2")
+        counts = _formation_counts(formation)
+        raw_ids = request.form.get("player_ids", "")
+        ids = [pid for pid in raw_ids.split(",") if pid]
+        # Validate players belong to roster
+        roster_ids = {str(p.get("playerId")) for p in roster}
+        if not all(pid in roster_ids for pid in ids):
+            flash("Некорректный состав", "danger")
+        else:
+            # Validate positions
+            pos_counts = {"GK":0,"DEF":0,"MID":0,"FWD":0}
+            for pid in ids:
+                pos = pidx.get(pid, {}).get("position")
+                if pos in pos_counts:
+                    pos_counts[pos]+=1
+            valid = (
+                len(ids) == 11 and
+                pos_counts.get("GK") == 1 and
+                pos_counts.get("DEF") == counts["DEF"] and
+                pos_counts.get("MID") == counts["MID"] and
+                pos_counts.get("FWD") == counts["FWD"]
+            )
+            if valid:
+                lineup_state[str(gw)] = {
+                    "formation": formation,
+                    "players": [int(x) for x in ids],
+                    "ts": datetime.utcnow().isoformat(timespec="seconds"),
+                }
+                save_state(state)
+                flash("Состав сохранён", "success")
+                return redirect(url_for("epl.squad", gw=gw))
+            else:
+                flash("Неверная схема", "warning")
+
+    return render_template(
+        "squad.html",
+        roster=roster_ext,
+        lineup=lineup_ext,
+        gw=gw,
+        formations=FORMATIONS,
+        formation=formation,
+        editable=editable,
+    )
 
 @bp.post("/epl/undo")
 def undo_last_pick():

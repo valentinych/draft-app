@@ -1,0 +1,25 @@
+.player-list, .slots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-height: 50px;
+  padding: 8px;
+  border: 1px dashed #ccc;
+}
+.player {
+  width: 80px;
+  text-align: center;
+  cursor: move;
+}
+.player img {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 50%;
+}
+.lineup-pos {
+  margin-bottom: 1rem;
+}
+.lineup-pos .slots .player {
+  cursor: move;
+}
