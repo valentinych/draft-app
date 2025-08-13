@@ -1,6 +1,6 @@
 from __future__ import annotations
 from flask import Blueprint, render_template, request, session, url_for, redirect, abort, flash, jsonify
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict
 
 from .epl_services import (
@@ -191,7 +191,7 @@ def squad():
             break
     editable = True
     if deadline:
-        editable = datetime.utcnow() < deadline
+        editable = datetime.now(timezone.utc) < deadline
 
     if request.method == "POST" and editable:
         formation = request.form.get("formation", "4-4-2")
@@ -220,7 +220,7 @@ def squad():
                 lineup_state[str(gw)] = {
                     "formation": formation,
                     "players": [int(x) for x in ids],
-                    "ts": datetime.utcnow().isoformat(timespec="seconds"),
+                    "ts": datetime.now(timezone.utc).isoformat(timespec="seconds"),
                 }
                 save_state(state)
                 flash("Состав сохранён", "success")
