@@ -13,6 +13,7 @@ from .epl_services import (
     wishlist_load, wishlist_save,
     fetch_element_summary, fp_last_from_summary, photo_url_for,
 )
+from .lineup_store import load_lineup, save_lineup
 
 bp = Blueprint("epl", __name__)
 
@@ -148,7 +149,7 @@ def squad():
     state = load_state()
     roster = (state.get("rosters") or {}).get(user, []) or []
     lineup_state = state.setdefault("lineups", {}).setdefault(user, {})
-    selected = lineup_state.get(str(gw), {})
+    selected = load_lineup(user, gw) or lineup_state.get(str(gw), {})
     formation = selected.get("formation", "4-4-2")
     lineup_ids = [str(x) for x in (selected.get("players") or [])]
     bench_ids = [str(x) for x in (selected.get("bench") or [])]
@@ -239,13 +240,15 @@ def squad():
                 not set(ids) & set(bench)
             )
             if valid:
-                lineup_state[str(gw)] = {
+                payload = {
                     "formation": formation,
                     "players": [int(x) for x in ids],
                     "bench": [int(x) for x in bench],
                     "ts": datetime.now(timezone.utc).isoformat(timespec="seconds"),
                 }
+                lineup_state[str(gw)] = payload
                 save_state(state)
+                save_lineup(user, gw, payload)
                 flash("Состав сохранён", "success")
                 return redirect(url_for("epl.squad", gw=gw))
             else:

@@ -1,29 +1,37 @@
-.player-list, .slots {
+.player-list {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  min-height: 50px;
-  padding: 8px;
+  flex-direction: column;
+  gap: 4px;
+  padding: 4px;
   border: 1px dashed #ccc;
 }
+.slots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  min-height: 50px;
+  padding: 4px;
+  border: 1px dashed #ccc;
+}
+.roster-line {
+  display: flex;
+  gap: 4px;
+}
 .player {
-  width: 80px;
+  width: 60px;
   text-align: center;
   cursor: pointer;
+  font-size: 0.75rem;
 }
 .player img {
-  width: 60px;
-  height: 80px;
+  width: 40px;
+  height: 60px;
   object-fit: cover;
   border-radius: 0;
-}
-.player.selected {
-  outline: 2px solid #3273dc;
 }
 .lineup-pos {
   margin-bottom: 1rem;
 }
-
 
 .lineup-pos[data-pos="BENCH"] .slots {
   flex-wrap: nowrap;

@@ -24,11 +24,15 @@
     <div class="column is-half">
       <h2 class="subtitle">Состав</h2>
       <div id="roster" class="player-list">
-        {% for p in roster %}
-          <div class="player" data-id="{{ p.playerId }}" data-pos="{{ p.position }}">
-            <img src="{{ p.photo }}" alt="" />
-            <span>{{ p.shortName or p.fullName }}</span>
-            <small>{{ p.position }}</small>
+        {% for pos in ['GK','DEF','MID','FWD'] %}
+          <div class="roster-line" id="roster-{{ pos }}">
+            {% for p in roster if p.position == pos %}
+              <div class="player" data-id="{{ p.playerId }}" data-pos="{{ p.position }}">
+                <img src="{{ p.photo }}" alt="" />
+                <span>{{ p.shortName or p.fullName }}</span>
+                <small>{{ p.position }}</small>
+              </div>
+            {% endfor %}
           </div>
         {% endfor %}
       </div>
