@@ -2,6 +2,9 @@
 {% block title %}Составы на Gameweek {{ gw }}{% endblock %}
 {% block content %}
 <h1 class="title">Составы на Gameweek {{ gw }}</h1>
+{% if deadline_warsaw %}
+<p>Дедлайн: {{ deadline_warsaw.strftime("%d.%m %H:%M") }} (Варшава) / {{ deadline_minsk.strftime("%d.%m %H:%M") }} (Минск)</p>
+{% endif %}
 <form method="get" class="mb-4">
   <label class="label">Gameweek</label>
   <div class="field has-addons">
@@ -17,7 +20,7 @@
   <thead>
     <tr>
       {% for m in managers %}
-      <th>{{ m }}</th>
+      <th>{{ '🟢' if status[m] else '🔴' }} {{ m }}</th>
       {% endfor %}
     </tr>
   </thead>
@@ -25,9 +28,21 @@
     <tr>
       {% for m in managers %}
       <td>
-        {% for p in lineups[m] %}
-          <div>{{ p.name }} - {{ p.points }}</div>
-        {% endfor %}
+        {% if lineups[m].has_lineup %}
+          {% for p in lineups[m].starters %}
+            <div>{{ p.name }} ({{ p.pos }}) - {{ p.points }}</div>
+          {% endfor %}
+          {% if lineups[m].bench %}
+            <div class="mt-2 has-text-weight-semibold">Запас</div>
+            {% for p in lineups[m].bench %}
+              <div class="has-text-grey">{{ p.name }} ({{ p.pos }}) - {{ p.points }}</div>
+            {% endfor %}
+          {% endif %}
+        {% else %}
+          {% for p in lineups[m].starters %}
+            <div>{{ p.name }} ({{ p.pos }}) - {{ p.points }}</div>
+          {% endfor %}
+        {% endif %}
       </td>
       {% endfor %}
     </tr>
