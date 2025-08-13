@@ -6,7 +6,6 @@ function formationCounts(fmt){
 
 const POSITIONS=['GK','DEF','MID','FWD'];
 const ALL_POSITIONS=[...POSITIONS,'BENCH'];
-let selected=null;
 
 function buildSlots(){
   const fmt=document.getElementById('formation').value;
@@ -16,14 +15,6 @@ function buildSlots(){
     wrap.innerHTML='';
     wrap.dataset.max=counts[pos];
   });
-}
-
-function sortRoster(){
-  const roster=document.getElementById('roster');
-  const order={GK:0,DEF:1,MID:2,FWD:3};
-  Array.from(roster.children)
-    .sort((a,b)=>order[a.dataset.pos]-order[b.dataset.pos])
-    .forEach(el=>roster.appendChild(el));
 }
 
 function placePreset(){
@@ -50,32 +41,24 @@ function placePreset(){
   }catch(e){}
 }
 
-function moveToSlot(wrap){
-  if(!selected) return;
-  const pos=wrap.id.replace('slot-','');
-  const playerPos=selected.dataset.pos;
-  if(pos!=='BENCH' && pos!==playerPos) return;
-  const max=parseInt(wrap.dataset.max||'0',10);
-  if(max && wrap.children.length>=max) return;
-  wrap.appendChild(selected);
-  selected.classList.remove('selected');
-  selected=null;
+function placeInRoster(el){
+  const line=document.getElementById('roster-'+(el.dataset.pos||''));
+  if(line) line.appendChild(el); else document.getElementById('roster').appendChild(el);
 }
 
 function handlePlayerClick(el){
   const parentId=el.parentElement.id;
   if(parentId.startsWith('slot-')){
-    document.getElementById('roster').appendChild(el);
-    sortRoster();
+    placeInRoster(el);
     return;
   }
-  if(selected===el){
-    el.classList.remove('selected');
-    selected=null;
+  const pos=el.dataset.pos;
+  const wrap=document.getElementById('slot-'+pos);
+  const max=parseInt(wrap.dataset.max||'0',10);
+  if(!max || wrap.children.length<max){
+    wrap.appendChild(el);
   }else{
-    if(selected) selected.classList.remove('selected');
-    selected=el;
-    el.classList.add('selected');
+    document.getElementById('slot-BENCH').appendChild(el);
   }
 }
 
@@ -96,7 +79,6 @@ document.addEventListener('DOMContentLoaded',()=>{
   const editable=document.getElementById('lineup').dataset.editable==='1';
   buildSlots();
   placePreset();
-  sortRoster();
   if(editable){
     const roster=document.getElementById('roster');
     roster.addEventListener('click',e=>{
@@ -107,7 +89,7 @@ document.addEventListener('DOMContentLoaded',()=>{
       const wrap=document.getElementById('slot-'+pos);
       wrap.addEventListener('click',e=>{
         const p=e.target.closest('.player');
-        if(p) handlePlayerClick(p); else moveToSlot(wrap);
+        if(p) handlePlayerClick(p);
       });
     });
     document.getElementById('formation').addEventListener('change',()=>{
@@ -115,14 +97,11 @@ document.addEventListener('DOMContentLoaded',()=>{
         const wrap=document.getElementById('slot-'+pos);
         if(pos!=='BENCH'){
           Array.from(wrap.children).forEach(p=>{
-            p.classList.remove('selected');
-            roster.appendChild(p);
+            placeInRoster(p);
           });
         }
       });
-      if(selected){selected.classList.remove('selected');selected=null;}
       buildSlots();
-      sortRoster();
     });
     document.getElementById('lineup-form').addEventListener('submit',serialize);
   }
