@@ -30,7 +30,7 @@
       <td>
         {% if lineups[m].has_lineup %}
           {% for p in lineups[m].starters %}
-            <div>{{ p.name }} ({{ p.pos }}) - {{ p.points }}</div>
+            <div>{{ p.points }} {{ p.name }} ({{ p.pos }}) </div>
           {% endfor %}
           {% if lineups[m].bench %}
             <div class="mt-2 has-text-weight-semibold">Запас</div>
