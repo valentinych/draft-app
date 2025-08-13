@@ -151,6 +151,7 @@ def squad():
     selected = lineup_state.get(str(gw), {})
     formation = selected.get("formation", "4-4-2")
     lineup_ids = [str(x) for x in (selected.get("players") or [])]
+    bench_ids = [str(x) for x in (selected.get("bench") or [])]
 
     # Add photos
     roster_ext = []
@@ -165,12 +166,27 @@ def squad():
             "photo": photo_url_for(pid),
         })
 
+    pos_order = {"GK": 0, "DEF": 1, "MID": 2, "FWD": 3}
+    roster_ext.sort(key=lambda p: (pos_order.get(p.get("position"), 99), p.get("fullName")))
+
     # Preselected players with photos
     lineup_ext = []
     for pid in lineup_ids:
         meta = pidx.get(str(pid))
         if meta:
             lineup_ext.append({
+                "playerId": int(pid),
+                "fullName": meta.get("fullName"),
+                "position": meta.get("position"),
+                "clubName": meta.get("clubName"),
+                "photo": photo_url_for(pid),
+            })
+
+    bench_ext = []
+    for pid in bench_ids:
+        meta = pidx.get(str(pid))
+        if meta:
+            bench_ext.append({
                 "playerId": int(pid),
                 "fullName": meta.get("fullName"),
                 "position": meta.get("position"),
@@ -198,9 +214,11 @@ def squad():
         counts = _formation_counts(formation)
         raw_ids = request.form.get("player_ids", "")
         ids = [pid for pid in raw_ids.split(",") if pid]
+        raw_bench = request.form.get("bench_ids", "")
+        bench = [pid for pid in raw_bench.split(",") if pid]
         # Validate players belong to roster
         roster_ids = {str(p.get("playerId")) for p in roster}
-        if not all(pid in roster_ids for pid in ids):
+        if not all(pid in roster_ids for pid in ids + bench):
             flash("Некорректный состав", "danger")
         else:
             # Validate positions
@@ -214,12 +232,15 @@ def squad():
                 pos_counts.get("GK") == 1 and
                 pos_counts.get("DEF") == counts["DEF"] and
                 pos_counts.get("MID") == counts["MID"] and
-                pos_counts.get("FWD") == counts["FWD"]
+                pos_counts.get("FWD") == counts["FWD"] and
+                len(bench) <= 4 and
+                not set(ids) & set(bench)
             )
             if valid:
                 lineup_state[str(gw)] = {
                     "formation": formation,
                     "players": [int(x) for x in ids],
+                    "bench": [int(x) for x in bench],
                     "ts": datetime.now(timezone.utc).isoformat(timespec="seconds"),
                 }
                 save_state(state)
@@ -232,6 +253,7 @@ def squad():
         "squad.html",
         roster=roster_ext,
         lineup=lineup_ext,
+        bench=bench_ext,
         gw=gw,
         formations=FORMATIONS,
         formation=formation,

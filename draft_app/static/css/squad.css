@@ -23,3 +23,7 @@
 .lineup-pos .slots .player {
   cursor: move;
 }
+
+.lineup-pos[data-pos="BENCH"] .slots {
+  flex-wrap: nowrap;
+}
