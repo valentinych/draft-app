@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Составы на Gameweek {{ gw }}{% endblock %}
+{% block content %}
+<h1 class="title">Составы на Gameweek {{ gw }}</h1>
+<form method="get" class="mb-4">
+  <label class="label">Gameweek</label>
+  <div class="field has-addons">
+    <div class="control">
+      <input class="input" type="number" name="gw" value="{{ gw }}" min="1" style="width:90px"/>
+    </div>
+    <div class="control">
+      <button class="button is-link" type="submit">Показать</button>
+    </div>
+  </div>
+</form>
+<table class="table is-striped is-compact">
+  <thead>
+    <tr>
+      {% for m in managers %}
+      <th>{{ m }}</th>
+      {% endfor %}
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      {% for m in managers %}
+      <td>
+        {% for p in lineups[m] %}
+          <div>{{ p.name }} - {{ p.points }}</div>
+        {% endfor %}
+      </td>
+      {% endfor %}
+    </tr>
+  </tbody>
+</table>
+{% endblock %}
