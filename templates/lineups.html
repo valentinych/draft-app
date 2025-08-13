@@ -40,7 +40,7 @@
           {% endif %}
         {% else %}
           {% for p in lineups[m].starters %}
-            <div>{{ p.name }} ({{ p.pos }}) - {{ p.points }}</div>
+            <div>{{ p.points }} {{ p.name }} ({{ p.pos }})</div>
           {% endfor %}
         {% endif %}
       </td>
