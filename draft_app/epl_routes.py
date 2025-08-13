@@ -292,8 +292,9 @@ def lineups():
     pos_order = {"GK": 0, "DEF": 1, "MID": 2, "FWD": 3}
     for m in managers:
         lineup = (lineups_state.get(m) or {}).get(str(gw))
-        starters = []
-        bench = []
+        starters: list[dict] = []
+        bench: list[dict] = []
+        ts = None
         if lineup:
             for pid in lineup.get("players") or []:
                 meta = pidx.get(str(pid), {})
@@ -311,6 +312,29 @@ def lineups():
                     "pos": meta.get("position"),
                     "points": pts.get(int(pid), 0),
                 })
+            # Add remaining players to bench automatically
+            selected = {str(pid) for pid in (lineup.get("players") or []) + (lineup.get("bench") or [])}
+            extra = []
+            for pl in rosters.get(m, []) or []:
+                pid = pl.get("playerId") or pl.get("id")
+                if str(pid) in selected:
+                    continue
+                meta = pidx.get(str(pid), {})
+                name = meta.get("shortName") or meta.get("fullName") or pl.get("fullName") or str(pid)
+                extra.append({
+                    "name": name,
+                    "pos": pl.get("position") or meta.get("position"),
+                    "points": pts.get(int(pid), 0),
+                })
+            extra.sort(key=lambda p: pos_order.get(p.get("pos"), 99))
+            bench.extend(extra)
+            # Lineup timestamp
+            ts_raw = lineup.get("ts")
+            if ts_raw:
+                try:
+                    ts = datetime.fromisoformat(ts_raw).astimezone(ZoneInfo("Europe/Warsaw"))
+                except Exception:
+                    ts = None
             status[m] = True
         else:
             for pl in rosters.get(m, []) or []:
@@ -328,6 +352,7 @@ def lineups():
             "starters": starters,
             "bench": bench,
             "has_lineup": status[m],
+            "ts": ts,
         }
 
     deadline = None

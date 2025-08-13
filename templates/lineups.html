@@ -20,7 +20,12 @@
   <thead>
     <tr>
       {% for m in managers %}
-      <th>{{ '🟢' if status[m] else '🔴' }} {{ m }}</th>
+      <th>
+        {% if lineups[m].ts %}
+        <div class="has-text-grey is-size-7">{{ lineups[m].ts.strftime('%d.%m %H:%M') }}</div>
+        {% endif %}
+        {{ '🟢' if status[m] else '🔴' }} {{ m }}
+      </th>
       {% endfor %}
     </tr>
   </thead>
