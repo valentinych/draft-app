@@ -186,13 +186,20 @@ def nameclub_index(plist: List[Dict[str, Any]]) -> Dict[Tuple[str,str], Set[str]
     return idx
 
 def photo_url_for(pid: int) -> Optional[str]:
+    """Return player photo URL or placeholder if missing."""
     data = json_load(EPL_FPL) or {}
     for e in (data.get("elements") or []):
         if int(e.get("id", -1)) == int(pid):
             code = e.get("code")
             if code:
-                return f"https://resources.premierleague.com/premierleague/photos/players/110x140/p{code}.png"
-    return None
+                return (
+                    "https://resources.premierleague.com/"
+                    f"premierleague/photos/players/110x140/p{code}.png"
+                )
+    return (
+        "https://resources.premierleague.com/"
+        "premierleague25/photos/players/110x140/placeholder.png"
+    )
 
 # ======================
 #      STATE (S3)

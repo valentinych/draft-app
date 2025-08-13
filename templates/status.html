@@ -79,7 +79,7 @@
                 <div class="block-title">GK</div>
                 <ul class="bullets">
                   {% for p in g.GK %}
-                    <li>{{ p.fullName if p else "—" }}</li>
+                    <li>{{ (p.shortName or p.fullName) if p else "—" }}</li>
                   {% endfor %}
                 </ul>
               </div>
@@ -87,7 +87,7 @@
                 <div class="block-title">DEF</div>
                 <ul class="bullets">
                   {% for p in g.DEF %}
-                    <li>{{ p.fullName if p else "—" }}</li>
+                    <li>{{ (p.shortName or p.fullName) if p else "—" }}</li>
                   {% endfor %}
                 </ul>
               </div>
@@ -95,7 +95,7 @@
                 <div class="block-title">MID</div>
                 <ul class="bullets">
                   {% for p in g.MID %}
-                    <li>{{ p.fullName if p else "—" }}</li>
+                    <li>{{ (p.shortName or p.fullName) if p else "—" }}</li>
                   {% endfor %}
                 </ul>
               </div>
@@ -103,7 +103,7 @@
                 <div class="block-title">FWD</div>
                 <ul class="bullets">
                   {% for p in g.FWD %}
-                    <li>{{ p.fullName if p else "—" }}</li>
+                    <li>{{ (p.shortName or p.fullName) if p else "—" }}</li>
                   {% endfor %}
                 </ul>
               </div>
