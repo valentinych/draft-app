@@ -163,6 +163,7 @@ def squad():
         pid = pl.get("playerId") or pl.get("id")
         meta = pidx.get(str(pid), {})
         team_id = meta.get("teamId")
+        stats = meta.get("stats") or {}
         roster_ext.append({
             "playerId": pid,
             "fullName": pl.get("fullName") or meta.get("fullName"),
@@ -171,6 +172,16 @@ def squad():
             "clubName": pl.get("clubName") or meta.get("clubName"),
             "photo": photo_url_for(pid),
             "fixture": fixtures_map.get(team_id, ""),
+            "status": meta.get("status"),
+            "chance": meta.get("chance"),
+            "news": meta.get("news"),
+            "stats": {
+                "minutes": stats.get("minutes"),
+                "goals": stats.get("goals"),
+                "assists": stats.get("assists"),
+                "cs": stats.get("cs"),
+                "points": stats.get("points"),
+            },
         })
 
     pos_order = {"GK": 0, "DEF": 1, "MID": 2, "FWD": 3}
@@ -182,6 +193,7 @@ def squad():
         meta = pidx.get(str(pid))
         if meta:
             team_id = meta.get("teamId")
+            stats = meta.get("stats") or {}
             lineup_ext.append({
                 "playerId": int(pid),
                 "fullName": meta.get("fullName"),
@@ -190,6 +202,16 @@ def squad():
                 "clubName": meta.get("clubName"),
                 "photo": photo_url_for(pid),
                 "fixture": fixtures_map.get(team_id, ""),
+                "status": meta.get("status"),
+                "chance": meta.get("chance"),
+                "news": meta.get("news"),
+                "stats": {
+                    "minutes": stats.get("minutes"),
+                    "goals": stats.get("goals"),
+                    "assists": stats.get("assists"),
+                    "cs": stats.get("cs"),
+                    "points": stats.get("points"),
+                },
             })
 
     bench_ext = []
@@ -197,6 +219,7 @@ def squad():
         meta = pidx.get(str(pid))
         if meta:
             team_id = meta.get("teamId")
+            stats = meta.get("stats") or {}
             bench_ext.append({
                 "playerId": int(pid),
                 "fullName": meta.get("fullName"),
@@ -205,6 +228,16 @@ def squad():
                 "clubName": meta.get("clubName"),
                 "photo": photo_url_for(pid),
                 "fixture": fixtures_map.get(team_id, ""),
+                "status": meta.get("status"),
+                "chance": meta.get("chance"),
+                "news": meta.get("news"),
+                "stats": {
+                    "minutes": stats.get("minutes"),
+                    "goals": stats.get("goals"),
+                    "assists": stats.get("assists"),
+                    "cs": stats.get("cs"),
+                    "points": stats.get("points"),
+                },
             })
 
     # Check deadline
