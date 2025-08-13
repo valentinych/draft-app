@@ -75,18 +75,66 @@ function serialize(){
   document.getElementById('bench_ids').value=benchIds.join(',');
 }
 
+
+function initPlayerModal(){
+  const modal=document.getElementById('player-modal');
+  if(!modal) return null;
+  const nameEl=document.getElementById('pm-name');
+  const photoEl=document.getElementById('pm-photo');
+  const newsEl=document.getElementById('pm-news');
+  const statsEl=document.getElementById('pm-stats');
+  function open(){ modal.setAttribute('aria-hidden','false'); document.addEventListener('keydown',esc); }
+  function close(){ modal.setAttribute('aria-hidden','true'); document.removeEventListener('keydown',esc); }
+  function esc(e){ if(e.key==='Escape') close(); }
+  modal.addEventListener('click',e=>{ if(e.target.dataset.close==='1') close(); });
+  function show(playerEl){
+    const name=playerEl.dataset.name||'';
+    const news=playerEl.dataset.news||'';
+    let stats={};
+    try{ stats=JSON.parse(playerEl.dataset.stats||'{}'); }catch(e){}
+    nameEl.textContent=name;
+    const img=playerEl.querySelector('img');
+    if(img){ photoEl.src=img.src; photoEl.style.display=''; } else { photoEl.style.display='none'; }
+    newsEl.textContent=news;
+    const rows=[
+      ['Minutes',stats.minutes],
+      ['Goals',stats.goals],
+      ['Assists',stats.assists],
+      ['CS',stats.cs],
+      ['Points',stats.points],
+    ].map(r=>`<tr><td>${r[0]}</td><td class="num">${r[1]??''}</td></tr>`).join('');
+    statsEl.innerHTML=`<table class="tbl"><tbody>${rows}</tbody></table>`;
+    open();
+  }
+  return {show};
+}
+
 document.addEventListener('DOMContentLoaded',()=>{
   const editable=document.getElementById('lineup').dataset.editable==='1';
   buildSlots();
   placePreset();
+  const modal=initPlayerModal();
+
+  function iconHandler(e){
+    const icon=e.target.closest('.flag, .info-icon');
+    if(icon && modal){
+      e.stopPropagation();
+      const pl=icon.closest('.player');
+      if(pl) modal.show(pl);
+    }
+  }
+
+  const roster=document.getElementById('roster');
+  roster.addEventListener('click',iconHandler);
+
   if(editable){
-    const roster=document.getElementById('roster');
     roster.addEventListener('click',e=>{
       const p=e.target.closest('.player');
       if(p) handlePlayerClick(p);
     });
     ALL_POSITIONS.forEach(pos=>{
       const wrap=document.getElementById('slot-'+pos);
+      wrap.addEventListener('click',iconHandler);
       wrap.addEventListener('click',e=>{
         const p=e.target.closest('.player');
         if(p) handlePlayerClick(p);
@@ -104,5 +152,10 @@ document.addEventListener('DOMContentLoaded',()=>{
       buildSlots();
     });
     document.getElementById('lineup-form').addEventListener('submit',serialize);
+  }else{
+    ALL_POSITIONS.forEach(pos=>{
+      const wrap=document.getElementById('slot-'+pos);
+      wrap.addEventListener('click',iconHandler);
+    });
   }
 });

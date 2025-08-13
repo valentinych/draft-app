@@ -167,6 +167,16 @@ def players_from_fpl(bootstrap: Any) -> List[Dict[str, Any]]:
             "position": pos_map.get(e.get("element_type")),
             "price": (e.get("now_cost") / 10.0) if isinstance(e.get("now_cost"), (int, float)) else None,
             "teamId": int(team_id) if team_id is not None else None,
+            "status": e.get("status"),
+            "news": e.get("news"),
+            "chance": e.get("chance_of_playing_next_round"),
+            "stats": {
+                "minutes": e.get("minutes"),
+                "goals": e.get("goals_scored"),
+                "assists": e.get("assists"),
+                "cs": e.get("clean_sheets"),
+                "points": e.get("total_points"),
+            },
         })
     return out
 
