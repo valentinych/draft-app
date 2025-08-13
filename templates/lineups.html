@@ -35,12 +35,12 @@
           {% if lineups[m].bench %}
             <div class="mt-2 has-text-weight-semibold">Запас</div>
             {% for p in lineups[m].bench %}
-              <div class="has-text-grey">{{ p.name }} ({{ p.pos }}) - {{ p.points }}</div>
+              <div class="has-text-grey">{{ p.points }} {{ p.name }} ({{ p.pos }})</div>
             {% endfor %}
           {% endif %}
         {% else %}
           {% for p in lineups[m].starters %}
-            <div>{{ p.points }} {{ p.name }} ({{ p.pos }})</div>
+            <div>{{ p.name }} ({{ p.pos }})</div>
           {% endfor %}
         {% endif %}
       </td>
