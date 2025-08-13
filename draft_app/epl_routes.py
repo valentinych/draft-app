@@ -289,6 +289,7 @@ def lineups():
     managers = sorted(rosters.keys())
     table: Dict[str, dict] = {}
     status: Dict[str, bool] = {}
+    pos_order = {"GK": 0, "DEF": 1, "MID": 2, "FWD": 3}
     for m in managers:
         lineup = (lineups_state.get(m) or {}).get(str(gw))
         starters = []
@@ -315,12 +316,13 @@ def lineups():
             for pl in rosters.get(m, []) or []:
                 pid = pl.get("playerId") or pl.get("id")
                 meta = pidx.get(str(pid), {})
-                name = pl.get("fullName") or meta.get("shortName") or meta.get("fullName") or str(pid)
+                name = meta.get("shortName") or meta.get("fullName") or pl.get("fullName") or str(pid)
                 starters.append({
                     "name": name,
                     "pos": pl.get("position") or meta.get("position"),
                     "points": pts.get(int(pid), 0),
                 })
+            starters.sort(key=lambda p: pos_order.get(p.get("pos"), 99))
             status[m] = False
         table[m] = {
             "starters": starters,
