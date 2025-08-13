@@ -218,6 +218,7 @@ def load_state() -> Dict[str, Any]:
     state.setdefault("draft_order", [])
     state.setdefault("current_pick_index", 0)
     state.setdefault("draft_started_at", None)
+    state.setdefault("lineups", {})
     limits = state.setdefault("limits", {})
     limits.setdefault("Max from club", 3)
     return state
