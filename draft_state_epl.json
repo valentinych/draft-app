@@ -7,6 +7,153 @@
         "clubName": "MCI",
         "position": "FWD",
         "price": 14.0
+      },
+      {
+        "playerId": 384,
+        "fullName": "Cody Gakpo",
+        "clubName": "LIV",
+        "position": "MID",
+        "price": 7.5
+      },
+      {
+        "playerId": 373,
+        "fullName": "Virgil van Dijk",
+        "clubName": "LIV",
+        "position": "DEF",
+        "price": 6.0
+      },
+      {
+        "playerId": 81,
+        "fullName": "Justin Kluivert",
+        "clubName": "BOU",
+        "position": "MID",
+        "price": 7.0
+      },
+      {
+        "playerId": 427,
+        "fullName": "Tijjani Reijnders",
+        "clubName": "MCI",
+        "position": "MID",
+        "price": 5.5
+      },
+      {
+        "playerId": 178,
+        "fullName": "Danny Welbeck",
+        "clubName": "BHA",
+        "position": "FWD",
+        "price": 6.5
+      },
+      {
+        "playerId": 452,
+        "fullName": "Amad Diallo",
+        "clubName": "MUN",
+        "position": "MID",
+        "price": 6.5
+      },
+      {
+        "playerId": 8,
+        "fullName": "Jurriën Timber",
+        "clubName": "ARS",
+        "position": "DEF",
+        "price": 5.5
+      },
+      {
+        "playerId": 575,
+        "fullName": "Micky van de Ven",
+        "clubName": "TOT",
+        "position": "DEF",
+        "price": 4.5
+      },
+      {
+        "playerId": 489,
+        "fullName": "Jacob Murphy",
+        "clubName": "NEW",
+        "position": "MID",
+        "price": 6.5
+      },
+      {
+        "playerId": 310,
+        "fullName": "Thierno Barry",
+        "clubName": "EVE",
+        "position": "FWD",
+        "price": 6.0
+      },
+      {
+        "playerId": 663,
+        "fullName": "Jhon Arias",
+        "clubName": "WOL",
+        "position": "MID",
+        "price": 5.5
+      },
+      {
+        "playerId": 106,
+        "fullName": "Nathan Collins",
+        "clubName": "BRE",
+        "position": "DEF",
+        "price": 5.0
+      },
+      {
+        "playerId": 220,
+        "fullName": "Robert Lynch Sánchez",
+        "clubName": "CHE",
+        "position": "GK",
+        "price": 5.0
+      },
+      {
+        "playerId": 260,
+        "fullName": "Marc Guéhi",
+        "clubName": "CRY",
+        "position": "DEF",
+        "price": 4.5
+      },
+      {
+        "playerId": 160,
+        "fullName": "Yankuba Minteh",
+        "clubName": "BHA",
+        "position": "MID",
+        "price": 6.0
+      },
+      {
+        "playerId": 38,
+        "fullName": "Ezri Konsa Ngoyo",
+        "clubName": "AVL",
+        "position": "DEF",
+        "price": 4.5
+      },
+      {
+        "playerId": 469,
+        "fullName": "Nick Pope",
+        "clubName": "NEW",
+        "position": "GK",
+        "price": 5.0
+      },
+      {
+        "playerId": 74,
+        "fullName": "Adrien Truffert",
+        "clubName": "BOU",
+        "position": "DEF",
+        "price": 4.5
+      },
+      {
+        "playerId": 597,
+        "fullName": "Richarlison de Andrade",
+        "clubName": "TOT",
+        "position": "FWD",
+        "price": 6.5
+      },
+      {
+        "playerId": 669,
+        "fullName": "Dan Ndoye",
+        "clubName": "NFO",
+        "position": "MID",
+        "price": 6.0
+      },
+      {
+        "playerId": 674,
+        "fullName": "Aaron Ramsdale",
+        "clubName": "NEW",
+        "position": "GK",
+        "price": 5.0
       }
     ],
     "Саша": [
@@ -16,6 +163,153 @@
         "clubName": "LIV",
         "position": "MID",
         "price": 14.5
+      },
+      {
+        "playerId": 249,
+        "fullName": "João Pedro Junqueira de Jesus",
+        "clubName": "CHE",
+        "position": "FWD",
+        "price": 7.5
+      },
+      {
+        "playerId": 283,
+        "fullName": "Jean-Philippe Mateta",
+        "clubName": "CRY",
+        "position": "FWD",
+        "price": 7.5
+      },
+      {
+        "playerId": 403,
+        "fullName": "Joško Gvardiol",
+        "clubName": "MCI",
+        "position": "DEF",
+        "price": 6.0
+      },
+      {
+        "playerId": 417,
+        "fullName": "Rayan Cherki",
+        "clubName": "MCI",
+        "position": "MID",
+        "price": 6.5
+      },
+      {
+        "playerId": 366,
+        "fullName": "Alisson Becker",
+        "clubName": "LIV",
+        "position": "GK",
+        "price": 5.5
+      },
+      {
+        "playerId": 374,
+        "fullName": "Ibrahima Konaté",
+        "clubName": "LIV",
+        "position": "DEF",
+        "price": 5.5
+      },
+      {
+        "playerId": 654,
+        "fullName": "Jørgen Strand Larsen",
+        "clubName": "WOL",
+        "position": "FWD",
+        "price": 6.5
+      },
+      {
+        "playerId": 291,
+        "fullName": "James Tarkowski",
+        "clubName": "EVE",
+        "position": "DEF",
+        "price": 5.5
+      },
+      {
+        "playerId": 418,
+        "fullName": "Jérémy Doku",
+        "clubName": "MCI",
+        "position": "MID",
+        "price": 6.5
+      },
+      {
+        "playerId": 612,
+        "fullName": "Lucas Tolentino Coelho de Lima",
+        "clubName": "WHU",
+        "position": "MID",
+        "price": 6.0
+      },
+      {
+        "playerId": 386,
+        "fullName": "Alexis Mac Allister",
+        "clubName": "LIV",
+        "position": "MID",
+        "price": 6.5
+      },
+      {
+        "playerId": 487,
+        "fullName": "Harvey Barnes",
+        "clubName": "NEW",
+        "position": "MID",
+        "price": 6.5
+      },
+      {
+        "playerId": 476,
+        "fullName": "Dan Burn",
+        "clubName": "NEW",
+        "position": "DEF",
+        "price": 5.0
+      },
+      {
+        "playerId": 353,
+        "fullName": "Daniel James",
+        "clubName": "LEE",
+        "position": "MID",
+        "price": 5.5
+      },
+      {
+        "playerId": 225,
+        "fullName": "Reece James",
+        "clubName": "CHE",
+        "position": "DEF",
+        "price": 5.5
+      },
+      {
+        "playerId": 526,
+        "fullName": "Igor Jesus Maciel da Cruz",
+        "clubName": "NFO",
+        "position": "FWD",
+        "price": 6.0
+      },
+      {
+        "playerId": 53,
+        "fullName": "Donyell Malen",
+        "clubName": "AVL",
+        "position": "MID",
+        "price": 5.5
+      },
+      {
+        "playerId": 607,
+        "fullName": "Nayef Aguerd",
+        "clubName": "WHU",
+        "position": "DEF",
+        "price": 4.5
+      },
+      {
+        "playerId": 375,
+        "fullName": "Conor Bradley",
+        "clubName": "LIV",
+        "position": "DEF",
+        "price": 5.0
+      },
+      {
+        "playerId": 101,
+        "fullName": "Caoimhín Kelleher",
+        "clubName": "BRE",
+        "position": "GK",
+        "price": 4.5
+      },
+      {
+        "playerId": 367,
+        "fullName": "Giorgi Mamardashvili",
+        "clubName": "LIV",
+        "position": "GK",
+        "price": 4.5
       }
     ],
     "Руслан": [
@@ -25,6 +319,153 @@
         "clubName": "NEW",
         "position": "FWD",
         "price": 10.5
+      },
+      {
+        "playerId": 6,
+        "fullName": "William Saliba",
+        "clubName": "ARS",
+        "position": "DEF",
+        "price": 6.0
+      },
+      {
+        "playerId": 119,
+        "fullName": "Bryan Mbeumo",
+        "clubName": "MUN",
+        "position": "MID",
+        "price": 8.0
+      },
+      {
+        "playerId": 402,
+        "fullName": "Rayan Aït-Nouri",
+        "clubName": "MCI",
+        "position": "DEF",
+        "price": 6.0
+      },
+      {
+        "playerId": 525,
+        "fullName": "Chris Wood",
+        "clubName": "NFO",
+        "position": "FWD",
+        "price": 7.5
+      },
+      {
+        "playerId": 18,
+        "fullName": "Noni Madueke",
+        "clubName": "ARS",
+        "position": "MID",
+        "price": 7.0
+      },
+      {
+        "playerId": 582,
+        "fullName": "Mohammed Kudus",
+        "clubName": "TOT",
+        "position": "MID",
+        "price": 6.5
+      },
+      {
+        "playerId": 236,
+        "fullName": "Pedro Lomba Neto",
+        "clubName": "CHE",
+        "position": "MID",
+        "price": 7.0
+      },
+      {
+        "playerId": 1,
+        "fullName": "David Raya Martín",
+        "clubName": "ARS",
+        "position": "GK",
+        "price": 5.5
+      },
+      {
+        "playerId": 625,
+        "fullName": "Niclas Füllkrug",
+        "clubName": "WHU",
+        "position": "FWD",
+        "price": 6.0
+      },
+      {
+        "playerId": 22,
+        "fullName": "Mikel Merino Zazón",
+        "clubName": "ARS",
+        "position": "MID",
+        "price": 6.0
+      },
+      {
+        "playerId": 324,
+        "fullName": "Alex Iwobi",
+        "clubName": "FUL",
+        "position": "MID",
+        "price": 6.5
+      },
+      {
+        "playerId": 613,
+        "fullName": "Tomáš Souček",
+        "clubName": "WHU",
+        "position": "MID",
+        "price": 6.0
+      },
+      {
+        "playerId": 239,
+        "fullName": "Jamie Bynoe-Gittens",
+        "clubName": "CHE",
+        "position": "MID",
+        "price": 6.5
+      },
+      {
+        "playerId": 10,
+        "fullName": "Myles Lewis-Skelly",
+        "clubName": "ARS",
+        "position": "DEF",
+        "price": 5.5
+      },
+      {
+        "playerId": 442,
+        "fullName": "Harry Maguire",
+        "clubName": "MUN",
+        "position": "DEF",
+        "price": 4.5
+      },
+      {
+        "playerId": 408,
+        "fullName": "Rúben dos Santos Gato Alves Dias",
+        "clubName": "MCI",
+        "position": "DEF",
+        "price": 5.5
+      },
+      {
+        "playerId": 628,
+        "fullName": "José Malheiro de Sá",
+        "clubName": "WOL",
+        "position": "GK",
+        "price": 4.5
+      },
+      {
+        "playerId": 252,
+        "fullName": "Marc Guiu Paz",
+        "clubName": "SUN",
+        "position": "FWD",
+        "price": 4.5
+      },
+      {
+        "playerId": 409,
+        "fullName": "John Stones",
+        "clubName": "MCI",
+        "position": "DEF",
+        "price": 5.5
+      },
+      {
+        "playerId": 672,
+        "fullName": "Jorrel Hato",
+        "clubName": "CHE",
+        "position": "DEF",
+        "price": 5.0
+      },
+      {
+        "playerId": 2,
+        "fullName": "Kepa Arrizabalaga Revuelta",
+        "clubName": "ARS",
+        "position": "GK",
+        "price": 4.5
       }
     ],
     "Тёма": [
@@ -34,6 +475,153 @@
         "clubName": "CHE",
         "position": "MID",
         "price": 10.5
+      },
+      {
+        "playerId": 370,
+        "fullName": "Jeremie Frimpong",
+        "clubName": "LIV",
+        "position": "DEF",
+        "price": 6.0
+      },
+      {
+        "playerId": 596,
+        "fullName": "Dominic Solanke-Mitchell",
+        "clubName": "TOT",
+        "position": "FWD",
+        "price": 7.5
+      },
+      {
+        "playerId": 97,
+        "fullName": "Francisco Evanilson de Lima Barbosa",
+        "clubName": "BOU",
+        "position": "FWD",
+        "price": 7.0
+      },
+      {
+        "playerId": 224,
+        "fullName": "Marc Cucurella Saseta",
+        "clubName": "CHE",
+        "position": "DEF",
+        "price": 6.0
+      },
+      {
+        "playerId": 486,
+        "fullName": "Anthony Elanga",
+        "clubName": "NEW",
+        "position": "MID",
+        "price": 7.0
+      },
+      {
+        "playerId": 21,
+        "fullName": "Declan Rice",
+        "clubName": "ARS",
+        "position": "MID",
+        "price": 6.5
+      },
+      {
+        "playerId": 241,
+        "fullName": "Moisés Caicedo Corozo",
+        "clubName": "CHE",
+        "position": "MID",
+        "price": 5.5
+      },
+      {
+        "playerId": 505,
+        "fullName": "Nikola Milenković",
+        "clubName": "NFO",
+        "position": "DEF",
+        "price": 5.5
+      },
+      {
+        "playerId": 253,
+        "fullName": "Dean Henderson",
+        "clubName": "CRY",
+        "position": "GK",
+        "price": 5.0
+      },
+      {
+        "playerId": 120,
+        "fullName": "Kevin Schade",
+        "clubName": "BRE",
+        "position": "MID",
+        "price": 7.0
+      },
+      {
+        "playerId": 477,
+        "fullName": "Tino Livramento",
+        "clubName": "NEW",
+        "position": "DEF",
+        "price": 5.0
+      },
+      {
+        "playerId": 257,
+        "fullName": "Maxence Lacroix",
+        "clubName": "CRY",
+        "position": "DEF",
+        "price": 5.0
+      },
+      {
+        "playerId": 329,
+        "fullName": "Harry Wilson",
+        "clubName": "FUL",
+        "position": "MID",
+        "price": 5.5
+      },
+      {
+        "playerId": 292,
+        "fullName": "Vitalii Mykolenko",
+        "clubName": "EVE",
+        "position": "DEF",
+        "price": 5.0
+      },
+      {
+        "playerId": 399,
+        "fullName": "Ederson Santana de Moraes",
+        "clubName": "MCI",
+        "position": "GK",
+        "price": 5.5
+      },
+      {
+        "playerId": 251,
+        "fullName": "Nicolas Jackson",
+        "clubName": "CHE",
+        "position": "FWD",
+        "price": 6.5
+      },
+      {
+        "playerId": 238,
+        "fullName": "Estêvão Almeida de Oliveira Gonçalves",
+        "clubName": "CHE",
+        "position": "MID",
+        "price": 6.5
+      },
+      {
+        "playerId": 226,
+        "fullName": "Trevoh Chalobah",
+        "clubName": "CHE",
+        "position": "DEF",
+        "price": 5.0
+      },
+      {
+        "playerId": 390,
+        "fullName": "Ryan Gravenberch",
+        "clubName": "LIV",
+        "position": "MID",
+        "price": 5.5
+      },
+      {
+        "playerId": 680,
+        "fullName": "Armando Broja",
+        "clubName": "BUR",
+        "position": "FWD",
+        "price": 5.5
+      },
+      {
+        "playerId": 182,
+        "fullName": "James Trafford",
+        "clubName": "MCI",
+        "position": "GK",
+        "price": 5.0
       }
     ],
     "Сергей": [
@@ -43,6 +631,153 @@
         "clubName": "ARS",
         "position": "MID",
         "price": 10.0
+      },
+      {
+        "playerId": 661,
+        "fullName": "Hugo Ekitiké",
+        "clubName": "LIV",
+        "position": "FWD",
+        "price": 8.5
+      },
+      {
+        "playerId": 5,
+        "fullName": "Gabriel dos Santos Magalhães",
+        "clubName": "ARS",
+        "position": "DEF",
+        "price": 6.0
+      },
+      {
+        "playerId": 157,
+        "fullName": "Mitoma Kaoru",
+        "clubName": "BHA",
+        "position": "MID",
+        "price": 6.5
+      },
+      {
+        "playerId": 568,
+        "fullName": "Pedro Porro Sauceda",
+        "clubName": "TOT",
+        "position": "DEF",
+        "price": 5.5
+      },
+      {
+        "playerId": 237,
+        "fullName": "Enzo Fernández",
+        "clubName": "CHE",
+        "position": "MID",
+        "price": 6.5
+      },
+      {
+        "playerId": 337,
+        "fullName": "Raúl Jiménez Rodríguez",
+        "clubName": "FUL",
+        "position": "FWD",
+        "price": 6.5
+      },
+      {
+        "playerId": 256,
+        "fullName": "Daniel Muñoz Mejía",
+        "clubName": "CRY",
+        "position": "DEF",
+        "price": 5.5
+      },
+      {
+        "playerId": 415,
+        "fullName": "Sávio Moreira de Oliveira",
+        "clubName": "MCI",
+        "position": "MID",
+        "price": 7.0
+      },
+      {
+        "playerId": 508,
+        "fullName": "Neco Williams",
+        "clubName": "NFO",
+        "position": "DEF",
+        "price": 5.0
+      },
+      {
+        "playerId": 287,
+        "fullName": "Jordan Pickford",
+        "clubName": "EVE",
+        "position": "GK",
+        "price": 5.5
+      },
+      {
+        "playerId": 419,
+        "fullName": "Jack Grealish",
+        "clubName": "MCI",
+        "position": "MID",
+        "price": 6.5
+      },
+      {
+        "playerId": 441,
+        "fullName": "Patrick Dorgu",
+        "clubName": "MUN",
+        "position": "DEF",
+        "price": 4.5
+      },
+      {
+        "playerId": 20,
+        "fullName": "Leandro Trossard",
+        "clubName": "ARS",
+        "position": "MID",
+        "price": 7.0
+      },
+      {
+        "playerId": 338,
+        "fullName": "Rodrigo Muniz Carvalho",
+        "clubName": "FUL",
+        "position": "FWD",
+        "price": 5.5
+      },
+      {
+        "playerId": 583,
+        "fullName": "Dejan Kulusevski",
+        "clubName": "TOT",
+        "position": "MID",
+        "price": 6.5
+      },
+      {
+        "playerId": 473,
+        "fullName": "Lewis Hall",
+        "clubName": "NEW",
+        "position": "DEF",
+        "price": 5.5
+      },
+      {
+        "playerId": 314,
+        "fullName": "Bernd Leno",
+        "clubName": "FUL",
+        "position": "GK",
+        "price": 5.0
+      },
+      {
+        "playerId": 421,
+        "fullName": "Rodrigo 'Rodri' Hernandez Cascante",
+        "clubName": "MCI",
+        "position": "MID",
+        "price": 6.5
+      },
+      {
+        "playerId": 39,
+        "fullName": "Ian Maatsen",
+        "clubName": "AVL",
+        "position": "DEF",
+        "price": 4.5
+      },
+      {
+        "playerId": 527,
+        "fullName": "Taiwo Awoniyi",
+        "clubName": "NFO",
+        "position": "FWD",
+        "price": 5.5
+      },
+      {
+        "playerId": 288,
+        "fullName": "Mark Travers",
+        "clubName": "EVE",
+        "position": "GK",
+        "price": 4.5
       }
     ],
     "Андрей": [
@@ -52,10 +787,467 @@
         "clubName": "ARS",
         "position": "FWD",
         "price": 9.0
+      },
+      {
+        "playerId": 624,
+        "fullName": "Jarrod Bowen",
+        "clubName": "WHU",
+        "position": "FWD",
+        "price": 8.0
+      },
+      {
+        "playerId": 414,
+        "fullName": "Phil Foden",
+        "clubName": "MCI",
+        "position": "MID",
+        "price": 8.0
+      },
+      {
+        "playerId": 485,
+        "fullName": "Anthony Gordon",
+        "clubName": "NEW",
+        "position": "MID",
+        "price": 7.5
+      },
+      {
+        "playerId": 30,
+        "fullName": "Kai Havertz",
+        "clubName": "ARS",
+        "position": "FWD",
+        "price": 7.5
+      },
+      {
+        "playerId": 47,
+        "fullName": "Morgan Rogers",
+        "clubName": "AVL",
+        "position": "MID",
+        "price": 7.0
+      },
+      {
+        "playerId": 267,
+        "fullName": "Ismaïla Sarr",
+        "clubName": "CRY",
+        "position": "MID",
+        "price": 6.5
+      },
+      {
+        "playerId": 145,
+        "fullName": "Maxim De Cuyper",
+        "clubName": "BHA",
+        "position": "DEF",
+        "price": 4.5
+      },
+      {
+        "playerId": 7,
+        "fullName": "Riccardo Calafiori",
+        "clubName": "ARS",
+        "position": "DEF",
+        "price": 5.5
+      },
+      {
+        "playerId": 580,
+        "fullName": "Brennan Johnson",
+        "clubName": "TOT",
+        "position": "MID",
+        "price": 7.0
+      },
+      {
+        "playerId": 474,
+        "fullName": "Fabian Schär",
+        "clubName": "NEW",
+        "position": "DEF",
+        "price": 5.5
+      },
+      {
+        "playerId": 507,
+        "fullName": "Ola Aina",
+        "clubName": "NFO",
+        "position": "DEF",
+        "price": 5.0
+      },
+      {
+        "playerId": 677,
+        "fullName": "Evann Guessand",
+        "clubName": "AVL",
+        "position": "MID",
+        "price": 6.5
+      },
+      {
+        "playerId": 67,
+        "fullName": "Đorđe Petrović",
+        "clubName": "BOU",
+        "position": "GK",
+        "price": 4.5
+      },
+      {
+        "playerId": 19,
+        "fullName": "Gabriel Martinelli Silva",
+        "clubName": "ARS",
+        "position": "MID",
+        "price": 7.0
+      },
+      {
+        "playerId": 311,
+        "fullName": "Norberto Bercique Gomes Betuncal",
+        "clubName": "EVE",
+        "position": "FWD",
+        "price": 5.5
+      },
+      {
+        "playerId": 491,
+        "fullName": "Sandro Tonali",
+        "clubName": "NEW",
+        "position": "MID",
+        "price": 5.5
+      },
+      {
+        "playerId": 565,
+        "fullName": "Guglielmo Vicario",
+        "clubName": "TOT",
+        "position": "GK",
+        "price": 5.0
+      },
+      {
+        "playerId": 410,
+        "fullName": "Rico Lewis",
+        "clubName": "MCI",
+        "position": "DEF",
+        "price": 5.0
+      },
+      {
+        "playerId": 107,
+        "fullName": "Keane Lewis-Potter",
+        "clubName": "BRE",
+        "position": "DEF",
+        "price": 5.0
+      },
+      {
+        "playerId": 573,
+        "fullName": "Djed Spence",
+        "clubName": "TOT",
+        "position": "DEF",
+        "price": 4.5
+      },
+      {
+        "playerId": 567,
+        "fullName": "Antonín Kinský",
+        "clubName": "TOT",
+        "position": "GK",
+        "price": 4.0
       }
     ],
-    "Женя": [],
-    "Макс": []
+    "Женя": [
+      {
+        "playerId": 382,
+        "fullName": "Florian Wirtz",
+        "clubName": "LIV",
+        "position": "MID",
+        "price": 8.5
+      },
+      {
+        "playerId": 681,
+        "fullName": "Benjamin Sesko",
+        "clubName": "MUN",
+        "position": "FWD",
+        "price": 7.5
+      },
+      {
+        "playerId": 413,
+        "fullName": "Omar Marmoush",
+        "clubName": "MCI",
+        "position": "MID",
+        "price": 8.5
+      },
+      {
+        "playerId": 450,
+        "fullName": "Matheus Santos Carneiro da Cunha",
+        "clubName": "MUN",
+        "position": "MID",
+        "price": 8.0
+      },
+      {
+        "playerId": 135,
+        "fullName": "Yoane Wissa",
+        "clubName": "BRE",
+        "position": "FWD",
+        "price": 7.5
+      },
+      {
+        "playerId": 266,
+        "fullName": "Eberechi Eze",
+        "clubName": "CRY",
+        "position": "MID",
+        "price": 7.5
+      },
+      {
+        "playerId": 48,
+        "fullName": "Youri Tielemans",
+        "clubName": "AVL",
+        "position": "MID",
+        "price": 6.0
+      },
+      {
+        "playerId": 121,
+        "fullName": "Mikkel Damsgaard",
+        "clubName": "BRE",
+        "position": "MID",
+        "price": 6.0
+      },
+      {
+        "playerId": 362,
+        "fullName": "Joël Piroe",
+        "clubName": "LEE",
+        "position": "FWD",
+        "price": 5.5
+      },
+      {
+        "playerId": 82,
+        "fullName": "Antoine Semenyo",
+        "clubName": "BOU",
+        "position": "MID",
+        "price": 7.0
+      },
+      {
+        "playerId": 325,
+        "fullName": "Emile Smith Rowe",
+        "clubName": "FUL",
+        "position": "MID",
+        "price": 6.0
+      },
+      {
+        "playerId": 258,
+        "fullName": "Tyrick Mitchell",
+        "clubName": "CRY",
+        "position": "DEF",
+        "price": 5.0
+      },
+      {
+        "playerId": 32,
+        "fullName": "Emiliano Martínez Romero",
+        "clubName": "AVL",
+        "position": "GK",
+        "price": 5.0
+      },
+      {
+        "playerId": 603,
+        "fullName": "El Hadji Malick Diouf",
+        "clubName": "WHU",
+        "position": "DEF",
+        "price": 4.5
+      },
+      {
+        "playerId": 343,
+        "fullName": "Pascal Struijk",
+        "clubName": "LEE",
+        "position": "DEF",
+        "price": 4.5
+      },
+      {
+        "playerId": 532,
+        "fullName": "Trai Hume",
+        "clubName": "SUN",
+        "position": "DEF",
+        "price": 4.5
+      },
+      {
+        "playerId": 37,
+        "fullName": "Lucas Digne",
+        "clubName": "AVL",
+        "position": "DEF",
+        "price": 4.5
+      },
+      {
+        "playerId": 531,
+        "fullName": "Daniel Ballard",
+        "clubName": "SUN",
+        "position": "DEF",
+        "price": 4.5
+      },
+      {
+        "playerId": 72,
+        "fullName": "Marcos Senesi Barón",
+        "clubName": "BOU",
+        "position": "DEF",
+        "price": 4.5
+      },
+      {
+        "playerId": 665,
+        "fullName": "Lucas Estella Perri",
+        "clubName": "LEE",
+        "position": "GK",
+        "price": 4.5
+      },
+      {
+        "playerId": 655,
+        "fullName": "Fábio Soares Silva",
+        "clubName": "WOL",
+        "position": "FWD",
+        "price": 5.0
+      },
+      {
+        "playerId": 339,
+        "fullName": "Illan Meslier",
+        "clubName": "LEE",
+        "position": "GK",
+        "price": 4.5
+      }
+    ],
+    "Макс": [
+      {
+        "playerId": 449,
+        "fullName": "Bruno Borges Fernandes",
+        "clubName": "MUN",
+        "position": "MID",
+        "price": 9.0
+      },
+      {
+        "playerId": 64,
+        "fullName": "Ollie Watkins",
+        "clubName": "AVL",
+        "position": "FWD",
+        "price": 9.0
+      },
+      {
+        "playerId": 371,
+        "fullName": "Milos Kerkez",
+        "clubName": "LIV",
+        "position": "DEF",
+        "price": 6.0
+      },
+      {
+        "playerId": 17,
+        "fullName": "Martin Ødegaard",
+        "clubName": "ARS",
+        "position": "MID",
+        "price": 8.0
+      },
+      {
+        "playerId": 407,
+        "fullName": "Matheus Nunes",
+        "clubName": "MCI",
+        "position": "DEF",
+        "price": 5.5
+      },
+      {
+        "playerId": 515,
+        "fullName": "Morgan Gibbs-White",
+        "clubName": "NFO",
+        "position": "MID",
+        "price": 7.5
+      },
+      {
+        "playerId": 387,
+        "fullName": "Dominik Szoboszlai",
+        "clubName": "LIV",
+        "position": "MID",
+        "price": 6.5
+      },
+      {
+        "playerId": 299,
+        "fullName": "Iliman Ndiaye",
+        "clubName": "EVE",
+        "position": "MID",
+        "price": 6.5
+      },
+      {
+        "playerId": 250,
+        "fullName": "Liam Delap",
+        "clubName": "CHE",
+        "position": "FWD",
+        "price": 6.5
+      },
+      {
+        "playerId": 506,
+        "fullName": "Murillo Costa dos Santos",
+        "clubName": "NFO",
+        "position": "DEF",
+        "price": 5.5
+      },
+      {
+        "playerId": 416,
+        "fullName": "Bernardo Mota Veiga de Carvalho e Silva",
+        "clubName": "MCI",
+        "position": "MID",
+        "price": 6.5
+      },
+      {
+        "playerId": 488,
+        "fullName": "Bruno Guimarães Rodriguez Moura",
+        "clubName": "NEW",
+        "position": "MID",
+        "price": 6.5
+      },
+      {
+        "playerId": 502,
+        "fullName": "Matz Sels",
+        "clubName": "NFO",
+        "position": "GK",
+        "price": 5.0
+      },
+      {
+        "playerId": 610,
+        "fullName": "Aaron Wan-Bissaka",
+        "clubName": "WHU",
+        "position": "DEF",
+        "price": 4.5
+      },
+      {
+        "playerId": 136,
+        "fullName": "Igor Thiago Nascimento Rodrigues",
+        "clubName": "BRE",
+        "position": "FWD",
+        "price": 6.0
+      },
+      {
+        "playerId": 11,
+        "fullName": "Benjamin White",
+        "clubName": "ARS",
+        "position": "DEF",
+        "price": 5.5
+      },
+      {
+        "playerId": 290,
+        "fullName": "Jarrad Branthwaite",
+        "clubName": "EVE",
+        "position": "DEF",
+        "price": 5.5
+      },
+      {
+        "playerId": 316,
+        "fullName": "Antonee Robinson",
+        "clubName": "FUL",
+        "position": "DEF",
+        "price": 5.0
+      },
+      {
+        "playerId": 139,
+        "fullName": "Bart Verbruggen",
+        "clubName": "BHA",
+        "position": "GK",
+        "price": 4.5
+      },
+      {
+        "playerId": 158,
+        "fullName": "Georginio Rutter",
+        "clubName": "BHA",
+        "position": "MID",
+        "price": 6.0
+      },
+      {
+        "playerId": 138,
+        "fullName": "Jason Steele",
+        "clubName": "BHA",
+        "position": "GK",
+        "price": 4.5
+      },
+      {
+        "playerId": 560,
+        "fullName": "Wilson Isidor",
+        "clubName": "SUN",
+        "position": "FWD",
+        "price": 5.5
+      }
+    ]
   },
   "draft_order": [
     "Ксана",
@@ -235,7 +1427,7 @@
     "Саша",
     "Ксана"
   ],
-  "current_pick_index": 6,
+  "current_pick_index": 176,
   "picks": [
     {
       "user": "Ксана",
@@ -302,11 +1494,1882 @@
         "price": 9.0
       },
       "ts": "2025-08-11T14:48:06"
+    },
+    {
+      "user": "Женя",
+      "player": {
+        "playerId": 382,
+        "fullName": "Florian Wirtz",
+        "clubName": "LIV",
+        "position": "MID",
+        "price": 8.5
+      },
+      "ts": "2025-08-12T07:06:42"
+    },
+    {
+      "user": "Макс",
+      "player": {
+        "playerId": 449,
+        "fullName": "Bruno Borges Fernandes",
+        "clubName": "MUN",
+        "position": "MID",
+        "price": 9.0
+      },
+      "ts": "2025-08-12T07:07:13"
+    },
+    {
+      "user": "Макс",
+      "player": {
+        "playerId": 64,
+        "fullName": "Ollie Watkins",
+        "clubName": "AVL",
+        "position": "FWD",
+        "price": 9.0
+      },
+      "ts": "2025-08-12T07:07:15"
+    },
+    {
+      "user": "Женя",
+      "player": {
+        "playerId": 681,
+        "fullName": "Benjamin Sesko",
+        "clubName": "MUN",
+        "position": "FWD",
+        "price": 7.5
+      },
+      "ts": "2025-08-12T07:08:03"
+    },
+    {
+      "user": "Андрей",
+      "player": {
+        "playerId": 624,
+        "fullName": "Jarrod Bowen",
+        "clubName": "WHU",
+        "position": "FWD",
+        "price": 8.0
+      },
+      "ts": "2025-08-12T07:09:05"
+    },
+    {
+      "user": "Сергей",
+      "player": {
+        "playerId": 661,
+        "fullName": "Hugo Ekitiké",
+        "clubName": "LIV",
+        "position": "FWD",
+        "price": 8.5
+      },
+      "ts": "2025-08-12T07:09:27"
+    },
+    {
+      "user": "Тёма",
+      "player": {
+        "playerId": 370,
+        "fullName": "Jeremie Frimpong",
+        "clubName": "LIV",
+        "position": "DEF",
+        "price": 6.0
+      },
+      "ts": "2025-08-12T07:10:07"
+    },
+    {
+      "user": "Руслан",
+      "player": {
+        "playerId": 6,
+        "fullName": "William Saliba",
+        "clubName": "ARS",
+        "position": "DEF",
+        "price": 6.0
+      },
+      "ts": "2025-08-12T07:11:10"
+    },
+    {
+      "user": "Саша",
+      "player": {
+        "playerId": 249,
+        "fullName": "João Pedro Junqueira de Jesus",
+        "clubName": "CHE",
+        "position": "FWD",
+        "price": 7.5
+      },
+      "ts": "2025-08-12T07:25:44"
+    },
+    {
+      "user": "Ксана",
+      "player": {
+        "playerId": 384,
+        "fullName": "Cody Gakpo",
+        "clubName": "LIV",
+        "position": "MID",
+        "price": 7.5
+      },
+      "ts": "2025-08-12T07:29:05"
+    },
+    {
+      "user": "Ксана",
+      "player": {
+        "playerId": 373,
+        "fullName": "Virgil van Dijk",
+        "clubName": "LIV",
+        "position": "DEF",
+        "price": 6.0
+      },
+      "ts": "2025-08-12T07:29:15"
+    },
+    {
+      "user": "Саша",
+      "player": {
+        "playerId": 283,
+        "fullName": "Jean-Philippe Mateta",
+        "clubName": "CRY",
+        "position": "FWD",
+        "price": 7.5
+      },
+      "ts": "2025-08-12T07:30:15"
+    },
+    {
+      "user": "Руслан",
+      "player": {
+        "playerId": 119,
+        "fullName": "Bryan Mbeumo",
+        "clubName": "MUN",
+        "position": "MID",
+        "price": 8.0
+      },
+      "ts": "2025-08-12T07:31:38"
+    },
+    {
+      "user": "Тёма",
+      "player": {
+        "playerId": 596,
+        "fullName": "Dominic Solanke-Mitchell",
+        "clubName": "TOT",
+        "position": "FWD",
+        "price": 7.5
+      },
+      "ts": "2025-08-12T07:33:02"
+    },
+    {
+      "user": "Сергей",
+      "player": {
+        "playerId": 5,
+        "fullName": "Gabriel dos Santos Magalhães",
+        "clubName": "ARS",
+        "position": "DEF",
+        "price": 6.0
+      },
+      "ts": "2025-08-12T07:33:16"
+    },
+    {
+      "user": "Андрей",
+      "player": {
+        "playerId": 414,
+        "fullName": "Phil Foden",
+        "clubName": "MCI",
+        "position": "MID",
+        "price": 8.0
+      },
+      "ts": "2025-08-12T07:37:01"
+    },
+    {
+      "user": "Женя",
+      "player": {
+        "playerId": 413,
+        "fullName": "Omar Marmoush",
+        "clubName": "MCI",
+        "position": "MID",
+        "price": 8.5
+      },
+      "ts": "2025-08-12T08:01:39"
+    },
+    {
+      "user": "Макс",
+      "player": {
+        "playerId": 371,
+        "fullName": "Milos Kerkez",
+        "clubName": "LIV",
+        "position": "DEF",
+        "price": 6.0
+      },
+      "ts": "2025-08-12T08:15:49"
+    },
+    {
+      "user": "Макс",
+      "player": {
+        "playerId": 17,
+        "fullName": "Martin Ødegaard",
+        "clubName": "ARS",
+        "position": "MID",
+        "price": 8.0
+      },
+      "ts": "2025-08-12T08:16:57"
+    },
+    {
+      "user": "Женя",
+      "player": {
+        "playerId": 450,
+        "fullName": "Matheus Santos Carneiro da Cunha",
+        "clubName": "MUN",
+        "position": "MID",
+        "price": 8.0
+      },
+      "ts": "2025-08-12T08:37:22"
+    },
+    {
+      "user": "Андрей",
+      "player": {
+        "playerId": 485,
+        "fullName": "Anthony Gordon",
+        "clubName": "NEW",
+        "position": "MID",
+        "price": 7.5
+      },
+      "ts": "2025-08-12T08:39:45"
+    },
+    {
+      "user": "Сергей",
+      "player": {
+        "playerId": 157,
+        "fullName": "Mitoma Kaoru",
+        "clubName": "BHA",
+        "position": "MID",
+        "price": 6.5
+      },
+      "ts": "2025-08-12T08:46:42"
+    },
+    {
+      "user": "Тёма",
+      "player": {
+        "playerId": 97,
+        "fullName": "Francisco Evanilson de Lima Barbosa",
+        "clubName": "BOU",
+        "position": "FWD",
+        "price": 7.0
+      },
+      "ts": "2025-08-12T08:51:22"
+    },
+    {
+      "user": "Руслан",
+      "player": {
+        "playerId": 402,
+        "fullName": "Rayan Aït-Nouri",
+        "clubName": "MCI",
+        "position": "DEF",
+        "price": 6.0
+      },
+      "ts": "2025-08-12T09:00:52"
+    },
+    {
+      "user": "Саша",
+      "player": {
+        "playerId": 403,
+        "fullName": "Joško Gvardiol",
+        "clubName": "MCI",
+        "position": "DEF",
+        "price": 6.0
+      },
+      "ts": "2025-08-12T09:03:50"
+    },
+    {
+      "user": "Ксана",
+      "player": {
+        "playerId": 81,
+        "fullName": "Justin Kluivert",
+        "clubName": "BOU",
+        "position": "MID",
+        "price": 7.0
+      },
+      "ts": "2025-08-12T09:04:01"
+    },
+    {
+      "user": "Ксана",
+      "player": {
+        "playerId": 427,
+        "fullName": "Tijjani Reijnders",
+        "clubName": "MCI",
+        "position": "MID",
+        "price": 5.5
+      },
+      "ts": "2025-08-12T09:04:15"
+    },
+    {
+      "user": "Саша",
+      "player": {
+        "playerId": 417,
+        "fullName": "Rayan Cherki",
+        "clubName": "MCI",
+        "position": "MID",
+        "price": 6.5
+      },
+      "ts": "2025-08-12T09:04:55"
+    },
+    {
+      "user": "Руслан",
+      "player": {
+        "playerId": 525,
+        "fullName": "Chris Wood",
+        "clubName": "NFO",
+        "position": "FWD",
+        "price": 7.5
+      },
+      "ts": "2025-08-12T09:15:48"
+    },
+    {
+      "user": "Тёма",
+      "player": {
+        "playerId": 224,
+        "fullName": "Marc Cucurella Saseta",
+        "clubName": "CHE",
+        "position": "DEF",
+        "price": 6.0
+      },
+      "ts": "2025-08-12T09:16:27"
+    },
+    {
+      "user": "Сергей",
+      "player": {
+        "playerId": 568,
+        "fullName": "Pedro Porro Sauceda",
+        "clubName": "TOT",
+        "position": "DEF",
+        "price": 5.5
+      },
+      "ts": "2025-08-12T09:17:24"
+    },
+    {
+      "user": "Андрей",
+      "player": {
+        "playerId": 30,
+        "fullName": "Kai Havertz",
+        "clubName": "ARS",
+        "position": "FWD",
+        "price": 7.5
+      },
+      "ts": "2025-08-12T09:26:18"
+    },
+    {
+      "user": "Женя",
+      "player": {
+        "playerId": 135,
+        "fullName": "Yoane Wissa",
+        "clubName": "BRE",
+        "position": "FWD",
+        "price": 7.5
+      },
+      "ts": "2025-08-12T09:30:22"
+    },
+    {
+      "user": "Макс",
+      "player": {
+        "playerId": 407,
+        "fullName": "Matheus Nunes",
+        "clubName": "MCI",
+        "position": "DEF",
+        "price": 5.5
+      },
+      "ts": "2025-08-12T09:36:23"
+    },
+    {
+      "user": "Макс",
+      "player": {
+        "playerId": 515,
+        "fullName": "Morgan Gibbs-White",
+        "clubName": "NFO",
+        "position": "MID",
+        "price": 7.5
+      },
+      "ts": "2025-08-12T09:36:43"
+    },
+    {
+      "user": "Женя",
+      "player": {
+        "playerId": 266,
+        "fullName": "Eberechi Eze",
+        "clubName": "CRY",
+        "position": "MID",
+        "price": 7.5
+      },
+      "ts": "2025-08-12T09:40:03"
+    },
+    {
+      "user": "Андрей",
+      "player": {
+        "playerId": 47,
+        "fullName": "Morgan Rogers",
+        "clubName": "AVL",
+        "position": "MID",
+        "price": 7.0
+      },
+      "ts": "2025-08-12T09:41:51"
+    },
+    {
+      "user": "Сергей",
+      "player": {
+        "playerId": 237,
+        "fullName": "Enzo Fernández",
+        "clubName": "CHE",
+        "position": "MID",
+        "price": 6.5
+      },
+      "ts": "2025-08-12T09:44:22"
+    },
+    {
+      "user": "Тёма",
+      "player": {
+        "playerId": 486,
+        "fullName": "Anthony Elanga",
+        "clubName": "NEW",
+        "position": "MID",
+        "price": 7.0
+      },
+      "ts": "2025-08-12T09:46:32"
+    },
+    {
+      "user": "Руслан",
+      "player": {
+        "playerId": 18,
+        "fullName": "Noni Madueke",
+        "clubName": "ARS",
+        "position": "MID",
+        "price": 7.0
+      },
+      "ts": "2025-08-12T09:47:37"
+    },
+    {
+      "user": "Саша",
+      "player": {
+        "playerId": 366,
+        "fullName": "Alisson Becker",
+        "clubName": "LIV",
+        "position": "GK",
+        "price": 5.5
+      },
+      "ts": "2025-08-12T09:48:02"
+    },
+    {
+      "user": "Ксана",
+      "player": {
+        "playerId": 178,
+        "fullName": "Danny Welbeck",
+        "clubName": "BHA",
+        "position": "FWD",
+        "price": 6.5
+      },
+      "ts": "2025-08-12T09:50:35"
+    },
+    {
+      "user": "Ксана",
+      "player": {
+        "playerId": 452,
+        "fullName": "Amad Diallo",
+        "clubName": "MUN",
+        "position": "MID",
+        "price": 6.5
+      },
+      "ts": "2025-08-12T09:50:45"
+    },
+    {
+      "user": "Саша",
+      "player": {
+        "playerId": 374,
+        "fullName": "Ibrahima Konaté",
+        "clubName": "LIV",
+        "position": "DEF",
+        "price": 5.5
+      },
+      "ts": "2025-08-12T09:52:04"
+    },
+    {
+      "user": "Руслан",
+      "player": {
+        "playerId": 582,
+        "fullName": "Mohammed Kudus",
+        "clubName": "TOT",
+        "position": "MID",
+        "price": 6.5
+      },
+      "ts": "2025-08-12T09:55:13"
+    },
+    {
+      "user": "Тёма",
+      "player": {
+        "playerId": 21,
+        "fullName": "Declan Rice",
+        "clubName": "ARS",
+        "position": "MID",
+        "price": 6.5
+      },
+      "ts": "2025-08-12T10:12:20"
+    },
+    {
+      "user": "Сергей",
+      "player": {
+        "playerId": 337,
+        "fullName": "Raúl Jiménez Rodríguez",
+        "clubName": "FUL",
+        "position": "FWD",
+        "price": 6.5
+      },
+      "ts": "2025-08-12T10:12:46"
+    },
+    {
+      "user": "Андрей",
+      "player": {
+        "playerId": 267,
+        "fullName": "Ismaïla Sarr",
+        "clubName": "CRY",
+        "position": "MID",
+        "price": 6.5
+      },
+      "ts": "2025-08-12T10:13:52"
+    },
+    {
+      "user": "Женя",
+      "player": {
+        "playerId": 48,
+        "fullName": "Youri Tielemans",
+        "clubName": "AVL",
+        "position": "MID",
+        "price": 6.0
+      },
+      "ts": "2025-08-12T10:21:04"
+    },
+    {
+      "user": "Макс",
+      "player": {
+        "playerId": 387,
+        "fullName": "Dominik Szoboszlai",
+        "clubName": "LIV",
+        "position": "MID",
+        "price": 6.5
+      },
+      "ts": "2025-08-12T10:27:26"
+    },
+    {
+      "user": "Макс",
+      "player": {
+        "playerId": 299,
+        "fullName": "Iliman Ndiaye",
+        "clubName": "EVE",
+        "position": "MID",
+        "price": 6.5
+      },
+      "ts": "2025-08-12T10:27:38"
+    },
+    {
+      "user": "Женя",
+      "player": {
+        "playerId": 121,
+        "fullName": "Mikkel Damsgaard",
+        "clubName": "BRE",
+        "position": "MID",
+        "price": 6.0
+      },
+      "ts": "2025-08-12T10:32:53"
+    },
+    {
+      "user": "Андрей",
+      "player": {
+        "playerId": 145,
+        "fullName": "Maxim De Cuyper",
+        "clubName": "BHA",
+        "position": "DEF",
+        "price": 4.5
+      },
+      "ts": "2025-08-12T10:35:37"
+    },
+    {
+      "user": "Сергей",
+      "player": {
+        "playerId": 256,
+        "fullName": "Daniel Muñoz Mejía",
+        "clubName": "CRY",
+        "position": "DEF",
+        "price": 5.5
+      },
+      "ts": "2025-08-12T10:37:51"
+    },
+    {
+      "user": "Тёма",
+      "player": {
+        "playerId": 241,
+        "fullName": "Moisés Caicedo Corozo",
+        "clubName": "CHE",
+        "position": "MID",
+        "price": 5.5
+      },
+      "ts": "2025-08-12T10:38:46"
+    },
+    {
+      "user": "Руслан",
+      "player": {
+        "playerId": 236,
+        "fullName": "Pedro Lomba Neto",
+        "clubName": "CHE",
+        "position": "MID",
+        "price": 7.0
+      },
+      "ts": "2025-08-12T10:46:43"
+    },
+    {
+      "user": "Саша",
+      "player": {
+        "playerId": 654,
+        "fullName": "Jørgen Strand Larsen",
+        "clubName": "WOL",
+        "position": "FWD",
+        "price": 6.5
+      },
+      "ts": "2025-08-12T10:47:54"
+    },
+    {
+      "user": "Ксана",
+      "player": {
+        "playerId": 8,
+        "fullName": "Jurriën Timber",
+        "clubName": "ARS",
+        "position": "DEF",
+        "price": 5.5
+      },
+      "ts": "2025-08-12T10:48:08"
+    },
+    {
+      "user": "Ксана",
+      "player": {
+        "playerId": 575,
+        "fullName": "Micky van de Ven",
+        "clubName": "TOT",
+        "position": "DEF",
+        "price": 4.5
+      },
+      "ts": "2025-08-12T10:49:24"
+    },
+    {
+      "user": "Саша",
+      "player": {
+        "playerId": 291,
+        "fullName": "James Tarkowski",
+        "clubName": "EVE",
+        "position": "DEF",
+        "price": 5.5
+      },
+      "ts": "2025-08-12T10:49:59"
+    },
+    {
+      "user": "Руслан",
+      "player": {
+        "playerId": 1,
+        "fullName": "David Raya Martín",
+        "clubName": "ARS",
+        "position": "GK",
+        "price": 5.5
+      },
+      "ts": "2025-08-12T10:54:00"
+    },
+    {
+      "user": "Тёма",
+      "player": {
+        "playerId": 505,
+        "fullName": "Nikola Milenković",
+        "clubName": "NFO",
+        "position": "DEF",
+        "price": 5.5
+      },
+      "ts": "2025-08-12T10:55:12"
+    },
+    {
+      "user": "Сергей",
+      "player": {
+        "playerId": 415,
+        "fullName": "Sávio Moreira de Oliveira",
+        "clubName": "MCI",
+        "position": "MID",
+        "price": 7.0
+      },
+      "ts": "2025-08-12T10:56:26"
+    },
+    {
+      "user": "Андрей",
+      "player": {
+        "playerId": 7,
+        "fullName": "Riccardo Calafiori",
+        "clubName": "ARS",
+        "position": "DEF",
+        "price": 5.5
+      },
+      "ts": "2025-08-12T10:57:51"
+    },
+    {
+      "user": "Женя",
+      "player": {
+        "playerId": 362,
+        "fullName": "Joël Piroe",
+        "clubName": "LEE",
+        "position": "FWD",
+        "price": 5.5
+      },
+      "ts": "2025-08-12T10:59:23"
+    },
+    {
+      "user": "Макс",
+      "player": {
+        "playerId": 250,
+        "fullName": "Liam Delap",
+        "clubName": "CHE",
+        "position": "FWD",
+        "price": 6.5
+      },
+      "ts": "2025-08-12T11:06:45"
+    },
+    {
+      "user": "Макс",
+      "player": {
+        "playerId": 506,
+        "fullName": "Murillo Costa dos Santos",
+        "clubName": "NFO",
+        "position": "DEF",
+        "price": 5.5
+      },
+      "ts": "2025-08-12T11:09:25"
+    },
+    {
+      "user": "Женя",
+      "player": {
+        "playerId": 82,
+        "fullName": "Antoine Semenyo",
+        "clubName": "BOU",
+        "position": "MID",
+        "price": 7.0
+      },
+      "ts": "2025-08-12T11:10:33"
+    },
+    {
+      "user": "Андрей",
+      "player": {
+        "playerId": 580,
+        "fullName": "Brennan Johnson",
+        "clubName": "TOT",
+        "position": "MID",
+        "price": 7.0
+      },
+      "ts": "2025-08-12T11:12:28"
+    },
+    {
+      "user": "Сергей",
+      "player": {
+        "playerId": 508,
+        "fullName": "Neco Williams",
+        "clubName": "NFO",
+        "position": "DEF",
+        "price": 5.0
+      },
+      "ts": "2025-08-12T11:16:53"
+    },
+    {
+      "user": "Тёма",
+      "player": {
+        "playerId": 253,
+        "fullName": "Dean Henderson",
+        "clubName": "CRY",
+        "position": "GK",
+        "price": 5.0
+      },
+      "ts": "2025-08-12T11:18:08"
+    },
+    {
+      "user": "Руслан",
+      "player": {
+        "playerId": 625,
+        "fullName": "Niclas Füllkrug",
+        "clubName": "WHU",
+        "position": "FWD",
+        "price": 6.0
+      },
+      "ts": "2025-08-12T11:26:19"
+    },
+    {
+      "user": "Саша",
+      "player": {
+        "playerId": 418,
+        "fullName": "Jérémy Doku",
+        "clubName": "MCI",
+        "position": "MID",
+        "price": 6.5
+      },
+      "ts": "2025-08-12T11:26:34"
+    },
+    {
+      "user": "Ксана",
+      "player": {
+        "playerId": 489,
+        "fullName": "Jacob Murphy",
+        "clubName": "NEW",
+        "position": "MID",
+        "price": 6.5
+      },
+      "ts": "2025-08-12T11:27:24"
+    },
+    {
+      "user": "Ксана",
+      "player": {
+        "playerId": 310,
+        "fullName": "Thierno Barry",
+        "clubName": "EVE",
+        "position": "FWD",
+        "price": 6.0
+      },
+      "ts": "2025-08-12T11:27:35"
+    },
+    {
+      "user": "Саша",
+      "player": {
+        "playerId": 612,
+        "fullName": "Lucas Tolentino Coelho de Lima",
+        "clubName": "WHU",
+        "position": "MID",
+        "price": 6.0
+      },
+      "ts": "2025-08-12T11:28:27"
+    },
+    {
+      "user": "Руслан",
+      "player": {
+        "playerId": 22,
+        "fullName": "Mikel Merino Zazón",
+        "clubName": "ARS",
+        "position": "MID",
+        "price": 6.0
+      },
+      "ts": "2025-08-12T11:29:45"
+    },
+    {
+      "user": "Тёма",
+      "player": {
+        "playerId": 120,
+        "fullName": "Kevin Schade",
+        "clubName": "BRE",
+        "position": "MID",
+        "price": 7.0
+      },
+      "ts": "2025-08-12T11:35:21"
+    },
+    {
+      "user": "Сергей",
+      "player": {
+        "playerId": 287,
+        "fullName": "Jordan Pickford",
+        "clubName": "EVE",
+        "position": "GK",
+        "price": 5.5
+      },
+      "ts": "2025-08-12T11:36:20"
+    },
+    {
+      "user": "Андрей",
+      "player": {
+        "playerId": 474,
+        "fullName": "Fabian Schär",
+        "clubName": "NEW",
+        "position": "DEF",
+        "price": 5.5
+      },
+      "ts": "2025-08-12T11:39:13"
+    },
+    {
+      "user": "Женя",
+      "player": {
+        "playerId": 325,
+        "fullName": "Emile Smith Rowe",
+        "clubName": "FUL",
+        "position": "MID",
+        "price": 6.0
+      },
+      "ts": "2025-08-12T11:56:39"
+    },
+    {
+      "user": "Макс",
+      "player": {
+        "playerId": 416,
+        "fullName": "Bernardo Mota Veiga de Carvalho e Silva",
+        "clubName": "MCI",
+        "position": "MID",
+        "price": 6.5
+      },
+      "ts": "2025-08-12T12:04:44"
+    },
+    {
+      "user": "Макс",
+      "player": {
+        "playerId": 488,
+        "fullName": "Bruno Guimarães Rodriguez Moura",
+        "clubName": "NEW",
+        "position": "MID",
+        "price": 6.5
+      },
+      "ts": "2025-08-12T12:04:57"
+    },
+    {
+      "user": "Женя",
+      "player": {
+        "playerId": 258,
+        "fullName": "Tyrick Mitchell",
+        "clubName": "CRY",
+        "position": "DEF",
+        "price": 5.0
+      },
+      "ts": "2025-08-12T12:10:57"
+    },
+    {
+      "user": "Андрей",
+      "player": {
+        "playerId": 507,
+        "fullName": "Ola Aina",
+        "clubName": "NFO",
+        "position": "DEF",
+        "price": 5.0
+      },
+      "ts": "2025-08-12T12:13:36"
+    },
+    {
+      "user": "Сергей",
+      "player": {
+        "playerId": 419,
+        "fullName": "Jack Grealish",
+        "clubName": "MCI",
+        "position": "MID",
+        "price": 6.5
+      },
+      "ts": "2025-08-12T12:14:02"
+    },
+    {
+      "user": "Тёма",
+      "player": {
+        "playerId": 477,
+        "fullName": "Tino Livramento",
+        "clubName": "NEW",
+        "position": "DEF",
+        "price": 5.0
+      },
+      "ts": "2025-08-12T12:16:02"
+    },
+    {
+      "user": "Руслан",
+      "player": {
+        "playerId": 324,
+        "fullName": "Alex Iwobi",
+        "clubName": "FUL",
+        "position": "MID",
+        "price": 6.5
+      },
+      "ts": "2025-08-12T12:17:34"
+    },
+    {
+      "user": "Саша",
+      "player": {
+        "playerId": 386,
+        "fullName": "Alexis Mac Allister",
+        "clubName": "LIV",
+        "position": "MID",
+        "price": 6.5
+      },
+      "ts": "2025-08-12T12:18:20"
+    },
+    {
+      "user": "Ксана",
+      "player": {
+        "playerId": 663,
+        "fullName": "Jhon Arias",
+        "clubName": "WOL",
+        "position": "MID",
+        "price": 5.5
+      },
+      "ts": "2025-08-12T12:19:11"
+    },
+    {
+      "user": "Ксана",
+      "player": {
+        "playerId": 106,
+        "fullName": "Nathan Collins",
+        "clubName": "BRE",
+        "position": "DEF",
+        "price": 5.0
+      },
+      "ts": "2025-08-12T12:20:39"
+    },
+    {
+      "user": "Саша",
+      "player": {
+        "playerId": 487,
+        "fullName": "Harvey Barnes",
+        "clubName": "NEW",
+        "position": "MID",
+        "price": 6.5
+      },
+      "ts": "2025-08-12T12:21:19"
+    },
+    {
+      "user": "Руслан",
+      "player": {
+        "playerId": 613,
+        "fullName": "Tomáš Souček",
+        "clubName": "WHU",
+        "position": "MID",
+        "price": 6.0
+      },
+      "ts": "2025-08-12T12:21:57"
+    },
+    {
+      "user": "Тёма",
+      "player": {
+        "playerId": 257,
+        "fullName": "Maxence Lacroix",
+        "clubName": "CRY",
+        "position": "DEF",
+        "price": 5.0
+      },
+      "ts": "2025-08-12T12:22:58"
+    },
+    {
+      "user": "Сергей",
+      "player": {
+        "playerId": 441,
+        "fullName": "Patrick Dorgu",
+        "clubName": "MUN",
+        "position": "DEF",
+        "price": 4.5
+      },
+      "ts": "2025-08-12T12:25:57"
+    },
+    {
+      "user": "Андрей",
+      "player": {
+        "playerId": 677,
+        "fullName": "Evann Guessand",
+        "clubName": "AVL",
+        "position": "MID",
+        "price": 6.5
+      },
+      "ts": "2025-08-12T12:26:35"
+    },
+    {
+      "user": "Женя",
+      "player": {
+        "playerId": 32,
+        "fullName": "Emiliano Martínez Romero",
+        "clubName": "AVL",
+        "position": "GK",
+        "price": 5.0
+      },
+      "ts": "2025-08-12T12:32:46"
+    },
+    {
+      "user": "Макс",
+      "player": {
+        "playerId": 502,
+        "fullName": "Matz Sels",
+        "clubName": "NFO",
+        "position": "GK",
+        "price": 5.0
+      },
+      "ts": "2025-08-12T12:36:56"
+    },
+    {
+      "user": "Макс",
+      "player": {
+        "playerId": 610,
+        "fullName": "Aaron Wan-Bissaka",
+        "clubName": "WHU",
+        "position": "DEF",
+        "price": 4.5
+      },
+      "ts": "2025-08-12T12:38:15"
+    },
+    {
+      "user": "Женя",
+      "player": {
+        "playerId": 603,
+        "fullName": "El Hadji Malick Diouf",
+        "clubName": "WHU",
+        "position": "DEF",
+        "price": 4.5
+      },
+      "ts": "2025-08-12T12:45:27"
+    },
+    {
+      "user": "Андрей",
+      "player": {
+        "playerId": 67,
+        "fullName": "Đorđe Petrović",
+        "clubName": "BOU",
+        "position": "GK",
+        "price": 4.5
+      },
+      "ts": "2025-08-12T12:47:29"
+    },
+    {
+      "user": "Сергей",
+      "player": {
+        "playerId": 20,
+        "fullName": "Leandro Trossard",
+        "clubName": "ARS",
+        "position": "MID",
+        "price": 7.0
+      },
+      "ts": "2025-08-12T12:50:02"
+    },
+    {
+      "user": "Тёма",
+      "player": {
+        "playerId": 329,
+        "fullName": "Harry Wilson",
+        "clubName": "FUL",
+        "position": "MID",
+        "price": 5.5
+      },
+      "ts": "2025-08-12T12:50:54"
+    },
+    {
+      "user": "Руслан",
+      "player": {
+        "playerId": 239,
+        "fullName": "Jamie Bynoe-Gittens",
+        "clubName": "CHE",
+        "position": "MID",
+        "price": 6.5
+      },
+      "ts": "2025-08-12T13:12:04"
+    },
+    {
+      "user": "Саша",
+      "player": {
+        "playerId": 476,
+        "fullName": "Dan Burn",
+        "clubName": "NEW",
+        "position": "DEF",
+        "price": 5.0
+      },
+      "ts": "2025-08-12T13:13:06"
+    },
+    {
+      "user": "Ксана",
+      "player": {
+        "playerId": 220,
+        "fullName": "Robert Lynch Sánchez",
+        "clubName": "CHE",
+        "position": "GK",
+        "price": 5.0
+      },
+      "ts": "2025-08-12T13:16:22"
+    },
+    {
+      "user": "Ксана",
+      "player": {
+        "playerId": 260,
+        "fullName": "Marc Guéhi",
+        "clubName": "CRY",
+        "position": "DEF",
+        "price": 4.5
+      },
+      "ts": "2025-08-12T13:17:29"
+    },
+    {
+      "user": "Саша",
+      "player": {
+        "playerId": 353,
+        "fullName": "Daniel James",
+        "clubName": "LEE",
+        "position": "MID",
+        "price": 5.5
+      },
+      "ts": "2025-08-12T13:19:46"
+    },
+    {
+      "user": "Руслан",
+      "player": {
+        "playerId": 10,
+        "fullName": "Myles Lewis-Skelly",
+        "clubName": "ARS",
+        "position": "DEF",
+        "price": 5.5
+      },
+      "ts": "2025-08-12T13:31:23"
+    },
+    {
+      "user": "Тёма",
+      "player": {
+        "playerId": 292,
+        "fullName": "Vitalii Mykolenko",
+        "clubName": "EVE",
+        "position": "DEF",
+        "price": 5.0
+      },
+      "ts": "2025-08-12T13:31:42"
+    },
+    {
+      "user": "Сергей",
+      "player": {
+        "playerId": 338,
+        "fullName": "Rodrigo Muniz Carvalho",
+        "clubName": "FUL",
+        "position": "FWD",
+        "price": 5.5
+      },
+      "ts": "2025-08-12T13:33:44"
+    },
+    {
+      "user": "Андрей",
+      "player": {
+        "playerId": 19,
+        "fullName": "Gabriel Martinelli Silva",
+        "clubName": "ARS",
+        "position": "MID",
+        "price": 7.0
+      },
+      "ts": "2025-08-12T13:35:00"
+    },
+    {
+      "user": "Женя",
+      "player": {
+        "playerId": 343,
+        "fullName": "Pascal Struijk",
+        "clubName": "LEE",
+        "position": "DEF",
+        "price": 4.5
+      },
+      "ts": "2025-08-12T13:46:54"
+    },
+    {
+      "user": "Макс",
+      "player": {
+        "playerId": 136,
+        "fullName": "Igor Thiago Nascimento Rodrigues",
+        "clubName": "BRE",
+        "position": "FWD",
+        "price": 6.0
+      },
+      "ts": "2025-08-12T13:47:43"
+    },
+    {
+      "user": "Макс",
+      "player": {
+        "playerId": 11,
+        "fullName": "Benjamin White",
+        "clubName": "ARS",
+        "position": "DEF",
+        "price": 5.5
+      },
+      "ts": "2025-08-12T13:48:31"
+    },
+    {
+      "user": "Женя",
+      "player": {
+        "playerId": 532,
+        "fullName": "Trai Hume",
+        "clubName": "SUN",
+        "position": "DEF",
+        "price": 4.5
+      },
+      "ts": "2025-08-12T13:50:05"
+    },
+    {
+      "user": "Андрей",
+      "player": {
+        "playerId": 311,
+        "fullName": "Norberto Bercique Gomes Betuncal",
+        "clubName": "EVE",
+        "position": "FWD",
+        "price": 5.5
+      },
+      "ts": "2025-08-12T13:59:07"
+    },
+    {
+      "user": "Сергей",
+      "player": {
+        "playerId": 583,
+        "fullName": "Dejan Kulusevski",
+        "clubName": "TOT",
+        "position": "MID",
+        "price": 6.5
+      },
+      "ts": "2025-08-12T13:59:49"
+    },
+    {
+      "user": "Тёма",
+      "player": {
+        "playerId": 399,
+        "fullName": "Ederson Santana de Moraes",
+        "clubName": "MCI",
+        "position": "GK",
+        "price": 5.5
+      },
+      "ts": "2025-08-12T14:00:51"
+    },
+    {
+      "user": "Руслан",
+      "player": {
+        "playerId": 442,
+        "fullName": "Harry Maguire",
+        "clubName": "MUN",
+        "position": "DEF",
+        "price": 4.5
+      },
+      "ts": "2025-08-12T14:02:04"
+    },
+    {
+      "user": "Саша",
+      "player": {
+        "playerId": 225,
+        "fullName": "Reece James",
+        "clubName": "CHE",
+        "position": "DEF",
+        "price": 5.5
+      },
+      "ts": "2025-08-12T14:03:49"
+    },
+    {
+      "user": "Ксана",
+      "player": {
+        "playerId": 160,
+        "fullName": "Yankuba Minteh",
+        "clubName": "BHA",
+        "position": "MID",
+        "price": 6.0
+      },
+      "ts": "2025-08-12T14:08:33"
+    },
+    {
+      "user": "Ксана",
+      "player": {
+        "playerId": 38,
+        "fullName": "Ezri Konsa Ngoyo",
+        "clubName": "AVL",
+        "position": "DEF",
+        "price": 4.5
+      },
+      "ts": "2025-08-12T14:09:19"
+    },
+    {
+      "user": "Саша",
+      "player": {
+        "playerId": 526,
+        "fullName": "Igor Jesus Maciel da Cruz",
+        "clubName": "NFO",
+        "position": "FWD",
+        "price": 6.0
+      },
+      "ts": "2025-08-12T14:11:16"
+    },
+    {
+      "user": "Руслан",
+      "player": {
+        "playerId": 408,
+        "fullName": "Rúben dos Santos Gato Alves Dias",
+        "clubName": "MCI",
+        "position": "DEF",
+        "price": 5.5
+      },
+      "ts": "2025-08-12T14:11:41"
+    },
+    {
+      "user": "Тёма",
+      "player": {
+        "playerId": 251,
+        "fullName": "Nicolas Jackson",
+        "clubName": "CHE",
+        "position": "FWD",
+        "price": 6.5
+      },
+      "ts": "2025-08-12T14:16:52"
+    },
+    {
+      "user": "Сергей",
+      "player": {
+        "playerId": 473,
+        "fullName": "Lewis Hall",
+        "clubName": "NEW",
+        "position": "DEF",
+        "price": 5.5
+      },
+      "ts": "2025-08-12T14:18:06"
+    },
+    {
+      "user": "Андрей",
+      "player": {
+        "playerId": 491,
+        "fullName": "Sandro Tonali",
+        "clubName": "NEW",
+        "position": "MID",
+        "price": 5.5
+      },
+      "ts": "2025-08-12T14:19:17"
+    },
+    {
+      "user": "Женя",
+      "player": {
+        "playerId": 37,
+        "fullName": "Lucas Digne",
+        "clubName": "AVL",
+        "position": "DEF",
+        "price": 4.5
+      },
+      "ts": "2025-08-12T14:21:55"
+    },
+    {
+      "user": "Макс",
+      "player": {
+        "playerId": 290,
+        "fullName": "Jarrad Branthwaite",
+        "clubName": "EVE",
+        "position": "DEF",
+        "price": 5.5
+      },
+      "ts": "2025-08-12T14:23:35"
+    },
+    {
+      "user": "Макс",
+      "player": {
+        "playerId": 316,
+        "fullName": "Antonee Robinson",
+        "clubName": "FUL",
+        "position": "DEF",
+        "price": 5.0
+      },
+      "ts": "2025-08-12T14:23:49"
+    },
+    {
+      "user": "Женя",
+      "player": {
+        "playerId": 531,
+        "fullName": "Daniel Ballard",
+        "clubName": "SUN",
+        "position": "DEF",
+        "price": 4.5
+      },
+      "ts": "2025-08-12T14:28:33"
+    },
+    {
+      "user": "Андрей",
+      "player": {
+        "playerId": 565,
+        "fullName": "Guglielmo Vicario",
+        "clubName": "TOT",
+        "position": "GK",
+        "price": 5.0
+      },
+      "ts": "2025-08-12T14:29:14"
+    },
+    {
+      "user": "Сергей",
+      "player": {
+        "playerId": 314,
+        "fullName": "Bernd Leno",
+        "clubName": "FUL",
+        "position": "GK",
+        "price": 5.0
+      },
+      "ts": "2025-08-12T14:30:35"
+    },
+    {
+      "user": "Тёма",
+      "player": {
+        "playerId": 238,
+        "fullName": "Estêvão Almeida de Oliveira Gonçalves",
+        "clubName": "CHE",
+        "position": "MID",
+        "price": 6.5
+      },
+      "ts": "2025-08-12T14:31:24"
+    },
+    {
+      "user": "Руслан",
+      "player": {
+        "playerId": 628,
+        "fullName": "José Malheiro de Sá",
+        "clubName": "WOL",
+        "position": "GK",
+        "price": 4.5
+      },
+      "ts": "2025-08-12T14:34:02"
+    },
+    {
+      "user": "Саша",
+      "player": {
+        "playerId": 53,
+        "fullName": "Donyell Malen",
+        "clubName": "AVL",
+        "position": "MID",
+        "price": 5.5
+      },
+      "ts": "2025-08-12T14:34:33"
+    },
+    {
+      "user": "Ксана",
+      "player": {
+        "playerId": 469,
+        "fullName": "Nick Pope",
+        "clubName": "NEW",
+        "position": "GK",
+        "price": 5.0
+      },
+      "ts": "2025-08-12T14:36:28"
+    },
+    {
+      "user": "Ксана",
+      "player": {
+        "playerId": 74,
+        "fullName": "Adrien Truffert",
+        "clubName": "BOU",
+        "position": "DEF",
+        "price": 4.5
+      },
+      "ts": "2025-08-12T14:42:17"
+    },
+    {
+      "user": "Саша",
+      "player": {
+        "playerId": 607,
+        "fullName": "Nayef Aguerd",
+        "clubName": "WHU",
+        "position": "DEF",
+        "price": 4.5
+      },
+      "ts": "2025-08-12T14:43:25"
+    },
+    {
+      "user": "Руслан",
+      "player": {
+        "playerId": 252,
+        "fullName": "Marc Guiu Paz",
+        "clubName": "SUN",
+        "position": "FWD",
+        "price": 4.5
+      },
+      "ts": "2025-08-12T14:50:10"
+    },
+    {
+      "user": "Тёма",
+      "player": {
+        "playerId": 226,
+        "fullName": "Trevoh Chalobah",
+        "clubName": "CHE",
+        "position": "DEF",
+        "price": 5.0
+      },
+      "ts": "2025-08-12T14:56:58"
+    },
+    {
+      "user": "Сергей",
+      "player": {
+        "playerId": 421,
+        "fullName": "Rodrigo 'Rodri' Hernandez Cascante",
+        "clubName": "MCI",
+        "position": "MID",
+        "price": 6.5
+      },
+      "ts": "2025-08-12T14:58:35"
+    },
+    {
+      "user": "Андрей",
+      "player": {
+        "playerId": 410,
+        "fullName": "Rico Lewis",
+        "clubName": "MCI",
+        "position": "DEF",
+        "price": 5.0
+      },
+      "ts": "2025-08-12T15:03:32"
+    },
+    {
+      "user": "Женя",
+      "player": {
+        "playerId": 72,
+        "fullName": "Marcos Senesi Barón",
+        "clubName": "BOU",
+        "position": "DEF",
+        "price": 4.5
+      },
+      "ts": "2025-08-12T15:10:52"
+    },
+    {
+      "user": "Макс",
+      "player": {
+        "playerId": 139,
+        "fullName": "Bart Verbruggen",
+        "clubName": "BHA",
+        "position": "GK",
+        "price": 4.5
+      },
+      "ts": "2025-08-12T15:12:25"
+    },
+    {
+      "user": "Макс",
+      "player": {
+        "playerId": 158,
+        "fullName": "Georginio Rutter",
+        "clubName": "BHA",
+        "position": "MID",
+        "price": 6.0
+      },
+      "ts": "2025-08-12T15:16:06"
+    },
+    {
+      "user": "Женя",
+      "player": {
+        "playerId": 665,
+        "fullName": "Lucas Estella Perri",
+        "clubName": "LEE",
+        "position": "GK",
+        "price": 4.5
+      },
+      "ts": "2025-08-12T15:23:11"
+    },
+    {
+      "user": "Андрей",
+      "player": {
+        "playerId": 107,
+        "fullName": "Keane Lewis-Potter",
+        "clubName": "BRE",
+        "position": "DEF",
+        "price": 5.0
+      },
+      "ts": "2025-08-12T15:25:09"
+    },
+    {
+      "user": "Сергей",
+      "player": {
+        "playerId": 39,
+        "fullName": "Ian Maatsen",
+        "clubName": "AVL",
+        "position": "DEF",
+        "price": 4.5
+      },
+      "ts": "2025-08-12T15:29:32"
+    },
+    {
+      "user": "Тёма",
+      "player": {
+        "playerId": 390,
+        "fullName": "Ryan Gravenberch",
+        "clubName": "LIV",
+        "position": "MID",
+        "price": 5.5
+      },
+      "ts": "2025-08-12T15:36:01"
+    },
+    {
+      "user": "Руслан",
+      "player": {
+        "playerId": 409,
+        "fullName": "John Stones",
+        "clubName": "MCI",
+        "position": "DEF",
+        "price": 5.5
+      },
+      "ts": "2025-08-12T15:37:20"
+    },
+    {
+      "user": "Саша",
+      "player": {
+        "playerId": 375,
+        "fullName": "Conor Bradley",
+        "clubName": "LIV",
+        "position": "DEF",
+        "price": 5.0
+      },
+      "ts": "2025-08-12T15:38:05"
+    },
+    {
+      "user": "Ксана",
+      "player": {
+        "playerId": 597,
+        "fullName": "Richarlison de Andrade",
+        "clubName": "TOT",
+        "position": "FWD",
+        "price": 6.5
+      },
+      "ts": "2025-08-12T15:38:22"
+    },
+    {
+      "user": "Ксана",
+      "player": {
+        "playerId": 669,
+        "fullName": "Dan Ndoye",
+        "clubName": "NFO",
+        "position": "MID",
+        "price": 6.0
+      },
+      "ts": "2025-08-12T15:38:51"
+    },
+    {
+      "user": "Саша",
+      "player": {
+        "playerId": 101,
+        "fullName": "Caoimhín Kelleher",
+        "clubName": "BRE",
+        "position": "GK",
+        "price": 4.5
+      },
+      "ts": "2025-08-12T15:39:55"
+    },
+    {
+      "user": "Руслан",
+      "player": {
+        "playerId": 672,
+        "fullName": "Jorrel Hato",
+        "clubName": "CHE",
+        "position": "DEF",
+        "price": 5.0
+      },
+      "ts": "2025-08-12T15:40:34"
+    },
+    {
+      "user": "Тёма",
+      "player": {
+        "playerId": 680,
+        "fullName": "Armando Broja",
+        "clubName": "BUR",
+        "position": "FWD",
+        "price": 5.5
+      },
+      "ts": "2025-08-12T15:45:25"
+    },
+    {
+      "user": "Сергей",
+      "player": {
+        "playerId": 527,
+        "fullName": "Taiwo Awoniyi",
+        "clubName": "NFO",
+        "position": "FWD",
+        "price": 5.5
+      },
+      "ts": "2025-08-12T15:47:24"
+    },
+    {
+      "user": "Андрей",
+      "player": {
+        "playerId": 573,
+        "fullName": "Djed Spence",
+        "clubName": "TOT",
+        "position": "DEF",
+        "price": 4.5
+      },
+      "ts": "2025-08-12T15:51:50"
+    },
+    {
+      "user": "Женя",
+      "player": {
+        "playerId": 655,
+        "fullName": "Fábio Soares Silva",
+        "clubName": "WOL",
+        "position": "FWD",
+        "price": 5.0
+      },
+      "ts": "2025-08-12T16:12:12"
+    },
+    {
+      "user": "Макс",
+      "player": {
+        "playerId": 138,
+        "fullName": "Jason Steele",
+        "clubName": "BHA",
+        "position": "GK",
+        "price": 4.5
+      },
+      "ts": "2025-08-12T17:17:27"
+    },
+    {
+      "user": "Макс",
+      "player": {
+        "playerId": 560,
+        "fullName": "Wilson Isidor",
+        "clubName": "SUN",
+        "position": "FWD",
+        "price": 5.5
+      },
+      "ts": "2025-08-12T17:19:35"
+    },
+    {
+      "user": "Женя",
+      "player": {
+        "playerId": 339,
+        "fullName": "Illan Meslier",
+        "clubName": "LEE",
+        "position": "GK",
+        "price": 4.5
+      },
+      "ts": "2025-08-12T17:20:55"
+    },
+    {
+      "user": "Андрей",
+      "player": {
+        "playerId": 567,
+        "fullName": "Antonín Kinský",
+        "clubName": "TOT",
+        "position": "GK",
+        "price": 4.0
+      },
+      "ts": "2025-08-12T19:05:08"
+    },
+    {
+      "user": "Сергей",
+      "player": {
+        "playerId": 288,
+        "fullName": "Mark Travers",
+        "clubName": "EVE",
+        "position": "GK",
+        "price": 4.5
+      },
+      "ts": "2025-08-12T19:05:46"
+    },
+    {
+      "user": "Тёма",
+      "player": {
+        "playerId": 182,
+        "fullName": "James Trafford",
+        "clubName": "MCI",
+        "position": "GK",
+        "price": 5.0
+      },
+      "ts": "2025-08-12T19:12:50"
+    },
+    {
+      "user": "Руслан",
+      "player": {
+        "playerId": 2,
+        "fullName": "Kepa Arrizabalaga Revuelta",
+        "clubName": "ARS",
+        "position": "GK",
+        "price": 4.5
+      },
+      "ts": "2025-08-12T19:13:14"
+    },
+    {
+      "user": "Саша",
+      "player": {
+        "playerId": 367,
+        "fullName": "Giorgi Mamardashvili",
+        "clubName": "LIV",
+        "position": "GK",
+        "price": 4.5
+      },
+      "ts": "2025-08-12T19:13:45"
+    },
+    {
+      "user": "Ксана",
+      "player": {
+        "playerId": 674,
+        "fullName": "Aaron Ramsdale",
+        "clubName": "NEW",
+        "position": "GK",
+        "price": 5.0
+      },
+      "ts": "2025-08-12T19:14:02"
     }
   ],
   "draft_started_at": "2025-08-11T14:30:00",
   "limits": {
     "Max from club": 22
   },
-  "next_user": "Женя"
+  "next_user": "Ксана",
+  "draft_completed": true
 }
