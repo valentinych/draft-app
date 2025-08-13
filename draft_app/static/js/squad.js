@@ -6,6 +6,7 @@ function formationCounts(fmt){
 
 const POSITIONS=['GK','DEF','MID','FWD'];
 const ALL_POSITIONS=[...POSITIONS,'BENCH'];
+let selected=null;
 
 function buildSlots(){
   const fmt=document.getElementById('formation').value;
@@ -23,29 +24,6 @@ function sortRoster(){
   Array.from(roster.children)
     .sort((a,b)=>order[a.dataset.pos]-order[b.dataset.pos])
     .forEach(el=>roster.appendChild(el));
-}
-
-function initDrag(){
-  Sortable.create(document.getElementById('roster'), {
-    group:'players', animation:150, sort:false,
-    onAdd: sortRoster
-  });
-  ALL_POSITIONS.forEach(pos=>{
-    Sortable.create(document.getElementById('slot-'+pos), {
-      group:'players', animation:150, sort: pos==='BENCH',
-      onAdd: evt => {
-        const itemPos=evt.item.dataset.pos;
-        if(pos!=='BENCH' && itemPos!==pos){
-          evt.from.insertBefore(evt.item, evt.from.children[evt.oldIndex]);
-          return;
-        }
-        const max=parseInt(evt.to.dataset.max||'0',10);
-        if(max && evt.to.children.length>max){
-          evt.from.insertBefore(evt.item, evt.from.children[evt.oldIndex]);
-        }
-      }
-    });
-  });
 }
 
 function placePreset(){
@@ -72,6 +50,35 @@ function placePreset(){
   }catch(e){}
 }
 
+function moveToSlot(wrap){
+  if(!selected) return;
+  const pos=wrap.id.replace('slot-','');
+  const playerPos=selected.dataset.pos;
+  if(pos!=='BENCH' && pos!==playerPos) return;
+  const max=parseInt(wrap.dataset.max||'0',10);
+  if(max && wrap.children.length>=max) return;
+  wrap.appendChild(selected);
+  selected.classList.remove('selected');
+  selected=null;
+}
+
+function handlePlayerClick(el){
+  const parentId=el.parentElement.id;
+  if(parentId.startsWith('slot-')){
+    document.getElementById('roster').appendChild(el);
+    sortRoster();
+    return;
+  }
+  if(selected===el){
+    el.classList.remove('selected');
+    selected=null;
+  }else{
+    if(selected) selected.classList.remove('selected');
+    selected=el;
+    el.classList.add('selected');
+  }
+}
+
 function serialize(){
   const ids=[];
   POSITIONS.forEach(pos=>{
@@ -85,24 +92,38 @@ function serialize(){
   document.getElementById('bench_ids').value=benchIds.join(',');
 }
 
-document.addEventListener('DOMContentLoaded', ()=>{
+document.addEventListener('DOMContentLoaded',()=>{
   const editable=document.getElementById('lineup').dataset.editable==='1';
   buildSlots();
-  if(editable){
-    initDrag();
-  }
   placePreset();
   sortRoster();
   if(editable){
     const roster=document.getElementById('roster');
-    document.getElementById('formation').addEventListener('change', ()=>{
-      POSITIONS.forEach(pos=>{
-        const wrap=document.getElementById('slot-'+pos);
-        wrap.querySelectorAll('.player').forEach(p=>roster.appendChild(p));
-      });
-      buildSlots();
-      initDrag();
+    roster.addEventListener('click',e=>{
+      const p=e.target.closest('.player');
+      if(p) handlePlayerClick(p);
     });
-    document.getElementById('lineup-form').addEventListener('submit', serialize);
+    ALL_POSITIONS.forEach(pos=>{
+      const wrap=document.getElementById('slot-'+pos);
+      wrap.addEventListener('click',e=>{
+        const p=e.target.closest('.player');
+        if(p) handlePlayerClick(p); else moveToSlot(wrap);
+      });
+    });
+    document.getElementById('formation').addEventListener('change',()=>{
+      ALL_POSITIONS.forEach(pos=>{
+        const wrap=document.getElementById('slot-'+pos);
+        if(pos!=='BENCH'){
+          Array.from(wrap.children).forEach(p=>{
+            p.classList.remove('selected');
+            roster.appendChild(p);
+          });
+        }
+      });
+      if(selected){selected.classList.remove('selected');selected=null;}
+      buildSlots();
+      sortRoster();
+    });
+    document.getElementById('lineup-form').addEventListener('submit',serialize);
   }
 });

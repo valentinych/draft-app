@@ -161,6 +161,7 @@ def squad():
         roster_ext.append({
             "playerId": pid,
             "fullName": pl.get("fullName") or meta.get("fullName"),
+            "shortName": meta.get("shortName"),
             "position": pl.get("position") or meta.get("position"),
             "clubName": pl.get("clubName") or meta.get("clubName"),
             "photo": photo_url_for(pid),
@@ -177,6 +178,7 @@ def squad():
             lineup_ext.append({
                 "playerId": int(pid),
                 "fullName": meta.get("fullName"),
+                "shortName": meta.get("shortName"),
                 "position": meta.get("position"),
                 "clubName": meta.get("clubName"),
                 "photo": photo_url_for(pid),
@@ -189,6 +191,7 @@ def squad():
             bench_ext.append({
                 "playerId": int(pid),
                 "fullName": meta.get("fullName"),
+                "shortName": meta.get("shortName"),
                 "position": meta.get("position"),
                 "clubName": meta.get("clubName"),
                 "photo": photo_url_for(pid),
@@ -233,7 +236,6 @@ def squad():
                 pos_counts.get("DEF") == counts["DEF"] and
                 pos_counts.get("MID") == counts["MID"] and
                 pos_counts.get("FWD") == counts["FWD"] and
-                len(bench) <= 4 and
                 not set(ids) & set(bench)
             )
             if valid:

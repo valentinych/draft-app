@@ -9,20 +9,21 @@
 .player {
   width: 80px;
   text-align: center;
-  cursor: move;
+  cursor: pointer;
 }
 .player img {
   width: 60px;
-  height: 60px;
+  height: 80px;
   object-fit: cover;
-  border-radius: 50%;
+  border-radius: 0;
+}
+.player.selected {
+  outline: 2px solid #3273dc;
 }
 .lineup-pos {
   margin-bottom: 1rem;
 }
-.lineup-pos .slots .player {
-  cursor: move;
-}
+
 
 .lineup-pos[data-pos="BENCH"] .slots {
   flex-wrap: nowrap;
