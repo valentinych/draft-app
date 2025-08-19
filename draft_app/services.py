@@ -1,27 +1,11 @@
 import json
-import os
 from datetime import datetime
-import requests
-from requests.adapters import HTTPAdapter
-from urllib3.util.retry import Retry
 from .config import (
-    UCL_POSITION_MAP, FPL_POSITION_MAP, WARSZAWA_TZ,
-    EPL_PLAYERS_FILE
+    UCL_POSITION_MAP, FPL_POSITION_MAP, WARSZAWA_TZ
 )
+from .epl_services import ensure_fpl_bootstrap_fresh
 
-# HTTP session с retry
-session_req = requests.Session()
-retry_strategy = Retry(total=3, backoff_factor=1,
-                       status_forcelist=[429, 500, 502, 503, 504],
-                       allowed_methods=["GET"])
-adapter = HTTPAdapter(max_retries=retry_strategy)
-session_req.mount('https://', adapter)
-session_req.mount('http://', adapter)
 
-HEADERS_GENERIC = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
-    'Accept': 'application/json, text/plain, */*'
-}
 
 def load_json(path, default=None):
     try:
@@ -57,26 +41,19 @@ _last_bootstrap = None
 
 def fetch_and_cache_fpl_bootstrap():
     global _last_bootstrap
-    url = "https://fantasy.premierleague.com/api/bootstrap-static/"
-    try:
-        resp = session_req.get(url, headers=HEADERS_GENERIC, timeout=12)
-        resp.raise_for_status()
-        data = resp.json()
-        save_json(EPL_PLAYERS_FILE, data)
+    data = ensure_fpl_bootstrap_fresh()
+    if data:
         _last_bootstrap = data
-        return data
-    except Exception:
-        return None
+    return data
 
 def get_bootstrap_data():
     global _last_bootstrap
     if _last_bootstrap is not None:
         return _last_bootstrap
-    data = load_json(EPL_PLAYERS_FILE)
-    if data is not None:
+    data = ensure_fpl_bootstrap_fresh()
+    if data:
         _last_bootstrap = data
-        return _last_bootstrap
-    return fetch_and_cache_fpl_bootstrap()
+    return _last_bootstrap
 
 def load_epl_players():
     data = get_bootstrap_data()

@@ -19,7 +19,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Локальные файлы (фолбэк)
 EPL_STATE = BASE_DIR / "draft_state_epl.json"
-EPL_FPL   = BASE_DIR / "players_fpl_bootstrap.json"
+# bootstrap сохраняется во временный каталог
+EPL_FPL   = Path(tempfile.gettempdir()) / "players_fpl_bootstrap.json"
 WISHLIST_DIR = BASE_DIR / "data" / "wishlist" / "epl"
 
 # Кеш результатов туров (по игрокам)
@@ -81,6 +82,9 @@ def _s3_gwstats_prefix() -> str:
     # Префикс для кеша результатов туров
     return os.getenv("DRAFT_S3_GWSTATS_PREFIX", "gw_stats")
 
+def _s3_bootstrap_key() -> Optional[str]:
+    return os.getenv("DRAFT_S3_BOOTSTRAP_KEY")
+
 def _s3_client():
     if not boto3:
         return None
@@ -126,8 +130,13 @@ def _s3_put_json(bucket: str, key: str, data: dict) -> bool:
 def ensure_fpl_bootstrap_fresh() -> dict:
     """
     Возвращает свежие данные bootstrap-static.
-    Если локальный файл отсутствует/старше 1 часа/некорректен — скачивает новый и перезаписывает.
+    Если локальный файл отсутствует/старше 1 часа/некорректен — скачивает новый
+    и перезаписывает. Файл кешируется во временном каталоге и при наличии
+    переменных окружения DRAFT_S3_BUCKET и DRAFT_S3_BOOTSTRAP_KEY также
+    сохраняется в S3.
     """
+    bucket = _s3_bucket()
+    key = _s3_bootstrap_key()
     try:
         if EPL_FPL.exists():
             age = time.time() - EPL_FPL.stat().st_mtime
@@ -135,17 +144,29 @@ def ensure_fpl_bootstrap_fresh() -> dict:
                 data = json_load(EPL_FPL)
                 if isinstance(data, dict) and data.get("elements"):
                     return data
-        # Нужно обновить
+        if bucket and key:
+            data = _s3_get_json(bucket, key)
+            if isinstance(data, dict) and data.get("elements"):
+                json_dump_atomic(EPL_FPL, data)
+                return data
         r = requests.get(FPL_BOOTSTRAP_URL, timeout=10)
         r.raise_for_status()
         data = r.json()
         if isinstance(data, dict) and data.get("elements"):
             json_dump_atomic(EPL_FPL, data)
+            if bucket and key:
+                _s3_put_json(bucket, key, data)
             return data
     except Exception as e:
         print(f"[EPL] Failed to fetch bootstrap-static: {e}")
-    # fallback — что есть на диске
-    return json_load(EPL_FPL) or {}
+    data = json_load(EPL_FPL)
+    if isinstance(data, dict):
+        return data
+    if bucket and key:
+        data = _s3_get_json(bucket, key)
+        if isinstance(data, dict):
+            return data
+    return {}
 
 # -------- Players (bootstrap → internal model) --------
 def players_from_fpl(bootstrap: Any) -> List[Dict[str, Any]]:
@@ -207,7 +228,7 @@ def nameclub_index(plist: List[Dict[str, Any]]) -> Dict[Tuple[str,str], Set[str]
 
 def photo_url_for(pid: int) -> Optional[str]:
     """Return player photo URL or placeholder if missing."""
-    data = json_load(EPL_FPL) or {}
+    data = ensure_fpl_bootstrap_fresh()
     for e in (data.get("elements") or []):
         if int(e.get("id", -1)) == int(pid):
             code = e.get("code")
