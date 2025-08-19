@@ -52,14 +52,15 @@
             {% endif %}
             {% set ns.last_pos = p.pos %}
             {% set row_color = c1 if loop.index0 % 2 == 0 else c2 %}
-            <div class="is-flex is-justify-content-space-between" style="background-color: {{ row_color }};">
-              <span>
-                {% if p.status == 'in_progress' %}<span class="live-dot"></span>{% endif %}
-                <span class="{{ 'has-text-weight-bold' if p.status == 'finished' and p.minutes > 0 else '' }}">{{ p.name }}</span>
-                <img src="https://resources.premierleague.com/premierleague25/badges/{{ p.club }}.svg" alt="{{ p.club }}" style="height:14px; vertical-align:middle"/>
-              </span>
-              <span class="has-text-right" style="min-width:2em">{{ p.points }}</span>
-            </div>
+              <div class="is-flex is-justify-content-space-between" style="background-color: {{ row_color }};">
+                <span>
+                  {% if p.status == 'in_progress' %}<span class="live-dot"></span>{% endif %}
+                  <span class="{% if p.subbed_out %}has-text-danger{% elif p.status == 'finished' and p.minutes > 0 %}has-text-weight-bold{% endif %}">{{ p.name }}</span>
+                  {% if p.subbed_out %}<span class="has-text-danger">⬇️</span>{% endif %}
+                  <img src="https://resources.premierleague.com/premierleague25/badges/{{ p.club }}.svg" alt="{{ p.club }}" style="height:14px; vertical-align:middle"/>
+                </span>
+                <span class="has-text-right" style="min-width:2em">{{ p.points }}</span>
+              </div>
           {% endfor %}
           {% if lineups[m].bench %}
             <div class="mt-2 has-text-weight-semibold">Запас</div>
@@ -69,11 +70,15 @@
                 <hr class="my-1"/>
               {% endif %}
               {% set ns_bench.last_pos = p.pos %}
-              {% set row_color = c1 if loop.index0 % 2 == 0 else c2 %}
-                <div class="is-flex is-justify-content-space-between has-text-grey" style="background-color: {{ row_color }};">
+                {% set row_color = c1 if loop.index0 % 2 == 0 else c2 %}
+                <div class="is-flex is-justify-content-space-between {% if p.subbed_in %}{% else %}has-text-grey{% endif %}" style="background-color: {{ row_color }};">
                   <span>
                     {% if p.status == 'in_progress' %}<span class="live-dot"></span>{% endif %}
-                    <span class="{{ 'has-text-weight-bold' if p.status == 'finished' and p.minutes > 0 else '' }}">{{ p.name }} ({{ p.pos }})</span>
+                    {% if p.subbed_in %}
+                      <span class="has-text-weight-bold has-text-success">{{ p.name }}<span class="has-text-success">⬆️</span> ({{ p.pos }})</span>
+                    {% else %}
+                      <span class="{{ 'has-text-weight-bold' if p.status == 'finished' and p.minutes > 0 else '' }}">{{ p.name }} ({{ p.pos }})</span>
+                    {% endif %}
                   </span>
                   <span class="has-text-right" style="min-width:2em">{{ p.points }}</span>
                 </div>

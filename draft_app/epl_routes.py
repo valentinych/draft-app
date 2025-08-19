@@ -374,6 +374,19 @@ def lineups():
                 })
             extra.sort(key=lambda p: pos_order.get(p.get("pos"), 99))
             bench.extend(extra)
+            # Apply automatic substitutions: if starter didn't play and match finished,
+            # replace with first bench player of same position who played minutes > 0
+            for s in starters:
+                if s["status"] == "finished" and s.get("minutes", 0) == 0:
+                    for b in bench:
+                        if (
+                            b.get("pos") == s.get("pos")
+                            and b.get("minutes", 0) > 0
+                            and not b.get("subbed_in")
+                        ):
+                            s["subbed_out"] = True
+                            b["subbed_in"] = True
+                            break
             # Lineup timestamp
             ts_raw = lineup.get("ts")
             if ts_raw:
@@ -398,7 +411,18 @@ def lineups():
                 })
             starters.sort(key=lambda p: pos_order.get(p.get("pos"), 99))
             status[m] = False
-        total_pts = sum(p.get("points", 0) for p in starters) if lineup else 0
+        if lineup:
+            total_pts = 0
+            for s in starters:
+                if s.get("subbed_out"):
+                    # points counted from bench player already
+                    continue
+                total_pts += s.get("points", 0)
+            for b in bench:
+                if b.get("subbed_in"):
+                    total_pts += b.get("points", 0)
+        else:
+            total_pts = sum(p.get("points", 0) for p in starters)
         table[m] = {
             "starters": starters,
             "bench": bench,
