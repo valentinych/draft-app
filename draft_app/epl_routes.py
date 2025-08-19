@@ -319,6 +319,7 @@ def lineups():
     players = players_from_fpl(bootstrap)
     pidx = players_index(players)
     pts = points_for_gw(gw)
+    team_codes = {int(t.get("id")): t.get("code") for t in (bootstrap.get("teams") or []) if t.get("id") is not None}
     managers = sorted(rosters.keys())
     table: Dict[str, dict] = {}
     status: Dict[str, bool] = {}
@@ -336,7 +337,7 @@ def lineups():
                     "name": name,
                     "pos": meta.get("position"),
                     "points": pts.get(int(pid), 0),
-                    "club": meta.get("clubName"),
+                    "club": team_codes.get(meta.get("teamId")),
                 })
             for pid in lineup.get("bench") or []:
                 meta = pidx.get(str(pid), {})
@@ -345,7 +346,7 @@ def lineups():
                     "name": name,
                     "pos": meta.get("position"),
                     "points": pts.get(int(pid), 0),
-                    "club": meta.get("clubName"),
+                    "club": team_codes.get(meta.get("teamId")),
                 })
             # Add remaining players to bench automatically
             selected = {str(pid) for pid in (lineup.get("players") or []) + (lineup.get("bench") or [])}
@@ -360,7 +361,7 @@ def lineups():
                     "name": name,
                     "pos": pl.get("position") or meta.get("position"),
                     "points": pts.get(int(pid), 0),
-                    "club": meta.get("clubName") or pl.get("clubName"),
+                    "club": team_codes.get(meta.get("teamId")),
                 })
             extra.sort(key=lambda p: pos_order.get(p.get("pos"), 99))
             bench.extend(extra)
@@ -381,7 +382,7 @@ def lineups():
                     "name": name,
                     "pos": pl.get("position") or meta.get("position"),
                     "points": pts.get(int(pid), 0),
-                    "club": meta.get("clubName") or pl.get("clubName"),
+                    "club": team_codes.get(meta.get("teamId")),
                 })
             starters.sort(key=lambda p: pos_order.get(p.get("pos"), 99))
             status[m] = False
