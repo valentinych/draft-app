@@ -32,7 +32,10 @@
         {% if lineups[m].ts %}
         <div class="has-text-grey is-size-7">{{ lineups[m].ts.strftime('%d.%m %H:%M') }}</div>
         {% endif %}
-        {{ '🟢' if status[m] else '🔴' }} {{ m }} <span style="background-color:#006400;color:white;padding:0 4px;border-radius:3px;">{{ lineups[m].total }}</span>
+        {{ '🟢' if status[m] else '🔴' }} {{ m }}
+        {% if lineups[m].total is not none %}
+        <span style="background-color:#006400;color:white;padding:0 4px;border-radius:3px;">{{ lineups[m].total }}</span>
+        {% endif %}
       </th>
       {% endfor %}
     </tr>
@@ -59,7 +62,7 @@
                   {% if p.subbed_out %}<span class="has-text-danger">⬇️</span>{% endif %}
                   <img src="https://resources.premierleague.com/premierleague25/badges/{{ p.club }}.svg" alt="{{ p.club }}" style="height:14px; vertical-align:middle"/>
                 </span>
-                <span class="has-text-right" style="min-width:2em">{{ p.points }}</span>
+                <span class="has-text-right" style="min-width:2em"><span class="{% if p.penalized %}has-text-danger has-text-weight-bold{% endif %}">{{ p.points }}</span></span>
               </div>
           {% endfor %}
           {% if lineups[m].bench %}

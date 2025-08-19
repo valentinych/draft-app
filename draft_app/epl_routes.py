@@ -374,19 +374,25 @@ def lineups():
                 })
             extra.sort(key=lambda p: pos_order.get(p.get("pos"), 99))
             bench.extend(extra)
-            # Apply automatic substitutions: if starter didn't play and match finished,
-            # replace with first bench player of same position who played minutes > 0
+            # Apply automatic substitutions / penalties: if starter didn't play and match finished,
+            # try to replace with first bench player of same position who played minutes > 0.
+            # If no such bench player exists, assign -2 points to the starter.
             for s in starters:
                 if s["status"] == "finished" and s.get("minutes", 0) == 0:
+                    s["subbed_out"] = True
+                    replaced = False
                     for b in bench:
                         if (
                             b.get("pos") == s.get("pos")
                             and b.get("minutes", 0) > 0
                             and not b.get("subbed_in")
                         ):
-                            s["subbed_out"] = True
                             b["subbed_in"] = True
+                            replaced = True
                             break
+                    if not replaced:
+                        s["penalized"] = True
+                        s["points"] = -2
             # Lineup timestamp
             ts_raw = lineup.get("ts")
             if ts_raw:
@@ -411,10 +417,11 @@ def lineups():
                 })
             starters.sort(key=lambda p: pos_order.get(p.get("pos"), 99))
             status[m] = False
-        if lineup:
+        players_cnt = len(lineup.get("players") or []) if lineup else 0
+        if lineup and players_cnt == 11:
             total_pts = 0
             for s in starters:
-                if s.get("subbed_out"):
+                if s.get("subbed_out") and not s.get("penalized"):
                     # points counted from bench player already
                     continue
                 total_pts += s.get("points", 0)
@@ -422,7 +429,7 @@ def lineups():
                 if b.get("subbed_in"):
                     total_pts += b.get("points", 0)
         else:
-            total_pts = sum(p.get("points", 0) for p in starters)
+            total_pts = None
         table[m] = {
             "starters": starters,
             "bench": bench,
