@@ -386,11 +386,13 @@ def lineups():
                 })
             starters.sort(key=lambda p: pos_order.get(p.get("pos"), 99))
             status[m] = False
+        total_pts = sum(p.get("points", 0) for p in starters) if lineup else 0
         table[m] = {
             "starters": starters,
             "bench": bench,
             "has_lineup": status[m],
             "ts": ts,
+            "total": total_pts,
         }
 
     deadline = None

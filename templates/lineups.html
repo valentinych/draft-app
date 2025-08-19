@@ -24,7 +24,7 @@
         {% if lineups[m].ts %}
         <div class="has-text-grey is-size-7">{{ lineups[m].ts.strftime('%d.%m %H:%M') }}</div>
         {% endif %}
-        {{ '🟢' if status[m] else '🔴' }} {{ m }}
+        {{ '🟢' if status[m] else '🔴' }} {{ m }} <span style="background-color:#006400;color:white;padding:0 4px;border-radius:3px;">{{ lineups[m].total }}</span>
       </th>
       {% endfor %}
     </tr>
