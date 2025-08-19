@@ -13,7 +13,7 @@ from .epl_services import (
     build_status_context,
     wishlist_load, wishlist_save,
     fetch_element_summary, fp_last_from_summary, photo_url_for,
-    fixtures_for_gw, points_for_gw,
+    fixtures_for_gw, points_for_gw, gw_info,
 )
 from .lineup_store import load_lineup, save_lineup
 
@@ -143,11 +143,16 @@ def squad():
     if not user:
         return redirect(url_for("auth.login"))
 
-    gw = request.values.get("gw", type=int) or 1
     bootstrap = ensure_fpl_bootstrap_fresh()
+    info = gw_info(bootstrap)
+    gw = request.values.get("gw", type=int)
+    if not gw:
+        gw = info.get("current") or 1
+        if info.get("finished", 0) >= gw and info.get("next"):
+            gw = info.get("next")
+    fixtures_map = fixtures_for_gw(gw, bootstrap)
     players = players_from_fpl(bootstrap)
     pidx = players_index(players)
-    fixtures_map = fixtures_for_gw(gw, bootstrap)
 
     state = load_state()
     roster = (state.get("rosters") or {}).get(user, []) or []
@@ -309,13 +314,55 @@ def squad():
     )
 
 
+def _auto_fill_lineups(gw: int, state: dict, rosters: dict, deadline: datetime | None) -> None:
+    """Автоматически проставить состав предыдущего тура, если менеджер пропустил дедлайн."""
+    if not deadline or datetime.now(timezone.utc) < deadline:
+        return
+    lineups_state = state.setdefault("lineups", {})
+    changed = False
+    for m in rosters.keys():
+        m_state = lineups_state.setdefault(m, {})
+        if str(gw) in m_state:
+            continue
+        prev = m_state.get(str(gw - 1)) or load_lineup(m, gw - 1)
+        if prev:
+            payload = dict(prev)
+            payload["ts"] = deadline.isoformat(timespec="seconds")
+            m_state[str(gw)] = payload
+            save_lineup(m, gw, payload)
+            changed = True
+    if changed:
+        save_state(state)
+
+
 @bp.get("/epl/lineups")
 def lineups():
-    gw = request.args.get("gw", type=int) or 1
+    bootstrap = ensure_fpl_bootstrap_fresh()
+    info = gw_info(bootstrap)
+    gw = request.args.get("gw", type=int)
+    if not gw:
+        gw = info.get("current") or 1
+        if info.get("finished", 0) >= gw and info.get("next"):
+            gw = info.get("next")
     state = load_state()
     lineups_state = state.get("lineups") or {}
     rosters = state.get("rosters") or {}
-    bootstrap = ensure_fpl_bootstrap_fresh()
+
+    # Deadline for auto-fill and editing info
+    deadline = None
+    for ev in (bootstrap.get("events") or []):
+        if int(ev.get("id", 0)) == int(gw):
+            dl = ev.get("deadline_time")
+            if dl:
+                try:
+                    deadline = datetime.fromisoformat(dl.replace("Z", "+00:00"))
+                except Exception:
+                    pass
+            break
+
+    _auto_fill_lineups(gw, state, rosters, deadline)
+    lineups_state = state.get("lineups") or {}
+
     players = players_from_fpl(bootstrap)
     pidx = players_index(players)
     stats_map = points_for_gw(gw, pidx)
@@ -446,17 +493,6 @@ def lineups():
         )
     )
 
-    deadline = None
-    for ev in (bootstrap.get("events") or []):
-        if int(ev.get("id", 0)) == int(gw):
-            dl = ev.get("deadline_time")
-            if dl:
-                try:
-                    deadline = datetime.fromisoformat(dl.replace("Z", "+00:00"))
-                except Exception:
-                    pass
-            break
-
     deadline_warsaw = None
     deadline_minsk = None
     if deadline:
@@ -483,9 +519,21 @@ def results():
     state = load_state()
     rosters = state.get("rosters", {})
 
-    # determine completed gameweeks
+    # determine completed gameweeks and deadlines
     events = bootstrap.get("events") or []
     gws = [int(e.get("id")) for e in events if e.get("finished")]
+    deadline_map: Dict[int, datetime] = {}
+    for ev in events:
+        try:
+            eid = int(ev.get("id"))
+        except Exception:
+            continue
+        dl = ev.get("deadline_time")
+        if dl:
+            try:
+                deadline_map[eid] = datetime.fromisoformat(dl.replace("Z", "+00:00"))
+            except Exception:
+                pass
 
     managers = sorted(rosters.keys())
     cls_map = {1: 8, 2: 6, 3: 4, 4: 3, 5: 2, 6: 1}
@@ -496,6 +544,7 @@ def results():
     raw_total: Dict[str, int] = {m: 0 for m in managers}
 
     for gw in gws:
+        _auto_fill_lineups(gw, state, rosters, deadline_map.get(gw))
         stats = points_for_gw(gw, pidx)
         gw_scores: Dict[str, int] = {}
         for m in managers:

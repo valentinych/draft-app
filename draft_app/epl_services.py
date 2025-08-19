@@ -22,6 +22,10 @@ EPL_STATE = BASE_DIR / "draft_state_epl.json"
 EPL_FPL   = BASE_DIR / "players_fpl_bootstrap.json"
 WISHLIST_DIR = BASE_DIR / "data" / "wishlist" / "epl"
 
+# Кеш результатов туров (по игрокам)
+GW_STATS_DIR = BASE_DIR / "data" / "cache" / "gw_stats"
+GW_STATS_DIR.mkdir(parents=True, exist_ok=True)
+
 # Кеш element-summary
 CACHE_DIR = BASE_DIR / "data" / "cache" / "element_summary"
 CACHE_TTL_SEC = 24 * 3600  # 24h
@@ -72,6 +76,10 @@ def _s3_state_key() -> Optional[str]:
 def _s3_wishlist_prefix() -> str:
     # Можно переопределить префикс через ENV, по умолчанию wishlist/epl
     return os.getenv("DRAFT_S3_WISHLIST_PREFIX", "wishlist/epl")
+
+def _s3_gwstats_prefix() -> str:
+    # Префикс для кеша результатов туров
+    return os.getenv("DRAFT_S3_GWSTATS_PREFIX", "gw_stats")
 
 def _s3_client():
     if not boto3:
@@ -251,6 +259,11 @@ def points_for_gw(gw: int, pidx: Optional[Dict[str, Any]] = None) -> Dict[int, D
     have not yet played (``minutes`` == 0).
     """
 
+    # Cached stats for finished gameweeks
+    cached = load_gw_stats(gw)
+    if cached:
+        return cached
+
     # Fetch fixture statuses for the gameweek
     fixtures_by_id: Dict[int, str] = {}
     fixtures_by_team: Dict[int, str] = {}
@@ -320,6 +333,10 @@ def points_for_gw(gw: int, pidx: Optional[Dict[str, Any]] = None) -> Dict[int, D
                 status = fixtures_by_team.get(int(team_id), "not_started")
 
         stats[int(pid)] = {"points": points, "minutes": minutes, "status": status}
+
+    # Save cache if all fixtures finished
+    if fixtures_by_id and all(s == "finished" for s in fixtures_by_id.values()):
+        save_gw_stats(gw, stats)
 
     return stats
 
@@ -566,3 +583,68 @@ def wishlist_save(manager: str, ids: List[int]) -> None:
     WISHLIST_DIR.mkdir(parents=True, exist_ok=True)
     p = WISHLIST_DIR / f"{manager.replace('/', '_')}.json"
     json_dump_atomic(p, ids_norm)
+
+
+# --------- GW stats cache (per player) ---------
+def _gwstats_s3_key(gw: int) -> str:
+    prefix = _s3_gwstats_prefix().strip().strip("/")
+    return f"{prefix}/gw{int(gw)}.json"
+
+
+def load_gw_stats(gw: int) -> Dict[int, Dict[str, Any]]:
+    """Загрузить кешированные очки игроков за тур."""
+    if _s3_enabled():
+        bucket = _s3_bucket()
+        key = _gwstats_s3_key(gw)
+        if bucket:
+            data = _s3_get_json(bucket, key)
+            if isinstance(data, dict):
+                try:
+                    return {int(k): v for k, v in data.items()}
+                except Exception:
+                    return {}
+    p = GW_STATS_DIR / f"gw{int(gw)}.json"
+    data = json_load(p)
+    if isinstance(data, dict):
+        try:
+            return {int(k): v for k, v in data.items()}
+        except Exception:
+            return {}
+    return {}
+
+
+def save_gw_stats(gw: int, stats: Dict[int, Dict[str, Any]]) -> None:
+    """Сохранить очки игроков за тур (S3 + локально)."""
+    payload = {str(k): v for k, v in stats.items()}
+    if _s3_enabled():
+        bucket = _s3_bucket()
+        key = _gwstats_s3_key(gw)
+        if bucket and _s3_put_json(bucket, key, payload):
+            pass
+        else:
+            print(f"[EPL:S3] save_gw_stats fallback gw={gw}")
+    json_dump_atomic(GW_STATS_DIR / f"gw{int(gw)}.json", payload)
+
+
+def gw_info(bootstrap: Optional[Dict[str, Any]] = None) -> Dict[str, Optional[int]]:
+    """Вернуть информацию о текущем, следующем и последнем завершённом туре."""
+    if bootstrap is None:
+        bootstrap = ensure_fpl_bootstrap_fresh()
+    events = bootstrap.get("events") or []
+    cur = None
+    nxt = None
+    last_finished = 0
+    for ev in events:
+        try:
+            eid = int(ev.get("id"))
+        except Exception:
+            continue
+        if ev.get("is_current"):
+            cur = eid
+        if ev.get("is_next"):
+            nxt = eid
+        if ev.get("finished") and eid > last_finished:
+            last_finished = eid
+    if nxt is None and cur is not None:
+        nxt = cur + 1
+    return {"current": cur, "next": nxt, "finished": last_finished}
