@@ -1,10 +1,32 @@
 import json
 from datetime import datetime
+
+import requests
+
 from .config import (
     UCL_POSITION_MAP, FPL_POSITION_MAP, WARSZAWA_TZ
 )
 from .epl_services import ensure_fpl_bootstrap_fresh
 
+
+HTTP_SESSION = requests.Session()
+
+HEADERS_GENERIC = {
+    "User-Agent": "Mozilla/5.0"
+}
+
+__all__ = [
+    "HTTP_SESSION",
+    "HEADERS_GENERIC",
+    "load_json",
+    "save_json",
+    "parse_ucl_players",
+    "fetch_and_cache_fpl_bootstrap",
+    "get_bootstrap_data",
+    "load_epl_players",
+    "format_deadline",
+    "epl_deadlines_window",
+]
 
 
 def load_json(path, default=None):
