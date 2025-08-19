@@ -58,11 +58,11 @@
               <div class="is-flex is-justify-content-space-between" style="background-color: {{ row_color }};">
                 <span>
                   {% if p.status == 'in_progress' %}<span class="live-dot"></span>{% endif %}
-                  <span class="{% if p.subbed_out %}has-text-danger{% elif p.status == 'finished' and p.minutes > 0 %}has-text-weight-bold{% endif %}">{{ p.name }}</span>
+                  <img src="https://resources.premierleague.com/premierleague25/badges/{{ p.club }}.svg" alt="{{ p.club }}" style="height:14px; vertical-align:middle; padding-left:2px"/>
+                  <span class="{% if p.subbed_out %}has-text-danger{% elif p.status == 'finished' and p.minutes > 0 %}has-text-weight-bold{% endif %}" style="padding-left:2px">{{ p.name }}</span>
                   {% if p.subbed_out %}<span class="has-text-danger">⬇️</span>{% endif %}
-                  <img src="https://resources.premierleague.com/premierleague25/badges/{{ p.club }}.svg" alt="{{ p.club }}" style="height:14px; vertical-align:middle"/>
                 </span>
-                <span class="has-text-right" style="min-width:2em"><span class="{% if p.penalized %}has-text-danger has-text-weight-bold{% endif %}">{{ p.points }}</span></span>
+                <span class="has-text-right" style="min-width:2em; padding-right:2px"><span class="{% if p.penalized %}has-text-danger has-text-weight-bold{% endif %}">{{ p.points }}</span></span>
               </div>
           {% endfor %}
           {% if lineups[m].bench %}
@@ -83,7 +83,7 @@
                       <span class="{{ 'has-text-weight-bold' if p.status == 'finished' and p.minutes > 0 else '' }}">{{ p.name }} ({{ p.pos }})</span>
                     {% endif %}
                   </span>
-                  <span class="has-text-right" style="min-width:2em">{{ p.points }}</span>
+                  <span class="has-text-right" style="min-width:2em; padding-right:2px">{{ p.points }}</span>
                 </div>
             {% endfor %}
           {% endif %}
@@ -98,10 +98,10 @@
             <div class="is-flex is-justify-content-space-between" style="background-color: {{ row_color }};">
               <span>
                 {% if p.status == 'in_progress' %}<span class="live-dot"></span>{% endif %}
-                <span class="{{ 'has-text-weight-bold' if p.status == 'finished' and p.minutes > 0 else '' }}">{{ p.name }}</span>
-                <img src="https://resources.premierleague.com/premierleague25/badges/{{ p.club }}.svg" alt="{{ p.club }}" style="height:14px; vertical-align:middle"/>
+                <img src="https://resources.premierleague.com/premierleague25/badges/{{ p.club }}.svg" alt="{{ p.club }}" style="height:14px; vertical-align:middle; padding-left:2px"/>
+                <span class="{{ 'has-text-weight-bold' if p.status == 'finished' and p.minutes > 0 else '' }}" style="padding-left:2px">{{ p.name }}</span>
               </span>
-              <span class="has-text-right" style="min-width:2em">{{ p.points }}</span>
+              <span class="has-text-right" style="min-width:2em; padding-right:2px">{{ p.points }}</span>
             </div>
           {% endfor %}
         {% endif %}
