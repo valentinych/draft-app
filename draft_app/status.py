@@ -2,6 +2,7 @@
 from __future__ import annotations
 import json
 from pathlib import Path
+import tempfile
 from typing import Dict, List, Any
 from flask import Blueprint, render_template, url_for, abort
 
@@ -14,7 +15,7 @@ DATA_DIR = BASE_DIR / "data"                       # поменяйте если
 LEAGUE_FILES = {
     "epl": {
         "state": BASE_DIR / "draft_state_epl.json",
-        "players": BASE_DIR / "players_fpl_bootstrap.json",  # если есть; иначе закомментируйте
+        "players": Path(tempfile.gettempdir()) / "players_fpl_bootstrap.json",  # кешируется в /tmp
     },
     "ucl": {
         "state": BASE_DIR / "draft_state_ucl.json",

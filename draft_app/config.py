@@ -1,4 +1,5 @@
 import os
+import tempfile
 from zoneinfo import ZoneInfo
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -22,7 +23,8 @@ EPL_POSITION_LIMITS = {'Goalkeeper': 3, 'Defender': 7, 'Midfielder': 8, 'Forward
 UCL_STATE_FILE   = os.path.join(BASE_DIR, 'draft_state_ucl.json')
 EPL_STATE_FILE   = os.path.join(BASE_DIR, 'draft_state_epl.json')
 UCL_PLAYERS_FILE = os.path.join(BASE_DIR, 'players_70_en_3.json')
-EPL_PLAYERS_FILE = os.path.join(BASE_DIR, 'players_fpl_bootstrap.json')
+# players_fpl_bootstrap.json кешируется вне репозитория
+EPL_PLAYERS_FILE = os.path.join(tempfile.gettempdir(), 'players_fpl_bootstrap.json')
 
 # Кэш-дериктории
 UCL_CACHE_DIR = os.path.join(BASE_DIR, 'popupstats')
