@@ -12,8 +12,8 @@ LINEUP_ROOT = BASE_DIR / 'lineups'
 LINEUP_ROOT.mkdir(parents=True, exist_ok=True)
 _safe_re = re.compile(r"[^a-z0-9_\-]", re.I)
 
-S3_BUCKET = os.getenv("LINEUP_S3_BUCKET")
-S3_PREFIX = os.getenv("LINEUP_S3_PREFIX", "lineups")
+S3_BUCKET = os.getenv("LINEUP_S3_BUCKET") or os.getenv("DRAFT_S3_BUCKET")
+S3_PREFIX = os.getenv("LINEUP_S3_PREFIX") or os.getenv("DRAFT_S3_LINEUPS_PREFIX", "lineups")
 _s3_client = None
 if S3_BUCKET:
     try:
