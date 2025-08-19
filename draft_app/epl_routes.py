@@ -336,6 +336,7 @@ def lineups():
                     "name": name,
                     "pos": meta.get("position"),
                     "points": pts.get(int(pid), 0),
+                    "club": meta.get("clubName"),
                 })
             for pid in lineup.get("bench") or []:
                 meta = pidx.get(str(pid), {})
@@ -344,6 +345,7 @@ def lineups():
                     "name": name,
                     "pos": meta.get("position"),
                     "points": pts.get(int(pid), 0),
+                    "club": meta.get("clubName"),
                 })
             # Add remaining players to bench automatically
             selected = {str(pid) for pid in (lineup.get("players") or []) + (lineup.get("bench") or [])}
@@ -358,6 +360,7 @@ def lineups():
                     "name": name,
                     "pos": pl.get("position") or meta.get("position"),
                     "points": pts.get(int(pid), 0),
+                    "club": meta.get("clubName") or pl.get("clubName"),
                 })
             extra.sort(key=lambda p: pos_order.get(p.get("pos"), 99))
             bench.extend(extra)
@@ -378,6 +381,7 @@ def lineups():
                     "name": name,
                     "pos": pl.get("position") or meta.get("position"),
                     "points": pts.get(int(pid), 0),
+                    "club": meta.get("clubName") or pl.get("clubName"),
                 })
             starters.sort(key=lambda p: pos_order.get(p.get("pos"), 99))
             status[m] = False
