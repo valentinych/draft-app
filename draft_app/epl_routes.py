@@ -320,7 +320,7 @@ def lineups():
     pidx = players_index(players)
     stats_map = points_for_gw(gw, pidx)
     team_codes = {int(t.get("id")): t.get("code") for t in (bootstrap.get("teams") or []) if t.get("id") is not None}
-    managers = sorted(rosters.keys())
+    managers = list(rosters.keys())
     table: Dict[str, dict] = {}
     status: Dict[str, bool] = {}
     pos_order = {"GK": 0, "DEF": 1, "MID": 2, "FWD": 3}
@@ -437,6 +437,14 @@ def lineups():
             "ts": ts,
             "total": total_pts,
         }
+
+    managers.sort(
+        key=lambda m: (
+            table[m]["total"] is None,
+            -(table[m]["total"] or 0),
+            table[m]["ts"] or datetime.max,
+        )
+    )
 
     deadline = None
     for ev in (bootstrap.get("events") or []):
