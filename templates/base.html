@@ -33,9 +33,15 @@
       <div class="navbar-start">
         <a class="navbar-item" href="{{ url_for('home.index') }}">Главная</a>
         <a class="navbar-item" href="{{ url_for('ucl.index') }}">UCL Драфт</a>
-        <a class="navbar-item" href="{{ url_for('epl.index') }}">EPL Пики</a>
-        <a class="navbar-item" href="{{ url_for('epl.squad') }}">EPL Состав</a>
-        <a class="navbar-item" href="{{ url_for('epl.lineups') }}">EPL Лайнапы</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="{{ url_for('epl.index') }}">EPL Драфт</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="{{ url_for('epl.index') }}">Пики</a>
+            <a class="navbar-item" href="{{ url_for('epl.squad') }}">Состав</a>
+            <a class="navbar-item" href="{{ url_for('epl.lineups') }}">Лайнапы</a>
+            <a class="navbar-item" href="{{ url_for('epl.results') }}">Результаты</a>
+          </div>
+        </div>
         <a class="navbar-item" href="{{ url_for('home.top4') }}">Топ-4</a>
       </div>
       <div class="navbar-end">

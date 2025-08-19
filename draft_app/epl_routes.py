@@ -473,6 +473,11 @@ def lineups():
         deadline_minsk=deadline_minsk,
     )
 
+
+@bp.get("/epl/results")
+def results():
+    return render_template("epl_results.html")
+
 @bp.post("/epl/undo")
 def undo_last_pick():
     if not session.get("godmode"):

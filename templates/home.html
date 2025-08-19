@@ -1,11 +1,37 @@
 {% extends "base.html" %}
 {% block title %}Главная — Fantasy Draft{% endblock %}
 {% block content %}
-<h1 class="title">Выберите драфт</h1>
-<div class="buttons">
-  <a class="button is-info is-medium" href="{{ url_for('ucl.index') }}">UCL Fantasy Draft</a>
-  <a class="button is-primary is-medium" href="{{ url_for('epl.index') }}">EPL Fantasy Draft</a>
-  <a class="button is-link is-medium" href="{{ url_for('home.top4') }}">Топ-4 Драфт</a>
+<h1 class="title">Выберите страницу</h1>
+
+<div class="tile is-ancestor">
+  <div class="tile is-parent">
+    <article class="tile is-child box">
+      <p class="title is-5">UCL Fantasy Draft</p>
+      <div class="buttons">
+        <a class="button is-info is-light" href="{{ url_for('ucl.index') }}">Пики</a>
+      </div>
+    </article>
+  </div>
+  <div class="tile is-parent">
+    <article class="tile is-child box">
+      <p class="title is-5">EPL Fantasy Draft</p>
+      <div class="buttons">
+        <a class="button is-primary is-light" href="{{ url_for('epl.index') }}">Пики</a>
+        <a class="button is-primary is-light" href="{{ url_for('epl.squad') }}">Состав</a>
+        <a class="button is-primary is-light" href="{{ url_for('epl.lineups') }}">Лайнапы</a>
+        <a class="button is-primary is-light" href="{{ url_for('epl.results') }}">Результаты</a>
+      </div>
+    </article>
+  </div>
+  <div class="tile is-parent">
+    <article class="tile is-child box">
+      <p class="title is-5">Топ-4 Драфт</p>
+      <div class="buttons">
+        <a class="button is-link is-light" href="{{ url_for('home.top4') }}">Перейти</a>
+      </div>
+    </article>
+  </div>
 </div>
+
 <p class="mt-3 muted small">Подсказка: авторизация — через ID и 4-значный PIN (auth.json). Godmode виден в правом верхнем углу.</p>
 {% endblock %}
