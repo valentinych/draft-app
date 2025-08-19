@@ -318,7 +318,7 @@ def lineups():
     bootstrap = ensure_fpl_bootstrap_fresh()
     players = players_from_fpl(bootstrap)
     pidx = players_index(players)
-    pts = points_for_gw(gw)
+    stats_map = points_for_gw(gw, pidx)
     team_codes = {int(t.get("id")): t.get("code") for t in (bootstrap.get("teams") or []) if t.get("id") is not None}
     managers = sorted(rosters.keys())
     table: Dict[str, dict] = {}
@@ -333,20 +333,26 @@ def lineups():
             for pid in lineup.get("players") or []:
                 meta = pidx.get(str(pid), {})
                 name = meta.get("shortName") or meta.get("fullName") or str(pid)
+                s = stats_map.get(int(pid), {})
                 starters.append({
                     "name": name,
                     "pos": meta.get("position"),
-                    "points": pts.get(int(pid), 0),
+                    "points": s.get("points", 0),
                     "club": team_codes.get(meta.get("teamId")),
+                    "minutes": s.get("minutes", 0),
+                    "status": s.get("status", "not_started"),
                 })
             for pid in lineup.get("bench") or []:
                 meta = pidx.get(str(pid), {})
                 name = meta.get("shortName") or meta.get("fullName") or str(pid)
+                s = stats_map.get(int(pid), {})
                 bench.append({
                     "name": name,
                     "pos": meta.get("position"),
-                    "points": pts.get(int(pid), 0),
+                    "points": s.get("points", 0),
                     "club": team_codes.get(meta.get("teamId")),
+                    "minutes": s.get("minutes", 0),
+                    "status": s.get("status", "not_started"),
                 })
             # Add remaining players to bench automatically
             selected = {str(pid) for pid in (lineup.get("players") or []) + (lineup.get("bench") or [])}
@@ -357,11 +363,14 @@ def lineups():
                     continue
                 meta = pidx.get(str(pid), {})
                 name = meta.get("shortName") or meta.get("fullName") or pl.get("fullName") or str(pid)
+                s = stats_map.get(int(pid), {})
                 extra.append({
                     "name": name,
                     "pos": pl.get("position") or meta.get("position"),
-                    "points": pts.get(int(pid), 0),
+                    "points": s.get("points", 0),
                     "club": team_codes.get(meta.get("teamId")),
+                    "minutes": s.get("minutes", 0),
+                    "status": s.get("status", "not_started"),
                 })
             extra.sort(key=lambda p: pos_order.get(p.get("pos"), 99))
             bench.extend(extra)
@@ -378,11 +387,14 @@ def lineups():
                 pid = pl.get("playerId") or pl.get("id")
                 meta = pidx.get(str(pid), {})
                 name = meta.get("shortName") or meta.get("fullName") or pl.get("fullName") or str(pid)
+                s = stats_map.get(int(pid), {})
                 starters.append({
                     "name": name,
                     "pos": pl.get("position") or meta.get("position"),
-                    "points": pts.get(int(pid), 0),
+                    "points": s.get("points", 0),
                     "club": team_codes.get(meta.get("teamId")),
+                    "minutes": s.get("minutes", 0),
+                    "status": s.get("status", "not_started"),
                 })
             starters.sort(key=lambda p: pos_order.get(p.get("pos"), 99))
             status[m] = False

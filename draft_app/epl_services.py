@@ -242,9 +242,44 @@ def fixtures_for_gw(gw: int, bootstrap: Optional[Dict[str, Any]] = None) -> Dict
             mapping[away] = f"(A) {away_opp}"
     return mapping
 
+def points_for_gw(gw: int, pidx: Optional[Dict[str, Any]] = None) -> Dict[int, Dict[str, Any]]:
+    """
+    Return mapping playerId -> {points, minutes, status} for given gameweek.
 
-def points_for_gw(gw: int) -> Dict[int, int]:
-    """Return mapping playerId -> total points for given gameweek."""
+    status is one of: "not_started", "in_progress", "finished" (finished_provisional).
+    If ``pidx`` is provided it is used to determine teamId for players who
+    have not yet played (``minutes`` == 0).
+    """
+
+    # Fetch fixture statuses for the gameweek
+    fixtures_by_id: Dict[int, str] = {}
+    fixtures_by_team: Dict[int, str] = {}
+    try:
+        url_fx = f"https://fantasy.premierleague.com/api/fixtures/?event={int(gw)}"
+        r_fx = requests.get(url_fx, timeout=10)
+        r_fx.raise_for_status()
+        fxts = r_fx.json() or []
+    except Exception:
+        fxts = []
+    for f in fxts:
+        try:
+            fid = int(f.get("id"))
+        except Exception:
+            continue
+        status = "not_started"
+        if f.get("finished_provisional"):
+            status = "finished"
+        elif f.get("started"):
+            status = "in_progress"
+        fixtures_by_id[fid] = status
+        home = f.get("team_h")
+        away = f.get("team_a")
+        if home is not None:
+            fixtures_by_team[int(home)] = status
+        if away is not None:
+            fixtures_by_team[int(away)] = status
+
+    # Fetch live player stats
     url = f"https://fantasy.premierleague.com/api/event/{int(gw)}/live/"
     try:
         r = requests.get(url, timeout=10)
@@ -252,16 +287,41 @@ def points_for_gw(gw: int) -> Dict[int, int]:
         data = r.json() or {}
     except Exception:
         data = {}
-    pts: Dict[int, int] = {}
+
+    stats: Dict[int, Dict[str, Any]] = {}
     for el in data.get("elements", []):
         pid = el.get("id")
         if pid is None:
             continue
+        estats = el.get("stats") or {}
         try:
-            pts[int(pid)] = int((el.get("stats") or {}).get("total_points") or 0)
+            points = int(estats.get("total_points") or 0)
         except Exception:
-            pts[int(pid)] = 0
-    return pts
+            points = 0
+        try:
+            minutes = int(estats.get("minutes") or 0)
+        except Exception:
+            minutes = 0
+
+        # Determine fixture status for the player
+        fixture_id = None
+        explain = el.get("explain") or []
+        if explain:
+            try:
+                fixture_id = int((explain[0] or {}).get("fixture"))
+            except Exception:
+                fixture_id = None
+        status = "not_started"
+        if fixture_id and fixture_id in fixtures_by_id:
+            status = fixtures_by_id[fixture_id]
+        elif pidx is not None and str(pid) in pidx:
+            team_id = pidx[str(pid)].get("teamId")
+            if team_id is not None:
+                status = fixtures_by_team.get(int(team_id), "not_started")
+
+        stats[int(pid)] = {"points": points, "minutes": minutes, "status": status}
+
+    return stats
 
 # ======================
 #      STATE (S3)

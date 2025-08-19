@@ -1,6 +1,14 @@
 {% extends "base.html" %}
 {% block title %}Составы на Gameweek {{ gw }}{% endblock %}
 {% block content %}
+<style>
+  .live-dot {
+    height:6px; width:6px; background-color:red; border-radius:50%;
+    display:inline-block; margin-right:2px;
+    animation: blink 1s linear infinite;
+  }
+  @keyframes blink { 50% { opacity:0; } }
+</style>
 <h1 class="title">Составы на Gameweek {{ gw }}</h1>
 {% if deadline_warsaw %}
 <p>Дедлайн: {{ deadline_warsaw.strftime("%d.%m %H:%M") }} (Варшава) / {{ deadline_minsk.strftime("%d.%m %H:%M") }} (Минск)</p>
@@ -45,7 +53,11 @@
             {% set ns.last_pos = p.pos %}
             {% set row_color = c1 if loop.index0 % 2 == 0 else c2 %}
             <div class="is-flex is-justify-content-space-between" style="background-color: {{ row_color }};">
-              <span>{{ p.name }} <img src="https://resources.premierleague.com/premierleague25/badges/{{ p.club }}.svg" alt="{{ p.club }}" style="height:14px; vertical-align:middle"/></span>
+              <span>
+                {% if p.status == 'in_progress' %}<span class="live-dot"></span>{% endif %}
+                <span class="{{ 'has-text-weight-bold' if p.status == 'finished' and p.minutes > 0 else '' }}">{{ p.name }}</span>
+                <img src="https://resources.premierleague.com/premierleague25/badges/{{ p.club }}.svg" alt="{{ p.club }}" style="height:14px; vertical-align:middle"/>
+              </span>
               <span class="has-text-right" style="min-width:2em">{{ p.points }}</span>
             </div>
           {% endfor %}
@@ -58,10 +70,13 @@
               {% endif %}
               {% set ns_bench.last_pos = p.pos %}
               {% set row_color = c1 if loop.index0 % 2 == 0 else c2 %}
-              <div class="is-flex is-justify-content-space-between has-text-grey" style="background-color: {{ row_color }};">
-                <span>{{ p.name }} ({{ p.pos }})</span>
-                <span class="has-text-right" style="min-width:2em">{{ p.points }}</span>
-              </div>
+                <div class="is-flex is-justify-content-space-between has-text-grey" style="background-color: {{ row_color }};">
+                  <span>
+                    {% if p.status == 'in_progress' %}<span class="live-dot"></span>{% endif %}
+                    <span class="{{ 'has-text-weight-bold' if p.status == 'finished' and p.minutes > 0 else '' }}">{{ p.name }} ({{ p.pos }})</span>
+                  </span>
+                  <span class="has-text-right" style="min-width:2em">{{ p.points }}</span>
+                </div>
             {% endfor %}
           {% endif %}
         {% else %}
@@ -73,7 +88,11 @@
             {% set ns.last_pos = p.pos %}
             {% set row_color = c1 if loop.index0 % 2 == 0 else c2 %}
             <div class="is-flex is-justify-content-space-between" style="background-color: {{ row_color }};">
-              <span>{{ p.name }} <img src="https://resources.premierleague.com/premierleague25/badges/{{ p.club }}.svg" alt="{{ p.club }}" style="height:14px; vertical-align:middle"/></span>
+              <span>
+                {% if p.status == 'in_progress' %}<span class="live-dot"></span>{% endif %}
+                <span class="{{ 'has-text-weight-bold' if p.status == 'finished' and p.minutes > 0 else '' }}">{{ p.name }}</span>
+                <img src="https://resources.premierleague.com/premierleague25/badges/{{ p.club }}.svg" alt="{{ p.club }}" style="height:14px; vertical-align:middle"/>
+              </span>
               <span class="has-text-right" style="min-width:2em">{{ p.points }}</span>
             </div>
           {% endfor %}
