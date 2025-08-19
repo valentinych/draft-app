@@ -33,34 +33,54 @@
     <tr>
       {% for m in managers %}
       <td>
+        {% set hue = loop.index0 * 60 %}
+        {% set c1 = 'hsl(' ~ hue ~ ', 70%, 90%)' %}
+        {% set c2 = 'hsl(' ~ hue ~ ', 70%, 80%)' %}
         {% if lineups[m].has_lineup %}
-          {% set last_pos = None %}
+          {% set ns = namespace(last_pos=None) %}
           {% for p in lineups[m].starters %}
-            {% if last_pos and p.pos != last_pos %}
-              <div></div>
+            {% if ns.last_pos and p.pos != ns.last_pos %}
+              <hr class="my-1"/>
             {% endif %}
-            {% set last_pos = p.pos %}
-              <div>{{ p.points }} {{ p.name }} <img src="https://resources.premierleague.com/premierleague25/badges/{{ p.club }}.svg" alt="{{ p.club }}" style="height:14px; vertical-align:middle"/></div>
+            {% set ns.last_pos = p.pos %}
+            {% set row_color = c1 if loop.index0 % 2 == 0 else c2 %}
+              <div class="is-flex is-justify-content-space-between" style="background-color: {{ row_color }};">
+                <span style="padding-left:2px;">{{ p.name }} <img src="https://resources.premierleague.com/premierleague25/badges/{{ p.club }}.svg" alt="{{ p.club }}" style="height:14px; vertical-align:middle"/></span>
+                <span class="has-text-right" style="min-width:2em;padding-right:2px;">{{ p.points }}</span>
+              </div>
           {% endfor %}
           {% if lineups[m].bench %}
             <div class="mt-2 has-text-weight-semibold">Запас</div>
+            {% set ns_bench = namespace(last_pos=None) %}
             {% for p in lineups[m].bench %}
-              <div class="has-text-grey">{{ p.points }} {{ p.name }} ({{ p.pos }})</div>
+              {% if ns_bench.last_pos and p.pos != ns_bench.last_pos %}
+                <hr class="my-1"/>
+              {% endif %}
+              {% set ns_bench.last_pos = p.pos %}
+              {% set row_color = c1 if loop.index0 % 2 == 0 else c2 %}
+              <div class="is-flex is-justify-content-space-between has-text-grey" style="background-color: {{ row_color }};">
+                <span style="padding-left:2px;">{{ p.name }} ({{ p.pos }})</span>
+                <span class="has-text-right" style="min-width:2em;padding-right:2px;">{{ p.points }}</span>
+              </div>
             {% endfor %}
           {% endif %}
         {% else %}
-          {% set last_pos = None %}
+          {% set ns = namespace(last_pos=None) %}
           {% for p in lineups[m].starters %}
-            {% if last_pos and p.pos != last_pos %}
-              <div></div>
+            {% if ns.last_pos and p.pos != ns.last_pos %}
+              <hr class="my-1"/>
             {% endif %}
-            {% set last_pos = p.pos %}
-            <div>{{ p.name }} <img src="https://resources.premierleague.com/premierleague25/badges/{{ p.club }}.svg" alt="{{ p.club }}" style="height:14px; vertical-align:middle"/></div>
-          {% endfor %}
-        {% endif %}
-      </td>
-      {% endfor %}
-    </tr>
+            {% set ns.last_pos = p.pos %}
+            {% set row_color = c1 if loop.index0 % 2 == 0 else c2 %}
+              <div class="is-flex is-justify-content-space-between" style="background-color: {{ row_color }};">
+                <span style="padding-left:2px;">{{ p.name }} <img src="https://resources.premierleague.com/premierleague25/badges/{{ p.club }}.svg" alt="{{ p.club }}" style="height:14px; vertical-align:middle"/></span>
+                <span class="has-text-right" style="min-width:2em;padding-right:2px;">{{ p.points }}</span>
+              </div>
+            {% endfor %}
+          {% endif %}
+        </td>
+        {% endfor %}
+      </tr>
   </tbody>
 </table>
 {% endblock %}
