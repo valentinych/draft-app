@@ -476,7 +476,67 @@ def lineups():
 
 @bp.get("/epl/results")
 def results():
-    return render_template("epl_results.html")
+    bootstrap = ensure_fpl_bootstrap_fresh()
+    players = players_from_fpl(bootstrap)
+    pidx = players_index(players)
+
+    state = load_state()
+    rosters = state.get("rosters", {})
+
+    # determine completed gameweeks
+    events = bootstrap.get("events") or []
+    gws = [int(e.get("id")) for e in events if e.get("finished")]
+
+    managers = sorted(rosters.keys())
+    cls_map = {1: 8, 2: 6, 3: 4, 4: 3, 5: 2, 6: 1}
+
+    points_by_manager: Dict[str, Dict[int, int]] = {m: {} for m in managers}
+    class_total: Dict[str, int] = {m: 0 for m in managers}
+    wins_total: Dict[str, int] = {m: 0 for m in managers}
+    raw_total: Dict[str, int] = {m: 0 for m in managers}
+
+    for gw in gws:
+        stats = points_for_gw(gw, pidx)
+        gw_scores: Dict[str, int] = {}
+        for m in managers:
+            lineup = load_lineup(m, gw)
+            if lineup.get("players"):
+                ids = [int(x) for x in lineup.get("players")]
+            else:
+                ids = [p.get("playerId") for p in rosters.get(m, [])][:11]
+            total = sum(int(stats.get(pid, {}).get("points", 0)) for pid in ids)
+            points_by_manager[m][gw] = total
+            gw_scores[m] = total
+
+        # assign classification points
+        ordered = sorted(gw_scores.items(), key=lambda x: x[1], reverse=True)
+        prev_pts = None
+        rank = 0
+        for idx, (m, pts) in enumerate(ordered, start=1):
+            if prev_pts is None or pts < prev_pts:
+                rank = idx
+                prev_pts = pts
+            class_total[m] += cls_map.get(rank, 0)
+            raw_total[m] += pts
+        if ordered:
+            max_pts = ordered[0][1]
+            for m, pts in gw_scores.items():
+                if pts == max_pts:
+                    wins_total[m] += 1
+
+    standings = [
+        {
+            "manager": m,
+            "gw_points": points_by_manager[m],
+            "class_points": class_total[m],
+            "wins": wins_total[m],
+            "raw_points": raw_total[m],
+        }
+        for m in managers
+    ]
+    standings.sort(key=lambda r: (-r["class_points"], -r["wins"], -r["raw_points"], r["manager"]))
+
+    return render_template("epl_results.html", gws=gws, standings=standings)
 
 @bp.post("/epl/undo")
 def undo_last_pick():

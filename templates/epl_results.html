@@ -2,5 +2,34 @@
 {% block title %}EPL Результаты — Fantasy Draft{% endblock %}
 {% block content %}
 <h1 class="title">EPL Результаты</h1>
-<p>Страница с результатами EPL появится здесь.</p>
+{% if gws %}
+<table class="table is-striped is-fullwidth">
+  <thead>
+    <tr>
+      <th>Менеджер</th>
+      {% for gw in gws %}
+      <th>GW{{ gw }}</th>
+      {% endfor %}
+      <th>Баллы</th>
+      <th>Победы</th>
+      <th>Очки</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in standings %}
+    <tr>
+      <td>{{ row.manager }}</td>
+      {% for gw in gws %}
+      <td>{{ row.gw_points.get(gw, 0) }}</td>
+      {% endfor %}
+      <td>{{ row.class_points }}</td>
+      <td>{{ row.wins }}</td>
+      <td>{{ row.raw_points }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<p>Нет завершённых туров.</p>
+{% endif %}
 {% endblock %}
