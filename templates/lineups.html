@@ -24,7 +24,7 @@
         {% if lineups[m].ts %}
         <div class="has-text-grey is-size-7">{{ lineups[m].ts.strftime('%d.%m %H:%M') }}</div>
         {% endif %}
-        {{ '🟢' if status[m] else '🔴' }} {{ m }}
+        {{ '🟢' if status[m] else '🔴' }} {{ m }} <span style="background-color:#006400;color:white;padding:0 4px;border-radius:3px;">{{ lineups[m].total }}</span>
       </th>
       {% endfor %}
     </tr>
@@ -34,8 +34,13 @@
       {% for m in managers %}
       <td>
         {% if lineups[m].has_lineup %}
+          {% set last_pos = None %}
           {% for p in lineups[m].starters %}
-            <div>{{ p.points }} {{ p.name }} ({{ p.pos }}) </div>
+            {% if last_pos and p.pos != last_pos %}
+              <div></div>
+            {% endif %}
+            {% set last_pos = p.pos %}
+              <div>{{ p.points }} {{ p.name }} <img src="https://resources.premierleague.com/premierleague25/badges/{{ p.club }}.svg" alt="{{ p.club }}" style="height:14px; vertical-align:middle"/></div>
           {% endfor %}
           {% if lineups[m].bench %}
             <div class="mt-2 has-text-weight-semibold">Запас</div>
@@ -44,8 +49,13 @@
             {% endfor %}
           {% endif %}
         {% else %}
+          {% set last_pos = None %}
           {% for p in lineups[m].starters %}
-            <div>{{ p.name }} ({{ p.pos }})</div>
+            {% if last_pos and p.pos != last_pos %}
+              <div></div>
+            {% endif %}
+            {% set last_pos = p.pos %}
+            <div>{{ p.name }} <img src="https://resources.premierleague.com/premierleague25/badges/{{ p.club }}.svg" alt="{{ p.club }}" style="height:14px; vertical-align:middle"/></div>
           {% endfor %}
         {% endif %}
       </td>
