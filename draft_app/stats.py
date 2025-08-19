@@ -2,7 +2,7 @@ import os
 from flask import Blueprint, render_template, flash, redirect, url_for
 from . import state
 from .config import UCL_CACHE_DIR
-from .services import session_req, HEADERS_GENERIC, load_json, save_json
+from .services import HTTP_SESSION, HEADERS_GENERIC, load_json, save_json
 
 bp = Blueprint("stats", __name__)
 
@@ -19,7 +19,7 @@ def index(pid):
     data = load_json(cache_path, default=None)
     if data is None:
         try:
-            r = session_req.get(popup_url, headers=HEADERS_GENERIC, timeout=10)
+            r = HTTP_SESSION.get(popup_url, headers=HEADERS_GENERIC, timeout=10)
             r.raise_for_status()
             data = r.json()
             save_json(cache_path, data)
