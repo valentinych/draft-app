@@ -33,14 +33,18 @@
     <tr>
       {% for m in managers %}
       <td>
+        {% set hue = loop.index0 * 60 %}
+        {% set c1 = 'hsl(' ~ hue ~ ', 70%, 90%)' %}
+        {% set c2 = 'hsl(' ~ hue ~ ', 70%, 80%)' %}
         {% if lineups[m].has_lineup %}
           {% set last_pos = None %}
           {% for p in lineups[m].starters %}
             {% if last_pos and p.pos != last_pos %}
-              <div></div>
+              <hr class="my-1"/>
             {% endif %}
             {% set last_pos = p.pos %}
-            <div class="is-flex is-justify-content-space-between">
+            {% set row_color = c1 if loop.index0 % 2 == 0 else c2 %}
+            <div class="is-flex is-justify-content-space-between" style="background-color: {{ row_color }};">
               <span>{{ p.name }} <img src="https://resources.premierleague.com/premierleague25/badges/{{ p.club }}.svg" alt="{{ p.club }}" style="height:14px; vertical-align:middle"/></span>
               <span class="has-text-right" style="min-width:2em">{{ p.points }}</span>
             </div>
@@ -50,10 +54,11 @@
             {% set last_pos = None %}
             {% for p in lineups[m].bench %}
               {% if last_pos and p.pos != last_pos %}
-                <div></div>
+                <hr class="my-1"/>
               {% endif %}
               {% set last_pos = p.pos %}
-              <div class="is-flex is-justify-content-space-between has-text-grey">
+              {% set row_color = c1 if loop.index0 % 2 == 0 else c2 %}
+              <div class="is-flex is-justify-content-space-between has-text-grey" style="background-color: {{ row_color }};">
                 <span>{{ p.name }} ({{ p.pos }})</span>
                 <span class="has-text-right" style="min-width:2em">{{ p.points }}</span>
               </div>
@@ -63,10 +68,11 @@
           {% set last_pos = None %}
           {% for p in lineups[m].starters %}
             {% if last_pos and p.pos != last_pos %}
-              <div></div>
+              <hr class="my-1"/>
             {% endif %}
             {% set last_pos = p.pos %}
-            <div class="is-flex is-justify-content-space-between">
+            {% set row_color = c1 if loop.index0 % 2 == 0 else c2 %}
+            <div class="is-flex is-justify-content-space-between" style="background-color: {{ row_color }};">
               <span>{{ p.name }} <img src="https://resources.premierleague.com/premierleague25/badges/{{ p.club }}.svg" alt="{{ p.club }}" style="height:14px; vertical-align:middle"/></span>
               <span class="has-text-right" style="min-width:2em">{{ p.points }}</span>
             </div>
