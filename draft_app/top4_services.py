@@ -104,7 +104,10 @@ def _parse_value(text: str) -> Optional[float]:
 
 def _fetch_team_players(team_name: str, team_url: str, league: str) -> List[Dict[str, Any]]:
     players: List[Dict[str, Any]] = []
-    html = requests.get(team_url, headers=HEADERS).text
+    try:
+        html = requests.get(team_url, headers=HEADERS, timeout=10).text
+    except Exception:
+        return players
     soup = BeautifulSoup(html, "html.parser")
     rows = soup.select("table.items tbody tr.odd, table.items tbody tr.even")
     for row in rows:
@@ -135,7 +138,10 @@ def _fetch_players() -> List[Dict[str, Any]]:
     players: List[Dict[str, Any]] = []
     for league, (code, slug) in LEAGUE_MAP.items():
         league_url = f"https://www.transfermarkt.com/{slug}/startseite/wettbewerb/{code}/saison_id/2023"
-        html = requests.get(league_url, headers=HEADERS).text
+        try:
+            html = requests.get(league_url, headers=HEADERS, timeout=10).text
+        except Exception:
+            continue
         soup = BeautifulSoup(html, "html.parser")
         team_rows = soup.select("table.items tbody tr.odd, table.items tbody tr.even")
         for row in team_rows:
@@ -150,11 +156,16 @@ def _fetch_players() -> List[Dict[str, Any]]:
 
 def load_players() -> List[Dict[str, Any]]:
     data = _json_load(PLAYERS_CACHE)
-    if isinstance(data, list) and data and all(p.get("price") is not None for p in data):
+    if isinstance(data, list) and data:
         return data
-    players = _fetch_players()
-    _json_dump_atomic(PLAYERS_CACHE, players)
-    return players
+    try:
+        players = _fetch_players()
+        if players:
+            _json_dump_atomic(PLAYERS_CACHE, players)
+            return players
+    except Exception:
+        pass
+    return data or []
 
 # ---------- wishlist ----------
 def wishlist_load(manager: str) -> List[int]:
