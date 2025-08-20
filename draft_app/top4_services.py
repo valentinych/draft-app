@@ -21,6 +21,13 @@ LEAGUE_TOURNAMENTS = {
     "Serie A": 318,
     "Bundesliga": 314,
 }
+# IDs for 2024 season to fetch last season FP (Pts)
+LEAGUE_TOURNAMENTS_2024 = {
+    "La Liga": 286,
+    "EPL": 287,
+    "Serie A": 288,
+    "Bundesliga": 290,
+}
 LEAGUES = list(LEAGUE_TOURNAMENTS.keys())
 POS_CANON = {"GK": "GK", "D": "DEF", "M": "MID", "F": "FWD"}
 MIN_PER_LEAGUE = 3
@@ -125,15 +132,54 @@ def _fetch_league_players(tournament_id: int, league: str) -> List[Dict[str, Any
         offset += len(rows)
     return players
 
+
+def _fetch_prev_fp(tournament_id: int) -> Dict[int, float]:
+    """Fetch last season FP (Pts) for given tournament id."""
+    fp: Dict[int, float] = {}
+    url = f"https://fantasy-h2h.ru/analytics/fantasy_players_statistics/{tournament_id}"
+    offset = 0
+    while True:
+        resp = requests.get(url, params={"ajax": 1, "offset": offset}, headers=HEADERS)
+        try:
+            html = resp.json().get("data", "")
+        except Exception:
+            break
+        soup = BeautifulSoup(html, "html.parser")
+        rows = soup.select("table#players_list tbody tr")
+        if not rows:
+            break
+        for row in rows:
+            cols = row.select("td")
+            if len(cols) < 15:
+                continue
+            club = cols[2].get_text(strip=True)
+            name = cols[3].get_text(strip=True)
+            pts_txt = cols[14].get_text(strip=True).replace(",", ".")
+            try:
+                pts = float(pts_txt) if pts_txt else 0.0
+            except Exception:
+                pts = 0.0
+            key = f"{club}|{name}"
+            fp[key] = pts
+        offset += len(rows)
+    return fp
+
 def _fetch_players() -> List[Dict[str, Any]]:
     players: List[Dict[str, Any]] = []
+    prev_fp: Dict[str, float] = {}
+    for league, tid in LEAGUE_TOURNAMENTS_2024.items():
+        prev_fp.update(_fetch_prev_fp(tid))
     for league, tid in LEAGUE_TOURNAMENTS.items():
-        players.extend(_fetch_league_players(tid, league))
+        league_players = _fetch_league_players(tid, league)
+        for p in league_players:
+            key = f"{p.get('clubName')}|{p.get('fullName')}"
+            p["fp_last"] = prev_fp.get(key, 0.0)
+        players.extend(league_players)
     return players
 
 def load_players() -> List[Dict[str, Any]]:
     data = _json_load(PLAYERS_CACHE)
-    if isinstance(data, list) and data:
+    if isinstance(data, list) and data and data[0].get("fp_last") is not None:
         return data
     players = _fetch_players()
     _json_dump_atomic(PLAYERS_CACHE, players)
