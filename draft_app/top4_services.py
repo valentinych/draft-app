@@ -25,6 +25,8 @@ LEAGUES = list(LEAGUE_MAP.keys())
 POS_CANON = {"GK": "GK", "D": "DEF", "M": "MID", "F": "FWD"}
 MIN_PER_LEAGUE = 3
 HEADERS = {"User-Agent": "Mozilla/5.0", "Accept-Language": "en"}
+API_PRICE_URL = "https://transfermarkt-api.fly.dev/players/{pid}/market_value"
+CEAPI_PRICE_URL = "https://www.transfermarkt.com/ceapi/marketValueDevelopment/graph/{pid}"
 
 # ---------- helpers ----------
 
@@ -84,24 +86,32 @@ def _pos_from_tm(text: str) -> str:
     return "F"
 
 
-def _parse_value(text: str) -> Optional[float]:
-    """Return market value in millions of euros from Transfermarkt cell text."""
-    if not text:
-        return None
-    t = text.strip().lower().replace("€", "").replace(",", "")
-    if t in ("-", "0"):
-        return None
-    mult = 1.0
-    if t.endswith("m"):
-        mult = 1_000_000
-        t = t[:-1]
-    elif t.endswith("k"):
-        mult = 1_000
-        t = t[:-1]
+def _price_from_api(pid: int) -> Optional[float]:
+    """Return market value in millions of euros using transfermarkt-api service.
+
+    The function first attempts to query the public transfermarkt-api instance. If that
+    fails (e.g. due to rate limiting or other errors), it falls back to hitting
+    Transfermarkt's internal `ceapi` endpoint directly.
+    """
     try:
-        return float(t) * mult / 1_000_000
-    except ValueError:
-        return None
+        r = requests.get(API_PRICE_URL.format(pid=pid), headers=HEADERS, timeout=10)
+        if r.ok:
+            mv = r.json().get("marketValue")
+            if isinstance(mv, int):
+                return mv / 1_000_000
+    except Exception:
+        pass
+    try:
+        r = requests.get(CEAPI_PRICE_URL.format(pid=pid), headers=HEADERS, timeout=10)
+        if r.ok:
+            data = r.json().get("list", [])
+            if data:
+                val = data[-1].get("y")
+                if isinstance(val, (int, float)):
+                    return float(val) / 1_000_000
+    except Exception:
+        pass
+    return None
 
 def _fetch_team_players(team_name: str, team_url: str, league: str) -> List[Dict[str, Any]]:
     players: List[Dict[str, Any]] = []
@@ -123,8 +133,7 @@ def _fetch_team_players(team_name: str, team_url: str, league: str) -> List[Dict
         pid = int(m.group(1))
         pos_text = row.select_one("td.posrela table tr + tr td").text.strip()
         pos = _pos_from_tm(pos_text)
-        val_cell = row.select_one("td.rechts.hauptlink")
-        price = _parse_value(val_cell.text if val_cell else "")
+        price = _price_from_api(pid)
         players.append({
             "playerId": pid,
             "fullName": name,
