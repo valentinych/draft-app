@@ -1,11 +1,11 @@
 from __future__ import annotations
-import asyncio
 import json
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set
 
-from understat import Understat
-import aiohttp
+import re
+import requests
+from bs4 import BeautifulSoup
 
 from .config import BASE_DIR, TOP4_USERS, TOP4_POSITION_LIMITS, TOP4_STATE_FILE
 
@@ -14,9 +14,16 @@ STATE_FILE = Path(TOP4_STATE_FILE)
 PLAYERS_CACHE = BASE / "data" / "cache" / "top4_players.json"
 WISHLIST_DIR = BASE / "data" / "wishlist" / "top4"
 
-LEAGUES = ["La Liga", "EPL", "Serie A", "Bundesliga"]
+LEAGUE_MAP = {
+    "La Liga": ("ES1", "laliga"),
+    "EPL": ("GB1", "premier-league"),
+    "Serie A": ("IT1", "serie-a"),
+    "Bundesliga": ("L1", "1-bundesliga"),
+}
+LEAGUES = list(LEAGUE_MAP.keys())
 POS_CANON = {"GK": "GK", "D": "DEF", "M": "MID", "F": "FWD"}
 MIN_PER_LEAGUE = 3
+HEADERS = {"User-Agent": "Mozilla/5.0"}
 
 # ---------- helpers ----------
 
@@ -64,27 +71,65 @@ def who_is_on_clock(state: Dict[str, Any]) -> Optional[str]:
     return None
 
 # ---------- players ----------
-async def _fetch_players() -> List[Dict[str, Any]]:
-    async with aiohttp.ClientSession() as session:
-        u = Understat(session)
-        players: List[Dict[str, Any]] = []
-        for league in LEAGUES:
-            data = await u.get_league_players(league, season="2023")
-            for p in data:
-                players.append({
-                    "playerId": int(p["id"]),
-                    "fullName": p.get("player_name"),
-                    "clubName": p.get("team_title"),
-                    "position": p.get("position"),
-                    "league": league,
-                })
-        return players
+
+def _pos_from_tm(text: str) -> str:
+    t = text.lower()
+    if "keeper" in t:
+        return "GK"
+    if any(x in t for x in ["back", "defend"]):
+        return "D"
+    if "mid" in t:
+        return "M"
+    return "F"
+
+def _fetch_team_players(team_name: str, team_url: str, league: str) -> List[Dict[str, Any]]:
+    players: List[Dict[str, Any]] = []
+    html = requests.get(team_url, headers=HEADERS).text
+    soup = BeautifulSoup(html, "html.parser")
+    rows = soup.select("table.items tbody tr.odd, table.items tbody tr.even")
+    for row in rows:
+        a = row.select_one("td.posrela table tr td.hauptlink a")
+        if not a:
+            continue
+        name = a.text.strip()
+        href = a.get("href", "")
+        m = re.search(r"/spieler/(\d+)", href)
+        if not m:
+            continue
+        pid = int(m.group(1))
+        pos_text = row.select_one("td.posrela table tr + tr td").text.strip()
+        pos = _pos_from_tm(pos_text)
+        players.append({
+            "playerId": pid,
+            "fullName": name,
+            "clubName": team_name,
+            "position": pos,
+            "league": league,
+        })
+    return players
+
+def _fetch_players() -> List[Dict[str, Any]]:
+    players: List[Dict[str, Any]] = []
+    for league, (code, slug) in LEAGUE_MAP.items():
+        league_url = f"https://www.transfermarkt.com/{slug}/startseite/wettbewerb/{code}/saison_id/2023"
+        html = requests.get(league_url, headers=HEADERS).text
+        soup = BeautifulSoup(html, "html.parser")
+        team_rows = soup.select("table.items tbody tr.odd, table.items tbody tr.even")
+        for row in team_rows:
+            link = row.find("td", class_="hauptlink")
+            if not link or not link.a:
+                continue
+            team_name = link.a.text.strip()
+            team_href = link.a.get("href", "")
+            team_url = "https://www.transfermarkt.com" + team_href
+            players.extend(_fetch_team_players(team_name, team_url, league))
+    return players
 
 def load_players() -> List[Dict[str, Any]]:
     data = _json_load(PLAYERS_CACHE)
     if isinstance(data, list) and data:
         return data
-    players = asyncio.run(_fetch_players())
+    players = _fetch_players()
     _json_dump_atomic(PLAYERS_CACHE, players)
     return players
 
