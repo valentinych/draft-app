@@ -42,7 +42,7 @@
             <a class="navbar-item" href="{{ url_for('epl.results') }}">Результаты</a>
           </div>
         </div>
-        <a class="navbar-item" href="{{ url_for('home.top4') }}">Топ-4</a>
+        <a class="navbar-item" href="{{ url_for('top4.index') }}">Топ-4</a>
       </div>
       <div class="navbar-end">
         {% if session.get('user_name') %}
