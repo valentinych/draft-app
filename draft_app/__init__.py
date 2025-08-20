@@ -6,10 +6,11 @@ from .auth import bp as auth_bp, load_auth_users
 from .home import bp as home_bp
 from .ucl import bp as ucl_bp
 from .stats import bp as stats_bp
-from .state import init_ucl, init_epl
+from .state import init_ucl, init_epl, init_top4
 from .wishlist import bp as wishlist_bp
 from .status import bp as status_bp
 from draft_app.epl_routes import bp as epl_bp
+from draft_app.top4_routes import bp as top4_bp
 
 def create_app():
     app = Flask(__name__, template_folder=os.path.join(BASE_DIR, "templates"))
@@ -20,6 +21,7 @@ def create_app():
     # Инициализация данных
     init_ucl(app)
     init_epl(app)
+    init_top4(app)
 
     # Регистрация блюпринтов
     app.register_blueprint(auth_bp)
@@ -29,5 +31,6 @@ def create_app():
     app.register_blueprint(wishlist_bp)
     app.register_blueprint(status_bp)
     app.register_blueprint(epl_bp)
+    app.register_blueprint(top4_bp)
 
     return app

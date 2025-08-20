@@ -31,6 +31,17 @@
   </div>
 
   <form method="get" id="filters-form" class="filters">
+    {% if leagues is defined %}
+    <div class="fld">
+      <label for="league">Лига</label>
+      <select name="league" id="league">
+        <option value="">— Любая —</option>
+        {% for l in leagues %}
+          <option value="{{ l }}" {% if l == league_filter %}selected{% endif %}>{{ l }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    {% endif %}
     <div class="fld">
       <label for="club">Клуб</label>
       <select name="club" id="club">
@@ -75,7 +86,7 @@
   {% if players %}
     <div class="table-wrap">
       <table id="players" class="players-table"
-             data-league="epl"
+             data-league="{{ table_league or 'epl' }}"
              data-manager="{{ current_user or 'guest' }}">
         <thead>
           <tr>
@@ -174,6 +185,10 @@
   </div>
 </div>
 
+{% if table_league == 'epl' %}
 <script src="{{ url_for('static', filename='js/draft_epl.js') }}"></script>
+{% else %}
+<script src="{{ url_for('static', filename='js/draft_common.js') }}"></script>
+{% endif %}
 <script src="{{ url_for('static', filename='wishlist.js') }}"></script>
 {% endblock %}

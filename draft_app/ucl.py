@@ -140,6 +140,7 @@ def index():
         positions=positions,
         club_filter=club_filter,
         pos_filter=pos_filter,
+        table_league="ucl",
         current_user=session.get("user_name"),
         next_user=next_user,
         next_round=next_round,
