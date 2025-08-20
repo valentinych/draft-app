@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Расписание Топ-4{% endblock %}
+{% block content %}
+<h1 class="title">Расписание лиг</h1>
+<div class="columns is-multiline">
+  {% for league, rounds in schedule.items() %}
+  <div class="column is-half-tablet is-one-quarter-desktop">
+    <h2 class="subtitle">{{ league }}</h2>
+    <table class="table is-bordered is-striped is-narrow is-fullwidth">
+      <tbody>
+      {% for r in rounds %}
+        <tr class="{% if r.skip %}has-background-danger-light{% elif r.current %}has-background-info-light{% endif %}">
+          <td>Тур {{ r.round }}</td>
+          <td>{{ r.date }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

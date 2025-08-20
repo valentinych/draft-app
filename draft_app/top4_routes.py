@@ -10,6 +10,7 @@ from .top4_services import (
     build_status_context,
     wishlist_load, wishlist_save,
 )
+from .top4_schedule import build_schedule
 
 bp = Blueprint("top4", __name__)
 
@@ -110,6 +111,12 @@ def index():
 def status():
     ctx = build_status_context()
     return render_template("status.html", **ctx)
+
+
+@bp.get("/top4/schedule")
+def schedule_view():
+    data = build_schedule()
+    return render_template("schedule.html", schedule=data)
 
 # ---- Wishlist API ----
 @bp.route("/top4/api/wishlist", methods=["GET", "PATCH", "POST"])

@@ -42,7 +42,13 @@
             <a class="navbar-item" href="{{ url_for('epl.results') }}">Результаты</a>
           </div>
         </div>
-        <a class="navbar-item" href="{{ url_for('top4.index') }}">Топ-4</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="{{ url_for('top4.index') }}">Топ-4</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="{{ url_for('top4.index') }}">Пики</a>
+            <a class="navbar-item" href="{{ url_for('top4.schedule_view') }}">Расписание</a>
+          </div>
+        </div>
       </div>
       <div class="navbar-end">
         {% if session.get('user_name') %}
