@@ -117,6 +117,7 @@ def index():
         positions=positions,
         club_filter=club_filter,
         pos_filter=pos_filter,
+        table_league="epl",
         current_user=current_user,
         next_user=next_user,
         next_round=next_round,

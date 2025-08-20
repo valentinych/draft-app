@@ -10,6 +10,7 @@ SECRET_KEY = 'b2484a04b35fa7a0b01293cdd8a75e3cd9742a093577dd731d7ecece56a40c24'
 # Пользователи драфтов
 UCL_USERS = ["Макс", "Саша", "Андрей", "Сергей", "Ксана", "Женя", "Руслан"]
 EPL_USERS = ["Ксана", "Саша", "Руслан", "Тёма", "Сергей", "Андрей", "Женя", "Макс"]
+TOP4_USERS = ["Ксана", "Саша", "Максим", "Андрей", "Сергей", "Тёма", "Женя", "Руслан"]
 
 # Позиции и лимиты
 UCL_POSITION_MAP = {1: 'Goalkeeper', 2: 'Defender', 3: 'Midfielder', 4: 'Forward'}
@@ -18,10 +19,12 @@ POSITION_ORDER   = ['Goalkeeper', 'Defender', 'Midfielder', 'Forward']
 
 UCL_POSITION_LIMITS = {'Goalkeeper': 3, 'Defender': 8, 'Midfielder': 9, 'Forward': 5}  # 25
 EPL_POSITION_LIMITS = {'Goalkeeper': 3, 'Defender': 7, 'Midfielder': 8, 'Forward': 4}  # 22 (GK=3)
+TOP4_POSITION_LIMITS = {'GK': 2, 'DEF': 6, 'MID': 6, 'FWD': 4}  # 18
 
 # Файлы состояния/данных
 UCL_STATE_FILE   = os.path.join(BASE_DIR, 'draft_state_ucl.json')
 EPL_STATE_FILE   = os.path.join(BASE_DIR, 'draft_state_epl.json')
+TOP4_STATE_FILE  = os.path.join(BASE_DIR, 'draft_state_top4.json')
 UCL_PLAYERS_FILE = os.path.join(BASE_DIR, 'players_70_en_3.json')
 # players_fpl_bootstrap.json кешируется вне репозитория
 EPL_PLAYERS_FILE = os.path.join(tempfile.gettempdir(), 'players_fpl_bootstrap.json')

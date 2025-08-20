@@ -17,7 +17,8 @@
     const DEBOUNCE_MS = 250;
   
     async function fetchWishlist() {
-      const res = await fetch('/epl/api/wishlist', { credentials: 'same-origin' });
+      const { league } = getCtx();
+      const res = await fetch(`/${league}/api/wishlist`, { credentials: 'same-origin' });
       if (!res.ok) throw new Error('Wishlist load failed');
       const data = await res.json();
       return Array.isArray(data.ids) ? new Set(data.ids.map(Number)) : new Set();
@@ -33,7 +34,8 @@
       batch.add.clear(); batch.remove.clear();
   
       try {
-        const res = await fetch('/epl/api/wishlist', {
+        const { league } = getCtx();
+        const res = await fetch(`/${league}/api/wishlist`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'same-origin',

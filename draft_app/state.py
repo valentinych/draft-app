@@ -1,8 +1,8 @@
 import os
 from .config import (
-    UCL_USERS, EPL_USERS,
-    UCL_POSITION_LIMITS, EPL_POSITION_LIMITS,
-    UCL_STATE_FILE, EPL_STATE_FILE,
+    UCL_USERS, EPL_USERS, TOP4_USERS,
+    UCL_POSITION_LIMITS, EPL_POSITION_LIMITS, TOP4_POSITION_LIMITS,
+    UCL_STATE_FILE, EPL_STATE_FILE, TOP4_STATE_FILE,
     UCL_PLAYERS_FILE, UCL_CACHE_DIR
 )
 from .services import load_json, save_json, parse_ucl_players, load_epl_players
@@ -10,6 +10,7 @@ from .services import load_json, save_json, parse_ucl_players, load_epl_players
 # Глобальные кэши в памяти
 ucl_state = None
 epl_state = None
+top4_state = None
 ucl_players = []
 epl_players = []
 
@@ -58,6 +59,17 @@ def init_epl(app):
         total = sum(EPL_POSITION_LIMITS.values())  # 22
         epl_state['draft_order'] = _build_snake_order(EPL_USERS, total)
         save_json(EPL_STATE_FILE, epl_state)
+
+def init_top4(app):
+    global top4_state
+    state = load_json(TOP4_STATE_FILE, default=None)
+    if state is None:
+        state = _default_state(TOP4_USERS)
+    top4_state = state
+    if not top4_state['draft_order']:
+        total = sum(TOP4_POSITION_LIMITS.values())
+        top4_state['draft_order'] = _build_snake_order(TOP4_USERS, total)
+        save_json(TOP4_STATE_FILE, top4_state)
 
 # Общие хелперы
 def save_ucl_state():
