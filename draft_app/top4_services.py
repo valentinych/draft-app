@@ -14,16 +14,18 @@ STATE_FILE = Path(TOP4_STATE_FILE)
 PLAYERS_CACHE = BASE / "data" / "cache" / "top4_players.json"
 WISHLIST_DIR = BASE / "data" / "wishlist" / "top4"
 
-LEAGUE_MAP = {
-    "La Liga": ("ES1", "laliga"),
-    "EPL": ("GB1", "premier-league"),
-    "Serie A": ("IT1", "serie-a"),
-    "Bundesliga": ("L1", "1-bundesliga"),
+LEAGUE_TOURNAMENTS = {
+    # IDs of tournaments on fantasy-h2h.ru
+    "La Liga": 315,
+    "EPL": 316,
+    "Serie A": 318,
+    "Bundesliga": 314,
 }
-LEAGUES = list(LEAGUE_MAP.keys())
+LEAGUES = list(LEAGUE_TOURNAMENTS.keys())
 POS_CANON = {"GK": "GK", "D": "DEF", "M": "MID", "F": "FWD"}
 MIN_PER_LEAGUE = 3
 HEADERS = {"User-Agent": "Mozilla/5.0"}
+POS_MAP_RUS = {"Вр": "GK", "Зщ": "DEF", "Пз": "MID", "Нп": "FWD"}
 
 # ---------- helpers ----------
 
@@ -72,57 +74,61 @@ def who_is_on_clock(state: Dict[str, Any]) -> Optional[str]:
 
 # ---------- players ----------
 
-def _pos_from_tm(text: str) -> str:
-    t = text.lower()
-    if "keeper" in t:
-        return "GK"
-    if any(x in t for x in ["back", "defend"]):
-        return "D"
-    if "mid" in t:
-        return "M"
-    return "F"
-
-def _fetch_team_players(team_name: str, team_url: str, league: str) -> List[Dict[str, Any]]:
+def _fetch_league_players(tournament_id: int, league: str) -> List[Dict[str, Any]]:
     players: List[Dict[str, Any]] = []
-    html = requests.get(team_url, headers=HEADERS).text
-    soup = BeautifulSoup(html, "html.parser")
-    rows = soup.select("table.items tbody tr.odd, table.items tbody tr.even")
-    for row in rows:
-        a = row.select_one("td.posrela table tr td.hauptlink a")
-        if not a:
-            continue
-        name = a.text.strip()
-        href = a.get("href", "")
-        m = re.search(r"/spieler/(\d+)", href)
-        if not m:
-            continue
-        pid = int(m.group(1))
-        pos_text = row.select_one("td.posrela table tr + tr td").text.strip()
-        pos = _pos_from_tm(pos_text)
-        players.append({
-            "playerId": pid,
-            "fullName": name,
-            "clubName": team_name,
-            "position": pos,
-            "league": league,
-        })
+    url = f"https://fantasy-h2h.ru/analytics/fantasy_players_statistics/{tournament_id}"
+    offset = 0
+    while True:
+        resp = requests.get(url, params={"ajax": 1, "offset": offset}, headers=HEADERS)
+        try:
+            html = resp.json().get("data", "")
+        except Exception:
+            break
+        soup = BeautifulSoup(html, "html.parser")
+        rows = soup.select("table#players_list tbody tr")
+        if not rows:
+            break
+        for row in rows:
+            cols = row.select("td")
+            if len(cols) < 6:
+                continue
+            pos_rus = cols[1].get_text(strip=True)
+            club = cols[2].get_text(strip=True)
+            name = cols[3].get_text(strip=True)
+            price_txt = cols[4].get_text(strip=True).replace(",", ".")
+            pop_txt = cols[5].get_text(strip=True).replace(",", ".")
+            try:
+                price = float(price_txt) if price_txt else 0.0
+            except Exception:
+                price = 0.0
+            try:
+                popularity = float(pop_txt) if pop_txt else 0.0
+            except Exception:
+                popularity = 0.0
+            link = cols[-1].find("a", class_="tooltipster uname")
+            pid = None
+            if link:
+                m = re.search(r"/player/(\d+)", link.get("data-tooltip_url", ""))
+                if m:
+                    pid = int(m.group(1))
+            if pid is None:
+                continue
+            players.append({
+                "playerId": pid,
+                "fullName": name,
+                "clubName": club,
+                "position": POS_MAP_RUS.get(pos_rus, pos_rus),
+                "league": league,
+                "price": price,
+                "popularity": popularity,
+            })
+        offset += len(rows)
     return players
 
 def _fetch_players() -> List[Dict[str, Any]]:
     players: List[Dict[str, Any]] = []
-    for league, (code, slug) in LEAGUE_MAP.items():
-        league_url = f"https://www.transfermarkt.com/{slug}/startseite/wettbewerb/{code}/saison_id/2023"
-        html = requests.get(league_url, headers=HEADERS).text
-        soup = BeautifulSoup(html, "html.parser")
-        team_rows = soup.select("table.items tbody tr.odd, table.items tbody tr.even")
-        for row in team_rows:
-            link = row.find("td", class_="hauptlink")
-            if not link or not link.a:
-                continue
-            team_name = link.a.text.strip()
-            team_href = link.a.get("href", "")
-            team_url = "https://www.transfermarkt.com" + team_href
-            players.extend(_fetch_team_players(team_name, team_url, league))
+    for league, tid in LEAGUE_TOURNAMENTS.items():
+        players.extend(_fetch_league_players(tid, league))
     return players
 
 def load_players() -> List[Dict[str, Any]]:
