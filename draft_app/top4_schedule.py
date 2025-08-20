@@ -62,6 +62,22 @@ def _choose_skip(other_dates: List[date], bundes_dates: List[date]) -> List[int]
     skips.sort()
     return skips
 
+
+def _enforce_constraints(skips: List[int], total_rounds: int) -> List[int]:
+    """Ensure last round is skipped and no consecutive skips remain."""
+    skip_set = set(skips)
+    skip_set.add(total_rounds)
+    ordered: List[int] = []
+    for s in sorted(skip_set):
+        if ordered and s == ordered[-1] + 1:
+            if s == total_rounds:
+                ordered[-1] = s
+            else:
+                continue
+        else:
+            ordered.append(s)
+    return ordered
+
 def build_schedule() -> Dict[str, List[Dict]]:
     today = date.today()
     bundes = _load_rounds("Bundesliga")
@@ -72,6 +88,8 @@ def build_schedule() -> Dict[str, List[Dict]]:
         rounds = _load_rounds(league)
         dates = [r["date"] for r in rounds]
         skip_idx = _choose_skip(dates, bundes_dates) if league != "Bundesliga" else []
+        if league != "Bundesliga":
+            skip_idx = _enforce_constraints(skip_idx, len(rounds))
         info: List[Dict] = []
         for idx, rd in enumerate(rounds, start=1):
             if rd["date"] >= today:
