@@ -81,57 +81,82 @@ def who_is_on_clock(state: Dict[str, Any]) -> Optional[str]:
 
 # ---------- players ----------
 
+def _fetch_team_ids(tournament_id: int) -> List[int]:
+    """Return list of team ids for given tournament."""
+    url = f"https://fantasy-h2h.ru/analytics/fantasy_players_statistics/{tournament_id}"
+    try:
+        resp = requests.get(url, params={"ajax": 1, "offset": 0, "limit": 1}, headers=HEADERS)
+        html = resp.json().get("data", "")
+    except Exception:
+        return []
+    soup = BeautifulSoup(html, "html.parser")
+    opts = soup.select('select[name="filter[sport_team_id]"] option')
+    ids: List[int] = []
+    for opt in opts:
+        val = opt.get("value")
+        if not val or val == "0":
+            continue
+        try:
+            ids.append(int(val))
+        except Exception:
+            continue
+    return ids
+
+
 def _fetch_league_players(tournament_id: int, league: str) -> List[Dict[str, Any]]:
     players: List[Dict[str, Any]] = []
     url = f"https://fantasy-h2h.ru/analytics/fantasy_players_statistics/{tournament_id}"
-    offset = 0
-    while True:
-        resp = requests.get(
-            url, params={"ajax": 1, "offset": offset, "limit": 100}, headers=HEADERS
-        )
-        try:
-            html = resp.json().get("data", "")
-        except Exception:
-            break
-        soup = BeautifulSoup(html, "html.parser")
-        rows = soup.select("table#players_list tbody tr")
-        if not rows:
-            break
-        for row in rows:
-            cols = row.select("td")
-            if len(cols) < 6:
-                continue
-            pos_rus = cols[1].get_text(strip=True)
-            club = cols[2].get_text(strip=True)
-            name = cols[3].get_text(strip=True)
-            price_txt = cols[4].get_text(strip=True).replace(",", ".")
-            pop_txt = cols[5].get_text(strip=True).replace(",", ".")
+    team_ids = _fetch_team_ids(tournament_id)
+    seen: Set[int] = set()
+    for team_id in team_ids:
+        offset = 0
+        while True:
+            params = {"ajax": 1, "offset": offset, "limit": 100, "filter[sport_team_id]": team_id}
+            resp = requests.get(url, params=params, headers=HEADERS)
             try:
-                price = float(price_txt) if price_txt else 0.0
+                html = resp.json().get("data", "")
             except Exception:
-                price = 0.0
-            try:
-                popularity = float(pop_txt) if pop_txt else 0.0
-            except Exception:
-                popularity = 0.0
-            link = cols[-1].find("a", class_="tooltipster uname")
-            pid = None
-            if link:
-                m = re.search(r"/player/(\d+)", link.get("data-tooltip_url", ""))
-                if m:
-                    pid = int(m.group(1))
-            if pid is None:
-                continue
-            players.append({
-                "playerId": pid,
-                "fullName": name,
-                "clubName": club,
-                "position": POS_MAP_RUS.get(pos_rus, pos_rus),
-                "league": league,
-                "price": price,
-                "popularity": popularity,
-            })
-        offset += len(rows)
+                break
+            soup = BeautifulSoup(html, "html.parser")
+            rows = soup.select("table#players_list tbody tr")
+            if not rows:
+                break
+            for row in rows:
+                cols = row.select("td")
+                if len(cols) < 6:
+                    continue
+                pos_rus = cols[1].get_text(strip=True)
+                club = cols[2].get_text(strip=True)
+                name = cols[3].get_text(strip=True)
+                price_txt = cols[4].get_text(strip=True).replace(",", ".")
+                pop_txt = cols[5].get_text(strip=True).replace(",", ".")
+                try:
+                    price = float(price_txt) if price_txt else 0.0
+                except Exception:
+                    price = 0.0
+                try:
+                    popularity = float(pop_txt) if pop_txt else 0.0
+                except Exception:
+                    popularity = 0.0
+                link = cols[-1].find("a", class_="tooltipster uname")
+                pid = None
+                if link:
+                    m = re.search(r"/player/(\d+)", link.get("data-tooltip_url", ""))
+                    if m:
+                        pid = int(m.group(1))
+                if pid is None or pid in seen:
+                    continue
+                players.append({
+                    "playerId": pid,
+                    "fullName": name,
+                    "clubName": club,
+                    "position": POS_MAP_RUS.get(pos_rus, pos_rus),
+                    "league": league,
+                    "price": price,
+                    "popularity": popularity,
+                })
+                seen.add(pid)
+            offset += len(rows)
     return players
 
 
@@ -139,37 +164,38 @@ def _fetch_prev_fp(tournament_id: int) -> Dict[str, float]:
     """Fetch last season FP (Pts) for given tournament id."""
     fp: Dict[str, float] = {}
     url = f"https://fantasy-h2h.ru/analytics/fantasy_players_statistics/{tournament_id}"
-    offset = 0
-    while True:
-        resp = requests.get(
-            url, params={"ajax": 1, "offset": offset, "limit": 100}, headers=HEADERS
-        )
-        try:
-            html = resp.json().get("data", "")
-        except Exception:
-            break
-        soup = BeautifulSoup(html, "html.parser")
-        rows = soup.select("table#players_list tbody tr")
-        if not rows:
-            break
-        for row in rows:
-            cols = row.select("td")
-            if len(cols) < 15:
-                continue
-            club = cols[2].get_text(strip=True)
-            name = cols[3].get_text(strip=True)
-            pts_txt = cols[14].get_text(strip=True).replace(",", ".")
+    team_ids = _fetch_team_ids(tournament_id)
+    for team_id in team_ids:
+        offset = 0
+        while True:
+            params = {"ajax": 1, "offset": offset, "limit": 100, "filter[sport_team_id]": team_id}
+            resp = requests.get(url, params=params, headers=HEADERS)
             try:
-                pts = float(pts_txt) if pts_txt else 0.0
+                html = resp.json().get("data", "")
             except Exception:
-                pts = 0.0
-            key = f"{club}|{name}"
-            fp[key] = pts
-        offset += len(rows)
+                break
+            soup = BeautifulSoup(html, "html.parser")
+            rows = soup.select("table#players_list tbody tr")
+            if not rows:
+                break
+            for row in rows:
+                cols = row.select("td")
+                if len(cols) < 15:
+                    continue
+                club = cols[2].get_text(strip=True)
+                name = cols[3].get_text(strip=True)
+                pts_txt = cols[14].get_text(strip=True).replace(",", ".")
+                try:
+                    pts = float(pts_txt) if pts_txt else 0.0
+                except Exception:
+                    pts = 0.0
+                key = f"{club}|{name}"
+                fp[key] = pts
+            offset += len(rows)
     return fp
 
 def _fetch_players() -> List[Dict[str, Any]]:
-    players: List[Dict[str, Any]] = []
+    players_map: Dict[int, Dict[str, Any]] = {}
     prev_fp: Dict[str, float] = {}
     for league, tid in LEAGUE_TOURNAMENTS_2024.items():
         prev_fp.update(_fetch_prev_fp(tid))
@@ -178,8 +204,8 @@ def _fetch_players() -> List[Dict[str, Any]]:
         for p in league_players:
             key = f"{p.get('clubName')}|{p.get('fullName')}"
             p["fp_last"] = prev_fp.get(key, 0.0)
-        players.extend(league_players)
-    return players
+            players_map[p["playerId"]] = p
+    return list(players_map.values())
 
 def load_players() -> List[Dict[str, Any]]:
     data = _json_load(PLAYERS_CACHE)
