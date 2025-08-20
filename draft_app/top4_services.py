@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Set
 
 import re
+import time
 import requests
 from bs4 import BeautifulSoup
 
@@ -23,7 +24,7 @@ LEAGUE_MAP = {
 LEAGUES = list(LEAGUE_MAP.keys())
 POS_CANON = {"GK": "GK", "D": "DEF", "M": "MID", "F": "FWD"}
 MIN_PER_LEAGUE = 3
-HEADERS = {"User-Agent": "Mozilla/5.0"}
+HEADERS = {"User-Agent": "Mozilla/5.0", "Accept-Language": "en"}
 
 # ---------- helpers ----------
 
@@ -152,11 +153,12 @@ def _fetch_players() -> List[Dict[str, Any]]:
             team_href = link.a.get("href", "")
             team_url = "https://www.transfermarkt.com" + team_href
             players.extend(_fetch_team_players(team_name, team_url, league))
+            time.sleep(0.5)
     return players
 
 def load_players() -> List[Dict[str, Any]]:
     data = _json_load(PLAYERS_CACHE)
-    if isinstance(data, list) and data:
+    if isinstance(data, list) and data and data[0].get("price") is not None:
         return data
     try:
         players = _fetch_players()
