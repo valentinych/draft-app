@@ -1,11 +1,19 @@
 from __future__ import annotations
-import json
+import json, os
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set
 
 import re
 import requests
 from bs4 import BeautifulSoup
+
+# === S3 ===
+try:
+    import boto3
+    from botocore.config import Config as BotoConfig
+except Exception:  # boto3 may be missing in some environments
+    boto3 = None
+    BotoConfig = None
 
 from .config import BASE_DIR, TOP4_USERS, TOP4_POSITION_LIMITS, TOP4_STATE_FILE
 
@@ -48,6 +56,75 @@ def _json_dump_atomic(p: Path, data: Any) -> None:
     tmp.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
     tmp.replace(p)
 
+    # ======================
+    #        S3 I/O
+    # ======================
+    # intentionally placed after file helpers to reuse json dump/load
+
+
+def _s3_enabled() -> bool:
+    return bool(os.getenv("TOP4_S3_BUCKET") and os.getenv("TOP4_S3_STATE_KEY"))
+
+
+def _s3_bucket() -> Optional[str]:
+    return os.getenv("TOP4_S3_BUCKET")
+
+
+def _s3_state_key() -> Optional[str]:
+    return os.getenv("TOP4_S3_STATE_KEY")
+
+
+def _s3_wishlist_prefix() -> str:
+    return os.getenv("TOP4_S3_WISHLIST_PREFIX", "wishlist/top4")
+
+
+def _s3_players_key() -> str:
+    return os.getenv("TOP4_S3_PLAYERS_KEY", "cache/top4_players.json")
+
+
+def _s3_client():
+    if not boto3:
+        return None
+    cfg = BotoConfig(
+        retries={"max_attempts": 3, "mode": "standard"},
+        connect_timeout=5,
+        read_timeout=8,
+    )
+    region = os.getenv("AWS_REGION") or os.getenv("AWS_DEFAULT_REGION") or "us-east-1"
+    return boto3.client("s3", region_name=region, config=cfg)
+
+
+def _s3_get_json(bucket: str, key: str) -> Optional[Any]:
+    cli = _s3_client()
+    if not cli:
+        return None
+    try:
+        obj = cli.get_object(Bucket=bucket, Key=key)
+        body = obj["Body"].read()
+        return json.loads(body.decode("utf-8"))
+    except Exception as e:
+        print(f"[TOP4:S3] get_object failed: s3://{bucket}/{key} -> {e}")
+        return None
+
+
+def _s3_put_json(bucket: str, key: str, data: Any) -> bool:
+    cli = _s3_client()
+    if not cli:
+        return False
+    try:
+        body = json.dumps(data, ensure_ascii=False, indent=2).encode("utf-8")
+        cli.put_object(
+            Bucket=bucket,
+            Key=key,
+            Body=body,
+            ContentType="application/json; charset=utf-8",
+            CacheControl="no-cache",
+        )
+        return True
+    except Exception as e:
+        print(f"[TOP4:S3] put_object failed: s3://{bucket}/{key} -> {e}")
+        return False
+
 
 def _build_snake_order(users: List[str], rounds_total: int) -> List[str]:
     order: List[str] = []
@@ -59,7 +136,13 @@ def _build_snake_order(users: List[str], rounds_total: int) -> List[str]:
 # ---------- state ----------
 
 def load_state() -> Dict[str, Any]:
-    state = _json_load(STATE_FILE) or {}
+    if _s3_enabled():
+        bucket = _s3_bucket()
+        key = _s3_state_key()
+        data = _s3_get_json(bucket, key) if bucket and key else None
+        state = data if isinstance(data, dict) else {}
+    else:
+        state = _json_load(STATE_FILE) or {}
     if not state.get("rosters"):
         state["rosters"] = {u: [] for u in TOP4_USERS}
     if not state.get("draft_order"):
@@ -70,6 +153,12 @@ def load_state() -> Dict[str, Any]:
     return state
 
 def save_state(state: Dict[str, Any]) -> None:
+    if _s3_enabled():
+        bucket = _s3_bucket()
+        key = _s3_state_key()
+        if bucket and key and _s3_put_json(bucket, key, state):
+            return
+        print("[TOP4:S3] save_state fallback to local file")
     _json_dump_atomic(STATE_FILE, state)
 
 def who_is_on_clock(state: Dict[str, Any]) -> Optional[str]:
@@ -208,15 +297,47 @@ def _fetch_players() -> List[Dict[str, Any]]:
     return list(players_map.values())
 
 def load_players() -> List[Dict[str, Any]]:
+    if _s3_enabled():
+        bucket = _s3_bucket()
+        key = _s3_players_key()
+        data = _s3_get_json(bucket, key) if bucket and key else None
+        if isinstance(data, list) and data and data[0].get("fp_last") is not None:
+            return data
     data = _json_load(PLAYERS_CACHE)
     if isinstance(data, list) and data and data[0].get("fp_last") is not None:
         return data
     players = _fetch_players()
+    if _s3_enabled():
+        bucket = _s3_bucket()
+        key = _s3_players_key()
+        if bucket and key and not _s3_put_json(bucket, key, players):
+            print("[TOP4:S3] save_players_cache failed")
     _json_dump_atomic(PLAYERS_CACHE, players)
     return players
 
 # ---------- wishlist ----------
+def _wishlist_s3_key(manager: str) -> str:
+    safe = manager.replace("/", "_")
+    prefix = _s3_wishlist_prefix().strip().strip("/")
+    return f"{prefix}/{safe}.json"
+
+
 def wishlist_load(manager: str) -> List[int]:
+    if _s3_enabled():
+        bucket = _s3_bucket()
+        key = _wishlist_s3_key(manager)
+        data = _s3_get_json(bucket, key) if bucket else None
+        if isinstance(data, list):
+            try:
+                return [int(x) for x in data]
+            except Exception:
+                return []
+        if isinstance(data, dict) and "ids" in data:
+            try:
+                return [int(x) for x in data.get("ids") or []]
+            except Exception:
+                return []
+        return []
     p = WISHLIST_DIR / f"{manager.replace('/', '_')}.json"
     data = _json_load(p)
     if isinstance(data, list):
@@ -226,10 +347,18 @@ def wishlist_load(manager: str) -> List[int]:
             return []
     return []
 
+
 def wishlist_save(manager: str, ids: List[int]) -> None:
+    ids_norm = [int(x) for x in ids]
+    if _s3_enabled():
+        bucket = _s3_bucket()
+        key = _wishlist_s3_key(manager)
+        if bucket and _s3_put_json(bucket, key, ids_norm):
+            return
+        print(f"[TOP4:S3] wishlist_save fallback to local for manager={manager}")
     WISHLIST_DIR.mkdir(parents=True, exist_ok=True)
     p = WISHLIST_DIR / f"{manager.replace('/', '_')}.json"
-    _json_dump_atomic(p, [int(x) for x in ids])
+    _json_dump_atomic(p, ids_norm)
 
 # ---------- helpers for picks ----------
 
