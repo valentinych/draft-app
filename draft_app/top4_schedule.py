@@ -5,10 +5,10 @@ from typing import Dict, List
 import requests
 
 OPENFOOTBALL_URLS = {
-    "Bundesliga": "https://raw.githubusercontent.com/openfootball/football.json/master/2024-25/de.1.json",
-    "EPL": "https://raw.githubusercontent.com/openfootball/football.json/master/2024-25/en.1.json",
-    "La Liga": "https://raw.githubusercontent.com/openfootball/football.json/master/2024-25/es.1.json",
-    "Serie A": "https://raw.githubusercontent.com/openfootball/football.json/master/2024-25/it.1.json",
+    "Bundesliga": "https://raw.githubusercontent.com/openfootball/football.json/master/2025-26/de.1.json",
+    "EPL": "https://raw.githubusercontent.com/openfootball/football.json/master/2025-26/en.1.json",
+    "La Liga": "https://raw.githubusercontent.com/openfootball/football.json/master/2025-26/es.1.json",
+    "Serie A": "https://raw.githubusercontent.com/openfootball/football.json/master/2025-26/it.1.json",
 }
 
 @lru_cache()
