@@ -81,7 +81,9 @@
   {% set show_price = players and players[0].get('price') is not none %}
   {% set current_sort = request.args.get('sort') or 'price' %}
   {% set current_dir = request.args.get('dir', 'desc') %}
+  {% set route = (table_league or 'epl') ~ '.index' %}
   {% set next_dir_price = 'asc' if current_sort == 'price' and current_dir == 'desc' else 'desc' %}
+  {% set next_dir_pop = 'asc' if current_sort == 'popularity' and current_dir == 'desc' else 'desc' %}
 
   {% if players %}
     <div class="table-wrap">
@@ -95,15 +97,26 @@
             <th>Игрок</th>
             <th>Клуб</th>
             <th>Позиция</th>
-            <th>Статистика</th>
+            {% if table_league == 'epl' %}<th>Статистика</th>{% endif %}
             <th class="num">
               <button type="button" id="fp-sort-btn" class="link" data-dir="desc" title="Сортировать по FP 2024/25">
                 FP 2024/25 <span id="fp-sort-arrow">↓</span>
               </button>
             </th>
+            {% if table_league == 'top4' %}
+              <th class="num">
+                <a href="{{ url_for(route, league=league_filter, club=club_filter, position=pos_filter, sort='popularity', dir=next_dir_pop) }}"
+                   style="text-decoration:none;color:inherit">
+                  Популярность
+                  {% if current_sort == 'popularity' %}
+                    {{ '↑' if current_dir == 'asc' else '↓' }}
+                  {% endif %}
+                </a>
+              </th>
+            {% endif %}
             {% if show_price %}
               <th class="num">
-                <a href="{{ url_for('epl.index', club=club_filter, position=pos_filter, sort='price', dir=next_dir_price) }}"
+                <a href="{{ url_for(route, league=league_filter, club=club_filter, position=pos_filter, sort='price', dir=next_dir_price) }}"
                    style="text-decoration:none;color:inherit">
                   Цена
                   {% if current_sort == 'price' %}
@@ -126,12 +139,15 @@
               <td>{{ p.shortName or p.fullName }}</td>
               <td>{{ p.clubName }}</td>
               <td>{{ p.position }}</td>
+              {% if table_league == 'epl' %}
               <td>
                 <button type="button" class="link link-stat" data-pid="{{ p.playerId }}" data-name="{{ p.shortName or p.fullName }}">stat</button>
               </td>
+              {% endif %}
               <td class="num">
-                <span class="fp-cell" data-pid="{{ p.playerId }}" data-fp="0">0</span>
+                <span class="fp-cell" data-pid="{{ p.playerId }}" data-fp="{{ p.fp_last or 0 }}">{{ (p.fp_last or 0)|int }}</span>
               </td>
+              {% if table_league == 'top4' %}<td class="num">{{ '%.1f'|format(p.popularity) }}</td>{% endif %}
               {% if show_price %}<td class="num">{{ '%.1f'|format(p.price) }}</td>{% endif %}
               <td class="num">
                 <form method="post" style="display:inline;">
@@ -149,6 +165,7 @@
   {% endif %}
 </div>
 
+{% if table_league == 'epl' %}
 <!-- Modal для статистики -->
 <div id="stat-modal" class="modal" aria-hidden="true">
   <div class="modal-backdrop" data-close="1"></div>
@@ -184,6 +201,7 @@
     </div>
   </div>
 </div>
+{% endif %}
 
 {% if table_league == 'epl' %}
 <script src="{{ url_for('static', filename='js/draft_epl.js') }}"></script>

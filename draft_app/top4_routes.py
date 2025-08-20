@@ -77,6 +77,15 @@ def index():
     if pos_filter:
         players = [p for p in players if p.get("position") == pos_filter]
 
+    # Sorting
+    sort_field = request.args.get("sort") or "price"
+    sort_dir = request.args.get("dir") or "desc"
+    reverse = sort_dir == "desc"
+    if sort_field == "price":
+        players.sort(key=lambda p: (p.get("price") is None, p.get("price")), reverse=reverse)
+    elif sort_field == "popularity":
+        players.sort(key=lambda p: (p.get("popularity") is None, p.get("popularity")), reverse=reverse)
+
     annotate_can_pick(players, state, current_user)
 
     return render_template(
