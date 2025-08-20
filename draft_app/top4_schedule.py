@@ -11,6 +11,13 @@ OPENFOOTBALL_URLS = {
     "Serie A": "https://raw.githubusercontent.com/openfootball/football.json/master/2025-26/it.1.json",
 }
 
+SKIP_ROUNDS = {
+    "Bundesliga": [],
+    "EPL": [1, 14, 18, 38],
+    "La Liga": [1, 6, 36, 38],
+    "Serie A": [9, 17, 19, 38],
+}
+
 @lru_cache()
 def _load_rounds(league: str) -> List[Dict]:
     url = OPENFOOTBALL_URLS.get(league)
@@ -31,79 +38,27 @@ def _load_rounds(league: str) -> List[Dict]:
             rounds[r] = d
     return [{"round": r, "date": rounds[r]} for r in sorted(rounds)]
 
-def _choose_skip(other_dates: List[date], bundes_dates: List[date]) -> List[int]:
-    n = len(other_dates)
-    m = len(bundes_dates)
-    dp = [[float("inf")]*(m+1) for _ in range(n+1)]
-    path = [[None]*(m+1) for _ in range(n+1)]
-    dp[0][0] = 0.0
-    for i in range(1, n+1):
-        dp[i][0] = 0.0
-        path[i][0] = "skip"
-    for i in range(1, n+1):
-        for j in range(1, min(i, m)+1):
-            cost = abs((other_dates[i-1] - bundes_dates[j-1]).days)
-            if dp[i-1][j-1] + cost < dp[i][j]:
-                dp[i][j] = dp[i-1][j-1] + cost
-                path[i][j] = "align"
-            if dp[i-1][j] <= dp[i][j]:
-                dp[i][j] = dp[i-1][j]
-                path[i][j] = "skip"
-    i, j = n, m
-    skips: List[int] = []
-    while i > 0 or j > 0:
-        act = path[i][j]
-        if act == "align":
-            i -= 1
-            j -= 1
-        else:
-            skips.append(i)
-            i -= 1
-    skips.sort()
-    return skips
-
-
-def _enforce_constraints(skips: List[int], total_rounds: int) -> List[int]:
-    """Ensure last round is skipped and no consecutive skips remain."""
-    skip_set = set(skips)
-    skip_set.add(total_rounds)
-    ordered: List[int] = []
-    for s in sorted(skip_set):
-        if ordered and s == ordered[-1] + 1:
-            if s == total_rounds:
-                ordered[-1] = s
-            else:
-                continue
-        else:
-            ordered.append(s)
-    return ordered
-
 def build_schedule() -> Dict[str, List[Dict]]:
     today = date.today()
-    bundes = _load_rounds("Bundesliga")
-    bundes_dates = [r["date"] for r in bundes]
     result: Dict[str, List[Dict]] = {}
     leagues = ["Bundesliga", "EPL", "La Liga", "Serie A"]
     for league in leagues:
         rounds = _load_rounds(league)
-        dates = [r["date"] for r in rounds]
-        skip_idx = _choose_skip(dates, bundes_dates) if league != "Bundesliga" else []
-        if league != "Bundesliga":
-            skip_idx = _enforce_constraints(skip_idx, len(rounds))
+        skip_nums = set(SKIP_ROUNDS.get(league, []))
         info: List[Dict] = []
-        for idx, rd in enumerate(rounds, start=1):
+        for rd in rounds:
             if rd["date"] >= today:
                 info.append({
                     "round": rd["round"],
                     "date": rd["date"].strftime("%Y-%m-%d"),
-                    "skip": idx in skip_idx,
+                    "skip": rd["round"] in skip_nums,
                 })
         if not info:
-            for idx, rd in enumerate(rounds, start=1):
+            for rd in rounds:
                 info.append({
                     "round": rd["round"],
                     "date": rd["date"].strftime("%Y-%m-%d"),
-                    "skip": idx in skip_idx,
+                    "skip": rd["round"] in skip_nums,
                 })
         for item in info:
             if not item["skip"]:
