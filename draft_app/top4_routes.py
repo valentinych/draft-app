@@ -109,6 +109,7 @@ def index():
 @bp.get("/top4/status")
 def status():
     ctx = build_status_context()
+    ctx["draft_url"] = url_for("top4.index")
     return render_template("status.html", **ctx)
 
 # ---- Wishlist API ----
