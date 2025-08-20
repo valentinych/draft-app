@@ -78,7 +78,6 @@
     </div>
   </form>
 
-  {% set show_price = players and players[0].get('price') is not none %}
   {% set current_sort = request.args.get('sort') or 'price' %}
   {% set current_dir = request.args.get('dir', 'desc') %}
   {% set next_dir_price = 'asc' if current_sort == 'price' and current_dir == 'desc' else 'desc' %}
@@ -103,27 +102,25 @@
               </button>
             </th>
             {% endif %}
-            {% if show_price %}
-              <th class="num">
-                {% if table_league == 'top4' %}
-                <a href="{{ url_for('top4.index', league=league_filter, club=club_filter, position=pos_filter, sort='price', dir=next_dir_price) }}"
-                   style="text-decoration:none;color:inherit">
-                  Стоимость
-                  {% if current_sort == 'price' %}
-                    {{ '↑' if current_dir == 'asc' else '↓' }}
-                  {% endif %}
-                </a>
-                {% else %}
-                <a href="{{ url_for('epl.index', club=club_filter, position=pos_filter, sort='price', dir=next_dir_price) }}"
-                   style="text-decoration:none;color:inherit">
-                  Цена
-                  {% if current_sort == 'price' %}
-                    {{ '↑' if current_dir == 'asc' else '↓' }}
-                  {% endif %}
-                </a>
+            <th class="num">
+              {% if table_league == 'top4' %}
+              <a href="{{ url_for('top4.index', league=league_filter, club=club_filter, position=pos_filter, sort='price', dir=next_dir_price) }}"
+                 style="text-decoration:none;color:inherit">
+                Стоимость
+                {% if current_sort == 'price' %}
+                  {{ '↑' if current_dir == 'asc' else '↓' }}
                 {% endif %}
-              </th>
-            {% endif %}
+              </a>
+              {% else %}
+              <a href="{{ url_for('epl.index', club=club_filter, position=pos_filter, sort='price', dir=next_dir_price) }}"
+                 style="text-decoration:none;color:inherit">
+                Цена
+                {% if current_sort == 'price' %}
+                  {{ '↑' if current_dir == 'asc' else '↓' }}
+                {% endif %}
+              </a>
+              {% endif %}
+            </th>
             <th class="num">Действия</th>
           </tr>
         </thead>
@@ -146,7 +143,7 @@
                 <span class="fp-cell" data-pid="{{ p.playerId }}" data-fp="0">0</span>
               </td>
               {% endif %}
-              {% if show_price %}<td class="num">{{ '%.1f'|format(p.price) }}</td>{% endif %}
+              <td class="num">{% if p.price is not none %}{{ '%.1f'|format(p.price) }}{% endif %}</td>
               <td class="num">
                 <form method="post" style="display:inline;">
                   <input type="hidden" name="player_id" value="{{ p.playerId }}" />
