@@ -95,14 +95,25 @@
             <th>Игрок</th>
             <th>Клуб</th>
             <th>Позиция</th>
+            {% if table_league != 'top4' %}
             <th>Статистика</th>
             <th class="num">
               <button type="button" id="fp-sort-btn" class="link" data-dir="desc" title="Сортировать по FP 2024/25">
                 FP 2024/25 <span id="fp-sort-arrow">↓</span>
               </button>
             </th>
+            {% endif %}
             {% if show_price %}
               <th class="num">
+                {% if table_league == 'top4' %}
+                <a href="{{ url_for('top4.index', league=league_filter, club=club_filter, position=pos_filter, sort='price', dir=next_dir_price) }}"
+                   style="text-decoration:none;color:inherit">
+                  Стоимость
+                  {% if current_sort == 'price' %}
+                    {{ '↑' if current_dir == 'asc' else '↓' }}
+                  {% endif %}
+                </a>
+                {% else %}
                 <a href="{{ url_for('epl.index', club=club_filter, position=pos_filter, sort='price', dir=next_dir_price) }}"
                    style="text-decoration:none;color:inherit">
                   Цена
@@ -110,6 +121,7 @@
                     {{ '↑' if current_dir == 'asc' else '↓' }}
                   {% endif %}
                 </a>
+                {% endif %}
               </th>
             {% endif %}
             <th class="num">Действия</th>
@@ -126,12 +138,14 @@
               <td>{{ p.shortName or p.fullName }}</td>
               <td>{{ p.clubName }}</td>
               <td>{{ p.position }}</td>
+              {% if table_league != 'top4' %}
               <td>
                 <button type="button" class="link link-stat" data-pid="{{ p.playerId }}" data-name="{{ p.shortName or p.fullName }}">stat</button>
               </td>
               <td class="num">
                 <span class="fp-cell" data-pid="{{ p.playerId }}" data-fp="0">0</span>
               </td>
+              {% endif %}
               {% if show_price %}<td class="num">{{ '%.1f'|format(p.price) }}</td>{% endif %}
               <td class="num">
                 <form method="post" style="display:inline;">

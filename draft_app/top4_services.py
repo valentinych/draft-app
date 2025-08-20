@@ -82,6 +82,26 @@ def _pos_from_tm(text: str) -> str:
         return "M"
     return "F"
 
+
+def _parse_value(text: str) -> Optional[float]:
+    """Return market value in millions of euros from Transfermarkt cell text."""
+    if not text:
+        return None
+    t = text.strip().lower().replace("€", "").replace(",", "")
+    if t in ("-", "0"):
+        return None
+    mult = 1.0
+    if t.endswith("m"):
+        mult = 1_000_000
+        t = t[:-1]
+    elif t.endswith("k"):
+        mult = 1_000
+        t = t[:-1]
+    try:
+        return float(t) * mult / 1_000_000
+    except ValueError:
+        return None
+
 def _fetch_team_players(team_name: str, team_url: str, league: str) -> List[Dict[str, Any]]:
     players: List[Dict[str, Any]] = []
     html = requests.get(team_url, headers=HEADERS).text
@@ -99,12 +119,15 @@ def _fetch_team_players(team_name: str, team_url: str, league: str) -> List[Dict
         pid = int(m.group(1))
         pos_text = row.select_one("td.posrela table tr + tr td").text.strip()
         pos = _pos_from_tm(pos_text)
+        val_cell = row.select_one("td.rechts.hauptlink")
+        price = _parse_value(val_cell.text if val_cell else "")
         players.append({
             "playerId": pid,
             "fullName": name,
             "clubName": team_name,
             "position": pos,
             "league": league,
+            "price": price,
         })
     return players
 
@@ -127,7 +150,7 @@ def _fetch_players() -> List[Dict[str, Any]]:
 
 def load_players() -> List[Dict[str, Any]]:
     data = _json_load(PLAYERS_CACHE)
-    if isinstance(data, list) and data:
+    if isinstance(data, list) and data and all(p.get("price") is not None for p in data):
         return data
     players = _fetch_players()
     _json_dump_atomic(PLAYERS_CACHE, players)
