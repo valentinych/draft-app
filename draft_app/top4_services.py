@@ -15,7 +15,7 @@ PLAYERS_CACHE = BASE / "data" / "cache" / "top4_players.json"
 WISHLIST_DIR = BASE / "data" / "wishlist" / "top4"
 
 LEAGUE_TOURNAMENTS = {
-    # IDs of tournaments on fantasy-h2h.ru
+    # IDs of tournaments on fantasy-h2h.ru for 2025 season
     "La Liga": 315,
     "EPL": 316,
     "Serie A": 318,
@@ -86,7 +86,9 @@ def _fetch_league_players(tournament_id: int, league: str) -> List[Dict[str, Any
     url = f"https://fantasy-h2h.ru/analytics/fantasy_players_statistics/{tournament_id}"
     offset = 0
     while True:
-        resp = requests.get(url, params={"ajax": 1, "offset": offset}, headers=HEADERS)
+        resp = requests.get(
+            url, params={"ajax": 1, "offset": offset, "limit": 100}, headers=HEADERS
+        )
         try:
             html = resp.json().get("data", "")
         except Exception:
@@ -133,13 +135,15 @@ def _fetch_league_players(tournament_id: int, league: str) -> List[Dict[str, Any
     return players
 
 
-def _fetch_prev_fp(tournament_id: int) -> Dict[int, float]:
+def _fetch_prev_fp(tournament_id: int) -> Dict[str, float]:
     """Fetch last season FP (Pts) for given tournament id."""
-    fp: Dict[int, float] = {}
+    fp: Dict[str, float] = {}
     url = f"https://fantasy-h2h.ru/analytics/fantasy_players_statistics/{tournament_id}"
     offset = 0
     while True:
-        resp = requests.get(url, params={"ajax": 1, "offset": offset}, headers=HEADERS)
+        resp = requests.get(
+            url, params={"ajax": 1, "offset": offset, "limit": 100}, headers=HEADERS
+        )
         try:
             html = resp.json().get("data", "")
         except Exception:
