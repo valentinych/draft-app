@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Set
 
 import re
+import time
 import requests
 from bs4 import BeautifulSoup
 
@@ -23,7 +24,9 @@ LEAGUE_MAP = {
 LEAGUES = list(LEAGUE_MAP.keys())
 POS_CANON = {"GK": "GK", "D": "DEF", "M": "MID", "F": "FWD"}
 MIN_PER_LEAGUE = 3
-HEADERS = {"User-Agent": "Mozilla/5.0"}
+HEADERS = {"User-Agent": "Mozilla/5.0", "Accept-Language": "en"}
+API_PRICE_URL = "https://transfermarkt-api.fly.dev/players/{pid}/market_value"
+CEAPI_PRICE_URL = "https://www.transfermarkt.com/ceapi/marketValueDevelopment/graph/{pid}"
 
 # ---------- helpers ----------
 
@@ -82,9 +85,40 @@ def _pos_from_tm(text: str) -> str:
         return "M"
     return "F"
 
+
+def _price_from_api(pid: int) -> Optional[float]:
+    """Return market value in millions of euros using transfermarkt-api service.
+
+    The function first attempts to query the public transfermarkt-api instance. If that
+    fails (e.g. due to rate limiting or other errors), it falls back to hitting
+    Transfermarkt's internal `ceapi` endpoint directly.
+    """
+    try:
+        r = requests.get(API_PRICE_URL.format(pid=pid), headers=HEADERS, timeout=10)
+        if r.ok:
+            mv = r.json().get("marketValue")
+            if isinstance(mv, int):
+                return mv / 1_000_000
+    except Exception:
+        pass
+    try:
+        r = requests.get(CEAPI_PRICE_URL.format(pid=pid), headers=HEADERS, timeout=10)
+        if r.ok:
+            data = r.json().get("list", [])
+            if data:
+                val = data[-1].get("y")
+                if isinstance(val, (int, float)):
+                    return float(val) / 1_000_000
+    except Exception:
+        pass
+    return None
+
 def _fetch_team_players(team_name: str, team_url: str, league: str) -> List[Dict[str, Any]]:
     players: List[Dict[str, Any]] = []
-    html = requests.get(team_url, headers=HEADERS).text
+    try:
+        html = requests.get(team_url, headers=HEADERS, timeout=10).text
+    except Exception:
+        return players
     soup = BeautifulSoup(html, "html.parser")
     rows = soup.select("table.items tbody tr.odd, table.items tbody tr.even")
     for row in rows:
@@ -99,20 +133,25 @@ def _fetch_team_players(team_name: str, team_url: str, league: str) -> List[Dict
         pid = int(m.group(1))
         pos_text = row.select_one("td.posrela table tr + tr td").text.strip()
         pos = _pos_from_tm(pos_text)
+        price = _price_from_api(pid)
         players.append({
             "playerId": pid,
             "fullName": name,
             "clubName": team_name,
             "position": pos,
             "league": league,
+            "price": price,
         })
     return players
 
-def _fetch_players() -> List[Dict[str, Any]]:
+def _fetch_players(season_id: int = 2025) -> List[Dict[str, Any]]:
     players: List[Dict[str, Any]] = []
     for league, (code, slug) in LEAGUE_MAP.items():
-        league_url = f"https://www.transfermarkt.com/{slug}/startseite/wettbewerb/{code}/saison_id/2023"
-        html = requests.get(league_url, headers=HEADERS).text
+        league_url = f"https://www.transfermarkt.com/{slug}/startseite/wettbewerb/{code}/saison_id/{season_id}"
+        try:
+            html = requests.get(league_url, headers=HEADERS, timeout=10).text
+        except Exception:
+            continue
         soup = BeautifulSoup(html, "html.parser")
         team_rows = soup.select("table.items tbody tr.odd, table.items tbody tr.even")
         for row in team_rows:
@@ -123,15 +162,21 @@ def _fetch_players() -> List[Dict[str, Any]]:
             team_href = link.a.get("href", "")
             team_url = "https://www.transfermarkt.com" + team_href
             players.extend(_fetch_team_players(team_name, team_url, league))
+            time.sleep(0.5)
     return players
 
-def load_players() -> List[Dict[str, Any]]:
+def load_players(season_id: int = 2025) -> List[Dict[str, Any]]:
     data = _json_load(PLAYERS_CACHE)
-    if isinstance(data, list) and data:
+    if isinstance(data, list) and data and data[0].get("price") is not None:
         return data
-    players = _fetch_players()
-    _json_dump_atomic(PLAYERS_CACHE, players)
-    return players
+    try:
+        players = _fetch_players(season_id=season_id)
+        if players:
+            _json_dump_atomic(PLAYERS_CACHE, players)
+            return players
+    except Exception:
+        pass
+    return data or []
 
 # ---------- wishlist ----------
 def wishlist_load(manager: str) -> List[int]:

@@ -45,6 +45,7 @@ def index():
                 "clubName": meta.get("clubName"),
                 "position": meta.get("position"),
                 "league": meta.get("league"),
+                "price": meta.get("price"),
             },
             "ts": datetime.now().isoformat(timespec="seconds"),
         }
@@ -76,6 +77,12 @@ def index():
     positions = sorted({p.get("position") for p in players if p.get("position")})
     if pos_filter:
         players = [p for p in players if p.get("position") == pos_filter]
+
+    sort_field = request.args.get("sort") or "price"
+    sort_dir = request.args.get("dir") or "desc"
+    reverse = sort_dir == "desc"
+    if sort_field == "price":
+        players.sort(key=lambda p: (p.get("price") is None, p.get("price")), reverse=reverse)
 
     annotate_can_pick(players, state, current_user)
 
