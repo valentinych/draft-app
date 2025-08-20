@@ -144,10 +144,10 @@ def _fetch_team_players(team_name: str, team_url: str, league: str) -> List[Dict
         })
     return players
 
-def _fetch_players() -> List[Dict[str, Any]]:
+def _fetch_players(season_id: int = 2025) -> List[Dict[str, Any]]:
     players: List[Dict[str, Any]] = []
     for league, (code, slug) in LEAGUE_MAP.items():
-        league_url = f"https://www.transfermarkt.com/{slug}/startseite/wettbewerb/{code}/saison_id/2023"
+        league_url = f"https://www.transfermarkt.com/{slug}/startseite/wettbewerb/{code}/saison_id/{season_id}"
         try:
             html = requests.get(league_url, headers=HEADERS, timeout=10).text
         except Exception:
@@ -165,12 +165,12 @@ def _fetch_players() -> List[Dict[str, Any]]:
             time.sleep(0.5)
     return players
 
-def load_players() -> List[Dict[str, Any]]:
+def load_players(season_id: int = 2025) -> List[Dict[str, Any]]:
     data = _json_load(PLAYERS_CACHE)
     if isinstance(data, list) and data and data[0].get("price") is not None:
         return data
     try:
-        players = _fetch_players()
+        players = _fetch_players(season_id=season_id)
         if players:
             _json_dump_atomic(PLAYERS_CACHE, players)
             return players
