@@ -411,7 +411,7 @@ def annotate_can_pick(players: List[Dict[str, Any]], state: Dict[str, Any], curr
     club_counts: Dict[str,int] = {}
     league_counts: Dict[str,int] = {}
     for pl in roster:
-        pos = POS_CANON.get(pl.get("position"))
+        pos = POS_CANON.get(pl.get("position")) or pl.get("position")
         if pos in pos_counts:
             pos_counts[pos] += 1
         club = (pl.get("clubName") or "").upper()
@@ -421,17 +421,13 @@ def annotate_can_pick(players: List[Dict[str, Any]], state: Dict[str, Any], curr
         if league:
             league_counts[league] = league_counts.get(league, 0) + 1
     for p in players:
-        pos = POS_CANON.get(p.get("position"))
+        pos = POS_CANON.get(p.get("position")) or p.get("position")
         club = (p.get("clubName") or "").upper()
         league = p.get("league")
-        can = True
-        if pos not in TOP4_POSITION_LIMITS:
-            can = False
-        if can and pos_counts.get(pos,0) >= TOP4_POSITION_LIMITS[pos]:
-            can = False
-        if can and club_counts.get(club,0) >= 1:
-            can = False
-        if can and league:
+        can_pos = pos in TOP4_POSITION_LIMITS and pos_counts.get(pos,0) < TOP4_POSITION_LIMITS[pos]
+        can_club = club_counts.get(club,0) < 1 if club else True
+        can_league = True
+        if league:
             future_league_counts = league_counts.copy()
             future_league_counts[league] = future_league_counts.get(league,0) + 1
             remaining_after = total_slots - (len(roster) + 1)
@@ -441,8 +437,8 @@ def annotate_can_pick(players: List[Dict[str, Any]], state: Dict[str, Any], curr
                 if cnt < MIN_PER_LEAGUE:
                     required += MIN_PER_LEAGUE - cnt
             if len(roster) + 1 >= 9 and required > remaining_after:
-                can = False
-        p["canPick"] = bool(can)
+                can_league = False
+        p["canPick"] = bool(can_pos and can_club and can_league)
 
 # ---------- status ----------
 
