@@ -39,6 +39,12 @@ LEAGUE_TOURNAMENTS_2024 = {
 LEAGUES = list(LEAGUE_TOURNAMENTS.keys())
 POS_CANON = {"GK": "GK", "D": "DEF", "M": "MID", "F": "FWD"}
 MIN_PER_LEAGUE = 3
+LEAGUE_CODES = {
+    "EPL": "ENG",
+    "Bundesliga": "GER",
+    "Serie A": "ITA",
+    "La Liga": "SPA",
+}
 HEADERS = {"User-Agent": "Mozilla/5.0"}
 POS_MAP_RUS = {"Вр": "GK", "Зщ": "DEF", "Пз": "MID", "Нп": "FWD"}
 
@@ -455,8 +461,10 @@ def build_status_context() -> Dict[str, Any]:
         })
     slots = TOP4_POSITION_LIMITS
     squads_grouped: Dict[str, Dict[str, List[Dict[str, Any] | None]]] = {}
+    league_counts: Dict[str, Dict[str, int]] = {}
     for manager, arr in (state.get("rosters") or {}).items():
         g = {"GK": [], "DEF": [], "MID": [], "FWD": []}
+        lc = {"ENG": 0, "GER": 0, "ITA": 0, "SPA": 0}
         for entry in arr or []:
             pl = entry.get("player") if isinstance(entry, dict) and entry.get("player") else entry
             pos = POS_CANON.get(pl.get("position")) or pl.get("position")
@@ -467,14 +475,20 @@ def build_status_context() -> Dict[str, Any]:
                     "clubName": pl.get("clubName"),
                     "position": pos,
                 })
+            league = pl.get("league")
+            code = LEAGUE_CODES.get(league or "")
+            if code:
+                lc[code] = lc.get(code, 0) + 1
         for pos in ("GK", "DEF", "MID", "FWD"):
             need = max(0, slots.get(pos, 0) - len(g[pos]))
             g[pos].extend([None] * need)
         squads_grouped[manager] = g
+        league_counts[manager] = lc
     return {
         "title": "Top-4 Draft — Состояние драфта",
         "picks": picks,
         "squads_grouped": squads_grouped,
+        "league_counts": league_counts,
         "draft_completed": bool(state.get("draft_completed", False)),
         "next_user": state.get("next_user"),
         "next_round": state.get("next_round"),
