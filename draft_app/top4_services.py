@@ -56,14 +56,24 @@ def _json_dump_atomic(p: Path, data: Any) -> None:
     tmp.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
     tmp.replace(p)
 
-    # ======================
-    #        S3 I/O
-    # ======================
-    # intentionally placed after file helpers to reuse json dump/load
+"""Utilities for storing state in S3.
+
+The draft state is primarily written to a local JSON file, but when the
+environment provides S3 credentials we also try to mirror the file to a bucket.
+Previously the code required both ``TOP4_S3_BUCKET`` *and*
+``TOP4_S3_STATE_KEY`` environment variables to be defined.  In setups where only
+the bucket is configured the state wasn't uploaded, even though we could safely
+fall back to a sensible default key.  As a result ``draft_state_top4.json``
+remained local and wasn't stored in S3.
+
+To make the behaviour consistent with other services we now default the S3 key
+to the file name of ``STATE_FILE``.  ``_s3_enabled`` also uses these helper
+functions instead of checking the environment variables directly.
+"""
 
 
 def _s3_enabled() -> bool:
-    return bool(os.getenv("TOP4_S3_BUCKET") and os.getenv("TOP4_S3_STATE_KEY"))
+    return bool(_s3_bucket() and _s3_state_key())
 
 
 def _s3_bucket() -> Optional[str]:
@@ -71,7 +81,7 @@ def _s3_bucket() -> Optional[str]:
 
 
 def _s3_state_key() -> Optional[str]:
-    return os.getenv("TOP4_S3_STATE_KEY")
+    return os.getenv("TOP4_S3_STATE_KEY", STATE_FILE.name)
 
 
 def _s3_wishlist_prefix() -> str:
