@@ -73,7 +73,18 @@
       <div class="grid">
         {% for manager, g in squads_grouped.items() %}
           <div class="panel">
-            <div class="panel-title">{{ manager }}</div>
+            <div class="panel-title">
+              {{ manager }}
+              {% set lc = league_counts.get(manager) %}
+              {% if lc %}
+                <span class="league-counts">
+                  ENG: <span class="cnt lc-{{ 3 if lc['ENG'] >= 3 else lc['ENG'] }}">{{ lc['ENG'] }}</span>,
+                  GER: <span class="cnt lc-{{ 3 if lc['GER'] >= 3 else lc['GER'] }}">{{ lc['GER'] }}</span>,
+                  ITA: <span class="cnt lc-{{ 3 if lc['ITA'] >= 3 else lc['ITA'] }}">{{ lc['ITA'] }}</span>,
+                  SPA: <span class="cnt lc-{{ 3 if lc['SPA'] >= 3 else lc['SPA'] }}">{{ lc['SPA'] }}</span>
+                </span>
+              {% endif %}
+            </div>
             <div class="panel-body">
               <div class="block">
                 <div class="block-title">GK</div>
@@ -148,6 +159,12 @@
   .block-title { font-weight:600; margin-bottom:6px; }
   .bullets { margin:0; padding-left:16px; list-style:disc; }
   .bullets li { margin:3px 0; }
+  .league-counts { font-size:12px; margin-left:8px; }
+  .league-counts .cnt { padding:0 4px; border-radius:4px; }
+  .league-counts .lc-0 { background:#d9534f; color:#fff; }
+  .league-counts .lc-1 { background:#f0ad4e; }
+  .league-counts .lc-2 { background:#ffd700; }
+  .league-counts .lc-3 { background:#2e8b57; color:#fff; }
 </style>
 
 {% endblock %}
