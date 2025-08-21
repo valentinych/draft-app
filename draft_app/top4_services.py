@@ -457,13 +457,19 @@ def build_status_context() -> Dict[str, Any]:
     squads_grouped: Dict[str, Dict[str, List[Dict[str, Any] | None]]] = {}
     for manager, arr in (state.get("rosters") or {}).items():
         g = {"GK": [], "DEF": [], "MID": [], "FWD": []}
-        for pl in arr or []:
-            pos = POS_CANON.get(pl.get("position"))
+        for entry in arr or []:
+            pl = entry.get("player") if isinstance(entry, dict) and entry.get("player") else entry
+            pos = POS_CANON.get(pl.get("position")) or pl.get("position")
             if pos in g:
-                g[pos].append(pl)
-        for pos in g:
-            need = max(0, slots.get(pos,0) - len(g[pos]))
-            g[pos].extend([None]*need)
+                g[pos].append({
+                    "shortName": pl.get("shortName"),
+                    "fullName": pl.get("fullName") or pl.get("player_name"),
+                    "clubName": pl.get("clubName"),
+                    "position": pos,
+                })
+        for pos in ("GK", "DEF", "MID", "FWD"):
+            need = max(0, slots.get(pos, 0) - len(g[pos]))
+            g[pos].extend([None] * need)
         squads_grouped[manager] = g
     return {
         "title": "Top-4 Draft — Состояние драфта",
