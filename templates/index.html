@@ -23,7 +23,7 @@
         <a class="btn" href="{{ status_url }}">Состояние драфта</a>
       {% endif %}
       {% if session.get('godmode') %}
-        <form method="post" action="{{ url_for('epl.undo_last_pick') }}">
+        <form method="post" action="{{ undo_url|default(url_for('epl.undo_last_pick')) }}">
           <button type="submit" class="btn btn-danger">Отменить последний пик</button>
         </form>
       {% endif %}
