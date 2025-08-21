@@ -105,6 +105,7 @@ def index():
         next_round=state.get("next_round"),
         draft_completed=draft_completed,
         status_url=url_for("top4.status"),
+        undo_url=url_for("top4.undo_last_pick"),
     )
 
 @bp.get("/top4/status")
@@ -118,6 +119,40 @@ def status():
 def schedule_view():
     data = build_schedule()
     return render_template("schedule.html", schedule=data)
+
+
+@bp.post("/top4/undo")
+def undo_last_pick():
+    if not session.get("godmode"):
+        abort(403)
+    state = load_state()
+    picks = state.get("picks") or []
+    if not picks:
+        flash("Нет пиков для отмены", "warning")
+        return redirect(url_for("top4.index"))
+    last = picks.pop()
+    user = last.get("user")
+    pl = (last.get("player") or {})
+    pid = pl.get("playerId")
+    roster = (state.get("rosters") or {}).get(user)
+    if isinstance(roster, list) and pid is not None:
+        for i, it in enumerate(roster):
+            if isinstance(it, dict) and (it.get("playerId") == pid or it.get("id") == pid):
+                roster.pop(i)
+                break
+    try:
+        idx = int(state.get("current_pick_index", 0)) - 1
+        if idx < 0:
+            idx = 0
+        state["current_pick_index"] = idx
+        order = state.get("draft_order", [])
+        state["next_user"] = order[idx] if 0 <= idx < len(order) else None
+    except Exception:
+        pass
+    state["draft_completed"] = False
+    save_state(state)
+    flash("Последний пик отменён", "success")
+    return redirect(url_for("top4.index"))
 
 # ---- Wishlist API ----
 @bp.route("/top4/api/wishlist", methods=["GET", "PATCH", "POST"])
