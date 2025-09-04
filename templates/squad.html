@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Мой состав — EPL Драфт{% endblock %}
 {% block content %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/draft.css') }}"/>
 <link rel="stylesheet" href="{{ url_for('static', filename='css/squad.css') }}"/>
 <h1 class="title">Мой состав на Gameweek {{ gw }}</h1>
 {% if deadline %}
@@ -55,17 +56,53 @@
                 {% endif %}
                 <span>{{ p.shortName or p.fullName }}</span>
                 <small>{{ p.position }}{% if p.fixture %} {{ p.fixture }}{% endif %}</small>
-                {% if transfer_active and transfer_user == session.get('user_name') %}
+              </div>
+            {% endfor %}
+          </div>
+        {% endfor %}
+      </div>
+
+      <div id="roster-table-wrap" style="display:none;">
+        <table id="roster-table" class="tbl">
+          <thead>
+            <tr>
+              <th>Игрок</th>
+              <th class="num">FP 2025/26</th>
+              <th>Статус</th>
+              {% if transfer_active and transfer_user == session.get('user_name') %}<th>Действия</th>{% endif %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in roster %}
+            <tr data-id="{{ p.playerId }}" data-pos="{{ p.position }}">
+              <td>{{ p.shortName or p.fullName }}{% if p.fixture %} {{ p.fixture }}{% endif %}</td>
+              <td class="num">{{ (p.stats.points or 0)|int }}</td>
+              <td>
+                {% if p.status and p.status != 'a' %}
+                  {% set ch = p.chance or 0 %}
+                  {% if ch >= 75 %}
+                    <span class="status-circle status-yellow"></span>
+                  {% elif ch >= 50 %}
+                    <span class="status-circle status-orange"></span>
+                  {% else %}
+                    <span class="status-circle status-red"></span>
+                  {% endif %}
+                  {{ p.news }}
+                {% endif %}
+              </td>
+              {% if transfer_active and transfer_user == session.get('user_name') %}
+              <td>
                 <form method="post" action="{{ url_for('epl.do_transfer') }}" class="transfer-form">
                   <input type="hidden" name="out" value="{{ p.playerId }}" />
                   <input type="number" name="in" placeholder="ID" class="input is-small" required />
                   <button type="submit" class="button is-small">Transfer Out</button>
                 </form>
-                {% endif %}
-              </div>
+              </td>
+              {% endif %}
+            </tr>
             {% endfor %}
-          </div>
-        {% endfor %}
+          </tbody>
+        </table>
       </div>
     </div>
     <div class="column is-half">
@@ -88,7 +125,7 @@
           <div class="slots" id="slot-FWD"></div>
         </div>
         <div class="lineup-pos" data-pos="BENCH">
-          <h3>Запасные</h3>
+          <h3>Запасые</h3>
           <div class="slots" id="slot-BENCH"></div>
         </div>
       </div>
