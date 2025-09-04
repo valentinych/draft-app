@@ -16,6 +16,7 @@
       <label class="label">Схема</label>
       <div class="select">
         <select id="formation" name="formation">
+          <option value="auto" {% if formation=='auto' %}selected{% endif %}>Как бог пошлёт</option>
           {% for f in formations %}
             <option value="{{ f }}" {% if f==formation %}selected{% endif %}>{{ f }}</option>
           {% endfor %}
@@ -94,6 +95,7 @@
 </form>
 <script id="lineup-data" type="application/json">{{ lineup|map(attribute='playerId')|list|tojson }}</script>
 <script id="bench-data" type="application/json">{{ bench|map(attribute='playerId')|list|tojson }}</script>
+<script id="formation-list" type="application/json">{{ formations|tojson }}</script>
 
 <div id="player-modal" class="modal" aria-hidden="true">
   <div class="modal-backdrop" data-close="1"></div>
