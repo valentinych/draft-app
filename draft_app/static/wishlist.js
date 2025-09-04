@@ -89,8 +89,8 @@
         const status = tr.getAttribute('data-status') || '';
         const chance = Number(tr.getAttribute('data-chance') || '0');
         const news = (tr.getAttribute('data-news') || '').toLowerCase();
-        const isRed = status && chance < 50;
-        const isTransfer = isRed && news.includes('joined');
+        const isRed = status && status !== 'a' && chance < 50;
+        const isTransfer = isRed && (news.includes('joined') || news.includes('loan') || news.includes('departed'));
         let visible = true;
         if (wlOnly) visible = visible && inWishlist;
         if (canPickOnly) visible = visible && canPick;
