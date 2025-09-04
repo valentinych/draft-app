@@ -1,11 +1,26 @@
-function formationCounts(fmt){
-  const parts = fmt.split('-').map(x=>parseInt(x,10));
-  if(parts.length!==3||parts.some(isNaN)) return {GK:1,DEF:4,MID:4,FWD:2};
-  return {GK:1,DEF:parts[0],MID:parts[1],FWD:parts[2]};
-}
-
+const FORMATIONS=JSON.parse(document.getElementById('formation-list')?.textContent||'[]');
 const POSITIONS=['GK','DEF','MID','FWD'];
 const ALL_POSITIONS=[...POSITIONS,'BENCH'];
+
+function parseFormation(fmt){
+  const parts=fmt.split('-').map(x=>parseInt(x,10));
+  if(parts.length!==3||parts.some(isNaN)) return {DEF:4,MID:4,FWD:2};
+  return {DEF:parts[0],MID:parts[1],FWD:parts[2]};
+}
+
+const MAX_COUNTS=FORMATIONS.reduce((acc,f)=>{
+  const c=parseFormation(f);
+  acc.DEF=Math.max(acc.DEF,c.DEF);
+  acc.MID=Math.max(acc.MID,c.MID);
+  acc.FWD=Math.max(acc.FWD,c.FWD);
+  return acc;
+},{GK:1,DEF:0,MID:0,FWD:0});
+
+function formationCounts(fmt){
+  if(fmt==='auto') return {...MAX_COUNTS};
+  const c=parseFormation(fmt);
+  return {GK:1,DEF:c.DEF,MID:c.MID,FWD:c.FWD};
+}
 
 function buildSlots(){
   const fmt=document.getElementById('formation').value;
@@ -46,6 +61,19 @@ function placeInRoster(el){
   if(line) line.appendChild(el); else document.getElementById('roster').appendChild(el);
 }
 
+function canAddToLineup(pos){
+  const counts={GK:0,DEF:0,MID:0,FWD:0};
+  POSITIONS.forEach(p=>{ counts[p]=document.getElementById('slot-'+p).children.length; });
+  counts[pos]+=1;
+  if(counts.GK>1) return false;
+  const total=counts.GK+counts.DEF+counts.MID+counts.FWD;
+  if(total>11) return false;
+  return FORMATIONS.some(f=>{
+    const c=parseFormation(f);
+    return counts.DEF<=c.DEF && counts.MID<=c.MID && counts.FWD<=c.FWD;
+  });
+}
+
 function handlePlayerClick(el){
   const parentId=el.parentElement.id;
   if(parentId.startsWith('slot-')){
@@ -53,6 +81,15 @@ function handlePlayerClick(el){
     return;
   }
   const pos=el.dataset.pos;
+  const fmt=document.getElementById('formation').value;
+  if(fmt==='auto'){
+    if(canAddToLineup(pos)){
+      document.getElementById('slot-'+pos).appendChild(el);
+    }else{
+      document.getElementById('slot-BENCH').appendChild(el);
+    }
+    return;
+  }
   const wrap=document.getElementById('slot-'+pos);
   const max=parseInt(wrap.dataset.max||'0',10);
   if(!max || wrap.children.length<max){

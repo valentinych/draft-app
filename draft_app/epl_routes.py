@@ -160,7 +160,7 @@ def squad():
     roster = (state.get("rosters") or {}).get(user, []) or []
     lineup_state = state.setdefault("lineups", {}).setdefault(user, {})
     selected = load_lineup(user, gw) or lineup_state.get(str(gw), {})
-    formation = selected.get("formation", "4-4-2")
+    formation = selected.get("formation", "auto")
     lineup_ids = [str(x) for x in (selected.get("players") or [])]
     bench_ids = [str(x) for x in (selected.get("bench") or [])]
 
@@ -263,8 +263,7 @@ def squad():
         editable = datetime.now(timezone.utc) < deadline
 
     if request.method == "POST" and editable:
-        formation = request.form.get("formation", "4-4-2")
-        counts = _formation_counts(formation)
+        formation = request.form.get("formation", "auto")
         raw_ids = request.form.get("player_ids", "")
         ids = [pid for pid in raw_ids.split(",") if pid]
         raw_bench = request.form.get("bench_ids", "")
@@ -280,6 +279,13 @@ def squad():
                 pos = pidx.get(pid, {}).get("position")
                 if pos in pos_counts:
                     pos_counts[pos]+=1
+            formation_to_save = formation
+            if formation == "auto":
+                fmt = f"{pos_counts['DEF']}-{pos_counts['MID']}-{pos_counts['FWD']}"
+                formation_to_save = fmt
+                counts = _formation_counts(fmt)
+            else:
+                counts = _formation_counts(formation)
             valid = (
                 len(ids) == 11 and
                 pos_counts.get("GK") == 1 and
@@ -288,9 +294,11 @@ def squad():
                 pos_counts.get("FWD") == counts["FWD"] and
                 not set(ids) & set(bench)
             )
+            if formation == "auto" and formation_to_save not in FORMATIONS:
+                valid = False
             if valid:
                 payload = {
-                    "formation": formation,
+                    "formation": formation_to_save,
                     "players": [int(x) for x in ids],
                     "bench": [int(x) for x in bench],
                     "ts": datetime.now(timezone.utc).isoformat(timespec="seconds"),
