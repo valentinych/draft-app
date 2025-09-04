@@ -10,11 +10,31 @@
   </div>
 </form>
 <table class="table is-striped is-compact">
-  <thead><tr><th>Игрок</th><th>Позиция</th><th>Очки</th></tr></thead>
+  <thead>
+    <tr>
+      {% for m in managers %}
+      <th>
+        {{ m }}
+        {% if lineups[m].total is not none %}
+        <span style="background-color:#006400;color:white;padding:0 4px;border-radius:3px;">{{ lineups[m].total }}</span>
+        {% endif %}
+      </th>
+      {% endfor %}
+    </tr>
+  </thead>
   <tbody>
-    {% for p in players %}
-    <tr><td>{{ p.name }}</td><td>{{ p.pos }}</td><td>{{ p.points }}</td></tr>
-    {% endfor %}
+    <tr>
+      {% for m in managers %}
+      <td>
+        {% for p in lineups[m].players %}
+        <div class="is-flex is-justify-content-space-between">
+          <span>{{ p.name }} ({{ p.pos }})</span>
+          <span class="has-text-right" style="min-width:2em">{{ p.points }}</span>
+        </div>
+        {% endfor %}
+      </td>
+      {% endfor %}
+    </tr>
   </tbody>
 </table>
 {% endblock %}
