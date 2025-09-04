@@ -25,13 +25,17 @@
   </div>
   <div class="columns">
     <div class="column is-half">
-      <h2 class="subtitle">Состав</h2>
+      <div class="squad-header">
+        <h2 class="subtitle">Состав</h2>
+        <button type="button" id="view-toggle" class="button is-small">Список</button>
+      </div>
       <div id="roster" class="player-list">
         {% for pos in ['GK','DEF','MID','FWD'] %}
           <div class="roster-line" id="roster-{{ pos }}">
             {% for p in roster if p.position == pos %}
               <div class="player" data-id="{{ p.playerId }}" data-pos="{{ p.position }}"
                    data-name="{{ p.shortName or p.fullName }}"
+                   data-fixture="{{ p.fixture }}"
                    data-news="{{ p.news or '' }}"
                    data-stats='{{ p.stats|tojson|safe }}'>
                 <img src="{{ p.photo }}" alt="" />
