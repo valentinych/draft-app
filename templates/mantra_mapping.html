@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Маппинг игроков{% endblock %}
+{% block content %}
+<h1 class="title">Маппинг игроков</h1>
+<form method="post" class="mb-4">
+  <div class="field">
+    <label class="label">FPL Player ID</label>
+    <div class="control"><input class="input" type="number" name="fpl_id" required></div>
+  </div>
+  <div class="field">
+    <label class="label">Mantra Player ID</label>
+    <div class="control"><input class="input" type="number" name="mantra_id" required></div>
+  </div>
+  <div class="field">
+    <div class="control"><button class="button is-link" type="submit">Добавить</button></div>
+  </div>
+</form>
+<table class="table is-striped is-compact">
+  <thead><tr><th>FPL ID</th><th>Имя</th><th>Mantra ID</th></tr></thead>
+  <tbody>
+    {% for p in mapped %}
+    <tr><td>{{ p.fpl_id }}</td><td>{{ p.name }}</td><td>{{ p.mantra_id }}</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}
