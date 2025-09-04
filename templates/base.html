@@ -47,6 +47,10 @@
           <div class="navbar-dropdown">
             <a class="navbar-item" href="{{ url_for('top4.index') }}">Пики</a>
             <a class="navbar-item" href="{{ url_for('top4.schedule_view') }}">Расписание</a>
+            {% if session.get('godmode') %}
+            <a class="navbar-item" href="{{ url_for('mantra.mapping') }}">Маппинг</a>
+            {% endif %}
+            <a class="navbar-item" href="{{ url_for('mantra.lineups') }}">Лайнапы</a>
           </div>
         </div>
       </div>

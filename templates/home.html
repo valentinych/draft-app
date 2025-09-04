@@ -28,6 +28,10 @@
       <p class="title is-5">Топ-4 Драфт</p>
       <div class="buttons">
         <a class="button is-link is-light" href="{{ url_for('top4.index') }}">Пики</a>
+        {% if session.get('godmode') %}
+        <a class="button is-warning is-light" href="{{ url_for('mantra.mapping') }}">Маппинг</a>
+        {% endif %}
+        <a class="button is-warning is-light" href="{{ url_for('mantra.lineups') }}">Лайнапы</a>
       </div>
     </article>
   </div>
@@ -35,3 +39,4 @@
 
 <p class="mt-3 muted small">Подсказка: авторизация — через ID и 4-значный PIN (auth.json). Godmode виден в правом верхнем углу.</p>
 {% endblock %}
+

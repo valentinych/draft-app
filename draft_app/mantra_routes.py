@@ -3,7 +3,7 @@ from __future__ import annotations
 import requests
 from flask import Blueprint, render_template, request, redirect, url_for, session, abort, flash
 
-from .epl_services import ensure_fpl_bootstrap_fresh, players_from_fpl, players_index
+from .top4_services import load_players as load_top4_players, players_index as top4_players_index, load_state as load_top4_state
 from .player_map_store import load_player_map, save_player_map
 
 bp = Blueprint("mantra", __name__, url_prefix="/mantra")
@@ -54,13 +54,15 @@ def mapping():
     if not session.get("godmode"):
         abort(403)
     mapping = load_player_map()
-    bootstrap = ensure_fpl_bootstrap_fresh()
-    players = players_from_fpl(bootstrap)
-    pidx = players_index(players)
+    players = load_top4_players()
+    pidx = top4_players_index(players)
+    state = load_top4_state()
+    rosters = state.get("rosters") or {}
+    top4_ids = {str(p.get("playerId") or p.get("id")) for roster in rosters.values() for p in roster or []}
     if request.method == "POST":
         fpl_id = request.form.get("fpl_id", type=int)
         mantra_id = request.form.get("mantra_id", type=int)
-        if not fpl_id or not mantra_id or str(fpl_id) not in pidx:
+        if not fpl_id or not mantra_id or str(fpl_id) not in pidx or str(fpl_id) not in top4_ids:
             flash("Некорректные ID", "danger")
         else:
             mapping[str(fpl_id)] = int(mantra_id)
@@ -69,6 +71,8 @@ def mapping():
         return redirect(url_for("mantra.mapping"))
     mapped = []
     for fid, mid in mapping.items():
+        if str(fid) not in top4_ids:
+            continue
         meta = pidx.get(str(fid), {})
         mapped.append({
             "fpl_id": fid,
@@ -82,12 +86,16 @@ def mapping():
 @bp.route("/lineups")
 def lineups():
     mapping = load_player_map()
-    bootstrap = ensure_fpl_bootstrap_fresh()
-    players = players_from_fpl(bootstrap)
-    pidx = players_index(players)
+    players = load_top4_players()
+    pidx = top4_players_index(players)
+    state = load_top4_state()
+    rosters = state.get("rosters") or {}
+    top4_ids = {str(p.get("playerId") or p.get("id")) for roster in rosters.values() for p in roster or []}
     round_no = request.args.get("round", type=int) or 1
     results = []
     for fid, mid in mapping.items():
+        if str(fid) not in top4_ids:
+            continue
         meta = pidx.get(str(fid), {})
         pos = meta.get("position")
         name = meta.get("fullName") or meta.get("shortName") or fid
