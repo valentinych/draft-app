@@ -9,7 +9,7 @@
     <table class="table is-bordered is-striped is-narrow is-fullwidth">
       <tbody>
       {% for r in rounds %}
-        <tr class="{% if r.skip %}has-background-danger-light{% elif r.current %}has-background-info-light{% endif %}">
+        <tr class="{% if r.skip %}has-background-danger-light{% elif r.closed %}has-background-info-light{% elif r.current %}has-background-success-light{% endif %}">
           <td>Тур {{ r.round }}</td>
           <td>{{ r.date }}</td>
         </tr>

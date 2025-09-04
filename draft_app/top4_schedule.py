@@ -47,21 +47,14 @@ def build_schedule() -> Dict[str, List[Dict]]:
         skip_nums = set(SKIP_ROUNDS.get(league, []))
         info: List[Dict] = []
         for rd in rounds:
-            if rd["date"] >= today:
-                info.append({
-                    "round": rd["round"],
-                    "date": rd["date"].strftime("%Y-%m-%d"),
-                    "skip": rd["round"] in skip_nums,
-                })
-        if not info:
-            for rd in rounds:
-                info.append({
-                    "round": rd["round"],
-                    "date": rd["date"].strftime("%Y-%m-%d"),
-                    "skip": rd["round"] in skip_nums,
-                })
+            info.append({
+                "round": rd["round"],
+                "date": rd["date"].strftime("%Y-%m-%d"),
+                "skip": rd["round"] in skip_nums,
+                "closed": rd["date"] < today,
+            })
         for item in info:
-            if not item["skip"]:
+            if not item["skip"] and not item["closed"]:
                 item["current"] = True
                 break
         result[league] = info
