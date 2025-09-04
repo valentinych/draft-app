@@ -98,6 +98,13 @@
             <th>Клуб</th>
             <th>Позиция</th>
             {% if table_league == 'epl' %}<th>Статистика</th>{% endif %}
+            {% if table_league == 'epl' %}
+            <th class="num">
+              <button type="button" id="fp-cur-sort-btn" class="link" data-dir="desc" title="Сортировать по FP 2025/26">
+                FP 2025/26 <span id="fp-cur-sort-arrow">↓</span>
+              </button>
+            </th>
+            {% endif %}
             <th class="num">
               <button type="button" id="fp-sort-btn" class="link" data-dir="desc" title="Сортировать по FP 2024/25">
                 FP 2024/25 <span id="fp-sort-arrow">↓</span>
@@ -142,6 +149,9 @@
               {% if table_league == 'epl' %}
               <td>
                 <button type="button" class="link link-stat" data-pid="{{ p.playerId }}" data-name="{{ p.shortName or p.fullName }}">stat</button>
+              </td>
+              <td class="num">
+                <span class="fp-cur-cell" data-fp="{{ (p.stats.points or 0)|int }}">{{ (p.stats.points or 0)|int }}</span>
               </td>
               {% endif %}
               <td class="num">
