@@ -66,3 +66,15 @@ table.tbl td { padding:10px 12px; border-bottom:1px solid #f0f0f0; vertical-alig
 table.tbl td.num, table.tbl th.num { text-align:right; }
 table.tbl tbody tr:nth-child(odd)  { background:#fafafa; }
 table.tbl tbody tr:nth-child(even) { background:#f5f7fb; }
+
+/* Player status indicator */
+.status-circle {
+  display:inline-block;
+  width:10px;
+  height:10px;
+  border-radius:50%;
+  margin-right:4px;
+}
+.status-yellow { background:#ffba00; }
+.status-orange { background:#ff9100; }
+.status-red { background:#d00000; }

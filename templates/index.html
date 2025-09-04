@@ -97,6 +97,7 @@
             <th>Игрок</th>
             <th>Клуб</th>
             <th>Позиция</th>
+            <th>Статус</th>
             {% if table_league == 'epl' %}<th>Статистика</th>{% endif %}
             {% if table_league == 'epl' %}
             <th class="num">
@@ -146,6 +147,19 @@
               <td>{{ p.shortName or p.fullName }}</td>
               <td>{{ p.clubName }}</td>
               <td>{{ p.position }}</td>
+              <td>
+                {% if p.status and p.status != 'a' %}
+                  {% set ch = p.chance or 0 %}
+                  {% if ch >= 75 %}
+                    <span class="status-circle status-yellow"></span>
+                  {% elif ch >= 50 %}
+                    <span class="status-circle status-orange"></span>
+                  {% else %}
+                    <span class="status-circle status-red"></span>
+                  {% endif %}
+                  {{ p.news }}
+                {% endif %}
+              </td>
               {% if table_league == 'epl' %}
               <td>
                 <button type="button" class="link link-stat" data-pid="{{ p.playerId }}" data-name="{{ p.shortName or p.fullName }}">stat</button>

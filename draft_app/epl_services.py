@@ -431,19 +431,44 @@ def picked_fpl_ids_from_state(
         if not s: return ""
         return " ".join(str(s).replace(".", " ").split()).lower()
     picked: Set[str] = set()
+
+    # Build auxiliary index by name regardless of club to handle transfers
+    name_idx: Dict[str, Set[str]] = {}
+    for (nm, _club), ids in idx.items():
+        name_idx.setdefault(nm, set()).update(ids)
+
     def add(pl: Dict[str, Any]):
-        nm  = norm(pl.get("player_name") or pl.get("fullName"))
+        # Try by explicit playerId first – it's the most reliable
+        pid = pl.get("player_id") or pl.get("playerId") or pl.get("id")
+        if pid:
+            picked.add(str(pid))
+            return
+
+        nm = norm(pl.get("player_name") or pl.get("fullName"))
         club = (pl.get("clubName") or "").upper()
+
+        # Lookup by name+club
         if nm and club:
             ids = idx.get((nm, club))
-            if ids: picked.update(ids)
+            if ids:
+                picked.update(ids)
+                return
+
+        # Fallback: lookup by name only (player may have changed club)
+        if nm:
+            ids = name_idx.get(nm)
+            if ids:
+                picked.update(ids)
+
     for arr in (state.get("rosters") or {}).values():
         if isinstance(arr, list):
             for pl in arr:
-                if isinstance(pl, dict): add(pl)
+                if isinstance(pl, dict):
+                    add(pl)
     for row in (state.get("picks") or []):
         pl = (row or {}).get("player") or {}
-        if isinstance(pl, dict): add(pl)
+        if isinstance(pl, dict):
+            add(pl)
     return picked
 
 def annotate_can_pick(players: List[Dict[str, Any]], state: Dict[str, Any], current_user: Optional[str]) -> None:
