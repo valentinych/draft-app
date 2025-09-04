@@ -71,6 +71,16 @@
         <input type="checkbox" id="can-pick-toggle" />
         <span>Can Pick</span>
       </label>
+      {% if table_league == 'epl' %}
+      <label class="toggle">
+        <input type="checkbox" id="hide-transfers-toggle" />
+        <span>Спрятать трансферы</span>
+      </label>
+      <label class="toggle">
+        <input type="checkbox" id="hide-reds-toggle" />
+        <span>Спрятать красных</span>
+      </label>
+      {% endif %}
     </div>
 
     <div class="fld">
@@ -139,7 +149,9 @@
         <tbody>
           {% for p in players %}
             {% set disabled = draft_completed or (next_user and current_user != next_user and not session.get('godmode')) or (table_league == 'top4' and not p.canPick) %}
-            <tr data-player-id="{{ p.playerId }}" data-can-pick="{{ '1' if p.canPick else '0' }}">
+            <tr data-player-id="{{ p.playerId }}" data-can-pick="{{ '1' if p.canPick else '0' }}"
+                data-status="{{ p.status or '' }}" data-chance="{{ p.chance or 0 }}"
+                data-news="{{ (p.news or '')|lower|e }}">
               <td class="wishlist-cell">
                 <input type="checkbox" class="wishlist-toggle" data-player-id="{{ p.playerId }}" />
               </td>

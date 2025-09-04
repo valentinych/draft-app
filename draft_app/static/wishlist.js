@@ -81,12 +81,21 @@
     function applyFilters() {
       const wlOnly = qs('#wishlist-only-toggle')?.checked;
       const canPickOnly = qs('#can-pick-toggle')?.checked;
+      const hideTransfers = qs('#hide-transfers-toggle')?.checked;
+      const hideReds = qs('#hide-reds-toggle')?.checked;
       qsa('#players tbody tr').forEach(tr => {
         const inWishlist = tr.classList.contains('is-wishlist');
         const canPick = tr.getAttribute('data-can-pick') === '1';
+        const status = tr.getAttribute('data-status') || '';
+        const chance = Number(tr.getAttribute('data-chance') || '0');
+        const news = (tr.getAttribute('data-news') || '').toLowerCase();
+        const isRed = status && chance < 50;
+        const isTransfer = isRed && news.includes('joined');
         let visible = true;
         if (wlOnly) visible = visible && inWishlist;
         if (canPickOnly) visible = visible && canPick;
+        if (hideReds && isRed) visible = false;
+        if (hideTransfers && isTransfer) visible = false;
         tr.style.display = visible ? '' : 'none';
       });
     }
@@ -118,8 +127,12 @@
       // фильтры
       const wlOnly = qs('#wishlist-only-toggle');
       const canPickOnly = qs('#can-pick-toggle');
+      const hideTransfers = qs('#hide-transfers-toggle');
+      const hideReds = qs('#hide-reds-toggle');
       wlOnly && wlOnly.addEventListener('change', applyFilters);
       canPickOnly && canPickOnly.addEventListener('change', applyFilters);
+      hideTransfers && hideTransfers.addEventListener('change', applyFilters);
+      hideReds && hideReds.addEventListener('change', applyFilters);
       applyFilters();
   
       // выгрузить хвост при уходе
