@@ -14,6 +14,8 @@ from .epl_services import (
     wishlist_load, wishlist_save,
     fetch_element_summary, fp_last_from_summary, photo_url_for,
     fixtures_for_gw, points_for_gw, gw_info,
+    start_transfer_window, transfer_current_manager,
+    advance_transfer_turn, record_transfer,
 )
 from .lineup_store import load_lineup, save_lineup
 from .gw_score_store import load_gw_score, save_gw_score
@@ -40,6 +42,9 @@ def index():
     draft_completed = bool(state.get("draft_completed", False))
     current_user = session.get("user_name")
     godmode = bool(session.get("godmode"))
+    transfer_state = state.get("transfer") or {}
+    transfer_active = bool(transfer_state.get("active"))
+    transfer_user = transfer_current_manager(state) if transfer_active else None
 
     if request.method == "POST":
         if draft_completed:
@@ -123,6 +128,8 @@ def index():
         next_round=next_round,
         draft_completed=draft_completed,
         status_url=url_for("epl.status"),
+        transfer_active=transfer_active,
+        transfer_user=transfer_user,
     )
 
 @bp.get("/epl/status")
@@ -157,6 +164,9 @@ def squad():
     pidx = players_index(players)
 
     state = load_state()
+    transfer_state = state.get("transfer") or {}
+    transfer_active = bool(transfer_state.get("active"))
+    transfer_user = transfer_current_manager(state) if transfer_active else None
     roster = (state.get("rosters") or {}).get(user, []) or []
     lineup_state = state.setdefault("lineups", {}).setdefault(user, {})
     selected = load_lineup(user, gw) or lineup_state.get(str(gw), {})
@@ -321,6 +331,8 @@ def squad():
         formation=formation,
         editable=editable,
         deadline=deadline,
+        transfer_active=transfer_active,
+        transfer_user=transfer_user,
     )
 
 
@@ -648,8 +660,55 @@ def results():
         for m in managers
     ]
     standings.sort(key=lambda r: (-r["class_points"], -r["wins"], -r["raw_points"], r["manager"]))
+    if gws:
+        last_gw = max(gws)
+        start_transfer_window(state, standings, last_gw)
 
     return render_template("epl_results.html", gws=gws, standings=standings)
+
+
+@bp.post("/epl/transfer/skip")
+def transfer_skip():
+    user = session.get("user_name")
+    if not user:
+        return redirect(url_for("auth.login"))
+    state = load_state()
+    if transfer_current_manager(state) == user:
+        advance_transfer_turn(state)
+    return redirect(url_for("epl.index"))
+
+
+@bp.post("/epl/transfer")
+def do_transfer():
+    user = session.get("user_name")
+    if not user:
+        return redirect(url_for("auth.login"))
+    state = load_state()
+    if transfer_current_manager(state) != user:
+        abort(403)
+    out_pid = request.form.get("out", type=int)
+    in_pid = request.form.get("in", type=int)
+    if not out_pid or not in_pid:
+        flash("Некорректный трансфер", "danger")
+        return redirect(url_for("epl.squad"))
+    bootstrap = ensure_fpl_bootstrap_fresh()
+    players = players_from_fpl(bootstrap)
+    pidx = players_index(players)
+    meta = pidx.get(str(in_pid))
+    if not meta:
+        flash("Некорректный игрок", "danger")
+        return redirect(url_for("epl.squad"))
+    new_pl = {
+        "playerId": meta["playerId"],
+        "fullName": meta.get("fullName"),
+        "clubName": meta.get("clubName"),
+        "position": meta.get("position"),
+        "price": meta.get("price"),
+    }
+    record_transfer(state, user, out_pid, new_pl)
+    advance_transfer_turn(state)
+    flash("Трансфер выполнен", "success")
+    return redirect(url_for("epl.squad"))
 
 @bp.post("/epl/undo")
 def undo_last_pick():

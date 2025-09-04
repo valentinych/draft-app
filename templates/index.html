@@ -9,7 +9,15 @@
     <div class="topbar-left">
       <h1 class="page-title">{{ draft_title }}</h1>
       <div class="meta">
-        {% if draft_completed %}
+        {% if transfer_active %}
+          <span class="badge badge-info">Идут трансферы</span>
+          Сейчас ход: <strong>{{ transfer_user }}</strong>
+          {% if current_user == transfer_user %}
+          <form method="post" action="{{ url_for('epl.transfer_skip') }}" style="display:inline;">
+            <button type="submit" class="btn btn-small">Пропустить трансфер</button>
+          </form>
+          {% endif %}
+        {% elif draft_completed %}
           <span class="badge badge-muted">Драфт завершён</span>
         {% else %}
           {% if next_user %}

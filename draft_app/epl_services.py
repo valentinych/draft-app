@@ -44,6 +44,16 @@ POS_CANON = {
 DEFAULT_SLOTS = {"GK": 3, "DEF": 7, "MID": 8, "FWD": 4}
 LAST_SEASON = "2024/25"
 
+# Расписание трансферных окон: gameweek -> число раундов
+TRANSFER_SCHEDULE: Dict[int, int] = {
+    3: 2,
+    10: 1,
+    17: 1,
+    24: 2,
+    29: 1,
+    34: 1,
+}
+
 # -------- JSON I/O (локально) --------
 def json_load(p: Path) -> Any:
     try:
@@ -386,6 +396,7 @@ def load_state() -> Dict[str, Any]:
     state.setdefault("current_pick_index", 0)
     state.setdefault("draft_started_at", None)
     state.setdefault("lineups", {})
+    state.setdefault("transfer", {})
     limits = state.setdefault("limits", {})
     limits.setdefault("Max from club", 3)
     return state
@@ -496,6 +507,83 @@ def annotate_can_pick(players: List[Dict[str, Any]], state: Dict[str, Any], curr
         can_pos = pos in slots and pos_counts.get(pos, 0) < slots[pos]
         can_club = club_counts.get(club, 0) < max_from_club if club else True
         p["canPick"] = bool(can_pos and can_club)
+
+
+# -------- Transfers helpers --------
+def start_transfer_window(state: Dict[str, Any], standings: List[Dict[str, Any]], gw: int) -> bool:
+    """Запускает трансферное окно после завершения gw.
+    Возвращает True, если окно было запущено."""
+    rounds = TRANSFER_SCHEDULE.get(int(gw), 0)
+    if rounds <= 0:
+        return False
+    t = state.setdefault("transfer", {})
+    if t.get("active") and t.get("gw") == gw:
+        return False
+    order = [r.get("manager") for r in standings[::-1]]
+    t.update({
+        "active": True,
+        "gw": gw,
+        "round": 1,
+        "total_rounds": rounds,
+        "order": order,
+        "index": 0,
+        "history": t.get("history", []),
+    })
+    save_state(state)
+    return True
+
+
+def transfer_current_manager(state: Dict[str, Any]) -> Optional[str]:
+    t = state.get("transfer") or {}
+    if not t.get("active"):
+        return None
+    order = t.get("order") or []
+    idx = int(t.get("index", 0))
+    return order[idx] if 0 <= idx < len(order) else None
+
+
+def advance_transfer_turn(state: Dict[str, Any]) -> None:
+    t = state.get("transfer") or {}
+    if not t.get("active"):
+        return
+    order = t.get("order") or []
+    idx = int(t.get("index", 0)) + 1
+    if idx >= len(order):
+        rnd = int(t.get("round", 1)) + 1
+        if rnd > int(t.get("total_rounds", 1)):
+            t.clear()
+            t["active"] = False
+        else:
+            t["round"] = rnd
+            t["index"] = 0
+    else:
+        t["index"] = idx
+    save_state(state)
+
+
+def record_transfer(state: Dict[str, Any], manager: str, out_pid: int, in_player: Dict[str, Any]) -> None:
+    t = state.setdefault("transfer", {})
+    history = t.setdefault("history", [])
+    event = {
+        "gw": t.get("gw"),
+        "round": t.get("round"),
+        "manager": manager,
+        "out": int(out_pid),
+        "in": in_player,
+        "ts": datetime.utcnow().isoformat(timespec="seconds"),
+    }
+    history.append(event)
+    try:
+        from .transfer_store import append_transfer
+        append_transfer(event)
+    except Exception:
+        pass
+    rosters = state.setdefault("rosters", {})
+    roster = rosters.setdefault(manager, [])
+    roster = [p for p in roster if int(p.get("playerId") or p.get("id")) != int(out_pid)]
+    roster.append(in_player)
+    rosters[manager] = roster
+    save_state(state)
 
 # -------- element-summary cache --------
 def cache_path_for(pid: int) -> Path: return CACHE_DIR / f"{pid}.json"
