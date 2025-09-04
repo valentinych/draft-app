@@ -17,6 +17,7 @@ from .epl_services import (
     start_transfer_window, transfer_current_manager,
     advance_transfer_turn, record_transfer,
 )
+from .transfer_store import pop_transfer_target
 from .lineup_store import load_lineup, save_lineup
 from .gw_score_store import load_gw_score, save_gw_score, GW_SCORE_DIR
 
@@ -711,7 +712,7 @@ def do_transfer():
     if transfer_current_manager(state) != user:
         abort(403)
     out_pid = request.form.get("out", type=int)
-    in_pid = request.form.get("in", type=int)
+    in_pid = pop_transfer_target(user)
     if not out_pid or not in_pid:
         flash("Некорректный трансфер", "danger")
         return redirect(url_for("epl.squad"))

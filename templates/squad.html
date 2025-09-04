@@ -69,7 +69,7 @@
               <th>Игрок</th>
               <th class="num">FP 2025/26</th>
               <th>Статус</th>
-              {% if transfer_active and transfer_user == session.get('user_name') %}<th>Действия</th>{% endif %}
+              {% if transfer_active and transfer_user == session.get('user_name') %}<th>Transfer Out</th>{% endif %}
             </tr>
           </thead>
           <tbody>
@@ -94,7 +94,6 @@
               <td>
                 <form method="post" action="{{ url_for('epl.do_transfer') }}" class="transfer-form">
                   <input type="hidden" name="out" value="{{ p.playerId }}" />
-                  <input type="number" name="in" placeholder="ID" class="input is-small" required />
                   <button type="submit" class="button is-small">Transfer Out</button>
                 </form>
               </td>
