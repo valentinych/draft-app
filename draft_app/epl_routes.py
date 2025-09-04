@@ -577,67 +577,68 @@ def results():
     raw_total: Dict[str, int] = {m: 0 for m in managers}
 
     for gw in gws:
-        gw_scores = load_gw_score(gw)
-        if not all(m in gw_scores for m in managers):
-            _auto_fill_lineups(gw, state, rosters, deadline_map.get(gw))
-            stats = points_for_gw(gw, pidx)
-            gw_scores = {}
-            for m in managers:
-                lineup = load_lineup(m, gw)
-                players_ids = [int(x) for x in (lineup.get("players") or [])]
-                bench_ids = [int(x) for x in (lineup.get("bench") or [])]
-                if not players_ids:
-                    roster_ids = [int(p.get("playerId")) for p in rosters.get(m, [])]
-                    players_ids = roster_ids[:11]
-                    bench_ids = roster_ids[11:]
-                else:
-                    selected = {pid for pid in players_ids + bench_ids}
-                    extra: list[int] = []
-                    for pl in rosters.get(m, []) or []:
-                        pid = pl.get("playerId") or pl.get("id")
-                        if pid and int(pid) not in selected:
-                            extra.append(int(pid))
-                    pos_order = {"GK": 0, "DEF": 1, "MID": 2, "FWD": 3}
-                    extra.sort(key=lambda pid: pos_order.get(pidx.get(str(pid), {}).get("position"), 99))
-                    bench_ids.extend(extra)
+        # Recompute scores each time to ensure weekly totals match actual points
+        _auto_fill_lineups(gw, state, rosters, deadline_map.get(gw))
+        stats = points_for_gw(gw, pidx)
+        gw_scores: Dict[str, int] = {}
+        for m in managers:
+            lineup = load_lineup(m, gw)
+            players_ids = [int(x) for x in (lineup.get("players") or [])]
+            bench_ids = [int(x) for x in (lineup.get("bench") or [])]
+            if not players_ids:
+                roster_ids = [int(p.get("playerId")) for p in rosters.get(m, [])]
+                players_ids = roster_ids[:11]
+                bench_ids = roster_ids[11:]
+            else:
+                selected = {pid for pid in players_ids + bench_ids}
+                extra: list[int] = []
+                for pl in rosters.get(m, []) or []:
+                    pid = pl.get("playerId") or pl.get("id")
+                    if pid and int(pid) not in selected:
+                        extra.append(int(pid))
+                pos_order = {"GK": 0, "DEF": 1, "MID": 2, "FWD": 3}
+                extra.sort(key=lambda pid: pos_order.get(pidx.get(str(pid), {}).get("position"), 99))
+                bench_ids.extend(extra)
 
-                bench_pool: list[dict] = []
-                for pid in bench_ids:
-                    meta = pidx.get(str(pid), {})
-                    s = stats.get(pid, {})
-                    bench_pool.append(
-                        {
-                            "pos": meta.get("position"),
-                            "points": int(s.get("points", 0)),
-                            "minutes": int(s.get("minutes", 0)),
-                            "used": False,
-                        }
-                    )
+            bench_pool: list[dict] = []
+            for pid in bench_ids:
+                meta = pidx.get(str(pid), {})
+                s = stats.get(pid, {})
+                bench_pool.append(
+                    {
+                        "pos": meta.get("position"),
+                        "points": int(s.get("points", 0)),
+                        "minutes": int(s.get("minutes", 0)),
+                        "used": False,
+                    }
+                )
 
-                total = 0
-                for pid in players_ids:
-                    meta = pidx.get(str(pid), {})
-                    s = stats.get(pid, {})
-                    pos = meta.get("position")
-                    status = s.get("status")
-                    minutes = int(s.get("minutes", 0))
-                    pts = int(s.get("points", 0))
-                    if status == "finished" and minutes == 0:
-                        sub = None
-                        for b in bench_pool:
-                            if b["pos"] == pos and b["minutes"] > 0 and not b["used"]:
-                                sub = b
-                                break
-                        if sub:
-                            total += sub["points"]
-                            sub["used"] = True
-                        else:
-                            total += -2
+            total = 0
+            for pid in players_ids:
+                meta = pidx.get(str(pid), {})
+                s = stats.get(pid, {})
+                pos = meta.get("position")
+                status = s.get("status")
+                minutes = int(s.get("minutes", 0))
+                pts = int(s.get("points", 0))
+                if status == "finished" and minutes == 0:
+                    sub = None
+                    for b in bench_pool:
+                        if b["pos"] == pos and b["minutes"] > 0 and not b["used"]:
+                            sub = b
+                            break
+                    if sub:
+                        total += sub["points"]
+                        sub["used"] = True
                     else:
-                        total += pts
+                        total += -2
+                else:
+                    total += pts
 
-                gw_scores[m] = total
+            gw_scores[m] = total
 
+        # Refresh persisted scores if they are outdated
+        if load_gw_score(gw) != gw_scores:
             save_gw_score(gw, gw_scores)
 
         for m in managers:

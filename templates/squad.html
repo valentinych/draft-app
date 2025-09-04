@@ -56,7 +56,7 @@
                 <span>{{ p.shortName or p.fullName }}</span>
                 <small>{{ p.position }}{% if p.fixture %} {{ p.fixture }}{% endif %}</small>
                 {% if transfer_active and transfer_user == session.get('user_name') %}
-                <form method="post" action="{{ url_for('epl.transfer') }}" class="transfer-form">
+                <form method="post" action="{{ url_for('epl.do_transfer') }}" class="transfer-form">
                   <input type="hidden" name="out" value="{{ p.playerId }}" />
                   <input type="number" name="in" placeholder="ID" class="input is-small" required />
                   <button type="submit" class="button is-small">Transfer Out</button>
