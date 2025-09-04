@@ -18,7 +18,7 @@ from .epl_services import (
     advance_transfer_turn, record_transfer,
 )
 from .lineup_store import load_lineup, save_lineup
-from .gw_score_store import load_gw_score, save_gw_score
+from .gw_score_store import load_gw_score, save_gw_score, GW_SCORE_DIR
 
 bp = Blueprint("epl", __name__)
 
@@ -554,7 +554,16 @@ def results():
 
     # determine completed gameweeks and deadlines
     events = bootstrap.get("events") or []
-    gws = [int(e.get("id")) for e in events if e.get("finished")]
+    # Определяем завершённые геймвики: берём отмеченные в bootstrap
+    # и те, для которых уже сохранены результаты
+    gws_set = {int(e.get("id")) for e in events if e.get("finished")}
+    for p in GW_SCORE_DIR.glob("gw*.json"):
+        try:
+            gws_set.add(int(p.stem[2:]))
+        except Exception:
+            pass
+    gws = sorted(gws_set)
+
     deadline_map: Dict[int, datetime] = {}
     for ev in events:
         try:

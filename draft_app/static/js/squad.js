@@ -153,19 +153,14 @@ document.addEventListener('DOMContentLoaded',()=>{
   const modal=initPlayerModal();
 
   const viewBtn=document.getElementById('view-toggle');
+  const roster=document.getElementById('roster');
+  const rosterTable=document.getElementById('roster-table-wrap');
+  const lineup=document.getElementById('lineup');
   let listMode=false;
   function setViewMode(list){
-    const players=document.querySelectorAll('.player');
-    players.forEach(p=>{
-      if(!p.dataset.orig){
-        p.dataset.orig=p.innerHTML;
-        const fx=p.dataset.fixture?` ${p.dataset.fixture}`:'';
-        p.dataset.list=`${p.dataset.pos} ${p.dataset.name}${fx}`;
-      }
-      p.innerHTML=list?p.dataset.list:p.dataset.orig;
-    });
-    document.getElementById('roster').classList.toggle('list-mode',list);
-    document.getElementById('lineup').classList.toggle('list-mode',list);
+    roster.style.display=list?'none':'';
+    if(rosterTable) rosterTable.style.display=list?'':'none';
+    lineup.classList.toggle('list-mode',list);
     if(viewBtn) viewBtn.textContent=list?'Фото':'Список';
   }
   if(viewBtn){
@@ -190,7 +185,6 @@ document.addEventListener('DOMContentLoaded',()=>{
     }
   }
 
-  const roster=document.getElementById('roster');
   roster.addEventListener('mouseover',iconHover);
   roster.addEventListener('click',iconClick);
 
