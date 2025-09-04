@@ -34,6 +34,31 @@
   margin-bottom: 1rem;
 }
 
+.squad-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+#roster.list-mode .roster-line {
+  flex-direction: column;
+  gap: 0;
+}
+
+#roster.list-mode .player,
+#lineup.list-mode .player {
+  width: 100%;
+  text-align: left;
+  font-size: 0.875rem;
+  padding: 2px 4px;
+  border-bottom: 1px solid #eee;
+}
+
+#lineup.list-mode .slots {
+  flex-direction: column;
+}
+
 .lineup-pos[data-pos="BENCH"] .slots {
   flex-wrap: nowrap;
 }
