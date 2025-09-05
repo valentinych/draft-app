@@ -36,6 +36,7 @@ API_URL = "https://mantrafootball.org/api/players/{id}/stats"
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 ROUND_CACHE_DIR = BASE_DIR / "data" / "cache" / "mantra_rounds"
+LINEUPS_DIR = BASE_DIR / "data" / "cache" / "top4_lineups"
 
 
 def _s3_rounds_prefix() -> str:
@@ -80,6 +81,14 @@ def _save_round_cache(rnd: int, data: dict) -> None:
     with open(tmp, "w", encoding="utf-8") as f:
         json.dump(payload, f, ensure_ascii=False, indent=2)
     os.replace(tmp, ROUND_CACHE_DIR / f"round{int(rnd)}.json")
+
+
+def _save_lineups_json(rnd: int, data: dict) -> None:
+    """Persist full lineup data for debugging."""
+    LINEUPS_DIR.mkdir(parents=True, exist_ok=True)
+    p = LINEUPS_DIR / f"round{int(rnd)}.json"
+    with p.open("w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
 
 
 def _fetch_player(pid: int) -> dict:
@@ -258,6 +267,7 @@ def _build_lineups(round_no: int, current_round: int, state: dict) -> dict:
                 debug.append(
                     f"skip fid {fid} name {name}: mid={mid} league_round={league_round}"
                 )
+            debug.append(f"{manager}: {name} ({pos}) -> {int(pts)}")
             lineup.append({"name": name, "pos": pos, "points": int(pts)})
             total += pts
         lineup.sort(key=lambda r: -r["points"])
@@ -280,6 +290,7 @@ def _build_lineups(round_no: int, current_round: int, state: dict) -> dict:
 def lineups_data():
     round_no, current_round, state = _resolve_round()
     data = _build_lineups(round_no, current_round, state)
+    _save_lineups_json(round_no, data)
     return jsonify(data)
 
 
