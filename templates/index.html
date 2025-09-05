@@ -99,7 +99,15 @@
   {% set show_price = players and players[0].get('price') is not none %}
   {% set current_sort = request.args.get('sort') or 'price' %}
   {% set current_dir = request.args.get('dir', 'desc') %}
-  {% set route = (table_league or 'epl') ~ '.index' %}
+  {# Determine the endpoint name for sorting links.
+     The top-4 draft uses the ``top4draft`` blueprint, so
+     the naive concatenation above would result in ``top4.index``
+     which does not exist and causes a BuildError. #}
+  {% if table_league == 'top4' %}
+    {% set route = 'top4draft.index' %}
+  {% else %}
+    {% set route = (table_league or 'epl') ~ '.index' %}
+  {% endif %}
   {% set next_dir_price = 'asc' if current_sort == 'price' and current_dir == 'desc' else 'desc' %}
   {% set next_dir_pop = 'asc' if current_sort == 'popularity' and current_dir == 'desc' else 'desc' %}
 
