@@ -10,8 +10,8 @@ from .state import init_ucl, init_epl, init_top4
 from .wishlist import bp as wishlist_bp
 from .status import bp as status_bp
 from draft_app.epl_routes import bp as epl_bp
-from draft_app.top4_routes import bp as top4_bp
-from .mantra_routes import bp as mantra_bp
+from draft_app.top4_routes import bp as top4draft_bp
+from .mantra_routes import bp as top4_bp
 
 def create_app():
     app = Flask(__name__, template_folder=os.path.join(BASE_DIR, "templates"))
@@ -32,7 +32,7 @@ def create_app():
     app.register_blueprint(wishlist_bp)
     app.register_blueprint(status_bp)
     app.register_blueprint(epl_bp)
+    app.register_blueprint(top4draft_bp)
     app.register_blueprint(top4_bp)
-    app.register_blueprint(mantra_bp)
 
     return app
