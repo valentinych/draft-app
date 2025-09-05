@@ -23,6 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
   fetch(`{{ url_for('top4.lineups_data') }}?round={{ round }}`)
     .then(resp => resp.json())
     .then(data => {
+      console.log('lineups data', data);
       const managers = data.managers || [];
       const lineups = data.lineups || {};
 
@@ -82,6 +83,11 @@ document.addEventListener('DOMContentLoaded', () => {
         dbg.textContent = data.debug.join('\n');
         container.appendChild(dbg);
       }
+      const raw = document.createElement('pre');
+      raw.style.whiteSpace = 'pre-wrap';
+      raw.style.marginTop = '1em';
+      raw.textContent = JSON.stringify(data, null, 2);
+      container.appendChild(raw);
     })
     .catch(() => {
       container.textContent = 'Ошибка загрузки данных';
