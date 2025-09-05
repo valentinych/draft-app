@@ -14,6 +14,7 @@ from .top4_services import (
 from .top4_schedule import build_schedule
 from .player_map_store import load_player_map, save_player_map
 from .epl_services import _s3_enabled, _s3_bucket, _s3_get_json, _s3_put_json
+from .top4_score_store import load_top4_score, save_top4_score
 
 # Routes related to Top-4 statistics and lineups (formerly "mantra").
 bp = Blueprint("top4", __name__, url_prefix="/top4")
@@ -22,7 +23,6 @@ API_URL = "https://mantrafootball.org/api/players/{id}/stats"
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 ROUND_CACHE_DIR = BASE_DIR / "data" / "cache" / "mantra_rounds"
-PLAYER_CACHE_DIR = BASE_DIR / "data" / "cache" / "mantra_players"
 
 
 def _s3_rounds_prefix() -> str:
@@ -32,15 +32,6 @@ def _s3_rounds_prefix() -> str:
 def _s3_key(rnd: int) -> str:
     prefix = _s3_rounds_prefix().strip().strip("/")
     return f"{prefix}/round{int(rnd)}.json"
-
-
-def _s3_players_prefix() -> str:
-    return os.getenv("DRAFT_S3_MANTRA_PLAYERS_PREFIX", "mantra_players")
-
-
-def _player_key(pid: int) -> str:
-    prefix = _s3_players_prefix().strip().strip("/")
-    return f"{prefix}/{int(pid)}.json"
 
 
 def _load_round_cache(rnd: int) -> dict:
@@ -87,39 +78,12 @@ def _fetch_player(pid: int) -> dict:
         return {}
 
 
-def _save_player_cache(pid: int, data: dict) -> None:
-    payload = data or {}
-    if _s3_enabled():
-        bucket = _s3_bucket()
-        key = _player_key(pid)
-        if bucket and key and not _s3_put_json(bucket, key, payload):
-            print(f"[MANTRA:S3] save_player_cache fallback pid={pid}")
-    PLAYER_CACHE_DIR.mkdir(parents=True, exist_ok=True)
-    fd, tmp = tempfile.mkstemp(prefix="player_", suffix=".json", dir=str(PLAYER_CACHE_DIR))
-    os.close(fd)
-    with open(tmp, "w", encoding="utf-8") as f:
-        json.dump(payload, f, ensure_ascii=False, indent=2)
-    os.replace(tmp, PLAYER_CACHE_DIR / f"{int(pid)}.json")
-
-
 def _load_player(pid: int) -> dict:
-    if _s3_enabled():
-        bucket = _s3_bucket()
-        key = _player_key(pid)
-        if bucket and key:
-            data = _s3_get_json(bucket, key)
-            if isinstance(data, dict):
-                return data
-    p = PLAYER_CACHE_DIR / f"{int(pid)}.json"
-    if p.exists():
-        try:
-            with p.open("r", encoding="utf-8") as f:
-                return json.load(f)
-        except Exception:
-            pass
-    data = _fetch_player(pid)
-    if data:
-        _save_player_cache(pid, data)
+    data = load_top4_score(pid)
+    if not data:
+        data = _fetch_player(pid)
+        if data:
+            save_top4_score(pid, data)
     return data
 
 
