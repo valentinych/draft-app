@@ -20,6 +20,7 @@ from .top4_services import (
     load_players as load_top4_players,
     players_index as top4_players_index,
     load_state as load_top4_state,
+    save_state as save_top4_state,
     _s3_enabled,
     _s3_bucket,
     _s3_get_json,
@@ -109,9 +110,25 @@ def _save_lineups_json(rnd: int, data: dict) -> None:
 def _fetch_player(pid: int) -> dict:
     try:
         print(f"[MANTRA] request pid={pid}")
-        r = requests.get(API_URL.format(id=pid), timeout=10)
-        r.raise_for_status()
-        return r.json().get("data", {})
+        stats_resp = requests.get(API_URL.format(id=pid), timeout=10)
+        stats_resp.raise_for_status()
+        stats_data = stats_resp.json()
+
+        LINEUPS_DIR.mkdir(parents=True, exist_ok=True)
+        (LINEUPS_DIR / f"stats{pid}.json").write_text(
+            json.dumps(stats_data, ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+
+        info_resp = requests.get(f"https://mantrafootball.org/api/players/{pid}", timeout=10)
+        info_resp.raise_for_status()
+        info_data = info_resp.json()
+        (LINEUPS_DIR / f"{pid}.json").write_text(
+            json.dumps(info_data, ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+
+        return stats_data.get("data", {})
     except Exception as exc:
         print(f"[MANTRA] fetch failed pid={pid}: {exc}")
         return {}
@@ -208,11 +225,19 @@ def mapping():
 
 def _resolve_round() -> tuple[int, int, dict]:
     state = load_top4_state()
-    next_round = int(state.get("next_round") or 1)
-    current_round = next_round - 1
+    schedule = build_schedule()
+    current_round = next(
+        (rd.get("gw") for rounds in schedule.values() for rd in rounds if rd.get("current")),
+        1,
+    )
+    next_round = int(state.get("next_round") or (current_round + 1))
+    if next_round <= current_round:
+        next_round = current_round + 1
+        state["next_round"] = next_round
+        save_top4_state(state)
     round_no = request.args.get("round", type=int)
     if round_no is None:
-        round_no = current_round if current_round > 0 else 1
+        round_no = current_round
     return round_no, current_round, state
 
 
