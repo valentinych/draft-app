@@ -119,6 +119,11 @@ def _s3_get_json(bucket: str, key: str) -> Optional[Any]:
         body = obj["Body"].read()
         return json.loads(body.decode("utf-8"))
     except Exception as e:
+        # ``NoSuchKey`` means the cache file simply hasn't been uploaded yet.
+        # Treat it as a cache miss without logging an error to avoid noisy logs.
+        code = getattr(getattr(e, "response", {}), "get", lambda *a, **k: {})("Error", {}).get("Code")
+        if code in {"NoSuchKey", "404"}:
+            return None
         print(f"[TOP4:S3] get_object failed: s3://{bucket}/{key} -> {e}")
         return None
 
