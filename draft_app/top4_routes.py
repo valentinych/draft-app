@@ -12,7 +12,9 @@ from .top4_services import (
 )
 from .top4_schedule import build_schedule
 
-bp = Blueprint("top4", __name__)
+# Blueprint for draft-related routes.  Renamed to avoid conflict with the
+# separate ``top4`` blueprint used for statistics and lineups.
+bp = Blueprint("top4draft", __name__)
 
 @bp.route("/top4", methods=["GET", "POST"])
 def index():
@@ -26,15 +28,15 @@ def index():
 
     if request.method == "POST":
         if draft_completed:
-            flash("Драфт завершён", "warning"); return redirect(url_for("top4.index"))
+            flash("Драфт завершён", "warning"); return redirect(url_for("top4draft.index"))
         if not current_user or current_user != next_user:
             abort(403)
         player_id = request.form.get("player_id")
         if not player_id or player_id not in pidx:
-            flash("Некорректный игрок", "danger"); return redirect(url_for("top4.index"))
+            flash("Некорректный игрок", "danger"); return redirect(url_for("top4draft.index"))
         picked = picked_ids_from_state(state)
         if str(player_id) in picked:
-            flash("Игрок уже выбран", "warning"); return redirect(url_for("top4.index"))
+            flash("Игрок уже выбран", "warning"); return redirect(url_for("top4draft.index"))
         if not state.get("draft_started_at"):
             state["draft_started_at"] = datetime.now().isoformat(timespec="seconds")
         meta = pidx[str(player_id)]
@@ -59,7 +61,7 @@ def index():
             state["next_user"] = None
             state["draft_completed"] = True
         save_state(state)
-        return redirect(url_for("top4.index"))
+        return redirect(url_for("top4draft.index"))
 
     picked_ids = picked_ids_from_state(state)
     players = [p for p in players if str(p["playerId"]) not in picked_ids]
@@ -104,14 +106,14 @@ def index():
         next_user=next_user,
         next_round=state.get("next_round"),
         draft_completed=draft_completed,
-        status_url=url_for("top4.status"),
-        undo_url=url_for("top4.undo_last_pick"),
+        status_url=url_for("top4draft.status"),
+        undo_url=url_for("top4draft.undo_last_pick"),
     )
 
 @bp.get("/top4/status")
 def status():
     ctx = build_status_context()
-    ctx["draft_url"] = url_for("top4.index")
+    ctx["draft_url"] = url_for("top4draft.index")
     return render_template("status.html", **ctx)
 
 
@@ -129,7 +131,7 @@ def undo_last_pick():
     picks = state.get("picks") or []
     if not picks:
         flash("Нет пиков для отмены", "warning")
-        return redirect(url_for("top4.index"))
+        return redirect(url_for("top4draft.index"))
     last = picks.pop()
     user = last.get("user")
     pl = (last.get("player") or {})
@@ -152,7 +154,7 @@ def undo_last_pick():
     state["draft_completed"] = False
     save_state(state)
     flash("Последний пик отменён", "success")
-    return redirect(url_for("top4.index"))
+    return redirect(url_for("top4draft.index"))
 
 # ---- Wishlist API ----
 @bp.route("/top4/api/wishlist", methods=["GET", "PATCH", "POST"])

@@ -15,7 +15,8 @@ from .top4_schedule import build_schedule
 from .player_map_store import load_player_map, save_player_map
 from .epl_services import _s3_enabled, _s3_bucket, _s3_get_json, _s3_put_json
 
-bp = Blueprint("mantra", __name__, url_prefix="/mantra")
+# Routes related to Top-4 statistics and lineups (formerly "mantra").
+bp = Blueprint("top4", __name__, url_prefix="/top4")
 
 API_URL = "https://mantrafootball.org/api/players/{id}/stats"
 
@@ -136,7 +137,7 @@ def mapping():
             mapping[str(fpl_id)] = int(mantra_id)
             save_player_map(mapping)
             flash("Сохранено", "success")
-        return redirect(url_for("mantra.mapping"))
+        return redirect(url_for("top4.mapping"))
 
     mapped = []
     for fid, mid in mapping.items():
@@ -149,7 +150,7 @@ def mapping():
             "mantra_id": mid,
         })
     mapped.sort(key=lambda x: x["name"])
-    return render_template("mantra_mapping.html", mapped=mapped, players=options)
+    return render_template("top4_mapping.html", mapped=mapped, players=options)
 
 
 @bp.route("/lineups")
@@ -169,6 +170,12 @@ def lineups():
     cache = _load_round_cache(round_no) if round_no < current_round else {}
     cache_updated = False
 
+    schedule = build_schedule()
+    gw_rounds: dict[str, int | None] = {}
+    for league, rounds in schedule.items():
+        match = next((r for r in rounds if r.get("gw") == round_no), None)
+        gw_rounds[league] = match.get("round") if match else None
+
     results: dict[str, dict] = {}
     for manager, roster in rosters.items():
         lineup = []
@@ -178,22 +185,40 @@ def lineups():
             meta = pidx.get(fid, {})
             pos = item.get("position") or meta.get("position")
             name = meta.get("fullName") or meta.get("shortName") or fid
+            league = meta.get("league")
+            league_round = gw_rounds.get(league)
             mid = mapping.get(fid)
             pts = 0
-            if mid:
+            if mid and league_round:
                 key = str(mid)
                 if round_no < current_round:
                     if key in cache:
                         pts = int(cache[key])
                     else:
                         round_stats = _fetch_round_stats(mid)
-                        stat = next((s for s in round_stats if int(s.get("tournament_round_number", 0)) == round_no), None)
+                        stat = next((
+                            s for s in round_stats
+                            if int(s.get("tournament_round_number", 0)) == league_round
+                            and (
+                                (s.get("tournament") or {}).get("name") == league
+                                or s.get("tournament_name") == league
+                                or s.get("league") == league
+                            )
+                        ), None)
                         pts = _calc_score(stat, pos) if stat else 0
                         cache[key] = int(pts)
                         cache_updated = True
                 elif round_no == current_round:
                     round_stats = _fetch_round_stats(mid)
-                    stat = next((s for s in round_stats if int(s.get("tournament_round_number", 0)) == round_no), None)
+                    stat = next((
+                        s for s in round_stats
+                        if int(s.get("tournament_round_number", 0)) == league_round
+                        and (
+                            (s.get("tournament") or {}).get("name") == league
+                            or s.get("tournament_name") == league
+                            or s.get("league") == league
+                        )
+                    ), None)
                     pts = _calc_score(stat, pos) if stat else 0
                 else:
                     pts = 0
@@ -205,15 +230,9 @@ def lineups():
     if cache_updated:
         _save_round_cache(round_no, cache)
 
-    schedule = build_schedule()
-    gw_rounds: dict[str, int | None] = {}
-    for league, rounds in schedule.items():
-        match = next((r for r in rounds if r.get("gw") == round_no), None)
-        gw_rounds[league] = match.get("round") if match else None
-
     managers = sorted(results.keys())
     return render_template(
-        "mantra_lineups.html",
+        "top4_lineups.html",
         lineups=results,
         managers=managers,
         round=round_no,

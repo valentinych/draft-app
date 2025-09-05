@@ -43,14 +43,14 @@
           </div>
         </div>
         <div class="navbar-item has-dropdown is-hoverable">
-          <a class="navbar-link" href="{{ url_for('top4.index') }}">Топ-4</a>
+          <a class="navbar-link" href="{{ url_for('top4draft.index') }}">Топ-4</a>
           <div class="navbar-dropdown">
-            <a class="navbar-item" href="{{ url_for('top4.index') }}">Пики</a>
-            <a class="navbar-item" href="{{ url_for('top4.schedule_view') }}">Расписание</a>
+            <a class="navbar-item" href="{{ url_for('top4draft.index') }}">Пики</a>
+            <a class="navbar-item" href="{{ url_for('top4draft.schedule_view') }}">Расписание</a>
             {% if session.get('godmode') %}
-            <a class="navbar-item" href="{{ url_for('mantra.mapping') }}">Маппинг</a>
+            <a class="navbar-item" href="{{ url_for('top4.mapping') }}">Маппинг</a>
             {% endif %}
-            <a class="navbar-item" href="{{ url_for('mantra.lineups') }}">Лайнапы</a>
+            <a class="navbar-item" href="{{ url_for('top4.lineups') }}">Лайнапы</a>
           </div>
         </div>
       </div>
