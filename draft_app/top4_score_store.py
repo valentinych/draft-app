@@ -4,7 +4,7 @@ import tempfile
 from pathlib import Path
 from typing import Dict
 
-from .epl_services import _s3_enabled, _s3_bucket, _s3_get_json, _s3_put_json
+from .top4_services import _s3_enabled, _s3_bucket, _s3_get_json, _s3_put_json
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 TOP4_SCORE_DIR = BASE_DIR / "data" / "cache" / "top4_scores"
