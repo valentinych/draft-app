@@ -33,7 +33,8 @@ def _build_snake_order(users, rounds_total):
 def init_ucl(app):
     global ucl_state, ucl_players
     # состояние
-    state = load_json(UCL_STATE_FILE, default=None)
+    ucl_key = os.getenv("UCL_S3_STATE_KEY", os.path.basename(UCL_STATE_FILE))
+    state = load_json(UCL_STATE_FILE, default=None, s3_key=ucl_key)
     if state is None:
         state = _default_state(UCL_USERS)
     ucl_state = state
@@ -44,12 +45,13 @@ def init_ucl(app):
     if not ucl_state['draft_order']:
         total = sum(UCL_POSITION_LIMITS.values())
         ucl_state['draft_order'] = _build_snake_order(UCL_USERS, total)
-        save_json(UCL_STATE_FILE, ucl_state)
+        save_json(UCL_STATE_FILE, ucl_state, s3_key=ucl_key)
 
 def init_epl(app):
     global epl_state, epl_players
     # состояние
-    state = load_json(EPL_STATE_FILE, default=None)
+    epl_key = os.getenv("EPL_S3_STATE_KEY", os.path.basename(EPL_STATE_FILE))
+    state = load_json(EPL_STATE_FILE, default=None, s3_key=epl_key)
     if state is None:
         state = _default_state(EPL_USERS)
     epl_state = state
@@ -59,7 +61,7 @@ def init_epl(app):
     if not epl_state['draft_order']:
         total = sum(EPL_POSITION_LIMITS.values())  # 22
         epl_state['draft_order'] = _build_snake_order(EPL_USERS, total)
-        save_json(EPL_STATE_FILE, epl_state)
+        save_json(EPL_STATE_FILE, epl_state, s3_key=epl_key)
 
 def init_top4(app):
     global top4_state
@@ -72,10 +74,12 @@ def init_top4(app):
 
 # Общие хелперы
 def save_ucl_state():
-    save_json(UCL_STATE_FILE, ucl_state)
+    key = os.getenv("UCL_S3_STATE_KEY", os.path.basename(UCL_STATE_FILE))
+    save_json(UCL_STATE_FILE, ucl_state, s3_key=key)
 
 def save_epl_state():
-    save_json(EPL_STATE_FILE, epl_state)
+    key = os.getenv("EPL_S3_STATE_KEY", os.path.basename(EPL_STATE_FILE))
+    save_json(EPL_STATE_FILE, epl_state, s3_key=key)
 
 def user_is_full(roster, limits):
     return len(roster) >= sum(limits.values())

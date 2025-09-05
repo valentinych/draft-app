@@ -15,14 +15,16 @@ def index(pid):
 
     cache_path = os.path.join(UCL_CACHE_DIR, f'popupstats_70_{pid}.json')
     popup_url  = f'https://gaming.uefa.com/en/uclfantasy/services/feeds/popupstats/popupstats_70_{pid}.json'
+    s3_prefix = os.getenv("UCL_STATS_S3_PREFIX", "ucl_stats").strip().strip("/")
+    s3_key = f"{s3_prefix}/popupstats_70_{pid}.json"
 
-    data = load_json(cache_path, default=None)
+    data = load_json(cache_path, default=None, s3_key=s3_key)
     if data is None:
         try:
             r = HTTP_SESSION.get(popup_url, headers=HEADERS_GENERIC, timeout=10)
             r.raise_for_status()
             data = r.json()
-            save_json(cache_path, data)
+            save_json(cache_path, data, s3_key=s3_key)
         except Exception:
             data = {}
 
