@@ -48,6 +48,15 @@ def _s3_key(rnd: int) -> str:
     return f"{prefix}/round{int(rnd)}.json"
 
 
+def _s3_lineups_prefix() -> str:
+    return os.getenv("DRAFT_S3_TOP4_LINEUPS_PREFIX", "top4_lineups")
+
+
+def _s3_lineups_key(rnd: int) -> str:
+    prefix = _s3_lineups_prefix().strip().strip("/")
+    return f"{prefix}/round{int(rnd)}.json"
+
+
 def _load_round_cache(rnd: int) -> dict:
     if _s3_enabled():
         bucket = _s3_bucket()
@@ -84,11 +93,17 @@ def _save_round_cache(rnd: int, data: dict) -> None:
 
 
 def _save_lineups_json(rnd: int, data: dict) -> None:
-    """Persist full lineup data for debugging."""
+    """Persist full lineup data for debugging (S3 + local)."""
+    payload = data or {}
+    if _s3_enabled():
+        bucket = _s3_bucket()
+        key = _s3_lineups_key(rnd)
+        if bucket and key and not _s3_put_json(bucket, key, payload):
+            print(f"[MANTRA:S3] save_lineups_json fallback rnd={rnd}")
     LINEUPS_DIR.mkdir(parents=True, exist_ok=True)
     p = LINEUPS_DIR / f"round{int(rnd)}.json"
     with p.open("w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
+        json.dump(payload, f, ensure_ascii=False, indent=2)
 
 
 def _fetch_player(pid: int) -> dict:
