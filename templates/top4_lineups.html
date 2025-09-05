@@ -20,78 +20,93 @@
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   const container = document.getElementById('lineups-container');
-  fetch(`{{ url_for('top4.lineups_data') }}?round={{ round }}`)
-    .then(resp => resp.json())
-    .then(data => {
-      console.log('lineups data', data);
-      const managers = data.managers || [];
-      const lineups = data.lineups || {};
+  const url = `{{ url_for('top4.lineups_data') }}?round={{ round }}`;
 
-      const table = document.createElement('table');
-      table.className = 'table is-striped is-compact';
+  const render = data => {
+    const managers = data.managers || [];
+    const lineups = data.lineups || {};
 
-      const thead = document.createElement('thead');
-      const headRow = document.createElement('tr');
-      managers.forEach(m => {
-        const th = document.createElement('th');
-        th.textContent = m;
-        const total = lineups[m] && lineups[m].total;
-        if (total !== undefined && total !== null) {
-          const span = document.createElement('span');
-          span.style.backgroundColor = '#006400';
-          span.style.color = 'white';
-          span.style.padding = '0 4px';
-          span.style.borderRadius = '3px';
-          span.textContent = total;
-          th.appendChild(document.createTextNode(' '));
-          th.appendChild(span);
-        }
-        headRow.appendChild(th);
-      });
-      thead.appendChild(headRow);
-      table.appendChild(thead);
+    const table = document.createElement('table');
+    table.className = 'table is-striped is-compact';
 
-      const tbody = document.createElement('tbody');
-      const bodyRow = document.createElement('tr');
-      managers.forEach(m => {
-        const td = document.createElement('td');
-        const players = (lineups[m] && lineups[m].players) || [];
-        players.forEach(p => {
-          const div = document.createElement('div');
-          div.className = 'is-flex is-justify-content-space-between';
-          const spanName = document.createElement('span');
-          spanName.textContent = `${p.name} (${p.pos})`;
-          const spanPts = document.createElement('span');
-          spanPts.className = 'has-text-right';
-          spanPts.style.minWidth = '2em';
-          spanPts.textContent = p.points;
-          div.appendChild(spanName);
-          div.appendChild(spanPts);
-          td.appendChild(div);
-        });
-        bodyRow.appendChild(td);
-      });
-      tbody.appendChild(bodyRow);
-      table.appendChild(tbody);
-
-      container.innerHTML = '';
-      container.appendChild(table);
-      if (data.debug && data.debug.length) {
-        const dbg = document.createElement('pre');
-        dbg.style.whiteSpace = 'pre-wrap';
-        dbg.style.marginTop = '1em';
-        dbg.textContent = data.debug.join('\n');
-        container.appendChild(dbg);
+    const thead = document.createElement('thead');
+    const headRow = document.createElement('tr');
+    managers.forEach(m => {
+      const th = document.createElement('th');
+      th.textContent = m;
+      const total = lineups[m] && lineups[m].total;
+      if (total !== undefined && total !== null) {
+        const span = document.createElement('span');
+        span.style.backgroundColor = '#006400';
+        span.style.color = 'white';
+        span.style.padding = '0 4px';
+        span.style.borderRadius = '3px';
+        span.textContent = total;
+        th.appendChild(document.createTextNode(' '));
+        th.appendChild(span);
       }
-      const raw = document.createElement('pre');
-      raw.style.whiteSpace = 'pre-wrap';
-      raw.style.marginTop = '1em';
-      raw.textContent = JSON.stringify(data, null, 2);
-      container.appendChild(raw);
-    })
-    .catch(() => {
-      container.textContent = 'Ошибка загрузки данных';
+      headRow.appendChild(th);
     });
+    thead.appendChild(headRow);
+    table.appendChild(thead);
+
+    const tbody = document.createElement('tbody');
+    const bodyRow = document.createElement('tr');
+    managers.forEach(m => {
+      const td = document.createElement('td');
+      const players = (lineups[m] && lineups[m].players) || [];
+      players.forEach(p => {
+        const div = document.createElement('div');
+        div.className = 'is-flex is-justify-content-space-between';
+        const spanName = document.createElement('span');
+        spanName.textContent = `${p.name} (${p.pos})`;
+        const spanPts = document.createElement('span');
+        spanPts.className = 'has-text-right';
+        spanPts.style.minWidth = '2em';
+        spanPts.textContent = p.points;
+        div.appendChild(spanName);
+        div.appendChild(spanPts);
+        td.appendChild(div);
+      });
+      bodyRow.appendChild(td);
+    });
+    tbody.appendChild(bodyRow);
+    table.appendChild(tbody);
+
+    container.innerHTML = '';
+    container.appendChild(table);
+    if (data.debug && data.debug.length) {
+      const dbg = document.createElement('pre');
+      dbg.style.whiteSpace = 'pre-wrap';
+      dbg.style.marginTop = '1em';
+      dbg.textContent = data.debug.join('\n');
+      container.appendChild(dbg);
+    }
+    const raw = document.createElement('pre');
+    raw.style.whiteSpace = 'pre-wrap';
+    raw.style.marginTop = '1em';
+    raw.textContent = JSON.stringify(data, null, 2);
+    container.appendChild(raw);
+  };
+
+  const fetchData = () => {
+    fetch(url)
+      .then(resp => resp.json())
+      .then(data => {
+        if (data.status === 'processing') {
+          container.textContent = 'Обработка данных...';
+          setTimeout(fetchData, 2000);
+          return;
+        }
+        console.log('lineups data', data);
+        render(data);
+      })
+      .catch(() => {
+        container.textContent = 'Ошибка загрузки данных';
+      });
+  };
+
+  fetchData();
 });
 </script>
 {% endblock %}
