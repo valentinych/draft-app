@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json, os, tempfile
 from pathlib import Path
+from threading import Thread, Lock
 
 import requests
 from flask import (
@@ -38,6 +39,9 @@ API_URL = "https://mantrafootball.org/api/players/{id}/stats"
 BASE_DIR = Path(__file__).resolve().parent.parent
 ROUND_CACHE_DIR = BASE_DIR / "data" / "cache" / "mantra_rounds"
 LINEUPS_DIR = BASE_DIR / "data" / "cache" / "top4_lineups"
+
+BUILDING_ROUNDS: set[int] = set()
+BUILDING_LOCK = Lock()
 
 
 def _s3_rounds_prefix() -> str:
@@ -105,6 +109,26 @@ def _save_lineups_json(rnd: int, data: dict) -> None:
     p = LINEUPS_DIR / f"round{int(rnd)}.json"
     with p.open("w", encoding="utf-8") as f:
         json.dump(payload, f, ensure_ascii=False, indent=2)
+
+
+def _load_lineups_json(rnd: int) -> dict | None:
+    if _s3_enabled():
+        bucket = _s3_bucket()
+        key = _s3_lineups_key(rnd)
+        if bucket and key:
+            data = _s3_get_json(bucket, key)
+            if isinstance(data, dict) and data:
+                return data
+    p = LINEUPS_DIR / f"round{int(rnd)}.json"
+    if p.exists():
+        try:
+            with p.open("r", encoding="utf-8") as f:
+                data = json.load(f)
+            if isinstance(data, dict) and data:
+                return data
+        except Exception:
+            pass
+    return None
 
 
 def _fetch_player(pid: int) -> dict:
@@ -357,9 +381,27 @@ def _build_lineups(round_no: int, current_round: int, state: dict) -> dict:
 def lineups_data():
     round_no, current_round, state = _resolve_round()
     print(f"[lineups] lineups_data round={round_no} current_round={current_round}")
-    data = _build_lineups(round_no, current_round, state)
-    _save_lineups_json(round_no, data)
-    return jsonify(data)
+    cached = _load_lineups_json(round_no)
+    if cached:
+        return jsonify(cached)
+
+    with BUILDING_LOCK:
+        already = round_no in BUILDING_ROUNDS
+        if not already:
+            BUILDING_ROUNDS.add(round_no)
+
+    if not already:
+        def worker() -> None:
+            try:
+                data = _build_lineups(round_no, current_round, state)
+                _save_lineups_json(round_no, data)
+            finally:
+                with BUILDING_LOCK:
+                    BUILDING_ROUNDS.discard(round_no)
+
+        Thread(target=worker, daemon=True).start()
+
+    return jsonify({"status": "processing", "round": round_no})
 
 
 @bp.route("/lineups")
