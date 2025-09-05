@@ -11,6 +11,7 @@ from .top4_services import (
     players_index as top4_players_index,
     load_state as load_top4_state,
 )
+from .top4_schedule import build_schedule
 from .player_map_store import load_player_map, save_player_map
 from .epl_services import _s3_enabled, _s3_bucket, _s3_get_json, _s3_put_json
 
@@ -204,5 +205,17 @@ def lineups():
     if cache_updated:
         _save_round_cache(round_no, cache)
 
+    schedule = build_schedule()
+    gw_rounds: dict[str, int | None] = {}
+    for league, rounds in schedule.items():
+        match = next((r for r in rounds if r.get("gw") == round_no), None)
+        gw_rounds[league] = match.get("round") if match else None
+
     managers = sorted(results.keys())
-    return render_template("mantra_lineups.html", lineups=results, managers=managers, round=round_no)
+    return render_template(
+        "mantra_lineups.html",
+        lineups=results,
+        managers=managers,
+        round=round_no,
+        gw_rounds=gw_rounds,
+    )
