@@ -210,17 +210,28 @@ def _build_lineups(round_no: int, current_round: int, state: dict) -> dict:
     cache = _load_round_cache(round_no) if round_no < current_round else {}
     cache_updated = False
     debug: list[str] = []
+    debug.append(f"round={round_no} current_round={current_round}")
+    debug.append(f"rosters={{{', '.join(f'{m}:{len(r or [])}' for m, r in rosters.items())}}}")
+    if cache:
+        debug.append(f"cache loaded entries={len(cache)}")
+    else:
+        debug.append("cache empty")
+    print(f"[lineups] start round={round_no} current_round={current_round} cache_entries={len(cache)}")
 
     schedule = build_schedule()
     gw_rounds: dict[str, int | None] = {}
     for league, rounds in schedule.items():
         match = next((r for r in rounds if r.get("gw") == round_no), None)
         gw_rounds[league] = match.get("round") if match else None
+    debug.append(f"gw_rounds={gw_rounds}")
+    print(f"[lineups] gw_rounds={gw_rounds}")
 
     results: dict[str, dict] = {}
     for manager, roster in rosters.items():
         lineup = []
         total = 0
+        debug.append(f"manager {manager} roster_size={len(roster or [])}")
+        print(f"[lineups] manager {manager} roster_size={len(roster or [])}")
         for item in roster or []:
             fid = str(item.get("playerId") or item.get("id"))
             meta = pidx.get(fid, {})
@@ -230,11 +241,15 @@ def _build_lineups(round_no: int, current_round: int, state: dict) -> dict:
             league_round = gw_rounds.get(league)
             mid = mapping.get(fid)
             pts = 0
+            debug.append(f"  player fid={fid} name={name} pos={pos} league={league} league_round={league_round} mid={mid}")
+            print(f"[lineups] {manager} player {name} ({pos}) league={league} league_round={league_round} mid={mid}")
             if mid and league_round:
                 key = str(mid)
                 if round_no < current_round:
                     if key in cache:
                         pts = int(cache[key])
+                        debug.append(f"    cache hit mid={mid} pts={pts}")
+                        print(f"[lineups] cache hit mid={mid} pts={pts}")
                     else:
                         player = _load_player(mid, debug)
                         round_stats = player.get("round_stats", [])
@@ -249,6 +264,8 @@ def _build_lineups(round_no: int, current_round: int, state: dict) -> dict:
                         pts = _calc_score(stat, pos) if stat else 0
                         cache[key] = int(pts)
                         cache_updated = True
+                        debug.append(f"    cache miss mid={mid} pts={pts}")
+                        print(f"[lineups] cache miss mid={mid} pts={pts}")
                 elif round_no == current_round:
                     player = _load_player(mid, debug)
                     round_stats = player.get("round_stats", [])
@@ -261,34 +278,45 @@ def _build_lineups(round_no: int, current_round: int, state: dict) -> dict:
                         None,
                     )
                     pts = _calc_score(stat, pos) if stat else 0
+                    debug.append(f"    current round mid={mid} pts={pts}")
+                    print(f"[lineups] current round mid={mid} pts={pts}")
                 else:
                     pts = 0
+                    debug.append(f"    future round mid={mid} pts=0")
+                    print(f"[lineups] future round mid={mid} pts=0")
             else:
                 debug.append(
                     f"skip fid {fid} name {name}: mid={mid} league_round={league_round}"
                 )
+                print(f"[lineups] skip fid {fid} name {name}: mid={mid} league_round={league_round}")
             debug.append(f"{manager}: {name} ({pos}) -> {int(pts)}")
             lineup.append({"name": name, "pos": pos, "points": int(pts)})
             total += pts
         lineup.sort(key=lambda r: -r["points"])
         results[manager] = {"players": lineup, "total": int(total)}
+        debug.append(f"manager {manager} total={int(total)}")
+        print(f"[lineups] manager {manager} total={int(total)}")
 
     if cache_updated:
         _save_round_cache(round_no, cache)
 
     managers = sorted(results.keys())
+    debug.append(f"final managers={managers}")
+    print(f"[lineups] final managers={managers}")
     return {
         "lineups": results,
         "managers": managers,
         "gw_rounds": gw_rounds,
         "round": round_no,
         "debug": debug,
+        "raw_state": state,
     }
 
 
 @bp.route("/lineups/data")
 def lineups_data():
     round_no, current_round, state = _resolve_round()
+    print(f"[lineups] lineups_data round={round_no} current_round={current_round}")
     data = _build_lineups(round_no, current_round, state)
     _save_lineups_json(round_no, data)
     return jsonify(data)
@@ -297,6 +325,7 @@ def lineups_data():
 @bp.route("/lineups")
 def lineups():
     round_no, _, _ = _resolve_round()
+    print(f"[lineups] lineups page round={round_no}")
     schedule = build_schedule()
     gw_rounds: dict[str, int | None] = {}
     for league, rounds in schedule.items():
