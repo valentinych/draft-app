@@ -4,7 +4,17 @@ import json, os, tempfile
 from pathlib import Path
 
 import requests
-from flask import Blueprint, render_template, request, redirect, url_for, session, abort, flash
+from flask import (
+    Blueprint,
+    render_template,
+    request,
+    redirect,
+    url_for,
+    session,
+    abort,
+    flash,
+    jsonify,
+)
 
 from .top4_services import (
     load_players as load_top4_players,
@@ -162,19 +172,21 @@ def mapping():
     return render_template("top4_mapping.html", mapped=mapped, players=options)
 
 
-@bp.route("/lineups")
-def lineups():
-    mapping = load_player_map()
-    players = load_top4_players()
-    pidx = top4_players_index(players)
+def _resolve_round() -> tuple[int, int, dict]:
     state = load_top4_state()
-    rosters = state.get("rosters") or {}
-
     next_round = int(state.get("next_round") or 1)
     current_round = next_round - 1
     round_no = request.args.get("round", type=int)
     if round_no is None:
         round_no = current_round if current_round > 0 else 1
+    return round_no, current_round, state
+
+
+def _build_lineups(round_no: int, current_round: int, state: dict) -> dict:
+    mapping = load_player_map()
+    players = load_top4_players()
+    pidx = top4_players_index(players)
+    rosters = state.get("rosters") or {}
 
     cache = _load_round_cache(round_no) if round_no < current_round else {}
     cache_updated = False
@@ -242,10 +254,22 @@ def lineups():
         _save_round_cache(round_no, cache)
 
     managers = sorted(results.keys())
-    return render_template(
-        "top4_lineups.html",
-        lineups=results,
-        managers=managers,
-        round=round_no,
-        gw_rounds=gw_rounds,
-    )
+    return {"lineups": results, "managers": managers, "gw_rounds": gw_rounds, "round": round_no}
+
+
+@bp.route("/lineups/data")
+def lineups_data():
+    round_no, current_round, state = _resolve_round()
+    data = _build_lineups(round_no, current_round, state)
+    return jsonify(data)
+
+
+@bp.route("/lineups")
+def lineups():
+    round_no, _, _ = _resolve_round()
+    schedule = build_schedule()
+    gw_rounds: dict[str, int | None] = {}
+    for league, rounds in schedule.items():
+        match = next((r for r in rounds if r.get("gw") == round_no), None)
+        gw_rounds[league] = match.get("round") if match else None
+    return render_template("top4_lineups.html", round=round_no, gw_rounds=gw_rounds)
