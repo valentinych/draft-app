@@ -6,7 +6,13 @@ import requests
 from .config import (
     UCL_POSITION_MAP, FPL_POSITION_MAP, WARSZAWA_TZ
 )
-from .epl_services import ensure_fpl_bootstrap_fresh
+from .epl_services import (
+    ensure_fpl_bootstrap_fresh,
+    _s3_enabled,
+    _s3_bucket,
+    _s3_get_json,
+    _s3_put_json,
+)
 
 
 HTTP_SESSION = requests.Session()
@@ -29,14 +35,32 @@ __all__ = [
 ]
 
 
-def load_json(path, default=None):
+def load_json(path, default=None, s3_key: str | None = None):
+    """Load JSON from local file or S3.
+
+    ``s3_key`` specifies the object key inside the S3 bucket defined by
+    ``DRAFT_S3_BUCKET``.  When S3 is not configured or the object is missing the
+    function gracefully falls back to the local file.
+    """
+    if s3_key and _s3_enabled():
+        bucket = _s3_bucket()
+        if bucket:
+            data = _s3_get_json(bucket, s3_key)
+            if data is not None:
+                return data
     try:
         with open(path, "r", encoding="utf-8") as f:
             return json.load(f)
     except Exception:
         return default
 
-def save_json(path, payload):
+
+def save_json(path, payload, s3_key: str | None = None):
+    """Persist JSON to local file and optionally mirror to S3."""
+    if s3_key and _s3_enabled():
+        bucket = _s3_bucket()
+        if bucket and not _s3_put_json(bucket, s3_key, payload):
+            print(f"[S3] save_json fallback for {s3_key}")
     with open(path, "w", encoding="utf-8") as f:
         json.dump(payload, f, ensure_ascii=False, indent=2)
 

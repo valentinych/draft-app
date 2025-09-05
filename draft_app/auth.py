@@ -1,3 +1,4 @@
+import os
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session, current_app
 from .config import AUTH_FILE
 from .services import load_json
@@ -5,7 +6,8 @@ from .services import load_json
 bp = Blueprint("auth", __name__)
 
 def load_auth_users():
-    data = load_json(AUTH_FILE, default={'users': []})
+    s3_key = os.getenv("DRAFT_S3_AUTH_KEY", os.path.basename(AUTH_FILE))
+    data = load_json(AUTH_FILE, default={'users': []}, s3_key=s3_key)
     return {str(u['id']): u for u in data.get('users', [])}
 
 @bp.route("/login", methods=["GET", "POST"])
