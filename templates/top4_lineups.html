@@ -75,6 +75,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
       container.innerHTML = '';
       container.appendChild(table);
+      if (data.debug && data.debug.length) {
+        const dbg = document.createElement('pre');
+        dbg.style.whiteSpace = 'pre-wrap';
+        dbg.style.marginTop = '1em';
+        dbg.textContent = data.debug.join('\n');
+        container.appendChild(dbg);
+      }
     })
     .catch(() => {
       container.textContent = 'Ошибка загрузки данных';

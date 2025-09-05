@@ -84,19 +84,26 @@ def _save_round_cache(rnd: int, data: dict) -> None:
 
 def _fetch_player(pid: int) -> dict:
     try:
+        print(f"[MANTRA] request pid={pid}")
         r = requests.get(API_URL.format(id=pid), timeout=10)
         r.raise_for_status()
         return r.json().get("data", {})
-    except Exception:
+    except Exception as exc:
+        print(f"[MANTRA] fetch failed pid={pid}: {exc}")
         return {}
 
-
-def _load_player(pid: int) -> dict:
+def _load_player(pid: int, debug: list[str] | None = None) -> dict:
     data = load_top4_score(pid)
-    if not data:
-        data = _fetch_player(pid)
-        if data:
-            save_top4_score(pid, data)
+    if data:
+        if debug is not None:
+            debug.append(f"cached pid {pid}")
+        return data
+    data = _fetch_player(pid)
+    if debug is not None:
+        state = "ok" if data else "empty"
+        debug.append(f"fetched pid {pid}: {state}")
+    # Persist even empty payloads so repeated failures are visible on disk
+    save_top4_score(pid, data)
     return data
 
 
@@ -193,6 +200,7 @@ def _build_lineups(round_no: int, current_round: int, state: dict) -> dict:
 
     cache = _load_round_cache(round_no) if round_no < current_round else {}
     cache_updated = False
+    debug: list[str] = []
 
     schedule = build_schedule()
     gw_rounds: dict[str, int | None] = {}
@@ -219,7 +227,7 @@ def _build_lineups(round_no: int, current_round: int, state: dict) -> dict:
                     if key in cache:
                         pts = int(cache[key])
                     else:
-                        player = _load_player(mid)
+                        player = _load_player(mid, debug)
                         round_stats = player.get("round_stats", [])
                         stat = next(
                             (
@@ -233,7 +241,7 @@ def _build_lineups(round_no: int, current_round: int, state: dict) -> dict:
                         cache[key] = int(pts)
                         cache_updated = True
                 elif round_no == current_round:
-                    player = _load_player(mid)
+                    player = _load_player(mid, debug)
                     round_stats = player.get("round_stats", [])
                     stat = next(
                         (
@@ -246,6 +254,10 @@ def _build_lineups(round_no: int, current_round: int, state: dict) -> dict:
                     pts = _calc_score(stat, pos) if stat else 0
                 else:
                     pts = 0
+            else:
+                debug.append(
+                    f"skip fid {fid} name {name}: mid={mid} league_round={league_round}"
+                )
             lineup.append({"name": name, "pos": pos, "points": int(pts)})
             total += pts
         lineup.sort(key=lambda r: -r["points"])
@@ -255,7 +267,13 @@ def _build_lineups(round_no: int, current_round: int, state: dict) -> dict:
         _save_round_cache(round_no, cache)
 
     managers = sorted(results.keys())
-    return {"lineups": results, "managers": managers, "gw_rounds": gw_rounds, "round": round_no}
+    return {
+        "lineups": results,
+        "managers": managers,
+        "gw_rounds": gw_rounds,
+        "round": round_no,
+        "debug": debug,
+    }
 
 
 @bp.route("/lineups/data")
