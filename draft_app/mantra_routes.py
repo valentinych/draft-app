@@ -20,10 +20,13 @@ from .top4_services import (
     load_players as load_top4_players,
     players_index as top4_players_index,
     load_state as load_top4_state,
+    _s3_enabled,
+    _s3_bucket,
+    _s3_get_json,
+    _s3_put_json,
 )
 from .top4_schedule import build_schedule
 from .player_map_store import load_player_map, save_player_map
-from .epl_services import _s3_enabled, _s3_bucket, _s3_get_json, _s3_put_json
 from .top4_score_store import load_top4_score, save_top4_score
 
 # Routes related to Top-4 statistics and lineups (formerly "mantra").
@@ -218,30 +221,28 @@ def _build_lineups(round_no: int, current_round: int, state: dict) -> dict:
                     else:
                         player = _load_player(mid)
                         round_stats = player.get("round_stats", [])
-                        stat = next((
-                            s for s in round_stats
-                            if int(s.get("tournament_round_number", 0)) == league_round
-                            and (
-                                (s.get("tournament") or {}).get("name") == league
-                                or s.get("tournament_name") == league
-                                or s.get("league") == league
-                            )
-                        ), None)
+                        stat = next(
+                            (
+                                s
+                                for s in round_stats
+                                if int(s.get("tournament_round_number", 0)) == league_round
+                            ),
+                            None,
+                        )
                         pts = _calc_score(stat, pos) if stat else 0
                         cache[key] = int(pts)
                         cache_updated = True
                 elif round_no == current_round:
                     player = _load_player(mid)
                     round_stats = player.get("round_stats", [])
-                    stat = next((
-                        s for s in round_stats
-                        if int(s.get("tournament_round_number", 0)) == league_round
-                        and (
-                            (s.get("tournament") or {}).get("name") == league
-                            or s.get("tournament_name") == league
-                            or s.get("league") == league
-                        )
-                    ), None)
+                    stat = next(
+                        (
+                            s
+                            for s in round_stats
+                            if int(s.get("tournament_round_number", 0)) == league_round
+                        ),
+                        None,
+                    )
                     pts = _calc_score(stat, pos) if stat else 0
                 else:
                     pts = 0
