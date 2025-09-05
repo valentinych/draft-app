@@ -1,14 +1,69 @@
 from __future__ import annotations
 
+import json, os, tempfile
+from pathlib import Path
+
 import requests
 from flask import Blueprint, render_template, request, redirect, url_for, session, abort, flash
 
-from .top4_services import load_players as load_top4_players, players_index as top4_players_index, load_state as load_top4_state
+from .top4_services import (
+    load_players as load_top4_players,
+    players_index as top4_players_index,
+    load_state as load_top4_state,
+)
 from .player_map_store import load_player_map, save_player_map
+from .epl_services import _s3_enabled, _s3_bucket, _s3_get_json, _s3_put_json
 
 bp = Blueprint("mantra", __name__, url_prefix="/mantra")
 
 API_URL = "https://mantrafootball.org/api/players/{id}/stats"
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+ROUND_CACHE_DIR = BASE_DIR / "data" / "cache" / "mantra_rounds"
+
+
+def _s3_rounds_prefix() -> str:
+    return os.getenv("DRAFT_S3_MANTRA_ROUNDS_PREFIX", "mantra_rounds")
+
+
+def _s3_key(rnd: int) -> str:
+    prefix = _s3_rounds_prefix().strip().strip("/")
+    return f"{prefix}/round{int(rnd)}.json"
+
+
+def _load_round_cache(rnd: int) -> dict:
+    if _s3_enabled():
+        bucket = _s3_bucket()
+        key = _s3_key(rnd)
+        if bucket and key:
+            data = _s3_get_json(bucket, key)
+            if isinstance(data, dict):
+                return {str(k): int(v) for k, v in data.items()}
+    p = ROUND_CACHE_DIR / f"round{int(rnd)}.json"
+    if p.exists():
+        try:
+            with p.open("r", encoding="utf-8") as f:
+                data = json.load(f)
+            if isinstance(data, dict):
+                return {str(k): int(v) for k, v in data.items()}
+        except Exception:
+            pass
+    return {}
+
+
+def _save_round_cache(rnd: int, data: dict) -> None:
+    payload = {str(k): int(v) for k, v in data.items()}
+    if _s3_enabled():
+        bucket = _s3_bucket()
+        key = _s3_key(rnd)
+        if bucket and key and not _s3_put_json(bucket, key, payload):
+            print(f"[MANTRA:S3] save_round_cache fallback rnd={rnd}")
+    ROUND_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    fd, tmp = tempfile.mkstemp(prefix="round_", suffix=".json", dir=str(ROUND_CACHE_DIR))
+    os.close(fd)
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(payload, f, ensure_ascii=False, indent=2)
+    os.replace(tmp, ROUND_CACHE_DIR / f"round{int(rnd)}.json")
 
 
 def _fetch_round_stats(pid: int):
@@ -103,7 +158,15 @@ def lineups():
     pidx = top4_players_index(players)
     state = load_top4_state()
     rosters = state.get("rosters") or {}
-    round_no = request.args.get("round", type=int) or 1
+
+    next_round = int(state.get("next_round") or 1)
+    current_round = next_round - 1
+    round_no = request.args.get("round", type=int)
+    if round_no is None:
+        round_no = current_round if current_round > 0 else 1
+
+    cache = _load_round_cache(round_no) if round_no < current_round else {}
+    cache_updated = False
 
     results: dict[str, dict] = {}
     for manager, roster in rosters.items():
@@ -117,13 +180,29 @@ def lineups():
             mid = mapping.get(fid)
             pts = 0
             if mid:
-                round_stats = _fetch_round_stats(mid)
-                stat = next((s for s in round_stats if int(s.get("tournament_round_number", 0)) == round_no), None)
-                pts = _calc_score(stat, pos) if stat else 0
+                key = str(mid)
+                if round_no < current_round:
+                    if key in cache:
+                        pts = int(cache[key])
+                    else:
+                        round_stats = _fetch_round_stats(mid)
+                        stat = next((s for s in round_stats if int(s.get("tournament_round_number", 0)) == round_no), None)
+                        pts = _calc_score(stat, pos) if stat else 0
+                        cache[key] = int(pts)
+                        cache_updated = True
+                elif round_no == current_round:
+                    round_stats = _fetch_round_stats(mid)
+                    stat = next((s for s in round_stats if int(s.get("tournament_round_number", 0)) == round_no), None)
+                    pts = _calc_score(stat, pos) if stat else 0
+                else:
+                    pts = 0
             lineup.append({"name": name, "pos": pos, "points": int(pts)})
             total += pts
         lineup.sort(key=lambda r: -r["points"])
         results[manager] = {"players": lineup, "total": int(total)}
+
+    if cache_updated:
+        _save_round_cache(round_no, cache)
 
     managers = sorted(results.keys())
     return render_template("mantra_lineups.html", lineups=results, managers=managers, round=round_no)
