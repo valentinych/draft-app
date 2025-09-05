@@ -10,7 +10,7 @@
       <tbody>
       {% for r in rounds %}
         <tr class="{% if r.skip %}has-background-danger-light{% elif r.closed %}has-background-info-light{% elif r.current %}has-background-success-light{% endif %}">
-          <td>Тур {{ r.round }}</td>
+          <td>Тур {{ r.round }} ({{ 'GW' ~ r.gw if r.gw is not none else '—' }})</td>
           <td>{{ r.date }}</td>
         </tr>
       {% endfor %}
