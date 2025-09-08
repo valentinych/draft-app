@@ -86,6 +86,8 @@
       qsa('#players tbody tr').forEach(tr => {
         const inWishlist = tr.classList.contains('is-wishlist');
         const canPick = tr.getAttribute('data-can-pick') === '1';
+        const pickBtn = qs('form button[type="submit"]', tr);
+        if (pickBtn) pickBtn.disabled = !canPick;
         const status = tr.getAttribute('data-status') || '';
         const chance = Number(tr.getAttribute('data-chance') || '0');
         const news = (tr.getAttribute('data-news') || '').toLowerCase();
