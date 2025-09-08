@@ -6,6 +6,8 @@ from datetime import datetime
 
 import requests
 
+from .config import EPL_POSITION_LIMITS
+
 # === S3 ===
 try:
     import boto3
@@ -41,7 +43,14 @@ POS_CANON = {
     "Midfielder": "MID", "MID": "MID",
     "Forward": "FWD", "FWD": "FWD",
 }
-DEFAULT_SLOTS = {"GK": 3, "DEF": 7, "MID": 8, "FWD": 4}
+
+# Лимиты по позициям берём из конфигурации EPL_POSITION_LIMITS
+DEFAULT_SLOTS = {
+    "GK": EPL_POSITION_LIMITS.get("Goalkeeper", 0),
+    "DEF": EPL_POSITION_LIMITS.get("Defender", 0),
+    "MID": EPL_POSITION_LIMITS.get("Midfielder", 0),
+    "FWD": EPL_POSITION_LIMITS.get("Forward", 0),
+}
 LAST_SEASON = "2024/25"
 
 # Расписание трансферных окон: gameweek -> число раундов
@@ -579,14 +588,23 @@ def advance_transfer_turn(state: Dict[str, Any]) -> None:
     save_state(state)
 
 
-def record_transfer(state: Dict[str, Any], manager: str, out_pid: int, in_player: Dict[str, Any]) -> None:
+def record_transfer(
+    state: Dict[str, Any],
+    manager: str,
+    out_pid: Optional[int],
+    in_player: Dict[str, Any],
+) -> None:
+    """Записывает трансфер игрока. out_pid может быть None, если игрок был
+    удалён из состава ранее (например, до фикса багов). В этом случае
+    выполняется лишь добавление нового игрока с проверкой лимитов.
+    """
     t = state.setdefault("transfer", {})
     history = t.setdefault("history", [])
     event = {
         "gw": t.get("gw"),
         "round": t.get("round"),
         "manager": manager,
-        "out": int(out_pid),
+        "out": int(out_pid) if out_pid is not None else None,
         "in": in_player,
         "ts": datetime.utcnow().isoformat(timespec="seconds"),
     }
@@ -598,7 +616,8 @@ def record_transfer(state: Dict[str, Any], manager: str, out_pid: int, in_player
         pass
     rosters = state.setdefault("rosters", {})
     roster = rosters.setdefault(manager, [])
-    roster = [p for p in roster if int(p.get("playerId") or p.get("id")) != int(out_pid)]
+    if out_pid is not None:
+        roster = [p for p in roster if int(p.get("playerId") or p.get("id")) != int(out_pid)]
     roster.append(in_player)
     rosters[manager] = roster
     save_state(state)

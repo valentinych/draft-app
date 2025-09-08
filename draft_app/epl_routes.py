@@ -66,9 +66,6 @@ def index():
                 out_pid = pending.get("id") or pending.get("playerId") or pending.get("pid")
             else:
                 out_pid = pending
-            if not out_pid:
-                flash("Сначала удалите игрока из состава", "danger")
-                return redirect(url_for("epl.index"))
             meta = pidx[str(player_id)]
             new_pl = {
                 "playerId": meta["playerId"],
@@ -77,6 +74,28 @@ def index():
                 "position": meta.get("position"),
                 "price": meta.get("price"),
             }
+            # Проверяем позиционные лимиты, если игрок не был предварительно удалён
+            if out_pid is None:
+                from .config import EPL_POSITION_LIMITS
+                pos_limits = {
+                    "GK": EPL_POSITION_LIMITS.get("Goalkeeper", 0),
+                    "DEF": EPL_POSITION_LIMITS.get("Defender", 0),
+                    "MID": EPL_POSITION_LIMITS.get("Midfielder", 0),
+                    "FWD": EPL_POSITION_LIMITS.get("Forward", 0),
+                }
+                roster = (state.get("rosters") or {}).get(current_user, []) or []
+                if len(roster) >= sum(pos_limits.values()):
+                    flash("Состав уже заполнен", "danger")
+                    return redirect(url_for("epl.index"))
+                pos_counts = {"GK": 0, "DEF": 0, "MID": 0, "FWD": 0}
+                for pl in roster:
+                    pos = pl.get("position")
+                    if pos in pos_counts:
+                        pos_counts[pos] += 1
+                pos = new_pl.get("position")
+                if pos_counts.get(pos, 0) >= pos_limits.get(pos, 0):
+                    flash("Превышен лимит по позиции", "danger")
+                    return redirect(url_for("epl.index"))
             record_transfer(state, current_user, out_pid, new_pl)
             t.setdefault("pending_out", {}).pop(current_user, None)
             advance_transfer_turn(state)
