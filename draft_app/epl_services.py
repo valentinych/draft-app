@@ -493,9 +493,13 @@ def annotate_can_pick(players: List[Dict[str, Any]], state: Dict[str, Any], curr
         return
     transfer_state = state.get("transfer") or {}
     transfer_active = bool(transfer_state.get("active"))
+    pending_pos = None
     if transfer_active:
         on_clock = transfer_current_manager(state) == current_user
         draft_completed = False
+        pending = (transfer_state.get("pending_out") or {}).get(current_user)
+        if isinstance(pending, dict):
+            pending_pos = POS_CANON.get(pending.get("pos") or pending.get("position"))
     else:
         draft_completed = bool(state.get("draft_completed", False))
         on_clock = (state.get("next_user") or who_is_on_clock(state)) == current_user
@@ -515,6 +519,9 @@ def annotate_can_pick(players: List[Dict[str, Any]], state: Dict[str, Any], curr
     for p in players:
         pos = p.get("position")
         club = (p.get("clubName") or "").upper()
+        if transfer_active and pending_pos and pos != pending_pos:
+            p["canPick"] = False
+            continue
         can_pos = pos in slots and pos_counts.get(pos, 0) < slots[pos]
         can_club = club_counts.get(club, 0) < max_from_club if club else True
         p["canPick"] = bool(can_pos and can_club)

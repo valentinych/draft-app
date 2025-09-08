@@ -61,7 +61,12 @@ def index():
                 abort(403)
             t = state.setdefault("transfer", {})
             pending = (t.get("pending_out") or {}).get(current_user)
-            if not pending:
+            out_pid = None
+            if isinstance(pending, dict):
+                out_pid = pending.get("id") or pending.get("playerId") or pending.get("pid")
+            else:
+                out_pid = pending
+            if not out_pid:
                 flash("Сначала удалите игрока из состава", "danger")
                 return redirect(url_for("epl.index"))
             meta = pidx[str(player_id)]
@@ -72,7 +77,7 @@ def index():
                 "position": meta.get("position"),
                 "price": meta.get("price"),
             }
-            record_transfer(state, current_user, pending, new_pl)
+            record_transfer(state, current_user, out_pid, new_pl)
             t.setdefault("pending_out", {}).pop(current_user, None)
             advance_transfer_turn(state)
             flash("Трансфер выполнен", "success")
@@ -760,10 +765,20 @@ def do_transfer():
         return redirect(url_for("epl.squad"))
     rosters = state.setdefault("rosters", {})
     roster = rosters.setdefault(user, [])
-    roster = [p for p in roster if int(p.get("playerId") or p.get("id")) != int(out_pid)]
-    rosters[user] = roster
+    out_pl = None
+    new_roster = []
+    for p in roster:
+        pid = int(p.get("playerId") or p.get("id"))
+        if pid == int(out_pid):
+            out_pl = p
+        else:
+            new_roster.append(p)
+    rosters[user] = new_roster
     t = state.setdefault("transfer", {})
-    t.setdefault("pending_out", {})[user] = out_pid
+    t.setdefault("pending_out", {})[user] = {
+        "id": int(out_pid),
+        "pos": out_pl.get("position") if isinstance(out_pl, dict) else None,
+    }
     save_state(state)
     flash("Игрок удалён, выберите нового на странице пиков", "info")
     return redirect(url_for("epl.index"))
