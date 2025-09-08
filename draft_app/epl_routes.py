@@ -46,18 +46,41 @@ def index():
     transfer_state = state.get("transfer") or {}
     transfer_active = bool(transfer_state.get("active"))
     transfer_user = transfer_current_manager(state) if transfer_active else None
+    if transfer_active:
+        next_user = transfer_user
 
     if request.method == "POST":
-        if draft_completed:
-            flash("Драфт завершён", "warning"); return redirect(url_for("epl.index"))
         player_id = request.form.get("player_id")
         if not player_id or player_id not in pidx:
             flash("Некорректный игрок", "danger"); return redirect(url_for("epl.index"))
-        if not godmode and (not current_user or current_user != next_user):
-            abort(403)
         picked_ids = picked_fpl_ids_from_state(state, nidx)
         if str(player_id) in picked_ids:
             flash("Игрок уже выбран", "warning"); return redirect(url_for("epl.index"))
+        if transfer_active:
+            if not godmode and transfer_user != current_user:
+                abort(403)
+            t = state.setdefault("transfer", {})
+            pending = (t.get("pending_out") or {}).get(current_user)
+            if not pending:
+                flash("Сначала удалите игрока из состава", "danger")
+                return redirect(url_for("epl.index"))
+            meta = pidx[str(player_id)]
+            new_pl = {
+                "playerId": meta["playerId"],
+                "fullName": meta.get("fullName"),
+                "clubName": meta.get("clubName"),
+                "position": meta.get("position"),
+                "price": meta.get("price"),
+            }
+            record_transfer(state, current_user, pending, new_pl)
+            t.setdefault("pending_out", {}).pop(current_user, None)
+            advance_transfer_turn(state)
+            flash("Трансфер выполнен", "success")
+            return redirect(url_for("epl.index"))
+        if draft_completed:
+            flash("Драфт завершён", "warning"); return redirect(url_for("epl.index"))
+        if not godmode and (not current_user or current_user != next_user):
+            abort(403)
         if not state.get("draft_started_at"):
             state["draft_started_at"] = datetime.now().isoformat(timespec="seconds")
         meta = pidx[str(player_id)]
@@ -712,28 +735,38 @@ def do_transfer():
     if transfer_current_manager(state) != user:
         abort(403)
     out_pid = request.form.get("out", type=int)
-    in_pid = pop_transfer_target(user)
-    if not out_pid or not in_pid:
+    if not out_pid:
         flash("Некорректный трансфер", "danger")
         return redirect(url_for("epl.squad"))
-    bootstrap = ensure_fpl_bootstrap_fresh()
-    players = players_from_fpl(bootstrap)
-    pidx = players_index(players)
-    meta = pidx.get(str(in_pid))
-    if not meta:
-        flash("Некорректный игрок", "danger")
+    in_pid = pop_transfer_target(user)
+    if in_pid:
+        bootstrap = ensure_fpl_bootstrap_fresh()
+        players = players_from_fpl(bootstrap)
+        pidx = players_index(players)
+        meta = pidx.get(str(in_pid))
+        if not meta:
+            flash("Некорректный игрок", "danger")
+            return redirect(url_for("epl.squad"))
+        new_pl = {
+            "playerId": meta["playerId"],
+            "fullName": meta.get("fullName"),
+            "clubName": meta.get("clubName"),
+            "position": meta.get("position"),
+            "price": meta.get("price"),
+        }
+        record_transfer(state, user, out_pid, new_pl)
+        advance_transfer_turn(state)
+        flash("Трансфер выполнен", "success")
         return redirect(url_for("epl.squad"))
-    new_pl = {
-        "playerId": meta["playerId"],
-        "fullName": meta.get("fullName"),
-        "clubName": meta.get("clubName"),
-        "position": meta.get("position"),
-        "price": meta.get("price"),
-    }
-    record_transfer(state, user, out_pid, new_pl)
-    advance_transfer_turn(state)
-    flash("Трансфер выполнен", "success")
-    return redirect(url_for("epl.squad"))
+    rosters = state.setdefault("rosters", {})
+    roster = rosters.setdefault(user, [])
+    roster = [p for p in roster if int(p.get("playerId") or p.get("id")) != int(out_pid)]
+    rosters[user] = roster
+    t = state.setdefault("transfer", {})
+    t.setdefault("pending_out", {})[user] = out_pid
+    save_state(state)
+    flash("Игрок удалён, выберите нового на странице пиков", "info")
+    return redirect(url_for("epl.index"))
 
 @bp.post("/epl/undo")
 def undo_last_pick():

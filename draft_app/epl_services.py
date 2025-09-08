@@ -491,8 +491,14 @@ def annotate_can_pick(players: List[Dict[str, Any]], state: Dict[str, Any], curr
     if not current_user:
         for p in players: p["canPick"] = False
         return
-    draft_completed = bool(state.get("draft_completed", False))
-    on_clock = (state.get("next_user") or who_is_on_clock(state)) == current_user
+    transfer_state = state.get("transfer") or {}
+    transfer_active = bool(transfer_state.get("active"))
+    if transfer_active:
+        on_clock = transfer_current_manager(state) == current_user
+        draft_completed = False
+    else:
+        draft_completed = bool(state.get("draft_completed", False))
+        on_clock = (state.get("next_user") or who_is_on_clock(state)) == current_user
     if draft_completed or not on_clock:
         for p in players: p["canPick"] = False
         return
