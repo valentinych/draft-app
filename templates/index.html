@@ -164,7 +164,7 @@
         </thead>
         <tbody>
           {% for p in players %}
-            {% set disabled = draft_completed or (next_user and current_user != next_user and not session.get('godmode')) or (table_league == 'top4' and not p.canPick) %}
+            {% set disabled = draft_completed or (not p.canPick and not session.get('godmode')) %}
             <tr data-player-id="{{ p.playerId }}" data-can-pick="{{ '1' if p.canPick else '0' }}"
                 data-status="{{ p.status or '' }}" data-chance="{{ p.chance or 0 }}"
                 data-news="{{ (p.news or '')|lower|e }}">
