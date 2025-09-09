@@ -275,9 +275,12 @@ def mapping():
 def _resolve_round() -> tuple[int, int, dict]:
     state = load_top4_state()
     schedule = build_schedule()
-    current_round = next(
-        (rd.get("gw") for rounds in schedule.values() for rd in rounds if rd.get("current")),
-        1,
+    current_round = int(
+        next(
+            (rd.get("gw") for rounds in schedule.values() for rd in rounds if rd.get("current")),
+            1,
+        )
+        or 1
     )
     next_round = int(state.get("next_round") or (current_round + 1))
     if next_round <= current_round:
@@ -296,7 +299,8 @@ def _build_lineups(round_no: int, current_round: int, state: dict) -> dict:
     pidx = top4_players_index(players)
     rosters = state.get("rosters") or {}
 
-    cache = _load_round_cache(round_no) if round_no < current_round else {}
+    past_round = current_round <= 0 or round_no < current_round
+    cache = _load_round_cache(round_no) if past_round else {}
     cache_updated = False
     debug: list[str] = []
     debug.append(f"round={round_no} current_round={current_round}")
@@ -334,7 +338,7 @@ def _build_lineups(round_no: int, current_round: int, state: dict) -> dict:
             print(f"[lineups] {manager} player {name} ({pos}) league={league} league_round={league_round} mid={mid}")
             if mid and league_round:
                 key = str(mid)
-                if round_no < current_round:
+                if past_round:
                     if key in cache:
                         pts = int(cache[key])
                         debug.append(f"    cache hit mid={mid} pts={pts}")
