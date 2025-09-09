@@ -40,7 +40,17 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 ROUND_CACHE_DIR = BASE_DIR / "data" / "cache" / "mantra_rounds"
 LINEUPS_DIR = BASE_DIR / "data" / "cache" / "top4_lineups"
 
-POS_ORDER = {"GKP": 0, "GK": 0, "DEF": 1, "MID": 2, "FWD": 3}
+POS_ORDER = {
+    "GKP": 0,
+    "GK": 0,
+    "G": 0,
+    "DEF": 1,
+    "D": 1,
+    "MID": 2,
+    "M": 2,
+    "FWD": 3,
+    "F": 3,
+}
 
 BUILDING_ROUNDS: set[int] = set()
 BUILDING_LOCK = Lock()
@@ -121,7 +131,9 @@ def _load_lineups_json(rnd: int) -> dict | None:
                 players = lineup.get("players")
                 if isinstance(players, list):
                     players.sort(
-                        key=lambda r: POS_ORDER.get(r.get("pos"), 99)
+                        key=lambda r: POS_ORDER.get(
+                            (r.get("pos") or "").strip().upper(), 99
+                        )
                     )
         return data
 
@@ -369,7 +381,11 @@ def _build_lineups(round_no: int, current_round: int, state: dict) -> dict:
             debug.append(f"{manager}: {name} ({pos}) -> {int(pts)}")
             lineup.append({"name": name, "pos": pos, "points": int(pts)})
             total += pts
-        lineup.sort(key=lambda r: POS_ORDER.get(r["pos"], 99))
+        lineup.sort(
+            key=lambda r: POS_ORDER.get(
+                (r.get("pos") or "").strip().upper(), 99
+            )
+        )
         results[manager] = {"players": lineup, "total": int(total)}
         debug.append(f"manager {manager} total={int(total)}")
         print(f"[lineups] manager {manager} total={int(total)}")

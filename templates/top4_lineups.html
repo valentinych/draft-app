@@ -25,7 +25,17 @@ document.addEventListener('DOMContentLoaded', () => {
   const render = data => {
     const managers = data.managers || [];
     const lineups = data.lineups || {};
-    const posOrder = { GKP: 0, GK: 0, DEF: 1, MID: 2, FWD: 3 };
+    const posOrder = {
+      GKP: 0,
+      GK: 0,
+      G: 0,
+      DEF: 1,
+      D: 1,
+      MID: 2,
+      M: 2,
+      FWD: 3,
+      F: 3,
+    };
 
     const table = document.createElement('table');
     table.className = 'table is-striped is-compact';
@@ -60,8 +70,10 @@ document.addEventListener('DOMContentLoaded', () => {
       const c1 = `hsl(${hue}, 70%, 90%)`;
       const c2 = `hsl(${hue}, 70%, 80%)`;
       players.sort((a, b) => {
-        const oa = posOrder[a.pos] ?? 99;
-        const ob = posOrder[b.pos] ?? 99;
+        const pa = (a.pos || '').toUpperCase();
+        const pb = (b.pos || '').toUpperCase();
+        const oa = posOrder[pa] ?? 99;
+        const ob = posOrder[pb] ?? 99;
         return oa - ob;
       });
       let lastPos = null;
