@@ -62,8 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
       players.sort((a, b) => {
         const oa = posOrder[a.pos] ?? 99;
         const ob = posOrder[b.pos] ?? 99;
-        if (oa !== ob) return oa - ob;
-        return (b.points ?? 0) - (a.points ?? 0);
+        return oa - ob;
       });
       let lastPos = null;
       players.forEach((p, j) => {
