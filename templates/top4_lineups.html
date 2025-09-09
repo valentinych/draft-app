@@ -25,6 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const render = data => {
     const managers = data.managers || [];
     const lineups = data.lineups || {};
+    const posOrder = { GKP: 0, GK: 0, DEF: 1, MID: 2, FWD: 3 };
 
     const table = document.createElement('table');
     table.className = 'table is-striped is-compact';
@@ -52,12 +53,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const tbody = document.createElement('tbody');
     const bodyRow = document.createElement('tr');
-    managers.forEach(m => {
+    managers.forEach((m, idx) => {
       const td = document.createElement('td');
       const players = (lineups[m] && lineups[m].players) || [];
-      players.forEach(p => {
+      const hue = idx * 60;
+      const c1 = `hsl(${hue}, 70%, 90%)`;
+      const c2 = `hsl(${hue}, 70%, 80%)`;
+      players.sort((a, b) => {
+        const oa = posOrder[a.pos] ?? 99;
+        const ob = posOrder[b.pos] ?? 99;
+        if (oa !== ob) return oa - ob;
+        return (b.points ?? 0) - (a.points ?? 0);
+      });
+      let lastPos = null;
+      players.forEach((p, j) => {
+        if (lastPos && p.pos !== lastPos) {
+          const hr = document.createElement('hr');
+          hr.className = 'my-1';
+          td.appendChild(hr);
+        }
+        lastPos = p.pos;
+        const rowColor = j % 2 === 0 ? c1 : c2;
         const div = document.createElement('div');
         div.className = 'is-flex is-justify-content-space-between';
+        div.style.backgroundColor = rowColor;
         const spanName = document.createElement('span');
         spanName.textContent = `${p.name} (${p.pos})`;
         const spanPts = document.createElement('span');
