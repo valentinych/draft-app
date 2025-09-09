@@ -114,20 +114,34 @@ def _save_lineups_json(rnd: int, data: dict) -> None:
 
 
 def _load_lineups_json(rnd: int) -> dict | None:
+    def _sort_payload(data: dict) -> dict:
+        lineups = data.get("lineups")
+        if isinstance(lineups, dict):
+            for lineup in lineups.values():
+                players = lineup.get("players")
+                if isinstance(players, list):
+                    players.sort(
+                        key=lambda r: (
+                            POS_ORDER.get(r.get("pos"), 99),
+                            -int(r.get("points", 0)),
+                        )
+                    )
+        return data
+
     if _s3_enabled():
         bucket = _s3_bucket()
         key = _s3_lineups_key(rnd)
         if bucket and key:
             data = _s3_get_json(bucket, key)
             if isinstance(data, dict) and data:
-                return data
+                return _sort_payload(data)
     p = LINEUPS_DIR / f"round{int(rnd)}.json"
     if p.exists():
         try:
             with p.open("r", encoding="utf-8") as f:
                 data = json.load(f)
             if isinstance(data, dict) and data:
-                return data
+                return _sort_payload(data)
         except Exception:
             pass
     return None
