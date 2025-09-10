@@ -632,14 +632,18 @@ def results():
     class_total: Dict[str, int] = {m: 0 for m in managers}
     wins_total: Dict[str, int] = {m: 0 for m in managers}
     raw_total: Dict[str, int] = {m: 0 for m in managers}
+    debug_info: Dict[int, Dict[str, Any]] = {}
 
     for gw in gws:
         stored_scores = load_gw_score(gw)
         gw_scores: Dict[str, int] = {}
-        if stored_scores:
+        cache_used = False
+        recomputed = False
+        if stored_scores and any(int(v) != 0 for v in stored_scores.values()):
             # Use cached totals to avoid recomputing after transfers or roster changes
             for m in managers:
                 gw_scores[m] = int(stored_scores.get(m, 0))
+            cache_used = True
         else:
             _auto_fill_lineups(gw, state, rosters, deadline_map.get(gw))
             stats = points_for_gw(gw, pidx)
@@ -701,6 +705,14 @@ def results():
             # Persist newly computed scores so future calls reuse the same totals
             if gw_scores:
                 save_gw_score(gw, gw_scores)
+            if stored_scores:
+                recomputed = True
+
+        debug_info[gw] = {
+            "cache_used": cache_used,
+            "recomputed": recomputed,
+            "stored_scores": stored_scores,
+        }
 
         for m in managers:
             pts = int(gw_scores.get(m, 0))
@@ -736,7 +748,9 @@ def results():
         last_gw = max(gws)
         start_transfer_window(state, standings, last_gw)
 
-    return render_template("epl_results.html", gws=gws, standings=standings)
+    return render_template(
+        "epl_results.html", gws=gws, standings=standings, debug_info=debug_info
+    )
 
 
 @bp.post("/epl/transfer/skip")
