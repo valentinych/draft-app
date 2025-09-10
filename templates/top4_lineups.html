@@ -33,6 +33,9 @@
 </div>
 
 <style>
+  #lineups-container { display:inline-block; }
+  #lineups-container .tabs { display:inline-flex; }
+  #lineups-container .tabs ul { flex-grow:0; }
   .player-row { display:flex; justify-content:space-between; align-items:center; white-space:nowrap; }
   .player-name { overflow:hidden; text-overflow:ellipsis; margin-right:6px; }
   .points-box { background:#add8e6; border-radius:4px; padding:0 6px; min-width:2em; text-align:center; cursor:pointer; }
@@ -41,6 +44,7 @@
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   const container = document.getElementById('lineups-container');
+  container.style.display = 'inline-block';
   const modal = document.getElementById('points-modal');
   const modalBody = document.getElementById('points-modal-body');
   const closeModal = () => modal.classList.remove('is-active');
@@ -54,18 +58,33 @@ document.addEventListener('DOMContentLoaded', () => {
   const showPopup = p => {
     modalBody.innerHTML = '';
     if (p.breakdown && p.breakdown.length) {
-      const ul = document.createElement('ul');
+      const table = document.createElement('table');
+      table.className = 'table is-narrow';
+      const tbody = document.createElement('tbody');
       p.breakdown.forEach(it => {
-        const li = document.createElement('li');
-        li.textContent = `${it.label}: ${it.points}`;
-        ul.appendChild(li);
+        const tr = document.createElement('tr');
+        const tdL = document.createElement('td');
+        tdL.textContent = it.label;
+        const tdP = document.createElement('td');
+        tdP.className = 'has-text-right';
+        tdP.textContent = it.points;
+        tr.appendChild(tdL);
+        tr.appendChild(tdP);
+        tbody.appendChild(tr);
       });
-      modalBody.appendChild(ul);
-    }
-    if (p.stat) {
-      const pre = document.createElement('pre');
-      pre.textContent = JSON.stringify(p.stat, null, 2);
-      modalBody.appendChild(pre);
+      const totalRow = document.createElement('tr');
+      const tdTL = document.createElement('td');
+      tdTL.innerHTML = '<strong>Итого</strong>';
+      const tdTP = document.createElement('td');
+      tdTP.className = 'has-text-right';
+      tdTP.innerHTML = `<strong>${p.points}</strong>`;
+      totalRow.appendChild(tdTL);
+      totalRow.appendChild(tdTP);
+      tbody.appendChild(totalRow);
+      table.appendChild(tbody);
+      modalBody.appendChild(table);
+    } else {
+      modalBody.textContent = 'Нет данных';
     }
     modal.classList.add('is-active');
   };
@@ -77,16 +96,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const tabs = document.createElement('div');
     tabs.className = 'tabs';
+    tabs.style.display = 'inline-block';
     const ul = document.createElement('ul');
+    ul.style.flexGrow = '0';
     tabs.appendChild(ul);
 
     const contents = document.createElement('div');
+    contents.style.display = 'inline-block';
 
     managers.forEach((m, idx) => {
       const li = document.createElement('li');
       if (idx === 0) li.classList.add('is-active');
       const a = document.createElement('a');
-      a.textContent = m + ' ';
+      const nameStrong = document.createElement('strong');
+      nameStrong.textContent = m;
+      a.appendChild(nameStrong);
       const total = lineups[m] && lineups[m].total;
       if (total !== undefined && total !== null) {
         const span = document.createElement('span');
@@ -94,6 +118,7 @@ document.addEventListener('DOMContentLoaded', () => {
         span.style.color = 'white';
         span.style.padding = '0 4px';
         span.style.borderRadius = '3px';
+        span.style.marginLeft = '4px';
         span.textContent = total;
         a.appendChild(span);
       }
@@ -101,7 +126,7 @@ document.addEventListener('DOMContentLoaded', () => {
       ul.appendChild(li);
 
       const mgrDiv = document.createElement('div');
-      if (idx !== 0) mgrDiv.style.display = 'none';
+      mgrDiv.style.display = idx === 0 ? 'inline-block' : 'none';
       const players = (lineups[m] && lineups[m].players) || [];
       const hue = idx * 60;
       const c1 = `hsl(${hue}, 70%, 90%)`;
@@ -147,7 +172,7 @@ document.addEventListener('DOMContentLoaded', () => {
         Array.from(ul.children).forEach((el, i) => {
           el.classList.toggle('is-active', el === li);
           const c = contents.children[i];
-          if (c) c.style.display = el === li ? '' : 'none';
+          if (c) c.style.display = el === li ? 'inline-block' : 'none';
         });
       });
     });
