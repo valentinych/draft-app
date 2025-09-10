@@ -272,9 +272,10 @@ def _load_player_info(pid: int) -> dict:
         data = resp.json().get("data", {}) or {}
     except Exception as exc:
         # If the request fails there is nothing cached yet, so log the error and
-        # continue with an empty payload.
+        # return an empty payload without writing a cache entry.  The caller may
+        # retry later.
         print(f"[MANTRA] info fetch failed pid={pid}: {exc}")
-        data = {}
+        return {}
 
     save_player_info(pid, data)
     return data
@@ -293,22 +294,34 @@ def _ensure_player_info(state: dict) -> None:
     mapping = load_player_map()
     rosters = (state.get("rosters") or {}).values()
     processed = 0
-    missing: list[str] = []
+    missing_map: list[str] = []
+    missing_info: list[int] = []
     for roster in rosters:
         for item in roster or []:
             fid = str(item.get("playerId") or item.get("id"))
             mid = mapping.get(fid)
             if mid:
-                _load_player_info(mid)
+                if not _load_player_info(mid):
+                    missing_info.append(mid)
                 processed += 1
             else:
-                missing.append(fid)
-    total = processed + len(missing)
+                missing_map.append(fid)
+
+    # Retry fetching data for players that previously failed to load
+    if missing_info:
+        retry: list[int] = []
+        for mid in missing_info:
+            if not _load_player_info(mid):
+                retry.append(mid)
+        if retry:
+            print(f"[PLAYER_INFO] retry failed ids: {', '.join(map(str, retry[:20]))}")
+
+    total = processed + len(missing_map)
     print(
-        f"[PLAYER_INFO] total={total} processed={processed} missing={len(missing)}"
+        f"[PLAYER_INFO] total={total} processed={processed} missing_map={len(missing_map)}"
     )
-    if missing:
-        print(f"[PLAYER_INFO] missing ids: {', '.join(missing[:20])}")
+    if missing_map:
+        print(f"[PLAYER_INFO] missing ids: {', '.join(missing_map[:20])}")
 
 
 def _calc_score(stat: dict, pos: str) -> int:
@@ -502,7 +515,9 @@ def _build_lineups(round_no: int, current_round: int, state: dict) -> dict:
                     f"skip fid {fid} name {name}: mid={mid} league_round={league_round}"
                 )
                 print(f"[lineups] skip fid {fid} name {name}: mid={mid} league_round={league_round}")
-            info = _load_player_info(mid) if mid else {}
+            # Read player metadata from cache only.  Any missing entries will be
+            # fetched asynchronously after the lineups JSON has been generated.
+            info = load_player_info(mid) if mid else {}
             display_name = (
                 (info.get('full_name') or "").strip()
                 or f"{info.get('first_name', '').strip()} {info.get('name', '').strip()}".strip()
@@ -563,6 +578,9 @@ def lineups_data():
             try:
                 data = _build_lineups(round_no, current_round, state)
                 _save_lineups_json(round_no, data)
+                # Fetch missing player information in the background without
+                # blocking the response served to the client.
+                Thread(target=_ensure_player_info, args=(state,), daemon=True).start()
             finally:
                 with BUILDING_LOCK:
                     BUILDING_ROUNDS.discard(round_no)
