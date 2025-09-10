@@ -33,7 +33,8 @@ def load_player_map() -> Dict[str, int]:
             if isinstance(data, dict):
                 try:
                     s3_map = {str(k): int(v) for k, v in data.items()}
-                except Exception:
+                except Exception as exc:
+                    print(f"[MAP] failed to parse S3 mapping: {exc}")
                     s3_map = {}
 
     local_map: Dict[str, int] = {}
@@ -43,7 +44,8 @@ def load_player_map() -> Dict[str, int]:
                 data = json.load(f)
             if isinstance(data, dict):
                 local_map = {str(k): int(v) for k, v in data.items()}
-        except Exception:
+        except Exception as exc:
+            print(f"[MAP] failed to parse local mapping: {exc}")
             local_map = {}
 
     merged = {**s3_map, **local_map}

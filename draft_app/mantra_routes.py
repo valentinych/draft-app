@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-import json, os, tempfile
+import json, os, tempfile, traceback
 from datetime import datetime, timedelta
 from pathlib import Path
 from threading import Thread, Lock
@@ -57,6 +57,7 @@ POS_ORDER = {
 
 BUILDING_ROUNDS: set[int] = set()
 BUILDING_LOCK = Lock()
+BUILD_ERRORS: dict[int, str] = {}
 LINEUPS_CACHE_TTL = timedelta(minutes=30)
 
 
@@ -563,6 +564,9 @@ def _build_lineups(round_no: int, current_round: int, state: dict) -> dict:
 def lineups_data():
     round_no, current_round, state = _resolve_round()
     print(f"[lineups] lineups_data round={round_no} current_round={current_round}")
+    err = BUILD_ERRORS.get(round_no)
+    if err:
+        return jsonify({"status": "error", "round": round_no, "error": err})
     cached = _load_lineups_json(round_no)
     if cached:
         Thread(target=_ensure_player_info, args=(state,), daemon=True).start()
@@ -572,6 +576,7 @@ def lineups_data():
         already = round_no in BUILDING_ROUNDS
         if not already:
             BUILDING_ROUNDS.add(round_no)
+            BUILD_ERRORS.pop(round_no, None)
 
     if not already:
         def worker() -> None:
@@ -581,6 +586,9 @@ def lineups_data():
                 # Fetch missing player information in the background without
                 # blocking the response served to the client.
                 Thread(target=_ensure_player_info, args=(state,), daemon=True).start()
+            except Exception as exc:
+                BUILD_ERRORS[round_no] = str(exc)
+                traceback.print_exc()
             finally:
                 with BUILDING_LOCK:
                     BUILDING_ROUNDS.discard(round_no)
