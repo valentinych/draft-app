@@ -259,17 +259,33 @@ def _load_player(
 
 
 def _load_player_info(pid: int) -> dict:
-    """Load player metadata, fetching from API if necessary."""
-    data = load_player_info(pid)
-    if data:
+    """Load player metadata, fetching from API if cache is incomplete."""
+    data = load_player_info(pid) or {}
+
+    # Some previously cached payloads might miss fields like the full name
+    # or club logo.  In that case we should refresh the cache from the API so
+    # the lineup page can display the correct information.
+    needs_refresh = (
+        not data.get("first_name")
+        or not data.get("name")
+        or not (data.get("club") or {}).get("logo_path")
+    )
+
+    if not needs_refresh:
         return data
+
     try:
-        resp = requests.get(f"https://mantrafootball.org/api/players/{pid}", timeout=10)
+        resp = requests.get(
+            f"https://mantrafootball.org/api/players/{pid}", timeout=10
+        )
         resp.raise_for_status()
-        data = resp.json().get("data", {})
+        fresh = resp.json().get("data", {})
+        if fresh:
+            data = fresh
     except Exception as exc:
+        # If the request fails, fall back to whatever cached data we have
         print(f"[MANTRA] info fetch failed pid={pid}: {exc}")
-        data = {}
+
     save_player_info(pid, data)
     return data
 
@@ -467,7 +483,8 @@ def _build_lineups(round_no: int, current_round: int, state: dict) -> dict:
                 print(f"[lineups] skip fid {fid} name {name}: mid={mid} league_round={league_round}")
             info = _load_player_info(mid) if mid else {}
             display_name = (
-                f"{info.get('first_name', '').strip()} {info.get('name', '').strip()}".strip()
+                (info.get('full_name') or "").strip()
+                or f"{info.get('first_name', '').strip()} {info.get('name', '').strip()}".strip()
                 or name
             )
             logo = (info.get('club') or {}).get('logo_path')
