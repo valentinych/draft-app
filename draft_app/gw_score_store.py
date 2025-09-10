@@ -4,10 +4,17 @@ import tempfile
 from pathlib import Path
 from typing import Dict
 
-from .epl_services import _s3_enabled, _s3_bucket, _s3_get_json, _s3_put_json
+from .epl_services import (
+    _s3_enabled,
+    _s3_bucket,
+    _s3_get_json,
+    _s3_put_json,
+    LAST_SEASON,
+)
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-GW_SCORE_DIR = BASE_DIR / "data" / "cache" / "gw_scores"
+SEASON_TAG = LAST_SEASON.replace("/", "-")
+GW_SCORE_DIR = BASE_DIR / "data" / "cache" / "gw_scores" / SEASON_TAG
 GW_SCORE_DIR.mkdir(parents=True, exist_ok=True)
 
 def _s3_results_prefix() -> str:
@@ -15,7 +22,7 @@ def _s3_results_prefix() -> str:
 
 def _s3_key(gw: int) -> str:
     prefix = _s3_results_prefix().strip().strip("/")
-    return f"{prefix}/gw{int(gw)}.json"
+    return f"{prefix}/{SEASON_TAG}/gw{int(gw)}.json"
 
 def load_gw_score(gw: int) -> Dict[str, int]:
     """Load cached total scores for a gameweek."""

@@ -37,6 +37,12 @@ LEAGUE_TOURNAMENTS_2024 = {
     "Bundesliga": 290,
 }
 LEAGUES = list(LEAGUE_TOURNAMENTS.keys())
+
+# Fingerprint of current season used to version cached data.  Tournament
+# identifiers change every year, so combining them yields a unique tag for the
+# season which allows us to automatically discard stale caches when a new
+# campaign begins.
+TOP4_CACHE_VERSION = "-".join(str(v) for v in sorted(LEAGUE_TOURNAMENTS.values()))
 POS_CANON = {"GK": "GK", "D": "DEF", "M": "MID", "F": "FWD"}
 MIN_PER_LEAGUE = 3
 LEAGUE_CODES = {

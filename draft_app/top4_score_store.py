@@ -4,15 +4,22 @@ import tempfile
 from pathlib import Path
 from typing import Dict
 
-from .top4_services import _s3_enabled, _s3_bucket, _s3_get_json, _s3_put_json
+from .top4_services import (
+    _s3_enabled,
+    _s3_bucket,
+    _s3_get_json,
+    _s3_put_json,
+    TOP4_CACHE_VERSION,
+)
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-TOP4_SCORE_DIR = BASE_DIR / "data" / "cache" / "top4_scores"
+TOP4_SCORE_DIR = BASE_DIR / "data" / "cache" / "top4_scores" / TOP4_CACHE_VERSION
 TOP4_SCORE_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def _s3_prefix() -> str:
-    return os.getenv("TOP4_S3_SCORES_PREFIX", "top4_scores")
+    base = os.getenv("TOP4_S3_SCORES_PREFIX", "top4_scores")
+    return f"{base.rstrip('/')}/{TOP4_CACHE_VERSION}"
 
 
 def _s3_key(pid: int) -> str:

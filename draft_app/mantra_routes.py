@@ -26,6 +26,7 @@ from .top4_services import (
     _s3_bucket,
     _s3_get_json,
     _s3_put_json,
+    TOP4_CACHE_VERSION,
 )
 from .top4_schedule import build_schedule
 from .player_map_store import load_player_map, save_player_map
@@ -37,8 +38,8 @@ bp = Blueprint("top4", __name__, url_prefix="/top4")
 API_URL = "https://mantrafootball.org/api/players/{id}/stats"
 
 BASE_DIR = Path(__file__).resolve().parent.parent
-ROUND_CACHE_DIR = BASE_DIR / "data" / "cache" / "mantra_rounds"
-LINEUPS_DIR = BASE_DIR / "data" / "cache" / "top4_lineups"
+ROUND_CACHE_DIR = BASE_DIR / "data" / "cache" / "mantra_rounds" / TOP4_CACHE_VERSION
+LINEUPS_DIR = BASE_DIR / "data" / "cache" / "top4_lineups" / TOP4_CACHE_VERSION
 
 POS_ORDER = {
     "GKP": 0,
@@ -72,7 +73,8 @@ def _to_int(value) -> int:
 
 
 def _s3_rounds_prefix() -> str:
-    return os.getenv("DRAFT_S3_MANTRA_ROUNDS_PREFIX", "mantra_rounds")
+    base = os.getenv("DRAFT_S3_MANTRA_ROUNDS_PREFIX", "mantra_rounds")
+    return f"{base.rstrip('/')}/{TOP4_CACHE_VERSION}"
 
 
 def _s3_key(rnd: int) -> str:
@@ -81,7 +83,8 @@ def _s3_key(rnd: int) -> str:
 
 
 def _s3_lineups_prefix() -> str:
-    return os.getenv("DRAFT_S3_TOP4_LINEUPS_PREFIX", "top4_lineups")
+    base = os.getenv("DRAFT_S3_TOP4_LINEUPS_PREFIX", "top4_lineups")
+    return f"{base.rstrip('/')}/{TOP4_CACHE_VERSION}"
 
 
 def _s3_lineups_key(rnd: int) -> str:
