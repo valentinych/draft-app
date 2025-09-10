@@ -280,6 +280,26 @@ def _load_player_info(pid: int) -> dict:
     return data
 
 
+def _ensure_player_info(state: dict) -> None:
+    """Ensure cached metadata exists for all mapped players.
+
+    When lineups are served from a cached file the ``_build_lineups``
+    function isn't executed and player information isn't lazily fetched.
+    This helper walks through all rosters and triggers ``_load_player_info``
+    for every mapped player so that the ``top4_player_info`` directory
+    eventually contains a JSON file for each drafted footballer.
+    """
+
+    mapping = load_player_map()
+    rosters = (state.get("rosters") or {}).values()
+    for roster in rosters:
+        for item in roster or []:
+            fid = str(item.get("playerId") or item.get("id"))
+            mid = mapping.get(fid)
+            if mid:
+                _load_player_info(mid)
+
+
 def _calc_score(stat: dict, pos: str) -> int:
     mins = _to_int(stat.get("played_minutes"))
     score = 0
@@ -519,6 +539,7 @@ def lineups_data():
     print(f"[lineups] lineups_data round={round_no} current_round={current_round}")
     cached = _load_lineups_json(round_no)
     if cached:
+        Thread(target=_ensure_player_info, args=(state,), daemon=True).start()
         return jsonify(cached)
 
     with BUILDING_LOCK:
