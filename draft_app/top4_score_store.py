@@ -21,8 +21,17 @@ SCORE_CACHE_TTL = timedelta(minutes=30)
 
 
 def _s3_prefix() -> str:
+    """Return S3 prefix for cached Top-4 scores.
+
+    User requirements changed so cached files should now live directly under
+    ``top4_scores/<ID>.json`` without the cache version component.  The
+    previous implementation appended ``TOP4_CACHE_VERSION`` to the prefix which
+    resulted in paths like ``top4_scores/<version>/<ID>.json``.  To comply with
+    the new layout we expose only the base prefix from the environment
+    variable (defaulting to ``top4_scores``) and omit the version.
+    """
     base = os.getenv("TOP4_S3_SCORES_PREFIX", "top4_scores")
-    return f"{base.rstrip('/')}/{TOP4_CACHE_VERSION}"
+    return base.rstrip("/")
 
 
 def _s3_key(pid: int) -> str:

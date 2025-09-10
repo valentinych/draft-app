@@ -252,19 +252,16 @@ def _load_player(
 
 
 def _load_player_info(pid: int) -> dict:
-    """Load player metadata, fetching from API if cache is incomplete."""
-    data = load_player_info(pid) or {}
+    """Load player metadata from cache or fetch once from the API.
 
-    # Some previously cached payloads might miss fields like the full name
-    # or club logo.  In that case we should refresh the cache from the API so
-    # the lineup page can display the correct information.
-    needs_refresh = (
-        not data.get("first_name")
-        or not data.get("name")
-        or not (data.get("club") or {}).get("logo_path")
-    )
+    According to the new requirements the lineup page must always read player
+    data from the cached JSON file and only fall back to the remote API when
+    the file is missing.  No periodic refresh is performed; once fetched the
+    information is stored locally and in S3 for subsequent requests.
+    """
 
-    if not needs_refresh:
+    data = load_player_info(pid)
+    if data:
         return data
 
     try:
@@ -272,12 +269,12 @@ def _load_player_info(pid: int) -> dict:
             f"https://mantrafootball.org/api/players/{pid}", timeout=10
         )
         resp.raise_for_status()
-        fresh = resp.json().get("data", {})
-        if fresh:
-            data = fresh
+        data = resp.json().get("data", {}) or {}
     except Exception as exc:
-        # If the request fails, fall back to whatever cached data we have
+        # If the request fails there is nothing cached yet, so log the error and
+        # continue with an empty payload.
         print(f"[MANTRA] info fetch failed pid={pid}: {exc}")
+        data = {}
 
     save_player_info(pid, data)
     return data
