@@ -510,11 +510,12 @@ def _build_lineups(round_no: int, current_round: int, state: dict) -> dict:
         debug.append(f"manager {manager} roster_size={len(roster or [])}")
         print(f"[lineups] manager {manager} roster_size={len(roster or [])}")
         for item in roster or []:
-            fid = str(item.get("playerId") or item.get("id"))
+            pl = item.get("player") if isinstance(item, dict) and item.get("player") else item
+            fid = str(pl.get("playerId") or pl.get("id"))
             meta = pidx.get(fid, {})
-            pos = item.get("position") or meta.get("position")
-            name = meta.get("fullName") or meta.get("shortName") or fid
-            league = meta.get("league")
+            pos = pl.get("position") or meta.get("position")
+            name = pl.get("fullName") or meta.get("fullName") or meta.get("shortName") or fid
+            league = pl.get("league") or meta.get("league")
             league_round = gw_rounds.get(league)
             mid = mapping.get(fid)
             pts = 0
