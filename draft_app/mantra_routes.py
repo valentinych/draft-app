@@ -31,7 +31,7 @@ from .top4_services import (
 )
 from .top4_schedule import build_schedule
 from .player_map_store import load_player_map, save_player_map
-from .top4_score_store import load_top4_score, save_top4_score
+from .top4_score_store import load_top4_score, save_top4_score, SCORE_CACHE_TTL
 from .top4_player_info_store import load_player_info, save_player_info
 
 # Routes related to Top-4 statistics and lineups (formerly "mantra").
@@ -222,37 +222,30 @@ def _fetch_player(pid: int) -> dict:
 def _load_player(
     pid: int, debug: list[str] | None = None, round_no: int | None = None
 ) -> dict:
-    """
-    Load cached player stats from disk or fetch from the API.
+    """Load cached player stats from disk or fetch from the API.
 
-    If ``round_no`` is provided and the cached payload does not contain
-    statistics for that tournament round, the data will be refreshed from the
-    API to ensure we have up-to-date information.
+    The ``round_no`` parameter is kept for backward compatibility but the
+    caching logic now solely relies on a timestamp.  Cached responses are
+    considered fresh for ``SCORE_CACHE_TTL`` minutes.
     """
 
     data = load_top4_score(pid)
     if data:
-        if round_no is not None:
-            rs = data.get("round_stats") or []
-            for s in rs:
-                try:
-                    rnd = int(float(s.get("tournament_round_number", 0)))
-                except Exception:
-                    continue
-                if rnd == round_no:
+        ts = data.get("cached_at")
+        if ts:
+            try:
+                cached = datetime.fromisoformat(ts)
+                if datetime.utcnow() - cached < SCORE_CACHE_TTL:
                     if debug is not None:
                         debug.append(f"cached pid {pid}")
                     return data
-        elif debug is not None:
-            debug.append(f"cached pid {pid}")
-            return data
-        else:
-            return data
+            except Exception:
+                pass
 
     data = _fetch_player(pid)
     if debug is not None:
         state = "ok" if data else "empty"
-        debug.append(f"refetched pid {pid}: {state}" if round_no else f"fetched pid {pid}: {state}")
+        debug.append(f"refetched pid {pid}: {state}")
     # Persist even empty payloads so repeated failures are visible on disk
     save_top4_score(pid, data)
     return data
