@@ -36,7 +36,16 @@ def _s3_key(pid: int) -> str:
 
 
 def load_player_info(pid: int) -> Dict:
-    """Load cached info for a Top-4 player (local first, then S3)."""
+    """Load cached info for a Top-4 player (local first, then S3).
+
+    The cache directory is created lazily to guard against situations where
+    it may have been removed between runs.  Previously a missing directory
+    would raise ``FileNotFoundError`` when attempting to read from it,
+    which in turn caused the lineup-building background worker to crash and
+    left the frontend stuck on "Обработка данных...".  Ensuring the directory
+    exists makes the behaviour robust.
+    """
+    INFO_DIR.mkdir(parents=True, exist_ok=True)
     p = INFO_DIR / f"{int(pid)}.json"
     if p.exists():
         try:
@@ -62,13 +71,19 @@ def load_player_info(pid: int) -> Dict:
 def save_player_info(pid: int, data: Dict) -> None:
     """Persist player info (S3 + local)."""
     payload = data or {}
+    INFO_DIR.mkdir(parents=True, exist_ok=True)
     if _s3_enabled():
         bucket = _s3_bucket()
         key = _s3_key(pid)
         if bucket and key and not _s3_put_json(bucket, key, payload):
             print(f"[TOP4:S3] save_player_info fallback pid={pid}")
-    fd, tmp = tempfile.mkstemp(prefix="player_info_", suffix=".json", dir=str(INFO_DIR))
-    os.close(fd)
-    with open(tmp, "w", encoding="utf-8") as f:
-        json.dump(payload, f, ensure_ascii=False, indent=2)
-    os.replace(tmp, INFO_DIR / f"{int(pid)}.json")
+    try:
+        fd, tmp = tempfile.mkstemp(
+            prefix="player_info_", suffix=".json", dir=str(INFO_DIR)
+        )
+        os.close(fd)
+        with open(tmp, "w", encoding="utf-8") as f:
+            json.dump(payload, f, ensure_ascii=False, indent=2)
+        os.replace(tmp, INFO_DIR / f"{int(pid)}.json")
+    except Exception as exc:
+        print(f"[TOP4] save_player_info failed pid={pid}: {exc}")
