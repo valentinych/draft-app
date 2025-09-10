@@ -519,9 +519,11 @@ def _build_lineups(round_no: int, current_round: int, state: dict) -> dict:
             # Read player metadata from cache only.  Any missing entries will be
             # fetched asynchronously after the lineups JSON has been generated.
             info = load_player_info(mid) if mid else {}
+            first = (info.get('first_name') or "").strip()
+            last = (info.get('name') or "").strip()
             display_name = (
                 (info.get('full_name') or "").strip()
-                or f"{info.get('first_name', '').strip()} {info.get('name', '').strip()}".strip()
+                or f"{first} {last}".strip()
                 or name
             )
             logo = (info.get('club') or {}).get('logo_path')
