@@ -34,7 +34,7 @@
 
 <style>
   /* Ensure the lineups table appears below the tabs on wide screens */
-  #lineups-container { display:block; }
+  #lineups-container { display:inline-block; }
   #lineups-container .tabs { display:flex; }
   #lineups-container .tabs ul { flex-grow:0; }
   .player-row { display:flex; justify-content:space-between; align-items:center; white-space:nowrap; }
@@ -46,7 +46,7 @@
 document.addEventListener('DOMContentLoaded', () => {
   const GW = {{ round }};
   const container = document.getElementById('lineups-container');
-  container.style.display = 'block';
+  container.style.display = 'inline-block';
   const modal = document.getElementById('points-modal');
   const modalBody = document.getElementById('points-modal-body');
   const closeModal = () => modal.classList.remove('is-active');
