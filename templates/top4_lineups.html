@@ -89,10 +89,19 @@ document.addEventListener('DOMContentLoaded', () => {
         div.className = 'is-flex is-justify-content-space-between';
         div.style.backgroundColor = rowColor;
         const spanName = document.createElement('span');
-        spanName.textContent = `${p.name} (${p.pos})`;
+        if (p.logo) {
+          const img = document.createElement('img');
+          img.src = p.logo;
+          img.alt = '';
+          img.style.height = '1em';
+          img.style.marginRight = '4px';
+          spanName.appendChild(img);
+        }
+        spanName.appendChild(document.createTextNode(p.name));
         const spanPts = document.createElement('span');
         spanPts.className = 'has-text-right';
         spanPts.style.minWidth = '2em';
+        spanPts.style.marginRight = '5px';
         spanPts.textContent = p.points;
         div.appendChild(spanName);
         div.appendChild(spanPts);

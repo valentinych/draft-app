@@ -32,6 +32,7 @@ from .top4_services import (
 from .top4_schedule import build_schedule
 from .player_map_store import load_player_map, save_player_map
 from .top4_score_store import load_top4_score, save_top4_score
+from .top4_player_info_store import load_player_info, save_player_info
 
 # Routes related to Top-4 statistics and lineups (formerly "mantra").
 bp = Blueprint("top4", __name__, url_prefix="/top4")
@@ -201,13 +202,17 @@ def _fetch_player(pid: int) -> dict:
             encoding="utf-8",
         )
 
-        info_resp = requests.get(f"https://mantrafootball.org/api/players/{pid}", timeout=10)
-        info_resp.raise_for_status()
-        info_data = info_resp.json()
-        (LINEUPS_DIR / f"{pid}.json").write_text(
-            json.dumps(info_data, ensure_ascii=False, indent=2),
-            encoding="utf-8",
-        )
+        # Cache player info if not already stored
+        if not load_player_info(pid):
+            try:
+                info_resp = requests.get(
+                    f"https://mantrafootball.org/api/players/{pid}", timeout=10
+                )
+                info_resp.raise_for_status()
+                info_data = info_resp.json().get("data", {})
+                save_player_info(pid, info_data)
+            except Exception as exc:
+                print(f"[MANTRA] info fetch failed pid={pid}: {exc}")
 
         return stats_data.get("data", {})
     except Exception as exc:
@@ -250,6 +255,22 @@ def _load_player(
         debug.append(f"refetched pid {pid}: {state}" if round_no else f"fetched pid {pid}: {state}")
     # Persist even empty payloads so repeated failures are visible on disk
     save_top4_score(pid, data)
+    return data
+
+
+def _load_player_info(pid: int) -> dict:
+    """Load player metadata, fetching from API if necessary."""
+    data = load_player_info(pid)
+    if data:
+        return data
+    try:
+        resp = requests.get(f"https://mantrafootball.org/api/players/{pid}", timeout=10)
+        resp.raise_for_status()
+        data = resp.json().get("data", {})
+    except Exception as exc:
+        print(f"[MANTRA] info fetch failed pid={pid}: {exc}")
+        data = {}
+    save_player_info(pid, data)
     return data
 
 
@@ -444,8 +465,21 @@ def _build_lineups(round_no: int, current_round: int, state: dict) -> dict:
                     f"skip fid {fid} name {name}: mid={mid} league_round={league_round}"
                 )
                 print(f"[lineups] skip fid {fid} name {name}: mid={mid} league_round={league_round}")
-            debug.append(f"{manager}: {name} ({pos}) -> {int(pts)}")
-            lineup.append({"name": name, "pos": pos, "points": int(pts)})
+            info = _load_player_info(mid) if mid else {}
+            display_name = (
+                f"{info.get('first_name', '').strip()} {info.get('name', '').strip()}".strip()
+                or name
+            )
+            logo = (info.get('club') or {}).get('logo_path')
+            debug.append(f"{manager}: {display_name} ({pos}) -> {int(pts)}")
+            lineup.append(
+                {
+                    "name": display_name,
+                    "logo": logo,
+                    "pos": pos,
+                    "points": int(pts),
+                }
+            )
             total += pts
         lineup.sort(
             key=lambda r: POS_ORDER.get(
