@@ -18,8 +18,16 @@ INFO_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def _s3_prefix() -> str:
+    """Return S3 prefix for cached player info.
+
+    The storage layout no longer uses the seasonal cache version in the S3
+    path.  Files must be stored simply as ``top4_player_info/<ID>.json``.  This
+    helper therefore returns just the base prefix from the environment
+    variable (defaulting to ``top4_player_info``) without appending
+    ``TOP4_CACHE_VERSION``.
+    """
     base = os.getenv("TOP4_S3_PLAYER_INFO_PREFIX", "top4_player_info")
-    return f"{base.rstrip('/')}/{TOP4_CACHE_VERSION}"
+    return base.rstrip("/")
 
 
 def _s3_key(pid: int) -> str:
