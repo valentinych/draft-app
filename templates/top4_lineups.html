@@ -17,34 +17,76 @@
   </div>
 </form>
 <div id="lineups-container">Загрузка...</div>
+
+<div id="points-modal" class="modal">
+  <div class="modal-background"></div>
+  <div class="modal-card">
+    <header class="modal-card-head">
+      <p class="modal-card-title">Статистика</p>
+      <button class="delete" aria-label="close"></button>
+    </header>
+    <section class="modal-card-body" id="points-modal-body"></section>
+    <footer class="modal-card-foot">
+      <button class="button" id="points-modal-close">Закрыть</button>
+    </footer>
+  </div>
+</div>
+
+<style>
+  .player-row { display:flex; justify-content:space-between; align-items:center; white-space:nowrap; }
+  .player-name { overflow:hidden; text-overflow:ellipsis; margin-right:6px; }
+  .points-box { background:#add8e6; border-radius:4px; padding:0 6px; min-width:2em; text-align:center; cursor:pointer; }
+</style>
+
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   const container = document.getElementById('lineups-container');
+  const modal = document.getElementById('points-modal');
+  const modalBody = document.getElementById('points-modal-body');
+  const closeModal = () => modal.classList.remove('is-active');
+  modal.querySelector('.modal-background').addEventListener('click', closeModal);
+  modal.querySelector('.delete').addEventListener('click', closeModal);
+  document.getElementById('points-modal-close').addEventListener('click', closeModal);
   const url = `{{ url_for('top4.lineups_data') }}?round={{ round }}`;
+
+  const posOrder = { GKP:0, GK:0, G:0, DEF:1, D:1, MID:2, M:2, FWD:3, F:3 };
+
+  const showPopup = p => {
+    modalBody.innerHTML = '';
+    if (p.breakdown && p.breakdown.length) {
+      const ul = document.createElement('ul');
+      p.breakdown.forEach(it => {
+        const li = document.createElement('li');
+        li.textContent = `${it.label}: ${it.points}`;
+        ul.appendChild(li);
+      });
+      modalBody.appendChild(ul);
+    }
+    if (p.stat) {
+      const pre = document.createElement('pre');
+      pre.textContent = JSON.stringify(p.stat, null, 2);
+      modalBody.appendChild(pre);
+    }
+    modal.classList.add('is-active');
+  };
 
   const render = data => {
     const managers = data.managers || [];
     const lineups = data.lineups || {};
-    const posOrder = {
-      GKP: 0,
-      GK: 0,
-      G: 0,
-      DEF: 1,
-      D: 1,
-      MID: 2,
-      M: 2,
-      FWD: 3,
-      F: 3,
-    };
+    container.innerHTML = '';
 
-    const table = document.createElement('table');
-    table.className = 'table is-striped is-compact';
+    const tabs = document.createElement('div');
+    tabs.className = 'tabs';
+    const ul = document.createElement('ul');
+    tabs.appendChild(ul);
 
-    const thead = document.createElement('thead');
-    const headRow = document.createElement('tr');
-    managers.forEach(m => {
-      const th = document.createElement('th');
-      th.textContent = m;
+    const contents = document.createElement('div');
+
+    managers.forEach((m, idx) => {
+      const li = document.createElement('li');
+      if (idx === 0) li.classList.add('is-active');
+      const a = document.createElement('a');
+      a.textContent = m + ' ';
       const total = lineups[m] && lineups[m].total;
       if (total !== undefined && total !== null) {
         const span = document.createElement('span');
@@ -53,18 +95,13 @@ document.addEventListener('DOMContentLoaded', () => {
         span.style.padding = '0 4px';
         span.style.borderRadius = '3px';
         span.textContent = total;
-        th.appendChild(document.createTextNode(' '));
-        th.appendChild(span);
+        a.appendChild(span);
       }
-      headRow.appendChild(th);
-    });
-    thead.appendChild(headRow);
-    table.appendChild(thead);
+      li.appendChild(a);
+      ul.appendChild(li);
 
-    const tbody = document.createElement('tbody');
-    const bodyRow = document.createElement('tr');
-    managers.forEach((m, idx) => {
-      const td = document.createElement('td');
+      const mgrDiv = document.createElement('div');
+      if (idx !== 0) mgrDiv.style.display = 'none';
       const players = (lineups[m] && lineups[m].players) || [];
       const hue = idx * 60;
       const c1 = `hsl(${hue}, 70%, 90%)`;
@@ -72,23 +109,21 @@ document.addEventListener('DOMContentLoaded', () => {
       players.sort((a, b) => {
         const pa = (a.pos || '').toUpperCase();
         const pb = (b.pos || '').toUpperCase();
-        const oa = posOrder[pa] ?? 99;
-        const ob = posOrder[pb] ?? 99;
-        return oa - ob;
+        return (posOrder[pa] ?? 99) - (posOrder[pb] ?? 99);
       });
       let lastPos = null;
       players.forEach((p, j) => {
         if (lastPos && p.pos !== lastPos) {
           const hr = document.createElement('hr');
           hr.className = 'my-1';
-          td.appendChild(hr);
+          mgrDiv.appendChild(hr);
         }
         lastPos = p.pos;
-        const rowColor = j % 2 === 0 ? c1 : c2;
-        const div = document.createElement('div');
-        div.className = 'is-flex is-justify-content-space-between';
-        div.style.backgroundColor = rowColor;
+        const row = document.createElement('div');
+        row.className = 'player-row';
+        row.style.backgroundColor = j % 2 === 0 ? c1 : c2;
         const spanName = document.createElement('span');
+        spanName.className = 'player-name';
         if (p.logo) {
           const img = document.createElement('img');
           img.src = p.logo;
@@ -99,33 +134,26 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         spanName.appendChild(document.createTextNode(p.name));
         const spanPts = document.createElement('span');
-        spanPts.className = 'has-text-right';
-        spanPts.style.minWidth = '2em';
-        spanPts.style.marginRight = '5px';
+        spanPts.className = 'points-box';
         spanPts.textContent = p.points;
-        div.appendChild(spanName);
-        div.appendChild(spanPts);
-        td.appendChild(div);
+        spanPts.addEventListener('click', () => showPopup(p));
+        row.appendChild(spanName);
+        row.appendChild(spanPts);
+        mgrDiv.appendChild(row);
       });
-      bodyRow.appendChild(td);
-    });
-    tbody.appendChild(bodyRow);
-    table.appendChild(tbody);
+      contents.appendChild(mgrDiv);
 
-    container.innerHTML = '';
-    container.appendChild(table);
-    if (data.debug && data.debug.length) {
-      const dbg = document.createElement('pre');
-      dbg.style.whiteSpace = 'pre-wrap';
-      dbg.style.marginTop = '1em';
-      dbg.textContent = data.debug.join('\n');
-      container.appendChild(dbg);
-    }
-    const raw = document.createElement('pre');
-    raw.style.whiteSpace = 'pre-wrap';
-    raw.style.marginTop = '1em';
-    raw.textContent = JSON.stringify(data, null, 2);
-    container.appendChild(raw);
+      li.addEventListener('click', () => {
+        Array.from(ul.children).forEach((el, i) => {
+          el.classList.toggle('is-active', el === li);
+          const c = contents.children[i];
+          if (c) c.style.display = el === li ? '' : 'none';
+        });
+      });
+    });
+
+    container.appendChild(tabs);
+    container.appendChild(contents);
   };
 
   const fetchData = () => {
@@ -137,7 +165,6 @@ document.addEventListener('DOMContentLoaded', () => {
           setTimeout(fetchData, 2000);
           return;
         }
-        console.log('lineups data', data);
         render(data);
       })
       .catch(() => {
