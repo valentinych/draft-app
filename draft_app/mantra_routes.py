@@ -575,7 +575,13 @@ def _build_lineups(round_no: int, current_round: int, state: dict) -> dict:
                     "pos": pos,
                     "points": int(pts),
                     "breakdown": breakdown,
+                    # expose original stat payload so the frontend can display
+                    # raw metrics for the player.  ``league`` and
+                    # ``league_round`` are included to build a descriptive
+                    # header in the statistics popup (e.g. ``GW5 Тур 3``).
                     "stat": stat,
+                    "league": league,
+                    "league_round": league_round,
                 }
             )
             total += pts

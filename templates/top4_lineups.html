@@ -33,8 +33,9 @@
 </div>
 
 <style>
-  #lineups-container { display:inline-block; }
-  #lineups-container .tabs { display:inline-flex; }
+  /* Ensure the lineups table appears below the tabs on wide screens */
+  #lineups-container { display:block; }
+  #lineups-container .tabs { display:flex; }
   #lineups-container .tabs ul { flex-grow:0; }
   .player-row { display:flex; justify-content:space-between; align-items:center; white-space:nowrap; }
   .player-name { overflow:hidden; text-overflow:ellipsis; margin-right:6px; }
@@ -43,8 +44,9 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', () => {
+  const GW = {{ round }};
   const container = document.getElementById('lineups-container');
-  container.style.display = 'inline-block';
+  container.style.display = 'block';
   const modal = document.getElementById('points-modal');
   const modalBody = document.getElementById('points-modal-body');
   const closeModal = () => modal.classList.remove('is-active');
@@ -57,7 +59,51 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const showPopup = p => {
     modalBody.innerHTML = '';
+    modal.querySelector('.modal-card-title').textContent = 'Статистика';
+    const heading = document.createElement('h3');
+    heading.className = 'title is-6';
+    heading.textContent = `${p.league ? p.league + ' ' : ''}GW${GW} Тур ${p.league_round ?? '—'}`;
+    modalBody.appendChild(heading);
+    let hasData = false;
+
+    if (p.stat) {
+      const statTable = document.createElement('table');
+      statTable.className = 'table is-narrow';
+      const statBody = document.createElement('tbody');
+      const fields = [
+        ['Минуты', p.stat.played_minutes],
+        ['Голы', p.stat.goals],
+        ['Ассисты', p.stat.assists],
+        ['Сухой матч', p.stat.cleansheet ? 1 : 0],
+        ['Сейвы пенальти', p.stat.caught_penalty],
+        ['Сейвы', p.stat.saves],
+        ['Пропущенные голы', p.stat.missed_goals],
+        ['Нереализованные пенальти', p.stat.missed_penalty],
+        ['Жёлтые карточки', p.stat.yellow_card],
+        ['Красные карточки', p.stat.red_card]
+      ];
+      fields.forEach(([label, value]) => {
+        const tr = document.createElement('tr');
+        const tdL = document.createElement('td');
+        tdL.textContent = label;
+        const tdV = document.createElement('td');
+        tdV.className = 'has-text-right';
+        const num = Number(value);
+        tdV.textContent = Number.isFinite(num) ? num : 0;
+        tr.appendChild(tdL);
+        tr.appendChild(tdV);
+        statBody.appendChild(tr);
+      });
+      statTable.appendChild(statBody);
+      modalBody.appendChild(statTable);
+      hasData = true;
+    }
+
     if (p.breakdown && p.breakdown.length) {
+      if (hasData) {
+        const hr = document.createElement('hr');
+        modalBody.appendChild(hr);
+      }
       const table = document.createElement('table');
       table.className = 'table is-narrow';
       const tbody = document.createElement('tbody');
@@ -83,9 +129,13 @@ document.addEventListener('DOMContentLoaded', () => {
       tbody.appendChild(totalRow);
       table.appendChild(tbody);
       modalBody.appendChild(table);
-    } else {
+      hasData = true;
+    }
+
+    if (!hasData) {
       modalBody.textContent = 'Нет данных';
     }
+
     modal.classList.add('is-active');
   };
 
@@ -96,13 +146,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const tabs = document.createElement('div');
     tabs.className = 'tabs';
-    tabs.style.display = 'inline-block';
     const ul = document.createElement('ul');
     ul.style.flexGrow = '0';
     tabs.appendChild(ul);
 
     const contents = document.createElement('div');
-    contents.style.display = 'inline-block';
+    contents.style.display = 'block';
 
     managers.forEach((m, idx) => {
       const li = document.createElement('li');
@@ -126,7 +175,7 @@ document.addEventListener('DOMContentLoaded', () => {
       ul.appendChild(li);
 
       const mgrDiv = document.createElement('div');
-      mgrDiv.style.display = idx === 0 ? 'inline-block' : 'none';
+      mgrDiv.style.display = idx === 0 ? 'block' : 'none';
       const players = (lineups[m] && lineups[m].players) || [];
       const hue = idx * 60;
       const c1 = `hsl(${hue}, 70%, 90%)`;
@@ -172,7 +221,7 @@ document.addEventListener('DOMContentLoaded', () => {
         Array.from(ul.children).forEach((el, i) => {
           el.classList.toggle('is-active', el === li);
           const c = contents.children[i];
-          if (c) c.style.display = el === li ? 'inline-block' : 'none';
+          if (c) c.style.display = el === li ? 'block' : 'none';
         });
       });
     });
