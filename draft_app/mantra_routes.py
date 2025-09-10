@@ -325,32 +325,88 @@ def _ensure_player_info(state: dict) -> None:
         print(f"[PLAYER_INFO] missing ids: {', '.join(missing_map[:20])}")
 
 
-def _calc_score(stat: dict, pos: str) -> int:
+def _calc_score_breakdown(stat: dict, pos: str) -> tuple[int, list[dict]]:
+    """Return score and detailed breakdown for a player's match stats."""
+
     mins = _to_int(stat.get("played_minutes"))
     score = 0
+    breakdown: list[dict] = []
+
     if mins >= 60:
         score += 2
+        breakdown.append({"label": "Минуты ≥60", "points": 2})
     elif mins > 0:
         score += 1
+        breakdown.append({"label": "Минуты <60", "points": 1})
+
     goals = float(stat.get("goals", 0))
     goal_pts = {"GK": 6, "DEF": 6, "MID": 5, "FWD": 4}
-    score += goal_pts.get(pos, 0) * goals
+    if goals:
+        pts = goal_pts.get(pos, 0) * goals
+        score += pts
+        breakdown.append({"label": f"Голы ({goals})", "points": int(pts)})
+
     assists = float(stat.get("assists", 0))
-    score += 3 * assists
+    if assists:
+        pts = 3 * assists
+        score += pts
+        breakdown.append({"label": f"Ассисты ({assists})", "points": int(pts)})
+
     if stat.get("cleansheet") and mins >= 60:
+        cs_pts = 0
         if pos in ("GK", "DEF"):
-            score += 4
+            cs_pts = 4
         elif pos == "MID":
-            score += 1
+            cs_pts = 1
+        if cs_pts:
+            score += cs_pts
+            breakdown.append({"label": "Сухой матч", "points": cs_pts})
+
     if pos == "GK":
-        score += 5 * float(stat.get("caught_penalty", 0))
-        score += _to_int(stat.get("saves")) // 3
-    score -= 2 * _to_int(stat.get("missed_penalty"))
+        caught = float(stat.get("caught_penalty", 0))
+        if caught:
+            pts = 5 * caught
+            score += pts
+            breakdown.append({"label": f"Сейвы пенальти ({caught})", "points": int(pts)})
+        saves = _to_int(stat.get("saves"))
+        if saves:
+            pts = saves // 3
+            if pts:
+                score += pts
+                breakdown.append({"label": f"Сейвы ({saves})", "points": pts})
+
+    missed_pen = _to_int(stat.get("missed_penalty"))
+    if missed_pen:
+        pts = -2 * missed_pen
+        score += pts
+        breakdown.append({"label": f"Нереализованные пенальти ({missed_pen})", "points": pts})
+
     if pos in ("GK", "DEF"):
-        score -= _to_int(stat.get("missed_goals")) // 2
-    score -= _to_int(stat.get("yellow_card"))
-    score -= 3 * _to_int(stat.get("red_card"))
-    return int(score)
+        conceded = _to_int(stat.get("missed_goals"))
+        if conceded:
+            pts = -(conceded // 2)
+            if pts:
+                score += pts
+                breakdown.append({"label": f"Пропущенные голы ({conceded})", "points": pts})
+
+    yc = _to_int(stat.get("yellow_card"))
+    if yc:
+        pts = -yc
+        score += pts
+        breakdown.append({"label": f"Жёлтые карточки ({yc})", "points": pts})
+
+    rc = _to_int(stat.get("red_card"))
+    if rc:
+        pts = -3 * rc
+        score += pts
+        breakdown.append({"label": f"Красные карточки ({rc})", "points": pts})
+
+    return int(score), breakdown
+
+
+def _calc_score(stat: dict, pos: str) -> int:
+    score, _ = _calc_score_breakdown(stat, pos)
+    return score
 
 
 @bp.route("/mapping", methods=["GET", "POST"])
@@ -462,38 +518,13 @@ def _build_lineups(round_no: int, current_round: int, state: dict) -> dict:
             league_round = gw_rounds.get(league)
             mid = mapping.get(fid)
             pts = 0
+            stat = None
+            breakdown: list[dict] = []
             debug.append(f"  player fid={fid} name={name} pos={pos} league={league} league_round={league_round} mid={mid}")
             print(f"[lineups] {manager} player {name} ({pos}) league={league} league_round={league_round} mid={mid}")
             if mid and league_round:
                 key = str(mid)
-                if past_round:
-                    cached = cache.get(key)
-                    if cached is not None and cached != 0:
-                        pts = int(cached)
-                        debug.append(f"    cache hit mid={mid} pts={pts}")
-                        print(f"[lineups] cache hit mid={mid} pts={pts}")
-                    else:
-                        player = _load_player(mid, debug, league_round)
-                        round_stats = player.get("round_stats", [])
-                        stat = next(
-                            (
-                                s
-                                for s in round_stats
-                                if _to_int(s.get("tournament_round_number")) == league_round
-                            ),
-                            None,
-                        )
-                        pts = _calc_score(stat, pos) if stat else 0
-                        if cached != pts:
-                            cache[key] = int(pts)
-                            cache_updated = True
-                        if cached is None:
-                            debug.append(f"    cache miss mid={mid} pts={pts}")
-                            print(f"[lineups] cache miss mid={mid} pts={pts}")
-                        else:
-                            debug.append(f"    cache refresh mid={mid} pts={pts}")
-                            print(f"[lineups] cache refresh mid={mid} pts={pts}")
-                elif round_no == current_round:
+                if past_round or round_no == current_round:
                     player = _load_player(mid, debug, league_round)
                     round_stats = player.get("round_stats", [])
                     stat = next(
@@ -504,9 +535,18 @@ def _build_lineups(round_no: int, current_round: int, state: dict) -> dict:
                         ),
                         None,
                     )
-                    pts = _calc_score(stat, pos) if stat else 0
-                    debug.append(f"    current round mid={mid} pts={pts}")
-                    print(f"[lineups] current round mid={mid} pts={pts}")
+                    pts, breakdown = _calc_score_breakdown(stat, pos) if stat else (0, [])
+                    cached = cache.get(key) if past_round else None
+                    if cached != pts:
+                        cache[key] = int(pts)
+                        cache_updated = True
+                    if past_round:
+                        msg = "cache hit" if cached is not None else "cache miss"
+                        debug.append(f"    {msg} mid={mid} pts={pts}")
+                        print(f"[lineups] {msg} mid={mid} pts={pts}")
+                    else:
+                        debug.append(f"    current round mid={mid} pts={pts}")
+                        print(f"[lineups] current round mid={mid} pts={pts}")
                 else:
                     pts = 0
                     debug.append(f"    future round mid={mid} pts=0")
@@ -534,6 +574,8 @@ def _build_lineups(round_no: int, current_round: int, state: dict) -> dict:
                     "logo": logo,
                     "pos": pos,
                     "points": int(pts),
+                    "breakdown": breakdown,
+                    "stat": stat,
                 }
             )
             total += pts
