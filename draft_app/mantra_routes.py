@@ -182,16 +182,39 @@ def _fetch_player(pid: int) -> dict:
         print(f"[MANTRA] fetch failed pid={pid}: {exc}")
         return {}
 
-def _load_player(pid: int, debug: list[str] | None = None) -> dict:
+def _load_player(
+    pid: int, debug: list[str] | None = None, round_no: int | None = None
+) -> dict:
+    """
+    Load cached player stats from disk or fetch from the API.
+
+    If ``round_no`` is provided and the cached payload does not contain
+    statistics for that tournament round, the data will be refreshed from the
+    API to ensure we have up-to-date information.
+    """
+
     data = load_top4_score(pid)
     if data:
-        if debug is not None:
+        if round_no is not None:
+            rs = data.get("round_stats") or []
+            for s in rs:
+                try:
+                    if int(s.get("tournament_round_number", 0)) == round_no:
+                        if debug is not None:
+                            debug.append(f"cached pid {pid}")
+                        return data
+                except Exception:
+                    continue
+        elif debug is not None:
             debug.append(f"cached pid {pid}")
-        return data
+            return data
+        else:
+            return data
+
     data = _fetch_player(pid)
     if debug is not None:
         state = "ok" if data else "empty"
-        debug.append(f"fetched pid {pid}: {state}")
+        debug.append(f"refetched pid {pid}: {state}" if round_no else f"fetched pid {pid}: {state}")
     # Persist even empty payloads so repeated failures are visible on disk
     save_top4_score(pid, data)
     return data
@@ -339,12 +362,13 @@ def _build_lineups(round_no: int, current_round: int, state: dict) -> dict:
             if mid and league_round:
                 key = str(mid)
                 if past_round:
-                    if key in cache:
-                        pts = int(cache[key])
+                    cached = cache.get(key)
+                    if cached is not None and cached != 0:
+                        pts = int(cached)
                         debug.append(f"    cache hit mid={mid} pts={pts}")
                         print(f"[lineups] cache hit mid={mid} pts={pts}")
                     else:
-                        player = _load_player(mid, debug)
+                        player = _load_player(mid, debug, league_round)
                         round_stats = player.get("round_stats", [])
                         stat = next(
                             (
@@ -355,12 +379,17 @@ def _build_lineups(round_no: int, current_round: int, state: dict) -> dict:
                             None,
                         )
                         pts = _calc_score(stat, pos) if stat else 0
-                        cache[key] = int(pts)
-                        cache_updated = True
-                        debug.append(f"    cache miss mid={mid} pts={pts}")
-                        print(f"[lineups] cache miss mid={mid} pts={pts}")
+                        if cached != pts:
+                            cache[key] = int(pts)
+                            cache_updated = True
+                        if cached is None:
+                            debug.append(f"    cache miss mid={mid} pts={pts}")
+                            print(f"[lineups] cache miss mid={mid} pts={pts}")
+                        else:
+                            debug.append(f"    cache refresh mid={mid} pts={pts}")
+                            print(f"[lineups] cache refresh mid={mid} pts={pts}")
                 elif round_no == current_round:
-                    player = _load_player(mid, debug)
+                    player = _load_player(mid, debug, league_round)
                     round_stats = player.get("round_stats", [])
                     stat = next(
                         (
