@@ -56,6 +56,21 @@ BUILDING_ROUNDS: set[int] = set()
 BUILDING_LOCK = Lock()
 
 
+def _to_int(value) -> int:
+    """Safely convert numeric strings like ``"1.0"`` to ``int``.
+
+    The Top-4 statistics API often represents numbers as strings with decimal
+    points (e.g. ``"2.0"``).  Direct ``int(...)`` casts would raise ``ValueError``
+    which in turn broke score calculations, resulting in zero points for some
+    rounds.  This helper normalises such values so the rest of the code can
+    operate on integers reliably.
+    """
+    try:
+        return int(float(value))
+    except (TypeError, ValueError):
+        return 0
+
+
 def _s3_rounds_prefix() -> str:
     return os.getenv("DRAFT_S3_MANTRA_ROUNDS_PREFIX", "mantra_rounds")
 
@@ -199,12 +214,13 @@ def _load_player(
             rs = data.get("round_stats") or []
             for s in rs:
                 try:
-                    if int(s.get("tournament_round_number", 0)) == round_no:
-                        if debug is not None:
-                            debug.append(f"cached pid {pid}")
-                        return data
+                    rnd = int(float(s.get("tournament_round_number", 0)))
                 except Exception:
                     continue
+                if rnd == round_no:
+                    if debug is not None:
+                        debug.append(f"cached pid {pid}")
+                    return data
         elif debug is not None:
             debug.append(f"cached pid {pid}")
             return data
@@ -221,7 +237,7 @@ def _load_player(
 
 
 def _calc_score(stat: dict, pos: str) -> int:
-    mins = int(stat.get("played_minutes", 0))
+    mins = _to_int(stat.get("played_minutes"))
     score = 0
     if mins >= 60:
         score += 2
@@ -239,12 +255,12 @@ def _calc_score(stat: dict, pos: str) -> int:
             score += 1
     if pos == "GK":
         score += 5 * float(stat.get("caught_penalty", 0))
-        score += int(int(stat.get("saves", 0)) / 3)
-    score -= 2 * float(stat.get("missed_penalty", 0))
+        score += _to_int(stat.get("saves")) // 3
+    score -= 2 * _to_int(stat.get("missed_penalty"))
     if pos in ("GK", "DEF"):
-        score -= int(float(stat.get("missed_goals", 0)) / 2)
-    score -= int(stat.get("yellow_card") or 0)
-    score -= 3 * int(stat.get("red_card") or 0)
+        score -= _to_int(stat.get("missed_goals")) // 2
+    score -= _to_int(stat.get("yellow_card"))
+    score -= 3 * _to_int(stat.get("red_card"))
     return int(score)
 
 
@@ -374,7 +390,7 @@ def _build_lineups(round_no: int, current_round: int, state: dict) -> dict:
                             (
                                 s
                                 for s in round_stats
-                                if int(s.get("tournament_round_number", 0)) == league_round
+                                if _to_int(s.get("tournament_round_number")) == league_round
                             ),
                             None,
                         )
@@ -395,7 +411,7 @@ def _build_lineups(round_no: int, current_round: int, state: dict) -> dict:
                         (
                             s
                             for s in round_stats
-                            if int(s.get("tournament_round_number", 0)) == league_round
+                            if _to_int(s.get("tournament_round_number")) == league_round
                         ),
                         None,
                     )
