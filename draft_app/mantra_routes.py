@@ -611,6 +611,83 @@ def _build_lineups(round_no: int, current_round: int, state: dict) -> dict:
     }
 
 
+def _build_results(state: dict) -> dict:
+    mapping = load_player_map()
+    players = load_top4_players()
+    pidx = top4_players_index(players)
+    rosters = state.get("rosters") or {}
+
+    schedule = build_schedule()
+    round_to_gw: dict[str, dict[int, int]] = {}
+    for league, rounds in schedule.items():
+        rmap: dict[int, int] = {}
+        for r in rounds:
+            rnd = _to_int(r.get("round"))
+            gw = _to_int(r.get("gw"))
+            if rnd and gw:
+                rmap[rnd] = gw
+        round_to_gw[league] = rmap
+
+    results: dict[str, dict] = {}
+    for manager, roster in rosters.items():
+        lineup = []
+        total = 0
+        for item in roster or []:
+            pl = item.get("player") if isinstance(item, dict) and item.get("player") else item
+            fid = str(pl.get("playerId") or pl.get("id"))
+            meta = pidx.get(fid, {})
+            pos = pl.get("position") or meta.get("position")
+            name = (
+                pl.get("fullName")
+                or meta.get("fullName")
+                or meta.get("shortName")
+                or fid
+            )
+            league = pl.get("league") or meta.get("league")
+            mid = mapping.get(fid)
+            pts = 0
+            breakdown: list[dict] = []
+            if mid:
+                player = _load_player(mid)
+                round_stats = player.get("round_stats") or []
+                for stat in round_stats:
+                    rnd = _to_int(stat.get("tournament_round_number"))
+                    gw = round_to_gw.get(league, {}).get(rnd)
+                    score = _calc_score(stat, pos) if pos else 0
+                    pts += score
+                    label = f"GW{gw}" if gw else f"R{rnd}"
+                    breakdown.append({"label": label, "points": int(score)})
+            info = load_player_info(mid) if mid else {}
+            first = (info.get("first_name") or "").strip()
+            last = (info.get("name") or "").strip()
+            display_name = (
+                (info.get("full_name") or "").strip()
+                or f"{first} {last}".strip()
+                or name
+            )
+            logo = (info.get("club") or {}).get("logo_path")
+            breakdown.sort(key=lambda b: b["label"])
+            lineup.append(
+                {
+                    "name": display_name,
+                    "logo": logo,
+                    "pos": pos,
+                    "points": int(pts),
+                    "breakdown": breakdown,
+                }
+            )
+            total += pts
+        lineup.sort(
+            key=lambda r: POS_ORDER.get((r.get("pos") or "").strip().upper(), 99)
+        )
+        results[manager] = {"players": lineup, "total": int(total)}
+
+    managers = sorted(
+        results.keys(), key=lambda m: (-results[m]["total"], m)
+    )
+    return {"lineups": results, "managers": managers}
+
+
 @bp.route("/lineups/data")
 def lineups_data():
     round_no, current_round, state = _resolve_round()
@@ -659,3 +736,15 @@ def lineups():
         match = next((r for r in rounds if r.get("gw") == round_no), None)
         gw_rounds[league] = match.get("round") if match else None
     return render_template("top4_lineups.html", round=round_no, gw_rounds=gw_rounds)
+
+
+@bp.route("/results/data")
+def results_data():
+    state = load_top4_state()
+    data = _build_results(state)
+    return jsonify(data)
+
+
+@bp.route("/results")
+def results():
+    return render_template("top4_results.html")
