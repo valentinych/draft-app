@@ -14,6 +14,17 @@ def _s3_key() -> str:
     return os.getenv("DRAFT_S3_PLAYER_MAP_KEY", "player_map.json")
 
 def load_player_map() -> Dict[str, int]:
+    """Load mapping from FPL ids to Mantra ids.
+
+    Both S3 and local files may contain partial data.  Previously the function
+    returned immediately when an S3 file was present which meant any additional
+    entries stored locally were ignored.  As a result only a subset of players
+    had their metadata fetched (55 instead of the expected 144).  We now merge
+    the two sources and emit debug information so operators can verify the
+    counts.
+    """
+
+    s3_map: Dict[str, int] = {}
     if _s3_enabled():
         bucket = _s3_bucket()
         key = _s3_key()
@@ -21,18 +32,25 @@ def load_player_map() -> Dict[str, int]:
             data = _s3_get_json(bucket, key)
             if isinstance(data, dict):
                 try:
-                    return {str(k): int(v) for k, v in data.items()}
+                    s3_map = {str(k): int(v) for k, v in data.items()}
                 except Exception:
-                    return {}
+                    s3_map = {}
+
+    local_map: Dict[str, int] = {}
     if MAP_FILE.exists():
         try:
             with MAP_FILE.open("r", encoding="utf-8") as f:
                 data = json.load(f)
             if isinstance(data, dict):
-                return {str(k): int(v) for k, v in data.items()}
+                local_map = {str(k): int(v) for k, v in data.items()}
         except Exception:
-            pass
-    return {}
+            local_map = {}
+
+    merged = {**s3_map, **local_map}
+    print(
+        f"[MAP] load_player_map s3={len(s3_map)} local={len(local_map)} merged={len(merged)}"
+    )
+    return merged
 
 def save_player_map(mapping: Dict[str, int]) -> None:
     payload = {str(k): int(v) for k, v in mapping.items()}

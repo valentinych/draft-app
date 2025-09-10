@@ -292,12 +292,23 @@ def _ensure_player_info(state: dict) -> None:
 
     mapping = load_player_map()
     rosters = (state.get("rosters") or {}).values()
+    processed = 0
+    missing: list[str] = []
     for roster in rosters:
         for item in roster or []:
             fid = str(item.get("playerId") or item.get("id"))
             mid = mapping.get(fid)
             if mid:
                 _load_player_info(mid)
+                processed += 1
+            else:
+                missing.append(fid)
+    total = processed + len(missing)
+    print(
+        f"[PLAYER_INFO] total={total} processed={processed} missing={len(missing)}"
+    )
+    if missing:
+        print(f"[PLAYER_INFO] missing ids: {', '.join(missing[:20])}")
 
 
 def _calc_score(stat: dict, pos: str) -> int:
