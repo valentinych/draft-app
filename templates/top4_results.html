@@ -44,12 +44,18 @@ document.addEventListener('DOMContentLoaded', () => {
   const showPopup = p => {
     modalBody.innerHTML = '';
     modal.querySelector('.modal-card-title').textContent = 'Очки по GW';
-    if (p.breakdown && p.breakdown.length) {
+    const gw = [];
+    const extra = [];
+    (p.breakdown || []).forEach(it => {
+      if (String(it.label).startsWith('GW')) gw.push(it);
+      else extra.push(it);
+    });
+    if (gw.length) {
       const table = document.createElement('table');
       table.className = 'table is-narrow';
       const tbody = document.createElement('tbody');
       let total = 0;
-      p.breakdown.forEach(it => {
+      gw.forEach(it => {
         const tr = document.createElement('tr');
         const tdL = document.createElement('td');
         tdL.textContent = it.label;
@@ -74,6 +80,41 @@ document.addEventListener('DOMContentLoaded', () => {
       modalBody.appendChild(table);
     } else {
       modalBody.textContent = 'Нет данных';
+    }
+    if (extra.length) {
+      const hr = document.createElement('hr');
+      hr.className = 'my-2';
+      modalBody.appendChild(hr);
+      const pTitle = document.createElement('p');
+      pTitle.innerHTML = '<strong>Неучтенные раунды</strong>';
+      modalBody.appendChild(pTitle);
+      const table2 = document.createElement('table');
+      table2.className = 'table is-narrow';
+      const tbody2 = document.createElement('tbody');
+      let extraTotal = 0;
+      extra.forEach(it => {
+        const tr = document.createElement('tr');
+        const tdL = document.createElement('td');
+        tdL.textContent = it.label;
+        const tdP = document.createElement('td');
+        tdP.className = 'has-text-right';
+        tdP.textContent = it.points;
+        tr.appendChild(tdL);
+        tr.appendChild(tdP);
+        tbody2.appendChild(tr);
+        extraTotal += it.points;
+      });
+      const trTotal = document.createElement('tr');
+      const tdL2 = document.createElement('td');
+      tdL2.innerHTML = '<strong>Сумма</strong>';
+      const tdP2 = document.createElement('td');
+      tdP2.className = 'has-text-right';
+      tdP2.innerHTML = `<strong>${extraTotal}</strong>`;
+      trTotal.appendChild(tdL2);
+      trTotal.appendChild(tdP2);
+      tbody2.appendChild(trTotal);
+      table2.appendChild(tbody2);
+      modalBody.appendChild(table2);
     }
     modal.classList.add('is-active');
   };
