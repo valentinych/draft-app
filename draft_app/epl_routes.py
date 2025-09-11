@@ -629,6 +629,7 @@ def results():
     cls_map = {1: 8, 2: 6, 3: 4, 4: 3, 5: 2, 6: 1, 7: 0, 8: 0}
 
     points_by_manager: Dict[str, Dict[int, int]] = {m: {} for m in managers}
+    class_points_by_manager: Dict[str, Dict[int, int]] = {m: {} for m in managers}
     class_total: Dict[str, int] = {m: 0 for m in managers}
     wins_total: Dict[str, int] = {m: 0 for m in managers}
     raw_total: Dict[str, int] = {m: 0 for m in managers}
@@ -727,7 +728,9 @@ def results():
         )
         for idx, m in enumerate(ordered_managers, start=1):
             pts = gw_scores.get(m, 0)
-            class_total[m] += cls_map.get(idx, 0)
+            cls_pts = cls_map.get(idx, 0)
+            class_points_by_manager[m][gw] = cls_pts
+            class_total[m] += cls_pts
             raw_total[m] += pts
         if ordered_managers:
             max_pts = gw_scores.get(ordered_managers[0], 0)
@@ -739,6 +742,7 @@ def results():
         {
             "manager": m,
             "gw_points": points_by_manager[m],
+            "gw_class_points": class_points_by_manager[m],
             "class_points": class_total[m],
             "wins": wins_total[m],
             "raw_points": raw_total[m],

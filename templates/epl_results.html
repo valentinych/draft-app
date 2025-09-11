@@ -20,7 +20,15 @@
     <tr>
       <td>{{ row.manager }}</td>
       {% for gw in gws %}
-      <td>{{ row.gw_points.get(gw, 0) }}</td>
+      {% set cls = row.gw_class_points.get(gw, 0) %}
+      <td>
+        {{ row.gw_points.get(gw, 0) }} /
+        {% if cls == 8 %}
+          <strong style="color:red;">{{ cls }}</strong>
+        {% else %}
+          {{ cls }}
+        {% endif %}
+      </td>
       {% endfor %}
       <td>{{ row.class_points }}</td>
       <td>{{ row.wins }}</td>
