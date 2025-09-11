@@ -32,8 +32,4 @@
 {% else %}
 <p>Нет завершённых туров.</p>
 {% endif %}
-{% if debug_info %}
-<h2 class="title is-4">Debug Info</h2>
-<pre>{{ debug_info | tojson(indent=2) }}</pre>
-{% endif %}
 {% endblock %}
