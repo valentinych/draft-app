@@ -2,7 +2,7 @@ from __future__ import annotations
 from flask import Blueprint, render_template, request, session, url_for, redirect, abort, flash, jsonify
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
-from typing import Any, Dict
+from typing import Dict
 
 from .epl_services import (
     LAST_SEASON, EPL_FPL,
@@ -632,13 +632,10 @@ def results():
     class_total: Dict[str, int] = {m: 0 for m in managers}
     wins_total: Dict[str, int] = {m: 0 for m in managers}
     raw_total: Dict[str, int] = {m: 0 for m in managers}
-    debug_info: Dict[int, Dict[str, Any]] = {}
 
     for gw in gws:
         stored_scores = load_gw_score(gw)
         gw_scores: Dict[str, int] = {}
-        cache_used = False
-        recomputed = False
 
         _auto_fill_lineups(gw, state, rosters, deadline_map.get(gw))
         lineups_map: Dict[str, dict] = {m: load_lineup(m, gw) for m in managers}
@@ -658,7 +655,6 @@ def results():
             # Use cached totals to avoid recomputing after transfers or roster changes
             for m in managers:
                 gw_scores[m] = int(stored_scores.get(m, 0))
-            cache_used = True
         else:
             stats = points_for_gw(gw, pidx)
             for m in managers:
@@ -720,11 +716,6 @@ def results():
             if gw_scores:
                 save_gw_score(gw, gw_scores)
 
-        debug_info[gw] = {
-            "cache_used": cache_used,
-            "recomputed": recomputed,
-            "stored_scores": stored_scores,
-        }
 
         for m in managers:
             pts = int(gw_scores.get(m, 0))
@@ -759,9 +750,7 @@ def results():
         last_gw = max(gws)
         start_transfer_window(state, standings, last_gw)
 
-    return render_template(
-        "epl_results.html", gws=gws, standings=standings, debug_info=debug_info
-    )
+    return render_template("epl_results.html", gws=gws, standings=standings)
 
 
 @bp.post("/epl/transfer/skip")
