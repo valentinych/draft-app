@@ -626,7 +626,7 @@ def results():
                 pass
 
     managers = sorted(rosters.keys())
-    cls_map = {1: 8, 2: 6, 3: 4, 4: 3, 5: 2, 6: 1}
+    cls_map = {1: 8, 2: 6, 3: 4, 4: 3, 5: 2, 6: 1, 7: 0, 8: 0}
 
     points_by_manager: Dict[str, Dict[int, int]] = {m: {} for m in managers}
     class_total: Dict[str, int] = {m: 0 for m in managers}
@@ -639,16 +639,30 @@ def results():
         gw_scores: Dict[str, int] = {}
         cache_used = False
         recomputed = False
-        if stored_scores and any(int(v) != 0 for v in stored_scores.values()):
+
+        _auto_fill_lineups(gw, state, rosters, deadline_map.get(gw))
+        lineups_map: Dict[str, dict] = {m: load_lineup(m, gw) for m in managers}
+        lineup_ts: Dict[str, datetime] = {}
+        default_ts = datetime.max.replace(tzinfo=timezone.utc)
+        for m, lineup in lineups_map.items():
+            ts_str = lineup.get("ts")
+            ts = None
+            if ts_str:
+                try:
+                    ts = datetime.fromisoformat(ts_str.replace("Z", "+00:00"))
+                except Exception:
+                    pass
+            lineup_ts[m] = ts or default_ts
+
+        if stored_scores:
             # Use cached totals to avoid recomputing after transfers or roster changes
             for m in managers:
                 gw_scores[m] = int(stored_scores.get(m, 0))
             cache_used = True
         else:
-            _auto_fill_lineups(gw, state, rosters, deadline_map.get(gw))
             stats = points_for_gw(gw, pidx)
             for m in managers:
-                lineup = load_lineup(m, gw)
+                lineup = lineups_map.get(m) or {}
                 players_ids = [int(x) for x in (lineup.get("players") or [])]
                 bench_ids = [int(x) for x in (lineup.get("bench") or [])]
                 if not players_ids:
@@ -705,8 +719,6 @@ def results():
             # Persist newly computed scores so future calls reuse the same totals
             if gw_scores:
                 save_gw_score(gw, gw_scores)
-            if stored_scores:
-                recomputed = True
 
         debug_info[gw] = {
             "cache_used": cache_used,
@@ -718,19 +730,18 @@ def results():
             pts = int(gw_scores.get(m, 0))
             points_by_manager[m][gw] = pts
 
-        ordered = sorted(gw_scores.items(), key=lambda x: x[1], reverse=True)
-        prev_pts = None
-        rank = 0
-        for idx, (m, pts) in enumerate(ordered, start=1):
-            if prev_pts is None or pts < prev_pts:
-                rank = idx
-                prev_pts = pts
-            class_total[m] += cls_map.get(rank, 0)
+        ordered_managers = sorted(
+            managers,
+            key=lambda m: (-gw_scores.get(m, 0), lineup_ts.get(m, default_ts), m),
+        )
+        for idx, m in enumerate(ordered_managers, start=1):
+            pts = gw_scores.get(m, 0)
+            class_total[m] += cls_map.get(idx, 0)
             raw_total[m] += pts
-        if ordered:
-            max_pts = ordered[0][1]
-            for m, pts in gw_scores.items():
-                if pts == max_pts:
+        if ordered_managers:
+            max_pts = gw_scores.get(ordered_managers[0], 0)
+            for m in managers:
+                if gw_scores.get(m, 0) == max_pts:
                     wins_total[m] += 1
 
     standings = [
