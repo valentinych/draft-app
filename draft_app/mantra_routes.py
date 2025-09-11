@@ -646,6 +646,7 @@ def _build_results(state: dict) -> dict:
             league = pl.get("league") or meta.get("league")
             mid = mapping.get(fid)
             pts = 0
+            extra = 0
             breakdown: list[dict] = []
             if mid:
                 player = _load_player(mid)
@@ -654,9 +655,12 @@ def _build_results(state: dict) -> dict:
                     rnd = _to_int(stat.get("tournament_round_number"))
                     gw = round_to_gw.get(league, {}).get(rnd)
                     score = _calc_score(stat, pos) if pos else 0
-                    pts += score
                     label = f"GW{gw}" if gw else f"R{rnd}"
                     breakdown.append({"label": label, "points": int(score)})
+                    if gw:
+                        pts += score
+                    else:
+                        extra += score
             info = load_player_info(mid) if mid else {}
             first = (info.get("first_name") or "").strip()
             last = (info.get("name") or "").strip()
@@ -667,15 +671,16 @@ def _build_results(state: dict) -> dict:
             )
             logo = (info.get("club") or {}).get("logo_path")
             breakdown.sort(key=lambda b: b["label"])
-            lineup.append(
-                {
-                    "name": display_name,
-                    "logo": logo,
-                    "pos": pos,
-                    "points": int(pts),
-                    "breakdown": breakdown,
-                }
-            )
+            entry = {
+                "name": display_name,
+                "logo": logo,
+                "pos": pos,
+                "points": int(pts),
+                "breakdown": breakdown,
+            }
+            if extra:
+                entry["extra_points"] = int(extra)
+            lineup.append(entry)
             total += pts
         lineup.sort(
             key=lambda r: POS_ORDER.get((r.get("pos") or "").strip().upper(), 99)
