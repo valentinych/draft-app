@@ -2,7 +2,7 @@ from __future__ import annotations
 from flask import Blueprint, render_template, request, session, url_for, redirect, abort, flash, jsonify
 from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from .epl_services import (
     LAST_SEASON, EPL_FPL,
@@ -16,6 +16,7 @@ from .epl_services import (
     fixtures_for_gw, points_for_gw, gw_info,
     start_transfer_window, transfer_current_manager,
     advance_transfer_turn, record_transfer,
+    BASE_DIR, json_load, json_dump_atomic,
 )
 from .transfer_store import pop_transfer_target
 from .lineup_store import load_lineup, save_lineup
@@ -26,6 +27,31 @@ bp = Blueprint("epl", __name__)
 FORMATIONS = [
     "5-3-2", "5-4-1", "4-3-3", "4-4-2", "4-5-1", "3-4-3", "3-5-2"
 ]
+
+RESULTS_CACHE_FILE = BASE_DIR / "data" / "cache" / "epl_results.json"
+RESULTS_CACHE_TTL = 30 * 60  # 30 minutes
+
+
+def _load_results_cache() -> Optional[Dict[str, Any]]:
+    data = json_load(RESULTS_CACHE_FILE)
+    if not isinstance(data, dict):
+        return None
+    ts = data.get("timestamp")
+    if not ts:
+        return None
+    try:
+        age = datetime.now(timezone.utc) - datetime.fromisoformat(ts)
+    except Exception:
+        return None
+    if age.total_seconds() > RESULTS_CACHE_TTL:
+        return None
+    return data
+
+
+def _save_results_cache(data: Dict[str, Any]) -> None:
+    payload = dict(data)
+    payload["timestamp"] = datetime.now(timezone.utc).isoformat()
+    json_dump_atomic(RESULTS_CACHE_FILE, payload)
 
 @bp.route("/epl", methods=["GET", "POST"])
 def index():
@@ -593,6 +619,15 @@ def lineups():
 
 @bp.get("/epl/results")
 def results():
+    cached = _load_results_cache()
+    if cached:
+        return render_template(
+            "epl_results.html",
+            gws=cached.get("gws", []),
+            standings=cached.get("standings", []),
+            debug_info=cached.get("debug_info", {}),
+        )
+
     bootstrap = ensure_fpl_bootstrap_fresh()
     players = players_from_fpl(bootstrap)
     pidx = players_index(players)
@@ -747,10 +782,9 @@ def results():
     if gws:
         last_gw = max(gws)
         start_transfer_window(state, standings, last_gw)
-
-    return render_template(
-        "epl_results.html", gws=gws, standings=standings, debug_info=debug_info
-    )
+    payload = {"gws": gws, "standings": standings, "debug_info": debug_info}
+    _save_results_cache(payload)
+    return render_template("epl_results.html", **payload)
 
 
 @bp.post("/epl/transfer/skip")
