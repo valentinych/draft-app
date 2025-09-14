@@ -336,6 +336,7 @@ def _build_status_context_ucl() -> Dict[str, Any]:
         "squads": squads,
         "squads_grouped": squads_grouped,
         "clubs_summary": clubs_summary,
+        "league_counts": {},  # for template compatibility
         "draft_completed": bool(state.get("draft_completed")),
         "next_user": state.get("next_user"),
         "next_round": state.get("next_round"),

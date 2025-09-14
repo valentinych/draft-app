@@ -67,19 +67,19 @@
   {% endif %}
 
   {# ---- Клубы (UCL) ---- #}
-  {% if clubs_summary %}
-    <div class="card">
-      <div class="card-title">Пики по клубам (UCL)</div>
-      <div class="table-wrap">
-        <table class="tbl">
-          <thead>
-            <tr>
-              <th>Клуб</th>
-              <th class="num">Всего</th>
-              <th>Менеджеры</th>
-            </tr>
-          </thead>
-          <tbody>
+  <div class="card">
+    <div class="card-title">Пики по клубам (UCL)</div>
+    <div class="table-wrap">
+      <table class="tbl">
+        <thead>
+          <tr>
+            <th>Клуб</th>
+            <th class="num">Всего</th>
+            <th>Менеджеры</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if clubs_summary %}
             {% for row in clubs_summary %}
               <tr>
                 <td>{{ row.club }}</td>
@@ -87,11 +87,13 @@
                 <td>{{ row.managers }}</td>
               </tr>
             {% endfor %}
-          </tbody>
-        </table>
-      </div>
+          {% else %}
+            <tr><td colspan="3" class="muted">Нет данных</td></tr>
+          {% endif %}
+        </tbody>
+      </table>
     </div>
-  {% endif %}
+  </div>
 
   {# ---- Составы по менеджерам: GK -> DEF -> MID -> FWD, с пустыми слотами ---- #}
   {% if squads_grouped %}
@@ -102,7 +104,7 @@
           <div class="panel">
             <div class="panel-title">
               {{ manager }}
-              {% set lc = league_counts.get(manager) %}
+              {% set lc = (league_counts | default({})).get(manager) %}
               {% if lc %}
                 <span class="league-counts">
                   ENG: <span class="cnt lc-{{ 3 if lc['ENG'] >= 3 else lc['ENG'] }}">{{ lc['ENG'] }}</span>,
