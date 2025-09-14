@@ -267,7 +267,8 @@ def _build_status_context_ucl() -> Dict[str, Any]:
     players_raw = _json_load(UCL_PLAYERS) or []
     pidx = {str(p["playerId"]): p for p in _players_from_ucl(players_raw)}
 
-    limits = state.get("limits") or {"Max from club": 3, "Min GK": 1, "Min DEF": 3, "Min MID": 3, "Min FWD": 1}
+    limits = state.get("limits") or {"Max from club": 1, "Slots": UCL_SLOTS_DEFAULT}
+    slots = _slots_from_state(state)
 
     picks: List[Dict[str, Any]] = []
     for row in state.get("picks", []):
@@ -284,14 +285,32 @@ def _build_status_context_ucl() -> Dict[str, Any]:
             }
         )
 
-    squads = state.get("squads") or state.get("teams") or {}
-    if not squads and picks:
+    squads = state.get("rosters") or state.get("squads") or state.get("teams") or {}
+    if (not squads) and picks:
         tmp: Dict[str, List[Dict[str, Any]]] = {}
         for r in picks:
             m = r.get("user") or "Unknown"
             tmp.setdefault(m, [])
             tmp[m].append({"fullName": r.get("player_name"), "position": r.get("pos"), "clubName": r.get("club")})
         squads = tmp
+
+    # Build grouped squads with empty slots for display even if empty
+    squads_grouped: Dict[str, Dict[str, List[Dict[str, Any] | None]]] = {}
+    for manager in UCL_PARTICIPANTS:
+        arr = (squads or {}).get(manager, []) or []
+        g = {"GK": [], "DEF": [], "MID": [], "FWD": []}
+        for pl in arr:
+            pos = (pl.get("position") or "").upper()
+            if pos in g:
+                g[pos].append({
+                    "fullName": pl.get("fullName") or pl.get("player_name"),
+                    "position": pos,
+                    "clubName": pl.get("clubName") or pl.get("club"),
+                })
+        for pos in ("GK", "DEF", "MID", "FWD"):
+            need = max(0, slots.get(pos, 0) - len(g[pos]))
+            g[pos].extend([None] * need)
+        squads_grouped[manager] = g
 
     # Clubs summary: for each club -> total picks and who picked
     clubs_summary: List[Dict[str, Any]] = []
@@ -315,6 +334,7 @@ def _build_status_context_ucl() -> Dict[str, Any]:
         "limits": limits,
         "picks": picks,
         "squads": squads,
+        "squads_grouped": squads_grouped,
         "clubs_summary": clubs_summary,
         "draft_completed": bool(state.get("draft_completed")),
         "next_user": state.get("next_user"),
