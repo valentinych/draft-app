@@ -30,6 +30,12 @@
       {% if status_url %}
         <a class="btn" href="{{ status_url }}">Состояние драфта</a>
       {% endif %}
+      {% if table_league == 'ucl' and not draft_completed and current_user and next_user and current_user == next_user %}
+        <form method="post" style="display:inline; margin-left:8px;">
+          <input type="hidden" name="action" value="skip" />
+          <button type="submit" class="btn">Пропустить ход</button>
+        </form>
+      {% endif %}
       {% if session.get('godmode') %}
         <form method="post" action="{{ undo_url|default(url_for('epl.undo_last_pick')) }}">
           <button type="submit" class="btn btn-danger">Отменить последний пик</button>

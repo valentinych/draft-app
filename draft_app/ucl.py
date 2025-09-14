@@ -168,6 +168,14 @@ def _max_from_club(state: Dict[str, Any]) -> int:
         return UCL_MAX_FROM_CLUB_DEFAULT
 
 def _who_is_on_clock(state: Dict[str, Any]) -> Optional[str]:
+    # Respect explicit turn control if present
+    try:
+        left = int(state.get("turn_left", 0))
+        tu = state.get("turn_user")
+        if tu and left > 0:
+            return tu
+    except Exception:
+        pass
     try:
         idx = int(state.get("current_pick_index", 0))
         order = state.get("draft_order") or []
@@ -230,6 +238,10 @@ def _ensure_ucl_state_shape(state: Dict[str, Any]) -> Dict[str, Any]:
     if slots != need_slots or limits.get("Max from club") != need_max:
         state["limits"] = {"Slots": need_slots, "Max from club": need_max}
         changed = True
+    # Ensure skip bank structure
+    if not isinstance(state.get("skip_bank"), dict):
+        state["skip_bank"] = {}
+        changed = True
     # Ensure draft_order as snake
     desired_order = _snake_order(UCL_PARTICIPANTS, UCL_ROUNDS)
     if state.get("draft_order") != desired_order:
@@ -261,9 +273,43 @@ def _ensure_ucl_state_shape(state: Dict[str, Any]) -> Dict[str, Any]:
         _json_dump_atomic(UCL_STATE, state)
     return state
 
+def _ensure_turn_started(state: Dict[str, Any]) -> Dict[str, Any]:
+    """Ensure current turn fields (turn_user, turn_left) are initialized.
+    Uses skip_bank to grant extra picks this turn, then resets that bank for the user.
+    """
+    try:
+        idx = int(state.get("current_pick_index", 0))
+    except Exception:
+        idx = 0
+        state["current_pick_index"] = 0
+    order = state.get("draft_order") or []
+    if idx >= len(order):
+        return state
+    tu = state.get("turn_user")
+    left = int(state.get("turn_left", 0)) if isinstance(state.get("turn_left"), (int, float)) else 0
+    if tu and left > 0:
+        return state
+    # start new turn for order[idx]
+    user = order[idx]
+    bank = 0
+    try:
+        bank = int((state.get("skip_bank") or {}).get(user, 0) or 0)
+    except Exception:
+        bank = 0
+    state.setdefault("skip_bank", {})[user] = 0
+    state["turn_user"] = user
+    state["turn_left"] = 1 + max(0, bank)
+    # keep convenience fields in sync
+    state["next_user"] = user
+    n_users = len({u for u in (state.get("rosters") or {}).keys()}) or len(UCL_PARTICIPANTS) or 1
+    state["next_round"] = (idx // n_users) + 1
+    _json_dump_atomic(UCL_STATE, state)
+    return state
+
 def _build_status_context_ucl() -> Dict[str, Any]:
     state = _json_load(UCL_STATE) or {}
     state = _ensure_ucl_state_shape(state)
+    state = _ensure_turn_started(state)
     players_raw = _json_load(UCL_PLAYERS) or []
     pidx = {str(p["playerId"]): p for p in _players_from_ucl(players_raw)}
 
@@ -338,7 +384,7 @@ def _build_status_context_ucl() -> Dict[str, Any]:
         "clubs_summary": clubs_summary,
         "league_counts": {},  # for template compatibility
         "draft_completed": bool(state.get("draft_completed")),
-        "next_user": state.get("next_user"),
+        "next_user": _who_is_on_clock(state) or state.get("next_user"),
         "next_round": state.get("next_round"),
     }
 
@@ -361,6 +407,7 @@ def index():
     # state
     state = _json_load(UCL_STATE) or {}
     state = _ensure_ucl_state_shape(state)
+    state = _ensure_turn_started(state)
 
     # Hide already picked players
     picked_ids = _picked_ids_from_state(state)
@@ -371,6 +418,65 @@ def index():
         current_user = session.get("user_name")
         godmode = bool(session.get("godmode"))
         draft_completed = bool(state.get("draft_completed", False))
+        # Action: skip turn
+        if (request.form.get("action") == "skip"):
+            # Only current on-clock user (or godmode) may skip
+            if godmode or (_who_is_on_clock(state) == current_user):
+                # increment bank and record empty pick, advance index and end turn
+                sb = state.setdefault("skip_bank", {})
+                sb[current_user] = int(sb.get(current_user, 0) or 0) + 1
+                state.setdefault("picks", []).append({
+                    "round": state.get("next_round"),
+                    "user": current_user,
+                    "player_name": None,
+                    "club": None,
+                    "pos": None,
+                    "ts": None,
+                    "skipped": True,
+                })
+                # consume this pick slot
+                try:
+                    idx = int(state.get("current_pick_index", 0)) + 1
+                except Exception:
+                    idx = 1
+                state["current_pick_index"] = idx
+                # end current turn immediately
+                state["turn_left"] = 0
+                state["turn_user"] = None
+                # advance next user/round
+                order = state.get("draft_order") or []
+                if 0 <= idx < len(order):
+                    state["next_user"] = order[idx]
+                n_users = len({u for u in (state.get("rosters") or {}).keys()}) or len(UCL_PARTICIPANTS) or 1
+                state["next_round"] = (idx // n_users) + 1
+                if idx >= len(order):
+                    state["draft_completed"] = True
+                _json_dump_atomic(UCL_STATE, state)
+                # After skipping, re-init next turn for header/canPick
+                state = _ensure_turn_started(state)
+            # Render updated view
+            club_filter = ""; pos_filter = ""
+            clubs = _uniq_sorted([p.get("clubName") for p in _players_from_ucl(raw)])
+            positions = _uniq_sorted([p.get("position") for p in _players_from_ucl(raw)])
+            picked_ids = _picked_ids_from_state(state)
+            players = [p for p in _players_from_ucl(raw) if str(p.get("playerId")) not in picked_ids]
+            filtered = _apply_filters(players, club_filter, pos_filter)
+            _annotate_can_pick_ucl(filtered, state, current_user)
+            return render_template(
+                "index.html",
+                draft_title=draft_title,
+                players=filtered,
+                clubs=clubs,
+                positions=positions,
+                club_filter=club_filter,
+                pos_filter=pos_filter,
+                table_league="ucl",
+                current_user=current_user,
+                next_user=_who_is_on_clock(state) or state.get("next_user"),
+                next_round=state.get("next_round"),
+                draft_completed=bool(state.get("draft_completed")),
+                status_url=url_for("ucl.status"),
+            )
         if draft_completed and not godmode:
             return render_template(
                 "index.html",
@@ -474,17 +580,28 @@ def index():
                     "playerId": new_pl["playerId"],
                 })
                 roster.append(new_pl)
-                # advance turn
+                # advance pick slot
                 try:
                     idx = int(state.get("current_pick_index", 0)) + 1
                 except Exception:
                     idx = 1
                 state["current_pick_index"] = idx
+                # consume from current turn's allowance
+                try:
+                    state["turn_left"] = max(0, int(state.get("turn_left", 0)) - 1)
+                except Exception:
+                    state["turn_left"] = 0
+                # if turn finished, advance to next user; otherwise keep same user on clock
                 order = state.get("draft_order") or []
-                if 0 <= idx < len(order):
-                    state["next_user"] = order[idx]
+                if int(state.get("turn_left", 0)) <= 0:
+                    state["turn_user"] = None
+                    if 0 <= idx < len(order):
+                        state["next_user"] = order[idx]
+                else:
+                    # keep same user as on clock
+                    state["next_user"] = current_user
                 # recompute round
-                n_users = len({u for u in (state.get("rosters") or {}).keys()}) or 1
+                n_users = len({u for u in (state.get("rosters") or {}).keys()}) or len(UCL_PARTICIPANTS) or 1
                 state["next_round"] = (idx // n_users) + 1
                 if idx >= len(order):
                     state["draft_completed"] = True
@@ -501,7 +618,7 @@ def index():
             pos_filter="",
             table_league="ucl",
             current_user=session.get("user_name"),
-            next_user=state.get("next_user") or _who_is_on_clock(state),
+            next_user=_who_is_on_clock(state) or state.get("next_user"),
             next_round=state.get("next_round"),
             draft_completed=bool(state.get("draft_completed")),
             status_url=url_for("ucl.status"),
@@ -519,7 +636,7 @@ def index():
     filtered = _apply_filters(players, club_filter, pos_filter)
 
     # state summary for header + canPick
-    next_user = state.get("next_user") or _who_is_on_clock(state)
+    next_user = _who_is_on_clock(state) or state.get("next_user")
     next_round = state.get("next_round")
     draft_completed = bool(state.get("draft_completed"))
     _annotate_can_pick_ucl(filtered, state, session.get("user_name"))
