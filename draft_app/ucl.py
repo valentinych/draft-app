@@ -13,7 +13,7 @@ UCL_PLAYERS = BASE_DIR / "players_80_en_1.json"  # актуальный спис
 UCL_POINTS = BASE_DIR / "players_70_en_3.json"   # очки прошлого сезона
 
 # --- параметры UCL драфта ---
-UCL_PARTICIPANTS = ["Саша", "Руслан", "Женя", "Андрей", "Ксана", "Макс"]
+UCL_PARTICIPANTS = ["Ксана", "Андрей", "Саша", "Руслан", "Женя", "Макс", "Серёга Б"]
 UCL_ROUNDS = 25
 
 # ----------------- helpers -----------------
