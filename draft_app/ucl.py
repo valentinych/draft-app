@@ -9,7 +9,8 @@ bp = Blueprint("ucl", __name__)
 # --- файлы данных (подгони пути под свой проект при необходимости) ---
 BASE_DIR = Path(__file__).resolve().parent.parent
 UCL_STATE = BASE_DIR / "draft_state_ucl.json"
-UCL_PLAYERS = BASE_DIR / "players_70_en_3.json"  # список игроков UCL (есть в репо)
+UCL_PLAYERS = BASE_DIR / "players_80_en_1.json"  # актуальный список игроков
+UCL_POINTS = BASE_DIR / "players_70_en_3.json"   # очки прошлого сезона
 
 # ----------------- helpers -----------------
 def _json_load(p: Path) -> Any:
@@ -35,7 +36,9 @@ def _players_from_ucl(raw: Any) -> List[Dict[str, Any]]:
                     "fullName": p.get("fullName") or p.get("name"),
                     "clubName": p.get("clubName") or p.get("club") or p.get("team"),
                     "position": p.get("position") or p.get("pos"),
-                    "price": p.get("price") if isinstance(p.get("price"), (int, float)) else None,
+                    "price": p.get("price") if isinstance(p.get("price"), (int, float)) else (
+                        p.get("value") if isinstance(p.get("value"), (int, float)) else None
+                    ),
                 }
             )
     elif isinstance(raw, dict) and isinstance(raw.get("players"), list):
@@ -49,10 +52,29 @@ def _players_from_ucl(raw: Any) -> List[Dict[str, Any]]:
                     "fullName": p.get("fullName") or p.get("name"),
                     "clubName": p.get("clubName") or p.get("team"),
                     "position": p.get("position"),
-                    "price": p.get("price") if isinstance(p.get("price"), (int, float)) else None,
-                }
+                    "price": p.get("price") if isinstance(p.get("price"), (int, float)) else (
+                        p.get("value") if isinstance(p.get("value"), (int, float)) else None
+                    ),
+    }
             )
     return out
+
+
+def _ucl_points_map(raw: Any) -> Dict[int, int]:
+    """Extract mapping playerId -> total points from raw JSON."""
+    mapping: Dict[int, int] = {}
+    plist = []
+    if isinstance(raw, dict):
+        plist = raw.get("data", {}).get("value", {}).get("playerList", [])
+    if isinstance(plist, list):
+        for p in plist:
+            try:
+                pid = int(p.get("id"))
+                pts = int(p.get("totPts", 0))
+            except Exception:
+                continue
+            mapping[pid] = pts
+    return mapping
 
 def _uniq_sorted(values: List[str]) -> List[str]:
     return sorted({v for v in values if v})
@@ -114,6 +136,13 @@ def index():
     # load data
     raw = _json_load(UCL_PLAYERS) or []
     players = _players_from_ucl(raw)
+
+    # points from previous season
+    points_raw = _json_load(UCL_POINTS) or {}
+    points_map = _ucl_points_map(points_raw)
+    for p in players:
+        pid = p.get("playerId")
+        p["fp_last"] = points_map.get(pid, 0)
 
     # filters
     club_filter = request.args.get("club", "").strip()

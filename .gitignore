@@ -3,4 +3,5 @@ __pycache__/
 .env
 popupstats/
 *.json
+!players_80_en_1.json
 !data/cache/top4_players.json

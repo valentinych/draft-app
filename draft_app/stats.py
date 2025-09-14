@@ -13,10 +13,10 @@ def index(pid):
         flash('Игрок не найден', 'error')
         return redirect(url_for('ucl.index'))
 
-    cache_path = os.path.join(UCL_CACHE_DIR, f'popupstats_70_{pid}.json')
-    popup_url  = f'https://gaming.uefa.com/en/uclfantasy/services/feeds/popupstats/popupstats_70_{pid}.json'
+    cache_path = os.path.join(UCL_CACHE_DIR, f'popupstats_80_{pid}.json')
+    popup_url  = f'https://gaming.uefa.com/en/uclfantasy/services/feeds/popupstats/popupstats_80_{pid}.json'
     s3_prefix = os.getenv("UCL_STATS_S3_PREFIX", "ucl_stats").strip().strip("/")
-    s3_key = f"{s3_prefix}/popupstats_70_{pid}.json"
+    s3_key = f"{s3_prefix}/popupstats_80_{pid}.json"
 
     data = load_json(cache_path, default=None, s3_key=s3_key)
     if data is None:
