@@ -165,7 +165,7 @@ def _max_from_club(state: Dict[str, Any]) -> int:
     try:
         return int((state.get("limits") or {}).get("Max from club", UCL_MAX_FROM_CLUB_DEFAULT))
     except Exception:
-    return UCL_MAX_FROM_CLUB_DEFAULT
+        return UCL_MAX_FROM_CLUB_DEFAULT
 
 def _who_is_on_clock(state: Dict[str, Any]) -> Optional[str]:
     try:
