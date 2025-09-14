@@ -66,6 +66,33 @@
     </div>
   {% endif %}
 
+  {# ---- Клубы (UCL) ---- #}
+  {% if clubs_summary %}
+    <div class="card">
+      <div class="card-title">Пики по клубам (UCL)</div>
+      <div class="table-wrap">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>Клуб</th>
+              <th class="num">Всего</th>
+              <th>Менеджеры</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in clubs_summary %}
+              <tr>
+                <td>{{ row.club }}</td>
+                <td class="num">{{ row.total }}</td>
+                <td>{{ row.managers }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  {% endif %}
+
   {# ---- Составы по менеджерам: GK -> DEF -> MID -> FWD, с пустыми слотами ---- #}
   {% if squads_grouped %}
     <div class="card">
