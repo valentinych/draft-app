@@ -25,7 +25,8 @@ TOP4_POSITION_LIMITS = {'GK': 2, 'DEF': 6, 'MID': 6, 'FWD': 4}  # 18
 UCL_STATE_FILE   = os.path.join(BASE_DIR, 'draft_state_ucl.json')
 EPL_STATE_FILE   = os.path.join(BASE_DIR, 'draft_state_epl.json')
 TOP4_STATE_FILE  = os.path.join(BASE_DIR, 'draft_state_top4.json')
-UCL_PLAYERS_FILE = os.path.join(BASE_DIR, 'players_70_en_3.json')
+UCL_PLAYERS_FILE = os.path.join(BASE_DIR, 'players_80_en_1.json')
+UCL_POINTS_FILE  = os.path.join(BASE_DIR, 'players_70_en_3.json')
 # players_fpl_bootstrap.json кешируется вне репозитория
 EPL_PLAYERS_FILE = os.path.join(tempfile.gettempdir(), 'players_fpl_bootstrap.json')
 
