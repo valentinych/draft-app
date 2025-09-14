@@ -55,8 +55,44 @@ def _players_from_ucl(raw: Any) -> List[Dict[str, Any]]:
                     "price": p.get("price") if isinstance(p.get("price"), (int, float)) else (
                         p.get("value") if isinstance(p.get("value"), (int, float)) else None
                     ),
-    }
+                }
             )
+    elif isinstance(raw, dict):
+        # Support structure like: {"data": {"value": {"playerList": [...]}}}
+        players = (
+            raw.get("data", {})
+               .get("value", {})
+               .get("playerList", [])
+            if isinstance(raw.get("data"), dict) else []
+        )
+        if isinstance(players, list):
+            for p in players:
+                try:
+                    pid = int(p.get("id")) if p.get("id") is not None else None
+                except Exception:
+                    pid = None
+                if pid is None:
+                    continue
+                # Map UCL feed fields to our canonical ones
+                skill = p.get("skill")
+                pos = None
+                if isinstance(skill, int):
+                    pos = {1: "GK", 2: "DEF", 3: "MID", 4: "FWD"}.get(skill)
+                out.append(
+                    {
+                        "playerId": pid,
+                        "fullName": p.get("pFName") or p.get("pDName") or p.get("latinName"),
+                        "shortName": p.get("pDName"),
+                        "clubName": p.get("tName") or p.get("tSCode") or p.get("cCode"),
+                        "position": pos,
+                        "price": p.get("value") if isinstance(p.get("value"), (int, float)) else None,
+                        # Optional status-like fields for UI
+                        "status": p.get("pStatus") or p.get("qStatus") or "",
+                        "news": p.get("trained") or "",
+                        # Assume can pick by default; server can refine later
+                        "canPick": True,
+                    }
+                )
     return out
 
 
