@@ -476,6 +476,7 @@ def index():
                 next_round=state.get("next_round"),
                 draft_completed=bool(state.get("draft_completed")),
                 status_url=url_for("ucl.status"),
+                undo_url=url_for("ucl.undo_last_pick"),
             )
         if draft_completed and not godmode:
             return render_template(
@@ -492,6 +493,7 @@ def index():
                 next_round=state.get("next_round"),
                 draft_completed=True,
                 status_url=url_for("ucl.status"),
+                undo_url=url_for("ucl.undo_last_pick"),
             )
         pid = request.form.get("player_id")
         pidx = {str(p["playerId"]): p for p in _players_from_ucl(raw)}
@@ -511,6 +513,7 @@ def index():
                 next_round=state.get("next_round"),
                 draft_completed=draft_completed,
                 status_url=url_for("ucl.status"),
+                undo_url=url_for("ucl.undo_last_pick"),
             )
         # Permissions
         on_clock = (_who_is_on_clock(state) == current_user)
@@ -530,6 +533,7 @@ def index():
                 next_round=state.get("next_round"),
                 draft_completed=draft_completed,
                 status_url=url_for("ucl.status"),
+                undo_url=url_for("ucl.undo_last_pick"),
             )
         # Already picked?
         if pid in picked_ids:
@@ -548,6 +552,7 @@ def index():
                 next_round=state.get("next_round"),
                 draft_completed=draft_completed,
                 status_url=url_for("ucl.status"),
+                undo_url=url_for("ucl.undo_last_pick"),
             )
         # Enforce limits
         meta = pidx[pid]
@@ -622,6 +627,7 @@ def index():
             next_round=state.get("next_round"),
             draft_completed=bool(state.get("draft_completed")),
             status_url=url_for("ucl.status"),
+            undo_url=url_for("ucl.undo_last_pick"),
         )
 
     # filters
@@ -655,9 +661,95 @@ def index():
         next_round=next_round,
         draft_completed=draft_completed,
         status_url=url_for("ucl.status"),
+        undo_url=url_for("ucl.undo_last_pick"),
     )
 
 @bp.get("/ucl/status")
 def status():
     ctx = _build_status_context_ucl()
     return render_template("status.html", **ctx)
+
+@bp.post("/ucl/undo")
+def undo_last_pick():
+    if not session.get("godmode"):
+        from flask import abort
+        abort(403)
+    state = _json_load(UCL_STATE) or {}
+    state = _ensure_ucl_state_shape(state)
+    picks = state.get("picks") or []
+    if not picks:
+        # nothing to undo
+        _json_dump_atomic(UCL_STATE, state)
+        return render_template(
+            "index.html",
+            draft_title="UCL Fantasy Draft",
+            players=[], clubs=[], positions=[],
+            club_filter="", pos_filter="",
+            table_league="ucl",
+            current_user=session.get("user_name"),
+            next_user=_who_is_on_clock(state) or state.get("next_user"),
+            next_round=state.get("next_round"),
+            draft_completed=bool(state.get("draft_completed")),
+            status_url=url_for("ucl.status"),
+            undo_url=url_for("ucl.undo_last_pick"),
+        )
+    last = picks.pop()
+    user = last.get("user")
+    pid = last.get("playerId") or ((last.get("player") or {}).get("playerId"))
+    skipped = bool(last.get("skipped")) or (pid is None)
+    rosters = state.setdefault("rosters", {})
+    if not skipped and user in rosters:
+        lst = rosters.get(user) or []
+        for i, pl in enumerate(lst):
+            if int(pl.get("playerId") or 0) == int(pid):
+                lst.pop(i)
+                break
+    # rewind pick index
+    try:
+        idx = int(state.get("current_pick_index", 0)) - 1
+    except Exception:
+        idx = 0
+    if idx < 0:
+        idx = 0
+    state["current_pick_index"] = idx
+    # If it was a skipped pick, decrement user's skip bank
+    if skipped and user:
+        sb = state.setdefault("skip_bank", {})
+        try:
+            sb[user] = max(0, int(sb.get(user, 0)) - 1)
+        except Exception:
+            sb[user] = 0
+    # reset turn to recompute properly
+    state["turn_user"] = None
+    state["turn_left"] = 0
+    # recompute helpers
+    order = state.get("draft_order") or []
+    state["next_user"] = order[idx] if 0 <= idx < len(order) else None
+    n_users = len({u for u in (state.get("rosters") or {}).keys()}) or len(UCL_PARTICIPANTS) or 1
+    state["next_round"] = (idx // n_users) + 1
+    state["draft_completed"] = False
+    _json_dump_atomic(UCL_STATE, state)
+    # Show updated page
+    raw = _json_load(UCL_PLAYERS) or []
+    players = _players_from_ucl(raw)
+    picked_ids = _picked_ids_from_state(state)
+    players = [p for p in players if str(p.get("playerId")) not in picked_ids]
+    clubs = _uniq_sorted([p.get("clubName") for p in players])
+    positions = _uniq_sorted([p.get("position") for p in players])
+    _annotate_can_pick_ucl(players, state, session.get("user_name"))
+    return render_template(
+        "index.html",
+        draft_title="UCL Fantasy Draft",
+        players=players,
+        clubs=clubs,
+        positions=positions,
+        club_filter="",
+        pos_filter="",
+        table_league="ucl",
+        current_user=session.get("user_name"),
+        next_user=_who_is_on_clock(state) or state.get("next_user"),
+        next_round=state.get("next_round"),
+        draft_completed=bool(state.get("draft_completed")),
+        status_url=url_for("ucl.status"),
+        undo_url=url_for("ucl.undo_last_pick"),
+    )
