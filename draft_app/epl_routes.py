@@ -851,6 +851,51 @@ def undo_last_pick():
     flash("Последний пик отменён", "success")
     return redirect(url_for("epl.index"))
 
+# ---- Admin: add player to roster (repair) ----
+@bp.post("/epl/admin/add")
+def admin_add_player():
+    if not session.get("godmode"):
+        abort(403)
+    manager = (request.form.get("manager") or "").strip()
+    try:
+        pid = int(request.form.get("player_id") or 0)
+    except Exception:
+        pid = 0
+    if not manager or not pid:
+        flash("Нужно указать manager и player_id", "danger")
+        return redirect(url_for("epl.index"))
+
+    # Load metadata for the player from bootstrap
+    bootstrap = ensure_fpl_bootstrap_fresh()
+    players = players_from_fpl(bootstrap)
+    pidx = players_index(players)
+    meta = pidx.get(str(pid))
+    if not meta:
+        flash("Игрок не найден в FPL bootstrap", "danger")
+        return redirect(url_for("epl.index"))
+
+    state = load_state()
+    roster = state.setdefault("rosters", {}).setdefault(manager, [])
+    # Check if already in roster
+    for pl in roster:
+        try:
+            if int(pl.get("playerId") or 0) == pid:
+                flash("Игрок уже в составе", "info")
+                return redirect(url_for("epl.index"))
+        except Exception:
+            pass
+    new_pl = {
+        "playerId": meta["playerId"],
+        "fullName": meta.get("fullName"),
+        "clubName": meta.get("clubName"),
+        "position": meta.get("position"),
+        "price": meta.get("price"),
+    }
+    roster.append(new_pl)
+    save_state(state)
+    flash(f"Добавлен {new_pl['fullName']} ({new_pl['clubName']}) в состав {manager}", "success")
+    return redirect(url_for("epl.index"))
+
 # ---- Wishlist API ----
 @bp.route("/epl/api/wishlist", methods=["GET", "PATCH", "POST"])
 def wishlist_api():
