@@ -173,7 +173,9 @@ def _load_for_league(league: str) -> Dict[str, Any]:
     return _build_context(state or {}, pidx)
 
 
-@bp.get("/<league>/status")
+# Use a non-conflicting path so league-specific blueprints like
+# UCL/EPL can own "/<league>/status" without collisions.
+@bp.get("/status/<league>")
 def status(league: str):
     league = league.lower()
     ctx = _load_for_league(league)
