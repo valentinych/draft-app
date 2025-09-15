@@ -3,6 +3,11 @@ import json
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set
 from flask import Blueprint, render_template, request, session, url_for
+import os
+try:
+    import boto3
+except Exception:
+    boto3 = None
 
 bp = Blueprint("ucl", __name__)
 
@@ -28,6 +33,58 @@ def _json_dump_atomic(p: Path, data: Any) -> None:
         tmp = p.with_suffix(p.suffix + ".tmp")
         tmp.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
         tmp.replace(p)
+    except Exception:
+        pass
+
+# Optional S3-backed state for UCL
+def _ucl_s3_enabled() -> bool:
+    return bool(os.getenv("DRAFT_S3_BUCKET") and (os.getenv("DRAFT_S3_UCL_STATE_KEY") or os.getenv("DRAFT_S3_STATE_KEY")))
+
+def _ucl_s3_bucket() -> Optional[str]:
+    return os.getenv("DRAFT_S3_BUCKET")
+
+def _ucl_s3_key() -> Optional[str]:
+    return os.getenv("DRAFT_S3_UCL_STATE_KEY") or os.getenv("DRAFT_S3_STATE_KEY")
+
+def _ucl_s3_client():
+    if not boto3:
+        return None
+    try:
+        region = os.getenv("AWS_REGION") or os.getenv("AWS_DEFAULT_REGION") or "us-east-1"
+        return boto3.client("s3", region_name=region)
+    except Exception:
+        return None
+
+def _ucl_state_load() -> Dict[str, Any]:
+    state: Dict[str, Any] = {}
+    if _ucl_s3_enabled():
+        cli = _ucl_s3_client()
+        try:
+            if cli and _ucl_s3_bucket() and _ucl_s3_key():
+                obj = cli.get_object(Bucket=_ucl_s3_bucket(), Key=_ucl_s3_key())
+                body = obj["Body"].read().decode("utf-8")
+                state = json.loads(body) or {}
+        except Exception:
+            state = {}
+    if not state:
+        state = _json_load(UCL_STATE) or {}
+    state.setdefault("rosters", {})
+    state.setdefault("picks", [])
+    state.setdefault("draft_order", [])
+    state.setdefault("current_pick_index", 0)
+    state.setdefault("next_user", None)
+    state.setdefault("next_round", 1)
+    return state
+
+def _ucl_state_save(state: Dict[str, Any]) -> None:
+    _json_dump_atomic(UCL_STATE, state)
+    if not _ucl_s3_enabled():
+        return
+    cli = _ucl_s3_client()
+    try:
+        if cli and _ucl_s3_bucket() and _ucl_s3_key():
+            body = json.dumps(state, ensure_ascii=False, indent=2).encode("utf-8")
+            cli.put_object(Bucket=_ucl_s3_bucket(), Key=_ucl_s3_key(), Body=body, ContentType="application/json; charset=utf-8", CacheControl="no-cache")
     except Exception:
         pass
 
@@ -270,7 +327,7 @@ def _ensure_ucl_state_shape(state: Dict[str, Any]) -> Dict[str, Any]:
         state["next_round"] = nr
         changed = True
     if changed:
-        _json_dump_atomic(UCL_STATE, state)
+        _ucl_state_save(state)
     return state
 
 def _ensure_turn_started(state: Dict[str, Any]) -> Dict[str, Any]:
@@ -303,11 +360,11 @@ def _ensure_turn_started(state: Dict[str, Any]) -> Dict[str, Any]:
     state["next_user"] = user
     n_users = len({u for u in (state.get("rosters") or {}).keys()}) or len(UCL_PARTICIPANTS) or 1
     state["next_round"] = (idx // n_users) + 1
-    _json_dump_atomic(UCL_STATE, state)
+    _ucl_state_save(state)
     return state
 
 def _build_status_context_ucl() -> Dict[str, Any]:
-    state = _json_load(UCL_STATE) or {}
+    state = _ucl_state_load()
     state = _ensure_ucl_state_shape(state)
     state = _ensure_turn_started(state)
     players_raw = _json_load(UCL_PLAYERS) or []
@@ -405,7 +462,7 @@ def index():
         p["fp_last"] = points_map.get(pid, 0)
 
     # state
-    state = _json_load(UCL_STATE) or {}
+    state = _ucl_state_load()
     state = _ensure_ucl_state_shape(state)
     state = _ensure_turn_started(state)
 
@@ -420,14 +477,17 @@ def index():
         draft_completed = bool(state.get("draft_completed", False))
         # Action: skip turn
         if (request.form.get("action") == "skip"):
-            # Only current on-clock user (or godmode) may skip
-            if godmode or (_who_is_on_clock(state) == current_user):
+            # Only current on-clock user (or godmode) may skip; god can target via as_user
+            target_user = current_user
+            if godmode and request.form.get("as_user"):
+                target_user = (request.form.get("as_user") or "").strip()
+            if godmode or (_who_is_on_clock(state) == target_user):
                 # increment bank and record empty pick, advance index and end turn
                 sb = state.setdefault("skip_bank", {})
-                sb[current_user] = int(sb.get(current_user, 0) or 0) + 1
+                sb[target_user] = int(sb.get(target_user, 0) or 0) + 1
                 state.setdefault("picks", []).append({
                     "round": state.get("next_round"),
-                    "user": current_user,
+                    "user": target_user,
                     "player_name": None,
                     "club": None,
                     "pos": None,
@@ -516,7 +576,10 @@ def index():
                 undo_url=url_for("ucl.undo_last_pick"),
             )
         # Permissions
-        on_clock = (_who_is_on_clock(state) == current_user)
+        acting_user = current_user
+        if godmode and request.form.get("as_user"):
+            acting_user = (request.form.get("as_user") or "").strip()
+        on_clock = (_who_is_on_clock(state) == acting_user) or godmode
         if not godmode and (not current_user or not on_clock):
             # forbidden
             return render_template(
@@ -556,7 +619,7 @@ def index():
             )
         # Enforce limits
         meta = pidx[pid]
-        roster = (state.get("rosters") or {}).setdefault(current_user or "", [])
+        roster = (state.get("rosters") or {}).setdefault(acting_user or "", [])
         slots = _slots_from_state(state)
         max_from_club = _max_from_club(state)
         club = (meta.get("clubName") or "").upper()
@@ -577,7 +640,7 @@ def index():
                 }
                 state.setdefault("picks", []).append({
                     "round": state.get("next_round"),
-                    "user": current_user,
+                    "user": acting_user,
                     "player_name": new_pl["fullName"],
                     "club": new_pl["clubName"],
                     "pos": new_pl["position"],
@@ -604,13 +667,13 @@ def index():
                         state["next_user"] = order[idx]
                 else:
                     # keep same user as on clock
-                    state["next_user"] = current_user
+                    state["next_user"] = acting_user
                 # recompute round
                 n_users = len({u for u in (state.get("rosters") or {}).keys()}) or len(UCL_PARTICIPANTS) or 1
                 state["next_round"] = (idx // n_users) + 1
                 if idx >= len(order):
                     state["draft_completed"] = True
-                _json_dump_atomic(UCL_STATE, state)
+                _ucl_state_save(state)
 
         # Redirect to GET to show updated table
         return render_template(
@@ -674,7 +737,7 @@ def undo_last_pick():
     if not session.get("godmode"):
         from flask import abort
         abort(403)
-    state = _json_load(UCL_STATE) or {}
+    state = _ucl_state_load()
     state = _ensure_ucl_state_shape(state)
     picks = state.get("picks") or []
     if not picks:
@@ -728,7 +791,7 @@ def undo_last_pick():
     n_users = len({u for u in (state.get("rosters") or {}).keys()}) or len(UCL_PARTICIPANTS) or 1
     state["next_round"] = (idx // n_users) + 1
     state["draft_completed"] = False
-    _json_dump_atomic(UCL_STATE, state)
+    _ucl_state_save(state)
     # Show updated page
     raw = _json_load(UCL_PLAYERS) or []
     players = _players_from_ucl(raw)

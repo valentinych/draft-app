@@ -896,6 +896,81 @@ def admin_add_player():
     flash(f"Добавлен {new_pl['fullName']} ({new_pl['clubName']}) в состав {manager}", "success")
     return redirect(url_for("epl.index"))
 
+
+@bp.post("/epl/admin/pick")
+def admin_pick_player():
+    """Godmode: record a pick on behalf of a manager (repair/force-pick).
+    By default does not advance draft index; to advance when manager is on clock,
+    pass form field 'advance=1'.
+    """
+    if not session.get("godmode"):
+        abort(403)
+    manager = (request.form.get("manager") or "").strip()
+    try:
+        pid = int(request.form.get("player_id") or 0)
+    except Exception:
+        pid = 0
+    advance = (request.form.get("advance") in ("1", "true", "True", "yes"))
+    if not manager or not pid:
+        flash("Нужно указать manager и player_id", "danger")
+        return redirect(url_for("epl.index"))
+
+    bootstrap = ensure_fpl_bootstrap_fresh()
+    players = players_from_fpl(bootstrap)
+    pidx = players_index(players)
+    nidx = nameclub_index(players)
+    meta = pidx.get(str(pid))
+    if not meta:
+        flash("Игрок не найден в FPL bootstrap", "danger")
+        return redirect(url_for("epl.index"))
+
+    state = load_state()
+    picked_ids = picked_fpl_ids_from_state(state, nidx)
+    if str(pid) in picked_ids:
+        flash("Игрок уже выбран кем-то", "warning")
+        return redirect(url_for("epl.index"))
+
+    # Append to roster
+    roster = state.setdefault("rosters", {}).setdefault(manager, [])
+    roster.append({
+        "playerId": meta["playerId"],
+        "fullName": meta.get("fullName"),
+        "clubName": meta.get("clubName"),
+        "position": meta.get("position"),
+        "price": meta.get("price"),
+    })
+
+    # Append to picks history (without affecting index by default)
+    from datetime import datetime
+    state.setdefault("picks", []).append({
+        "user": manager,
+        "player": {
+            "playerId": meta["playerId"],
+            "fullName": meta.get("fullName"),
+            "clubName": meta.get("clubName"),
+            "position": meta.get("position"),
+            "price": meta.get("price"),
+        },
+        "ts": datetime.now().isoformat(timespec="seconds"),
+    })
+
+    # Optionally advance current pick if manager is on the clock
+    if advance and (who_is_on_clock(state) == manager):
+        try:
+            idx = int(state.get("current_pick_index", 0)) + 1
+        except Exception:
+            idx = 1
+        state["current_pick_index"] = idx
+        order = state.get("draft_order") or []
+        if 0 <= idx < len(order):
+            state["next_user"] = order[idx]
+        else:
+            state["draft_completed"] = True
+
+    save_state(state)
+    flash(f"Пик оформлен за {manager}: {meta.get('fullName')}", "success")
+    return redirect(url_for("epl.index"))
+
 # ---- Wishlist API ----
 @bp.route("/epl/api/wishlist", methods=["GET", "PATCH", "POST"])
 def wishlist_api():
