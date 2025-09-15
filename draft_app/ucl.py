@@ -537,6 +537,7 @@ def index():
                 draft_completed=bool(state.get("draft_completed")),
                 status_url=url_for("ucl.status"),
                 undo_url=url_for("ucl.undo_last_pick"),
+                managers=sorted((state.get("rosters") or {}).keys()),
             )
         if draft_completed and not godmode:
             return render_template(
@@ -554,6 +555,7 @@ def index():
                 draft_completed=True,
                 status_url=url_for("ucl.status"),
                 undo_url=url_for("ucl.undo_last_pick"),
+                managers=sorted((state.get("rosters") or {}).keys()),
             )
         pid = request.form.get("player_id")
         pidx = {str(p["playerId"]): p for p in _players_from_ucl(raw)}
@@ -574,6 +576,7 @@ def index():
                 draft_completed=draft_completed,
                 status_url=url_for("ucl.status"),
                 undo_url=url_for("ucl.undo_last_pick"),
+                managers=sorted((state.get("rosters") or {}).keys()),
             )
         # Permissions
         acting_user = current_user
@@ -597,6 +600,7 @@ def index():
                 draft_completed=draft_completed,
                 status_url=url_for("ucl.status"),
                 undo_url=url_for("ucl.undo_last_pick"),
+                managers=sorted((state.get("rosters") or {}).keys()),
             )
         # Already picked?
         if pid in picked_ids:
@@ -691,6 +695,7 @@ def index():
             draft_completed=bool(state.get("draft_completed")),
             status_url=url_for("ucl.status"),
             undo_url=url_for("ucl.undo_last_pick"),
+            managers=sorted((state.get("rosters") or {}).keys()),
         )
 
     # filters
@@ -725,6 +730,7 @@ def index():
         draft_completed=draft_completed,
         status_url=url_for("ucl.status"),
         undo_url=url_for("ucl.undo_last_pick"),
+        managers=sorted((state.get("rosters") or {}).keys()),
     )
 
 @bp.get("/ucl/status")

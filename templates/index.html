@@ -102,6 +102,41 @@
     </div>
   </form>
 
+  {% if session.get('godmode') and managers %}
+  <div class="card" style="margin:10px 0;">
+    <div class="card-title">Админ: быстрый пик за менеджера</div>
+    <div class="card-body">
+      {% if table_league == 'epl' %}
+      <form method="post" action="{{ url_for('epl.admin_pick_player') }}" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+        <label>Менеджер
+          <select name="manager">
+            {% for m in managers %}
+              <option value="{{ m }}">{{ m }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label>Player ID <input type="number" name="player_id" placeholder="e.g. 674" required></label>
+        <label><input type="checkbox" name="advance" value="1"> Сдвинуть очередь</label>
+        <button type="submit" class="btn">Пикнуть</button>
+      </form>
+      {% elif table_league == 'ucl' %}
+      <form method="post" action="{{ url_for('ucl.index') }}" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+        <input type="hidden" name="action" value="pick" />
+        <label>Менеджер
+          <select name="as_user">
+            {% for m in managers %}
+              <option value="{{ m }}">{{ m }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label>Player ID <input type="number" name="player_id" placeholder="UCL id" required></label>
+        <button type="submit" class="btn">Пикнуть</button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
   {% set show_price = players and players[0].get('price') is not none %}
   {% set current_sort = request.args.get('sort') or 'price' %}
   {% set current_dir = request.args.get('dir', 'desc') %}

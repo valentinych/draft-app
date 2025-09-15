@@ -178,6 +178,7 @@ def index():
         status_url=url_for("epl.status"),
         transfer_active=transfer_active,
         transfer_user=transfer_user,
+        managers=sorted((state.get("rosters") or {}).keys()),
     )
 
 @bp.get("/epl/status")
