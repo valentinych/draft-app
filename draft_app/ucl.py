@@ -38,13 +38,16 @@ def _json_dump_atomic(p: Path, data: Any) -> None:
 
 # Optional S3-backed state for UCL
 def _ucl_s3_enabled() -> bool:
-    return bool(os.getenv("DRAFT_S3_BUCKET") and (os.getenv("DRAFT_S3_UCL_STATE_KEY") or os.getenv("DRAFT_S3_STATE_KEY")))
+    # Use a dedicated UCL key only; avoid falling back to a generic key that
+    # could point to another league's state (e.g., EPL), which would pollute UCL
+    # status with foreign picks.
+    return bool(os.getenv("DRAFT_S3_BUCKET") and os.getenv("DRAFT_S3_UCL_STATE_KEY"))
 
 def _ucl_s3_bucket() -> Optional[str]:
     return os.getenv("DRAFT_S3_BUCKET")
 
 def _ucl_s3_key() -> Optional[str]:
-    return os.getenv("DRAFT_S3_UCL_STATE_KEY") or os.getenv("DRAFT_S3_STATE_KEY")
+    return os.getenv("DRAFT_S3_UCL_STATE_KEY")
 
 def _ucl_s3_client():
     if not boto3:
@@ -511,7 +514,7 @@ def index():
                 state["next_round"] = (idx // n_users) + 1
                 if idx >= len(order):
                     state["draft_completed"] = True
-                _json_dump_atomic(UCL_STATE, state)
+                _ucl_state_save(state)
                 # After skipping, re-init next turn for header/canPick
                 state = _ensure_turn_started(state)
             # Render updated view
@@ -748,7 +751,7 @@ def undo_last_pick():
     picks = state.get("picks") or []
     if not picks:
         # nothing to undo
-        _json_dump_atomic(UCL_STATE, state)
+        _ucl_state_save(state)
         return render_template(
             "index.html",
             draft_title="UCL Fantasy Draft",
