@@ -38,16 +38,26 @@ def _json_dump_atomic(p: Path, data: Any) -> None:
 
 # Optional S3-backed state for UCL
 def _ucl_s3_enabled() -> bool:
-    # Use a dedicated UCL key only; avoid falling back to a generic key that
-    # could point to another league's state (e.g., EPL), which would pollute UCL
-    # status with foreign picks.
-    return bool(os.getenv("DRAFT_S3_BUCKET") and os.getenv("DRAFT_S3_UCL_STATE_KEY"))
+    """Return True when UCL state should be synchronised with S3."""
+    return bool(_ucl_s3_bucket())
 
 def _ucl_s3_bucket() -> Optional[str]:
     return os.getenv("DRAFT_S3_BUCKET")
 
 def _ucl_s3_key() -> Optional[str]:
-    return os.getenv("DRAFT_S3_UCL_STATE_KEY")
+    key = os.getenv("DRAFT_S3_UCL_STATE_KEY")
+    if key:
+        return key.strip()
+    legacy = os.getenv("UCL_S3_STATE_KEY")
+    if legacy:
+        return legacy.strip()
+    generic = os.getenv("DRAFT_S3_STATE_KEY")
+    if generic:
+        g = generic.strip().lstrip("/")
+        if "ucl" in g.lower():
+            return g
+        return f"ucl/{g}"
+    return f"ucl/{UCL_STATE.name}"
 
 def _ucl_s3_client():
     if not boto3:
@@ -62,9 +72,11 @@ def _ucl_state_load() -> Dict[str, Any]:
     state: Dict[str, Any] = {}
     if _ucl_s3_enabled():
         cli = _ucl_s3_client()
+        bucket = _ucl_s3_bucket()
+        key = _ucl_s3_key()
         try:
-            if cli and _ucl_s3_bucket() and _ucl_s3_key():
-                obj = cli.get_object(Bucket=_ucl_s3_bucket(), Key=_ucl_s3_key())
+            if cli and bucket and key:
+                obj = cli.get_object(Bucket=bucket, Key=key)
                 body = obj["Body"].read().decode("utf-8")
                 state = json.loads(body) or {}
         except Exception:
@@ -84,10 +96,12 @@ def _ucl_state_save(state: Dict[str, Any]) -> None:
     if not _ucl_s3_enabled():
         return
     cli = _ucl_s3_client()
+    bucket = _ucl_s3_bucket()
+    key = _ucl_s3_key()
     try:
-        if cli and _ucl_s3_bucket() and _ucl_s3_key():
+        if cli and bucket and key:
             body = json.dumps(state, ensure_ascii=False, indent=2).encode("utf-8")
-            cli.put_object(Bucket=_ucl_s3_bucket(), Key=_ucl_s3_key(), Body=body, ContentType="application/json; charset=utf-8", CacheControl="no-cache")
+            cli.put_object(Bucket=bucket, Key=key, Body=body, ContentType="application/json; charset=utf-8", CacheControl="no-cache")
     except Exception:
         pass
 

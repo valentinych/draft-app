@@ -15,6 +15,32 @@ top4_state = None
 ucl_players = []
 epl_players = []
 
+
+def _ucl_state_s3_key() -> str:
+    key = os.getenv("DRAFT_S3_UCL_STATE_KEY")
+    if key:
+        return key.strip()
+    legacy = os.getenv("UCL_S3_STATE_KEY")
+    if legacy:
+        return legacy.strip()
+    generic = os.getenv("DRAFT_S3_STATE_KEY")
+    if generic:
+        g = generic.strip().lstrip("/")
+        if "ucl" in g.lower():
+            return g
+        return f"ucl/{g}"
+    return f"ucl/{os.path.basename(UCL_STATE_FILE)}"
+
+
+def _epl_state_s3_key() -> str:
+    key = os.getenv("DRAFT_S3_STATE_KEY")
+    if key:
+        return key.strip()
+    legacy = os.getenv("EPL_S3_STATE_KEY")
+    if legacy:
+        return legacy.strip()
+    return os.path.basename(EPL_STATE_FILE)
+
 def _default_state(users):
     return {
         'rosters':            {u: [] for u in users},
@@ -33,7 +59,7 @@ def _build_snake_order(users, rounds_total):
 def init_ucl(app):
     global ucl_state, ucl_players
     # состояние
-    ucl_key = os.getenv("UCL_S3_STATE_KEY", os.path.basename(UCL_STATE_FILE))
+    ucl_key = _ucl_state_s3_key()
     state = load_json(UCL_STATE_FILE, default=None, s3_key=ucl_key)
     if state is None:
         state = _default_state(UCL_USERS)
@@ -50,7 +76,7 @@ def init_ucl(app):
 def init_epl(app):
     global epl_state, epl_players
     # состояние
-    epl_key = os.getenv("EPL_S3_STATE_KEY", os.path.basename(EPL_STATE_FILE))
+    epl_key = _epl_state_s3_key()
     state = load_json(EPL_STATE_FILE, default=None, s3_key=epl_key)
     if state is None:
         state = _default_state(EPL_USERS)
@@ -74,12 +100,10 @@ def init_top4(app):
 
 # Общие хелперы
 def save_ucl_state():
-    key = os.getenv("UCL_S3_STATE_KEY", os.path.basename(UCL_STATE_FILE))
-    save_json(UCL_STATE_FILE, ucl_state, s3_key=key)
+    save_json(UCL_STATE_FILE, ucl_state, s3_key=_ucl_state_s3_key())
 
 def save_epl_state():
-    key = os.getenv("EPL_S3_STATE_KEY", os.path.basename(EPL_STATE_FILE))
-    save_json(EPL_STATE_FILE, epl_state, s3_key=key)
+    save_json(EPL_STATE_FILE, epl_state, s3_key=_epl_state_s3_key())
 
 def user_is_full(roster, limits):
     return len(roster) >= sum(limits.values())
