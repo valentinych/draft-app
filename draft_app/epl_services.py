@@ -84,14 +84,27 @@ def json_dump_atomic(p: Path, data: Any):
 #        S3 I/O
 # ======================
 def _s3_enabled() -> bool:
-    # Включаем, если есть bucket и ключ для state; wishlist использует тот же bucket и prefix.
-    return bool(os.getenv("DRAFT_S3_BUCKET") and os.getenv("DRAFT_S3_STATE_KEY"))
+    """Return True when S3 mirroring should be attempted.
+
+    Раньше требовалось указывать ``DRAFT_S3_STATE_KEY``; если переменная
+    отсутствовала, то даже кеши очков не синхронизировались с S3. Теперь
+    достаточно самого bucket — ключи берутся из специализированных хелперов,
+    что гарантирует загрузку всех JSON со стейтом и начисленными очками в S3.
+    """
+    return bool(_s3_bucket())
 
 def _s3_bucket() -> Optional[str]:
     return os.getenv("DRAFT_S3_BUCKET")
 
 def _s3_state_key() -> Optional[str]:
-    return os.getenv("DRAFT_S3_STATE_KEY")
+    key = os.getenv("DRAFT_S3_STATE_KEY")
+    if key:
+        return key.strip()
+    legacy = os.getenv("EPL_S3_STATE_KEY")
+    if legacy:
+        return legacy.strip()
+    # Фолбэк сохраняет историческое имя файла, чтобы не потерять уже загруженный стейт.
+    return "draft_state_epl.json"
 
 def _s3_wishlist_prefix() -> str:
     # Можно переопределить префикс через ENV, по умолчанию wishlist/epl
