@@ -6,7 +6,7 @@ from datetime import datetime
 
 import requests
 
-from .config import EPL_POSITION_LIMITS
+from .config import EPL_POSITION_LIMITS, EPL_USERS
 
 # === S3 ===
 try:
@@ -51,6 +51,8 @@ DEFAULT_SLOTS = {
     "MID": EPL_POSITION_LIMITS.get("Midfielder", 0),
     "FWD": EPL_POSITION_LIMITS.get("Forward", 0),
 }
+EPL_MANAGER_SET = {m for m in EPL_USERS}
+EPL_TOTAL_ROUNDS = sum(DEFAULT_SLOTS.values())
 LAST_SEASON = "2024/25"
 
 # Расписание трансферных окон: gameweek -> число раундов
@@ -80,6 +82,14 @@ def json_dump_atomic(p: Path, data: Any):
         json.dump(data, f, ensure_ascii=False, indent=2)
     os.replace(tmp, p)
 
+
+def _snake_order(users: List[str], rounds: int) -> List[str]:
+    order: List[str] = []
+    for rnd in range(rounds):
+        seq = users if rnd % 2 == 0 else list(reversed(users))
+        order.extend(seq)
+    return order
+
 # ======================
 #        S3 I/O
 # ======================
@@ -97,9 +107,14 @@ def _s3_bucket() -> Optional[str]:
     return os.getenv("DRAFT_S3_BUCKET")
 
 def _s3_state_key() -> Optional[str]:
+    specific = os.getenv("DRAFT_S3_EPL_STATE_KEY")
+    if specific:
+        return specific.strip()
     key = os.getenv("DRAFT_S3_STATE_KEY")
     if key:
-        return key.strip()
+        candidate = key.strip()
+        if "epl" in candidate.lower():
+            return candidate
     legacy = os.getenv("EPL_S3_STATE_KEY")
     if legacy:
         return legacy.strip()
@@ -417,16 +432,129 @@ def load_state() -> Dict[str, Any]:
         state = json_load(EPL_STATE) or {}
 
     # normalize defaults
-    state.setdefault("rosters", {})
-    state.setdefault("picks", [])
-    state.setdefault("draft_order", [])
-    state.setdefault("current_pick_index", 0)
-    state.setdefault("draft_started_at", None)
-    state.setdefault("lineups", {})
-    state.setdefault("transfer", {})
-    limits = state.setdefault("limits", {})
-    limits.setdefault("Max from club", 3)
+    _normalize_epl_state(state)
     return state
+
+
+def _normalize_epl_state(state: Dict[str, Any]) -> None:
+    changed = False
+
+    rosters_raw = state.get("rosters")
+    rosters: Dict[str, List[Dict[str, Any]]] = {}
+    if isinstance(rosters_raw, dict):
+        for manager in EPL_USERS:
+            arr = rosters_raw.get(manager)
+            if isinstance(arr, list):
+                rosters[manager] = arr
+            else:
+                rosters[manager] = []
+    else:
+        rosters = {manager: [] for manager in EPL_USERS}
+    if rosters != rosters_raw:
+        state["rosters"] = rosters
+        changed = True
+
+    picks = state.get("picks")
+    if isinstance(picks, list):
+        filtered = [row for row in picks if (row or {}).get("user") in EPL_MANAGER_SET]
+        if filtered != picks:
+            state["picks"] = filtered
+            changed = True
+    else:
+        state["picks"] = []
+        changed = True
+
+    if "draft_started_at" not in state:
+        state["draft_started_at"] = None
+        changed = True
+    lineups_raw = state.get("lineups")
+    lineups: Dict[str, Dict[str, Any]] = {}
+    if isinstance(lineups_raw, dict):
+        for manager in EPL_USERS:
+            ml = lineups_raw.get(manager)
+            if isinstance(ml, dict):
+                lineups[manager] = ml
+            else:
+                lineups[manager] = {}
+    else:
+        lineups = {manager: {} for manager in EPL_USERS}
+    if lineups != lineups_raw:
+        state["lineups"] = lineups
+        changed = True
+
+    transfer_raw = state.get("transfer")
+    if not isinstance(transfer_raw, dict):
+        transfer = {}
+        changed = True
+    else:
+        transfer = dict(transfer_raw)
+    pending_out = transfer.get("pending_out")
+    if isinstance(pending_out, dict):
+        filtered = {m: pending_out.get(m) for m in EPL_USERS if pending_out.get(m) is not None}
+        if filtered != pending_out:
+            transfer["pending_out"] = filtered
+            changed = True
+    order = transfer.get("order")
+    if isinstance(order, list):
+        filtered_order = [m for m in order if m in EPL_MANAGER_SET]
+        if filtered_order != order:
+            transfer["order"] = filtered_order
+            changed = True
+    if transfer != transfer_raw:
+        state["transfer"] = transfer
+        changed = True
+
+    limits = state.get("limits")
+    desired_slots = dict(DEFAULT_SLOTS)
+    desired_limits = {"Slots": desired_slots, "Max from club": 3}
+    if not isinstance(limits, dict) or limits.get("Slots") != desired_slots or limits.get("Max from club") != 3:
+        state["limits"] = desired_limits
+        changed = True
+
+    order = state.get("draft_order") or []
+    if not isinstance(order, list):
+        order = []
+    base_order = _snake_order(EPL_USERS, EPL_TOTAL_ROUNDS)
+    if len(order) != len(base_order) or any(name not in EPL_MANAGER_SET for name in order):
+        state["draft_order"] = base_order
+        changed = True
+        order = base_order
+
+    try:
+        idx = int(state.get("current_pick_index", 0))
+    except Exception:
+        idx = 0
+        state["current_pick_index"] = 0
+        changed = True
+    if "current_pick_index" not in state:
+        state["current_pick_index"] = idx
+        changed = True
+    if idx < 0:
+        idx = 0
+        state["current_pick_index"] = 0
+        changed = True
+    if idx > len(order):
+        idx = len(order)
+        state["current_pick_index"] = idx
+        changed = True
+
+    next_user = order[idx] if idx < len(order) else None
+    if state.get("next_user") != next_user:
+        state["next_user"] = next_user
+        changed = True
+
+    if EPL_USERS:
+        next_round = (idx // len(EPL_USERS)) + 1
+        if state.get("next_round") != next_round:
+            state["next_round"] = next_round
+            changed = True
+
+    if idx < len(order) and state.get("draft_completed"):
+        state["draft_completed"] = False
+        changed = True
+
+    if changed:
+        save_state(state)
 
 def save_state(state: Dict[str, Any]):
     """

@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from zoneinfo import ZoneInfo
 from typing import Dict
 
+from .config import EPL_USERS
 from .epl_services import (
     LAST_SEASON, EPL_FPL,
     ensure_fpl_bootstrap_fresh,
@@ -38,6 +39,7 @@ def index():
     nidx = nameclub_index(players)
 
     state = load_state()
+    rosters = state.get("rosters") or {}
     next_user = state.get("next_user") or who_is_on_clock(state)
     next_round = state.get("next_round")
     draft_completed = bool(state.get("draft_completed", False))
@@ -83,7 +85,7 @@ def index():
                     "MID": EPL_POSITION_LIMITS.get("Midfielder", 0),
                     "FWD": EPL_POSITION_LIMITS.get("Forward", 0),
                 }
-                roster = (state.get("rosters") or {}).get(current_user, []) or []
+                roster = rosters.get(current_user, []) or []
                 if len(roster) >= sum(pos_limits.values()):
                     flash("Состав уже заполнен", "danger")
                     return redirect(url_for("epl.index"))
@@ -178,7 +180,7 @@ def index():
         status_url=url_for("epl.status"),
         transfer_active=transfer_active,
         transfer_user=transfer_user,
-        managers=sorted((state.get("rosters") or {}).keys()),
+        managers=[m for m in EPL_USERS if rosters.get(m) is not None] or sorted(rosters.keys()),
     )
 
 @bp.get("/epl/status")
@@ -418,6 +420,9 @@ def lineups():
     state = load_state()
     lineups_state = state.get("lineups") or {}
     rosters = state.get("rosters") or {}
+    managers = [m for m in EPL_USERS if m in rosters]
+    if not managers:
+        managers = sorted(rosters.keys())
 
     # Deadline for auto-fill and editing info
     deadline = None
@@ -438,7 +443,6 @@ def lineups():
     pidx = players_index(players)
     stats_map = points_for_gw(gw, pidx)
     team_codes = {int(t.get("id")): t.get("code") for t in (bootstrap.get("teams") or []) if t.get("id") is not None}
-    managers = list(rosters.keys())
     table: Dict[str, dict] = {}
     status: Dict[str, bool] = {}
     pos_order = {"GK": 0, "DEF": 1, "MID": 2, "FWD": 3}
@@ -600,6 +604,9 @@ def results():
 
     state = load_state()
     rosters = state.get("rosters", {})
+    managers = [m for m in EPL_USERS if m in rosters]
+    if not managers:
+        managers = sorted(rosters.keys())
 
     # determine completed gameweeks and deadlines
     events = bootstrap.get("events") or []
@@ -626,7 +633,6 @@ def results():
             except Exception:
                 pass
 
-    managers = sorted(rosters.keys())
     cls_map = {1: 8, 2: 6, 3: 4, 4: 3, 5: 2, 6: 1, 7: 0, 8: 0}
 
     points_by_manager: Dict[str, Dict[int, int]] = {m: {} for m in managers}
