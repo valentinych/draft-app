@@ -7,6 +7,7 @@ from datetime import datetime
 import requests
 
 from .config import EPL_POSITION_LIMITS, EPL_USERS
+from .lineup_store import save_lineup as store_save_lineup, remove_lineup as store_remove_lineup
 
 # === S3 ===
 try:
@@ -467,19 +468,99 @@ def _normalize_epl_state(state: Dict[str, Any]) -> None:
     if "draft_started_at" not in state:
         state["draft_started_at"] = None
         changed = True
-    lineups_raw = state.get("lineups")
-    lineups: Dict[str, Dict[str, Any]] = {}
-    if isinstance(lineups_raw, dict):
-        for manager in EPL_USERS:
-            ml = lineups_raw.get(manager)
-            if isinstance(ml, dict):
-                lineups[manager] = ml
-            else:
-                lineups[manager] = {}
-    else:
-        lineups = {manager: {} for manager in EPL_USERS}
-    if lineups != lineups_raw:
-        state["lineups"] = lineups
+    original_lineups = state.get("lineups")
+    raw_lineups = original_lineups if isinstance(original_lineups, dict) else {}
+    if raw_lineups is not original_lineups:
+        changed = True
+
+    roster_id_map: Dict[str, Set[int]] = {}
+    for manager, arr in rosters.items():
+        ids: Set[int] = set()
+        for pl in arr:
+            try:
+                pid = int(pl.get("playerId"))
+            except Exception:
+                continue
+            ids.add(pid)
+        roster_id_map[manager] = ids
+
+    def _normalize_payload(payload: Dict[str, Any]) -> Dict[str, Any]:
+        def _coerce(seq: Any) -> List[int]:
+            out: List[int] = []
+            if isinstance(seq, (list, tuple)):
+                for val in seq:
+                    try:
+                        out.append(int(val))
+                    except Exception:
+                        continue
+            return out
+
+        normalized = {
+            "formation": payload.get("formation") or "auto",
+            "players": _coerce(payload.get("players")),
+            "bench": _coerce(payload.get("bench")),
+        }
+        ts = payload.get("ts")
+        if ts:
+            normalized["ts"] = ts
+        return normalized
+
+    def _sanitize_payload(payload: Dict[str, Any], roster_ids: Set[int]) -> Optional[Dict[str, Any]]:
+        seen: Set[int] = set()
+        players: List[int] = []
+        for pid in payload.get("players", []):
+            if pid in roster_ids and pid not in seen:
+                players.append(pid)
+                seen.add(pid)
+        bench: List[int] = []
+        for pid in payload.get("bench", []):
+            if pid in roster_ids and pid not in seen:
+                bench.append(pid)
+                seen.add(pid)
+        if len(players) < 11:
+            return None
+        sanitized = {
+            "formation": payload.get("formation") or "auto",
+            "players": players,
+            "bench": bench,
+        }
+        ts = payload.get("ts")
+        if ts:
+            sanitized["ts"] = ts
+        return sanitized
+
+    sanitized_lineups: Dict[str, Dict[str, Any]] = {}
+    extra_managers = set(raw_lineups.keys()) - EPL_MANAGER_SET
+    if extra_managers:
+        changed = True
+    for manager in EPL_USERS:
+        manager_entries = raw_lineups.get(manager)
+        sanitized_manager: Dict[str, Any] = {}
+        if isinstance(manager_entries, dict):
+            for gw_key, payload in manager_entries.items():
+                try:
+                    gw_int = int(gw_key)
+                except Exception:
+                    changed = True
+                    continue
+                if not isinstance(payload, dict):
+                    changed = True
+                    store_remove_lineup(manager, gw_int)
+                    continue
+                normalized_payload = _normalize_payload(payload)
+                sanitized_payload = _sanitize_payload(normalized_payload, roster_id_map.get(manager, set()))
+                if sanitized_payload is None:
+                    if normalized_payload.get("players"):
+                        changed = True
+                    store_remove_lineup(manager, gw_int)
+                    continue
+                sanitized_manager[str(gw_int)] = sanitized_payload
+                if sanitized_payload != normalized_payload:
+                    changed = True
+                    store_save_lineup(manager, gw_int, sanitized_payload)
+        sanitized_lineups[manager] = sanitized_manager
+    if raw_lineups != sanitized_lineups:
+        state["lineups"] = sanitized_lineups
         changed = True
 
     transfer_raw = state.get("transfer")
