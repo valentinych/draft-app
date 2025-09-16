@@ -25,11 +25,10 @@ def _ucl_state_s3_key() -> str:
         return legacy.strip()
     generic = os.getenv("DRAFT_S3_STATE_KEY")
     if generic:
-        g = generic.strip().lstrip("/")
+        g = generic.strip()
         if "ucl" in g.lower():
             return g
-        return f"ucl/{g}"
-    return f"ucl/{os.path.basename(UCL_STATE_FILE)}"
+    return "prod/draft_state_ucl.json"
 
 
 def _epl_state_s3_key() -> str:

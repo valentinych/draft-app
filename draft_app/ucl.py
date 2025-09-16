@@ -53,11 +53,10 @@ def _ucl_s3_key() -> Optional[str]:
         return legacy.strip()
     generic = os.getenv("DRAFT_S3_STATE_KEY")
     if generic:
-        g = generic.strip().lstrip("/")
+        g = generic.strip()
         if "ucl" in g.lower():
             return g
-        return f"ucl/{g}"
-    return f"ucl/{UCL_STATE.name}"
+    return "prod/draft_state_ucl.json"
 
 def _ucl_s3_client():
     if not boto3:
