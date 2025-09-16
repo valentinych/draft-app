@@ -62,6 +62,12 @@ def init_ucl(app):
     state = load_json(UCL_STATE_FILE, default=None, s3_key=ucl_key)
     if state is None:
         state = _default_state(UCL_USERS)
+    # ensure roster keys follow updated participant list
+    rosters = state.get('rosters') or {}
+    normalized_rosters = {user: rosters.get(user, []) for user in UCL_USERS}
+    if normalized_rosters != rosters:
+        state['rosters'] = normalized_rosters
+    # ensure draft order accommodates late addition of participants (e.g. Сергей picks at the end)
     ucl_state = state
     # игроки
     pdata = load_json(UCL_PLAYERS_FILE, default={'data': {'value': {'playerList': []}}})
@@ -70,6 +76,10 @@ def init_ucl(app):
     if not ucl_state['draft_order']:
         total = sum(UCL_POSITION_LIMITS.values())
         ucl_state['draft_order'] = _build_snake_order(UCL_USERS, total)
+        save_json(UCL_STATE_FILE, ucl_state, s3_key=ucl_key)
+    elif 'Сергей' in UCL_USERS and 'Сергей' not in ucl_state['draft_order']:
+        total = sum(UCL_POSITION_LIMITS.values())
+        ucl_state['draft_order'].extend(['Сергей'] * total)
         save_json(UCL_STATE_FILE, ucl_state, s3_key=ucl_key)
 
 def init_epl(app):

@@ -18,7 +18,7 @@ UCL_PLAYERS = BASE_DIR / "players_80_en_1.json"  # актуальный спис
 UCL_POINTS = BASE_DIR / "players_70_en_3.json"   # очки прошлого сезона
 
 # --- параметры UCL драфта ---
-UCL_PARTICIPANTS = ["Ксана", "Андрей", "Саша", "Руслан", "Женя", "Макс", "Серёга Б"]
+UCL_PARTICIPANTS = ["Ксана", "Андрей", "Саша", "Руслан", "Женя", "Макс", "Серёга Б", "Сергей"]
 UCL_ROUNDS = 25
 
 # ----------------- helpers -----------------
@@ -316,13 +316,16 @@ def _ensure_ucl_state_shape(state: Dict[str, Any]) -> Dict[str, Any]:
         state["skip_bank"] = {}
         changed = True
     # Ensure draft_order as snake
-    desired_order = _snake_order(UCL_PARTICIPANTS, UCL_ROUNDS)
+    existing_order = state.get("draft_order") or []
+    desired_order: List[str]
+    if not existing_order:
+        desired_order = _snake_order(UCL_PARTICIPANTS, UCL_ROUNDS)
+    else:
+        desired_order = existing_order
+        if "Сергей" not in existing_order:
+            desired_order = existing_order + ["Сергей"] * UCL_ROUNDS
     if state.get("draft_order") != desired_order:
         state["draft_order"] = desired_order
-        # reset derived fields if index out of bounds
-        idx = int(state.get("current_pick_index", 0))
-        if idx < 0 or idx >= len(desired_order):
-            state["current_pick_index"] = 0
         changed = True
     # Ensure next_user / next_round coherence
     try:
@@ -332,6 +335,14 @@ def _ensure_ucl_state_shape(state: Dict[str, Any]) -> Dict[str, Any]:
         state["current_pick_index"] = 0
         changed = True
     order = state.get("draft_order") or []
+    if idx < 0:
+        state["current_pick_index"] = 0
+        idx = 0
+        changed = True
+    elif idx > len(order):
+        state["current_pick_index"] = len(order)
+        idx = len(order)
+        changed = True
     if 0 <= idx < len(order):
         nu = order[idx]
         if state.get("next_user") != nu:
@@ -341,6 +352,9 @@ def _ensure_ucl_state_shape(state: Dict[str, Any]) -> Dict[str, Any]:
     nr = (idx // n_users) + 1
     if state.get("next_round") != nr:
         state["next_round"] = nr
+        changed = True
+    if idx < len(order) and state.get("draft_completed"):
+        state["draft_completed"] = False
         changed = True
     if changed:
         _ucl_state_save(state)
