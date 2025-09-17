@@ -527,12 +527,36 @@ def _normalize_epl_state(state: Dict[str, Any]) -> None:
                         continue
                     bench.append(pid)
                     seen.add(pid)
-            # Auto-extend bench with remaining roster players
+            # Fill starters up to 11 using roster order
             for pid in roster_order:
+                if len(players) >= 11:
+                    break
                 if pid in seen:
                     continue
-                bench.append(pid)
+                players.append(pid)
                 seen.add(pid)
+
+            # Auto-extend bench with remaining roster players (preserve already recorded bench order)
+            for pid in roster_order:
+                if pid in players or pid in bench:
+                    continue
+                bench.append(pid)
+
+            # If starters still short (ростер < 11), top up from bench
+            while len(players) < 11 and bench:
+                pid = bench.pop(0)
+                if pid in players:
+                    continue
+                players.append(pid)
+            # Ensure bench remains unique after topping up
+            uniq_bench: List[int] = []
+            seen_bench: Set[int] = set(players)
+            for pid in bench:
+                if pid in seen_bench:
+                    continue
+                seen_bench.add(pid)
+                uniq_bench.append(pid)
+            bench = uniq_bench
 
             normalized = dict(payload)
             if normalized.get("players") != players:
