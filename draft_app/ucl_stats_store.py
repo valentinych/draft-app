@@ -15,7 +15,7 @@ CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
 POPUP_DIR = BASE_DIR / "popupstats"
 
-TTL = timedelta(hours=12)
+TTL = timedelta(hours=3)
 FEED_TTL = timedelta(hours=6)
 PLAYERS_FEED_LOCAL = BASE_DIR / "players_80_en_1.json"
 REQUEST_TIMEOUT = 5  # seconds per HTTP attempt
@@ -40,19 +40,6 @@ def _stats_prefix() -> str:
         prefix = env_override.strip().strip("/")
         if prefix:
             return prefix
-
-    state_key = (
-        os.getenv("DRAFT_S3_UCL_STATE_KEY")
-        or os.getenv("DRAFT_S3_STATE_KEY")
-        or os.getenv("UCL_S3_STATE_KEY")
-        or ""
-    )
-    state_key = state_key.strip().strip("/")
-    if state_key and "/" in state_key:
-        parent = state_key.rsplit("/", 1)[0].strip().strip("/")
-        if parent:
-            return f"{parent}/ucl_stat"
-
     return "ucl_stat"
 
 
@@ -195,6 +182,39 @@ def _load_local_popupstats(player_id: int) -> Optional[Dict]:
     return None
 
 
+def _total_points(payload: Dict) -> int:
+    try:
+        data = payload.get("data") if isinstance(payload.get("data"), dict) else payload
+        value = data.get("value") if isinstance(data.get("value"), dict) else data
+
+        lists = []
+        for source in (value, data, payload):
+            if isinstance(source, dict):
+                for key in ("matchdayPoints", "points"):
+                    raw = source.get(key)
+                    if isinstance(raw, list):
+                        lists.append(raw)
+
+        total = 0
+        for lst in lists:
+            for entry in lst:
+                if not isinstance(entry, dict):
+                    continue
+                val = entry.get("tPoints")
+                if isinstance(val, (int, float)):
+                    total += int(val)
+                elif isinstance(val, str):
+                    digits = "".join(ch for ch in val if (ch.isdigit() or ch in ".-"))
+                    if digits and any(ch.isdigit() for ch in digits):
+                        try:
+                            total += int(float(digits))
+                        except Exception:
+                            continue
+        return total
+    except Exception:
+        return 0
+
+
 def get_player_stats(player_id: int) -> Dict:
     """Return cached popup stats for a player, updating if stale."""
     cached = _load_local(player_id)
@@ -210,6 +230,12 @@ def get_player_stats(player_id: int) -> Dict:
                     "cached_at": datetime.utcnow().isoformat(),
                     "data": remote,
                 }
+                local_popup = _load_local_popupstats(player_id)
+                if local_popup is not None:
+                    remote_points = _total_points(remote)
+                    fallback_points = _total_points(local_popup)
+                    if fallback_points and remote_points == 0:
+                        cached["data"] = local_popup
                 _save_local(player_id, cached)
                 _save_s3(player_id, cached)
             else:
