@@ -13,6 +13,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 CACHE_DIR = BASE_DIR / "data" / "cache" / "ucl_stat"
 CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
+POPUP_DIR = BASE_DIR / "popupstats"
+
 TTL = timedelta(hours=12)
 FEED_TTL = timedelta(hours=6)
 PLAYERS_FEED_LOCAL = BASE_DIR / "players_80_en_1.json"
@@ -177,6 +179,22 @@ def _fetch_remote_player(player_id: int) -> Optional[Dict]:
     return _fetch_remote(url)
 
 
+def _load_local_popupstats(player_id: int) -> Optional[Dict]:
+    paths = [
+        POPUP_DIR / f"popupstats_80_{int(player_id)}.json",
+        POPUP_DIR / f"popupstats_70_{int(player_id)}.json",
+    ]
+    for path in paths:
+        if not path.exists():
+            continue
+        try:
+            with path.open("r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            continue
+    return None
+
+
 def get_player_stats(player_id: int) -> Dict:
     """Return cached popup stats for a player, updating if stale."""
     cached = _load_local(player_id)
@@ -194,9 +212,18 @@ def get_player_stats(player_id: int) -> Dict:
                 }
                 _save_local(player_id, cached)
                 _save_s3(player_id, cached)
-            elif s3_payload:
-                cached = s3_payload
-                _save_local(player_id, cached)
+            else:
+                local_popup = _load_local_popupstats(player_id)
+                if local_popup is not None:
+                    cached = {
+                        "cached_at": datetime.utcnow().isoformat(),
+                        "data": local_popup,
+                    }
+                    _save_local(player_id, cached)
+                    _save_s3(player_id, cached)
+                elif s3_payload:
+                    cached = s3_payload
+                    _save_local(player_id, cached)
     return (cached or {}).get("data", {})
 
 
