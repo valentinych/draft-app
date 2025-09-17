@@ -40,7 +40,7 @@ def _stats_prefix() -> str:
         prefix = env_override.strip().strip("/")
         if prefix:
             return prefix
-    return "ucl_stat"
+    return "ucl_stats"
 
 
 def _load_local(player_id: int) -> Optional[Dict]:
