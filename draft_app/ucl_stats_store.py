@@ -19,8 +19,10 @@ CACHE_DIR = BASE_DIR / "data" / "cache" / "ucl_stat"
 CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
 TTL = timedelta(hours=12)
+FEED_TTL = timedelta(hours=6)
 S3_BUCKET = os.getenv("DRAFT_S3_BUCKET")
 S3_PREFIX = os.getenv("UCL_S3_STATS_PREFIX", "ucl_stat")
+PLAYERS_FEED_LOCAL = BASE_DIR / "players_80_en_1.json"
 
 
 def _s3_enabled() -> bool:
@@ -30,6 +32,11 @@ def _s3_enabled() -> bool:
 def _s3_key(player_id: int) -> str:
     prefix = S3_PREFIX.strip().strip("/")
     return f"{prefix}/{int(player_id)}.json"
+
+
+def _s3_feed_key() -> str:
+    prefix = S3_PREFIX.strip().strip("/")
+    return f"{prefix}/feed.json"
 
 
 def _s3_client():
@@ -143,3 +150,145 @@ def get_player_stats(player_id: int) -> Dict:
                 cached = s3_payload
                 _save_local(player_id, cached)
     return (cached or {}).get("data", {})
+
+
+def _feed_fresh(payload: Optional[Dict]) -> bool:
+    if not payload:
+        return False
+    ts = payload.get("cached_at")
+    if not ts:
+        return False
+    try:
+        cached = datetime.fromisoformat(ts)
+    except Exception:
+        return False
+    return datetime.utcnow() - cached < FEED_TTL
+
+
+def _load_feed_local() -> Optional[Dict]:
+    path = CACHE_DIR / "players_feed.json"
+    if not path.exists():
+        return None
+    try:
+        with path.open("r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return None
+
+
+def _save_feed_local(payload: Dict) -> None:
+    try:
+        fd, tmp_name = tempfile.mkstemp(prefix="ucl_feed_", suffix=".json", dir=str(CACHE_DIR))
+        os.close(fd)
+        with open(tmp_name, "w", encoding="utf-8") as f:
+            json.dump(payload, f, ensure_ascii=False, indent=2)
+        os.replace(tmp_name, CACHE_DIR / "players_feed.json")
+    except Exception:
+        pass
+
+
+def _load_feed_s3() -> Optional[Dict]:
+    if not _s3_enabled():
+        return None
+    client = _s3_client()
+    if not client:
+        return None
+    try:
+        obj = client.get_object(Bucket=S3_BUCKET, Key=_s3_feed_key())
+        body = obj["Body"].read().decode("utf-8")
+        return json.loads(body)
+    except (ClientError, BotoCoreError, Exception):
+        return None
+
+
+def _save_feed_s3(payload: Dict) -> None:
+    if not _s3_enabled():
+        return
+    client = _s3_client()
+    if not client:
+        return
+    try:
+        body = json.dumps(payload, ensure_ascii=False, indent=2).encode("utf-8")
+        client.put_object(
+            Bucket=S3_BUCKET,
+            Key=_s3_feed_key(),
+            Body=body,
+            ContentType="application/json; charset=utf-8",
+            CacheControl="max-age=0, no-cache",
+        )
+    except (ClientError, BotoCoreError, Exception):
+        pass
+
+
+def _fetch_feed_remote() -> Optional[Dict]:
+    url = "https://gaming.uefa.com/en/uclfantasy/services/feeds/players/players_80_en_1.json"
+    try:
+        resp = requests.get(url, timeout=10)
+        resp.raise_for_status()
+        return resp.json()
+    except Exception:
+        return None
+
+
+def _load_local_players_backup() -> Optional[Dict]:
+    if PLAYERS_FEED_LOCAL.exists():
+        try:
+            with PLAYERS_FEED_LOCAL.open("r", encoding="utf-8") as f:
+                return json.load(f)
+        except Exception:
+            return None
+    return None
+
+
+def get_players_feed() -> Dict:
+    cached = _load_feed_local()
+    if not _feed_fresh(cached):
+        s3_payload = _load_feed_s3()
+        if _feed_fresh(s3_payload):
+            cached = s3_payload
+            _save_feed_local(cached)
+        else:
+            remote = _fetch_feed_remote()
+            if remote is not None:
+                cached = {
+                    "cached_at": datetime.utcnow().isoformat(),
+                    "data": remote,
+                }
+                _save_feed_local(cached)
+                _save_feed_s3(cached)
+            elif s3_payload:
+                cached = s3_payload
+                _save_feed_local(cached)
+            else:
+                fallback = _load_local_players_backup()
+                if fallback is not None:
+                    cached = {"cached_at": datetime.utcnow().isoformat(), "data": fallback}
+                    _save_feed_local(cached)
+    return (cached or {}).get("data", {})
+
+
+def get_current_matchday() -> Optional[int]:
+    feed = get_players_feed()
+    player_list = []
+    if isinstance(feed, dict):
+        value = feed.get("data", {}).get("value") if isinstance(feed.get("data"), dict) else feed.get("value")
+        if isinstance(value, dict):
+            player_list = value.get("playerList") or []
+    if not player_list and isinstance(feed, list):
+        player_list = feed
+    for player in player_list:
+        matches = player.get("currentMatchesList") or player.get("upcomingMatchesList") or []
+        for match in matches:
+            md_raw = match.get("mdId")
+            if md_raw is None:
+                continue
+            if isinstance(md_raw, int):
+                return md_raw
+            if isinstance(md_raw, str):
+                digits = "".join(ch for ch in md_raw if ch.isdigit())
+                if digits:
+                    try:
+                        return int(digits)
+                    except Exception:
+                        continue
+    return None

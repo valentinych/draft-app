@@ -9,7 +9,7 @@ try:
 except Exception:
     boto3 = None
 
-from .ucl_stats_store import get_player_stats
+from .ucl_stats_store import get_player_stats, get_current_matchday
 
 bp = Blueprint("ucl", __name__)
 
@@ -766,7 +766,35 @@ def index():
     )
 
 
+def _safe_int(val: Any) -> int:
+    try:
+        if isinstance(val, bool):
+            return int(val)
+        return int(float(val))
+    except Exception:
+        return 0
+
+
+def _normalize_md(val: Any) -> Optional[int]:
+    if isinstance(val, (int, float)):
+        try:
+            return int(val)
+        except Exception:
+            return None
+    if isinstance(val, str):
+        digits = "".join(ch for ch in val if ch.isdigit())
+        if digits:
+            try:
+                return int(digits)
+            except Exception:
+                return None
+    return None
+
+
 def _ucl_default_matchday(state: Dict[str, Any]) -> int:
+    md_from_feed = get_current_matchday()
+    if md_from_feed:
+        return md_from_feed
     try:
         md = int(state.get("next_round") or 1)
     except Exception:
@@ -782,15 +810,42 @@ def _ucl_points_for_md(stats: Dict[str, Any], md: int) -> Optional[Dict[str, Any
     points = value.get("points") if isinstance(value.get("points"), list) else data.get("points")
     if not isinstance(points, list):
         return None
+
+    target = None
     for entry in points:
         if not isinstance(entry, dict):
             continue
-        try:
-            if int(entry.get("mdId")) == int(md):
-                return entry
-        except Exception:
+        md_val = _normalize_md(entry.get("mdId"))
+        if md_val is None:
             continue
-    return None
+        if md_val == int(md):
+            target = entry
+            break
+
+    if target is None:
+        return None
+
+    normalized: Dict[str, Any] = {}
+    for key, val in target.items():
+        if key == "mdId":
+            md_val = _normalize_md(val)
+            normalized[key] = md_val if md_val is not None else val
+        elif isinstance(val, (int, float)):
+            normalized[key] = int(val)
+        elif isinstance(val, str):
+            digits = "".join(ch for ch in val if (ch.isdigit() or ch in ".-"))
+            if digits and any(ch.isdigit() for ch in digits):
+                try:
+                    normalized[key] = int(float(digits))
+                    continue
+                except Exception:
+                    pass
+            normalized[key] = val
+        else:
+            normalized[key] = val
+    if "tPoints" in target and "tPoints" not in normalized:
+        normalized["tPoints"] = _safe_int(target.get("tPoints"))
+    return normalized
 
 
 @bp.get("/ucl/lineups")
@@ -837,14 +892,8 @@ def ucl_lineups_data():
                 continue
             stats = get_player_stats(pid_int)
             points_entry = _ucl_points_for_md(stats, md)
-            points = 0
-            stat_payload: Dict[str, Any] = {}
-            if points_entry:
-                try:
-                    points = int(points_entry.get("tPoints", 0))
-                except Exception:
-                    points = 0
-                stat_payload = points_entry
+            stat_payload: Dict[str, Any] = points_entry or {}
+            points = _safe_int(stat_payload.get("tPoints")) if stat_payload else 0
             total += points
             lineup.append(
                 {
