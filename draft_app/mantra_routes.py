@@ -60,6 +60,10 @@ BUILDING_LOCK = Lock()
 BUILD_ERRORS: dict[int, str] = {}
 LINEUPS_CACHE_TTL = timedelta(minutes=30)
 
+# Bump this constant when logic that affects cached Top-4 lineups/scores needs
+# to be invalidated (e.g. league overrides for transferred players).
+LINEUPS_OVERRIDE_VERSION = "2025-09-override-v1"
+
 # Some players changed leagues after the Top-4 scrape.  Their fantasy points
 # should follow the new league schedule even if the upstream API still tags
 # them with the old tournament.  Override by stable display name (case
@@ -119,21 +123,30 @@ def _load_round_cache(rnd: int) -> dict:
         if bucket and key:
             data = _s3_get_json(bucket, key)
             if isinstance(data, dict):
-                return {str(k): int(v) for k, v in data.items()}
+                if data.get("override_version") == LINEUPS_OVERRIDE_VERSION:
+                    payload = data.get("data") or {}
+                else:
+                    payload = {}
+                return {str(k): int(v) for k, v in payload.items()}
     p = ROUND_CACHE_DIR / f"round{int(rnd)}.json"
     if p.exists():
         try:
             with p.open("r", encoding="utf-8") as f:
                 data = json.load(f)
             if isinstance(data, dict):
-                return {str(k): int(v) for k, v in data.items()}
+                if data.get("override_version") == LINEUPS_OVERRIDE_VERSION:
+                    payload = data.get("data") or {}
+                    return {str(k): int(v) for k, v in payload.items()}
         except Exception:
             pass
     return {}
 
 
 def _save_round_cache(rnd: int, data: dict) -> None:
-    payload = {str(k): int(v) for k, v in data.items()}
+    payload = {
+        "override_version": LINEUPS_OVERRIDE_VERSION,
+        "data": {str(k): int(v) for k, v in data.items()},
+    }
     if _s3_enabled():
         bucket = _s3_bucket()
         key = _s3_key(rnd)
@@ -151,6 +164,7 @@ def _save_lineups_json(rnd: int, data: dict) -> dict:
     """Persist full lineup data for debugging (S3 + local)."""
     payload = dict(data or {})
     payload["cached_at"] = datetime.utcnow().isoformat()
+    payload["override_version"] = LINEUPS_OVERRIDE_VERSION
     if _s3_enabled():
         bucket = _s3_bucket()
         key = _s3_lineups_key(rnd)
@@ -193,6 +207,8 @@ def _load_lineups_json(rnd: int) -> dict | None:
         if bucket and key:
             data = _s3_get_json(bucket, key)
             if isinstance(data, dict) and data and _fresh(data):
+                if data.get("override_version") != LINEUPS_OVERRIDE_VERSION:
+                    return None
                 return _sort_payload(data)
     p = LINEUPS_DIR / f"round{int(rnd)}.json"
     if p.exists():
@@ -200,6 +216,8 @@ def _load_lineups_json(rnd: int) -> dict | None:
             with p.open("r", encoding="utf-8") as f:
                 data = json.load(f)
             if isinstance(data, dict) and data and _fresh(data):
+                if data.get("override_version") != LINEUPS_OVERRIDE_VERSION:
+                    return None
                 return _sort_payload(data)
         except Exception:
             pass
@@ -361,6 +379,12 @@ def _calc_score_breakdown(stat: dict, pos: str) -> tuple[int, list[dict]]:
         pts = goal_pts.get(pos, 0) * goals
         score += pts
         breakdown.append({"label": f"Голы ({goals})", "points": int(pts)})
+
+    pen_goals = float(stat.get("scored_penalty", 0))
+    if pen_goals:
+        pts = goal_pts.get(pos, 0) * pen_goals
+        score += pts
+        breakdown.append({"label": f"Голы с пенальти ({pen_goals})", "points": int(pts)})
 
     assists = float(stat.get("assists", 0))
     if assists:
