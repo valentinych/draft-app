@@ -60,6 +60,22 @@ BUILDING_LOCK = Lock()
 BUILD_ERRORS: dict[int, str] = {}
 LINEUPS_CACHE_TTL = timedelta(minutes=30)
 
+# Some players changed leagues after the Top-4 scrape.  Their fantasy points
+# should follow the new league schedule even if the upstream API still tags
+# them with the old tournament.  Override by stable display name (case
+# insensitive) so we don't need to edit state/S3 data manually.
+LEAGUE_OVERRIDES = {
+    "nick woltemade": "EPL",
+    "xavi simons": "EPL",
+}
+
+
+def _apply_league_override(name: str | None, league: str | None) -> str | None:
+    if not name:
+        return league
+    override = LEAGUE_OVERRIDES.get(name.lower())
+    return override or league
+
 
 def _to_int(value) -> int:
     """Safely convert numeric strings like ``"1.0"`` to ``int``.
@@ -516,6 +532,8 @@ def _build_lineups(round_no: int, current_round: int, state: dict) -> dict:
             pos = pl.get("position") or meta.get("position")
             name = pl.get("fullName") or meta.get("fullName") or meta.get("shortName") or fid
             league = pl.get("league") or meta.get("league")
+            league = _apply_league_override(name, league)
+            league = _apply_league_override(name, league)
             league_round = gw_rounds.get(league)
             mid = mapping.get(fid)
             pts = 0
