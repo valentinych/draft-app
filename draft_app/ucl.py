@@ -2,12 +2,14 @@ from __future__ import annotations
 import json
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set
-from flask import Blueprint, render_template, request, session, url_for
+from flask import Blueprint, render_template, request, session, url_for, jsonify
 import os
 try:
     import boto3
 except Exception:
     boto3 = None
+
+from .ucl_stats_store import get_player_stats
 
 bp = Blueprint("ucl", __name__)
 
@@ -762,6 +764,100 @@ def index():
         undo_url=url_for("ucl.undo_last_pick"),
         managers=sorted((state.get("rosters") or {}).keys()),
     )
+
+
+def _ucl_default_matchday(state: Dict[str, Any]) -> int:
+    try:
+        md = int(state.get("next_round") or 1)
+    except Exception:
+        md = 1
+    return max(1, md)
+
+
+def _ucl_points_for_md(stats: Dict[str, Any], md: int) -> Optional[Dict[str, Any]]:
+    if not isinstance(stats, dict):
+        return None
+    data = stats.get("data") if isinstance(stats.get("data"), dict) else stats
+    value = data.get("value") if isinstance(data.get("value"), dict) else data
+    points = value.get("points") if isinstance(value.get("points"), list) else data.get("points")
+    if not isinstance(points, list):
+        return None
+    for entry in points:
+        if not isinstance(entry, dict):
+            continue
+        try:
+            if int(entry.get("mdId")) == int(md):
+                return entry
+        except Exception:
+            continue
+    return None
+
+
+@bp.get("/ucl/lineups")
+def ucl_lineups():
+    state = _ucl_state_load()
+    md = request.args.get("md", type=int)
+    if not md:
+        md = _ucl_default_matchday(state)
+    return render_template("ucl_lineups.html", md=md)
+
+
+@bp.get("/ucl/lineups/data")
+def ucl_lineups_data():
+    state = _ucl_state_load()
+    state = _ensure_ucl_state_shape(state)
+    md = request.args.get("md", type=int)
+    if not md:
+        md = _ucl_default_matchday(state)
+
+    rosters = state.get("rosters") or {}
+    managers = [m for m in UCL_PARTICIPANTS if m in rosters]
+    if not managers:
+        managers = sorted(rosters.keys())
+
+    results: Dict[str, Dict[str, Any]] = {}
+    for manager in managers:
+        roster = rosters.get(manager) or []
+        lineup: List[Dict[str, Any]] = []
+        total = 0
+        for item in roster:
+            payload = item.get("player") if isinstance(item, dict) and item.get("player") else item
+            if not isinstance(payload, dict):
+                continue
+            pid = (
+                payload.get("playerId")
+                or payload.get("id")
+                or payload.get("pid")
+            )
+            if pid is None:
+                continue
+            try:
+                pid_int = int(pid)
+            except Exception:
+                continue
+            stats = get_player_stats(pid_int)
+            points_entry = _ucl_points_for_md(stats, md)
+            points = 0
+            stat_payload: Dict[str, Any] = {}
+            if points_entry:
+                try:
+                    points = int(points_entry.get("tPoints", 0))
+                except Exception:
+                    points = 0
+                stat_payload = points_entry
+            total += points
+            lineup.append(
+                {
+                    "name": payload.get("fullName") or payload.get("name") or str(pid_int),
+                    "pos": payload.get("position"),
+                    "club": payload.get("clubName"),
+                    "points": points,
+                    "stat": stat_payload,
+                }
+            )
+        results[manager] = {"players": lineup, "total": total}
+
+    return jsonify({"lineups": results, "managers": managers, "md": md})
 
 @bp.get("/ucl/status")
 def status():

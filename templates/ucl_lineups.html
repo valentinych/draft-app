@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+{% block title %}UCL Лайнапы{% endblock %}
+{% block content %}
+<h1 class="title">UCL Лайнапы MD{{ md }}</h1>
+<form method="get" class="mb-4">
+  <label class="label">Matchday</label>
+  <div class="field has-addons">
+    <div class="control"><input class="input" type="number" name="md" value="{{ md }}" min="1" style="width:90px"/></div>
+    <div class="control"><button class="button is-link" type="submit">Показать</button></div>
+  </div>
+</form>
+<div id="ucl-lineups-container">Загрузка...</div>
+
+<div id="ucl-points-modal" class="modal">
+  <div class="modal-background"></div>
+  <div class="modal-card">
+    <header class="modal-card-head">
+      <p class="modal-card-title">Статистика</p>
+      <button class="delete" aria-label="close"></button>
+    </header>
+    <section class="modal-card-body" id="ucl-points-modal-body"></section>
+    <footer class="modal-card-foot">
+      <button class="button" id="ucl-points-modal-close">Закрыть</button>
+    </footer>
+  </div>
+</div>
+
+<style>
+  #ucl-lineups-container { display:inline-block; }
+  #ucl-lineups-container .tabs { display:flex; }
+  #ucl-lineups-container .tabs ul { flex-grow:0; }
+  .ucl-player-row { display:flex; justify-content:space-between; align-items:center; white-space:nowrap; }
+  .ucl-player-name { overflow:hidden; text-overflow:ellipsis; margin-right:6px; }
+  .ucl-points-box { background:#add8e6; border-radius:4px; padding:0 6px; min-width:2.4em; text-align:center; cursor:pointer; }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const MD = {{ md }};
+  const container = document.getElementById('ucl-lineups-container');
+  container.style.display = 'inline-block';
+  const modal = document.getElementById('ucl-points-modal');
+  const modalBody = document.getElementById('ucl-points-modal-body');
+  const closeModal = () => modal.classList.remove('is-active');
+  modal.querySelector('.modal-background').addEventListener('click', closeModal);
+  modal.querySelector('.delete').addEventListener('click', closeModal);
+  document.getElementById('ucl-points-modal-close').addEventListener('click', closeModal);
+  const url = `{{ url_for('ucl.ucl_lineups_data') }}?md={{ md }}`;
+
+  const posOrder = {
+    GK: 0, Goalkeeper: 0,
+    DEF: 1, Defender: 1,
+    MID: 2, Midfielder: 2,
+    FWD: 3, Forward: 3
+  };
+
+  const STAT_FIELDS = [
+    ['tPoints', 'Очки'],
+    ['gS', 'Голы'],
+    ['gA', 'Ассисты'],
+    ['cS', 'Сухие матчи'],
+    ['oF', 'Минуты (оф)'],
+    ['sS', 'Сэйвы'],
+    ['pE', 'Заработанные пенальти'],
+    ['pS', 'Реализованные пенальти'],
+    ['pM', 'Промахи с пенальти'],
+    ['yC', 'Жёлтые'],
+    ['rC', 'Красные']
+  ];
+
+  const showPopup = player => {
+    modalBody.innerHTML = '';
+    modal.querySelector('.modal-card-title').textContent = player.name;
+    const stat = player.stat || {};
+    if (!Object.keys(stat).length) {
+      modalBody.textContent = 'Нет данных по выбранному туру';
+      modal.classList.add('is-active');
+      return;
+    }
+    const table = document.createElement('table');
+    table.className = 'table is-narrow';
+    const tbody = document.createElement('tbody');
+    STAT_FIELDS.forEach(([key, label]) => {
+      if (stat[key] === undefined || stat[key] === null) return;
+      const tr = document.createElement('tr');
+      const tdL = document.createElement('td');
+      tdL.textContent = label;
+      const tdV = document.createElement('td');
+      tdV.className = 'has-text-right';
+      tdV.textContent = Number.isFinite(Number(stat[key])) ? Number(stat[key]) : stat[key];
+      tr.appendChild(tdL);
+      tr.appendChild(tdV);
+      tbody.appendChild(tr);
+    });
+    if (!tbody.children.length) {
+      const tr = document.createElement('tr');
+      const td = document.createElement('td');
+      td.colSpan = 2;
+      td.textContent = 'Нет статистики по показателям';
+      tr.appendChild(td);
+      tbody.appendChild(tr);
+    }
+    table.appendChild(tbody);
+    modalBody.appendChild(table);
+    modal.classList.add('is-active');
+  };
+
+  const render = data => {
+    const managers = data.managers || [];
+    const lineups = data.lineups || {};
+    container.innerHTML = '';
+
+    const tabs = document.createElement('div');
+    tabs.className = 'tabs';
+    const ul = document.createElement('ul');
+    ul.style.flexGrow = '0';
+    tabs.appendChild(ul);
+
+    const contents = document.createElement('div');
+    contents.style.display = 'block';
+
+    managers.forEach((manager, idx) => {
+      const li = document.createElement('li');
+      if (idx === 0) li.classList.add('is-active');
+      const a = document.createElement('a');
+      const strong = document.createElement('strong');
+      strong.textContent = manager;
+      a.appendChild(strong);
+      const total = lineups[manager] && lineups[manager].total;
+      if (total !== undefined && total !== null) {
+        const badge = document.createElement('span');
+        badge.style.backgroundColor = '#006400';
+        badge.style.color = 'white';
+        badge.style.padding = '0 4px';
+        badge.style.borderRadius = '3px';
+        badge.style.marginLeft = '4px';
+        badge.textContent = total;
+        a.appendChild(badge);
+      }
+      li.appendChild(a);
+      ul.appendChild(li);
+
+      const block = document.createElement('div');
+      block.style.display = idx === 0 ? 'block' : 'none';
+      const players = (lineups[manager] && lineups[manager].players) || [];
+      const hue = idx * 60;
+      const c1 = `hsl(${hue}, 70%, 90%)`;
+      const c2 = `hsl(${hue}, 70%, 80%)`;
+      players.sort((a, b) => {
+        const pa = (a.pos || '').toUpperCase();
+        const pb = (b.pos || '').toUpperCase();
+        return (posOrder[pa] ?? 99) - (posOrder[pb] ?? 99);
+      });
+      let lastPos = null;
+      players.forEach((player, j) => {
+        if (lastPos && player.pos !== lastPos) {
+          const hr = document.createElement('hr');
+          hr.className = 'my-1';
+          block.appendChild(hr);
+        }
+        lastPos = player.pos;
+        const row = document.createElement('div');
+        row.className = 'ucl-player-row';
+        row.style.backgroundColor = j % 2 === 0 ? c1 : c2;
+        const spanName = document.createElement('span');
+        spanName.className = 'ucl-player-name';
+        spanName.textContent = player.name;
+        if (player.club) {
+          spanName.textContent += ` (${player.club})`;
+        }
+        const spanPoints = document.createElement('span');
+        spanPoints.className = 'ucl-points-box';
+        spanPoints.textContent = player.points;
+        spanPoints.addEventListener('click', () => showPopup(player));
+        row.appendChild(spanName);
+        row.appendChild(spanPoints);
+        block.appendChild(row);
+      });
+      contents.appendChild(block);
+
+      li.addEventListener('click', () => {
+        document.querySelectorAll('#ucl-lineups-container .tabs li').forEach(el => el.classList.remove('is-active'));
+        li.classList.add('is-active');
+        contents.querySelectorAll('div').forEach((div, divIdx) => {
+          div.style.display = divIdx === idx ? 'block' : 'none';
+        });
+      });
+    });
+
+    container.appendChild(tabs);
+    container.appendChild(contents);
+  };
+
+  fetch(url)
+    .then(resp => resp.json())
+    .then(render)
+    .catch(() => {
+      container.textContent = 'Не удалось загрузить лайнапы';
+    });
+});
+</script>
+{% endblock %}
