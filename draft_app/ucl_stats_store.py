@@ -1,18 +1,13 @@
 import json
 import os
 import tempfile
+import time
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, Optional
 
-import requests
-
-try:
-    import boto3
-    from botocore.exceptions import BotoCoreError, ClientError
-except Exception:  # pragma: no cover - boto3 may be missing locally
-    boto3 = None
-    BotoCoreError = ClientError = Exception
+from .epl_services import _s3_bucket, _s3_enabled, _s3_get_json, _s3_put_json
+from .services import HEADERS_GENERIC, HTTP_SESSION
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 CACHE_DIR = BASE_DIR / "data" / "cache" / "ucl_stat"
@@ -20,33 +15,23 @@ CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
 TTL = timedelta(hours=12)
 FEED_TTL = timedelta(hours=6)
-S3_BUCKET = os.getenv("DRAFT_S3_BUCKET")
-S3_PREFIX = os.getenv("UCL_S3_STATS_PREFIX", "ucl_stat")
 PLAYERS_FEED_LOCAL = BASE_DIR / "players_80_en_1.json"
 
 
-def _s3_enabled() -> bool:
-    return bool(S3_BUCKET)
-
-
 def _s3_key(player_id: int) -> str:
-    prefix = S3_PREFIX.strip().strip("/")
+    prefix = _stats_prefix()
     return f"{prefix}/{int(player_id)}.json"
 
 
 def _s3_feed_key() -> str:
-    prefix = S3_PREFIX.strip().strip("/")
+    prefix = _stats_prefix()
     return f"{prefix}/feed.json"
 
 
-def _s3_client():
-    if not boto3:
-        return None
-    try:
-        region = os.getenv("AWS_REGION") or os.getenv("AWS_DEFAULT_REGION") or "us-east-1"
-        return boto3.client("s3", region_name=region)
-    except Exception:
-        return None
+def _stats_prefix() -> str:
+    env_override = os.getenv("UCL_STATS_S3_PREFIX") or os.getenv("UCL_S3_STATS_PREFIX")
+    prefix = (env_override or "ucl_stat").strip().strip("/")
+    return prefix or "ucl_stat"
 
 
 def _load_local(player_id: int) -> Optional[Dict]:
@@ -74,36 +59,21 @@ def _save_local(player_id: int, payload: Dict) -> None:
 def _load_s3(player_id: int) -> Optional[Dict]:
     if not _s3_enabled():
         return None
-    client = _s3_client()
-    if not client:
+    bucket = _s3_bucket()
+    if not bucket:
         return None
     key = _s3_key(player_id)
-    try:
-        obj = client.get_object(Bucket=S3_BUCKET, Key=key)
-        body = obj["Body"].read().decode("utf-8")
-        return json.loads(body)
-    except (ClientError, BotoCoreError, Exception):
-        return None
+    payload = _s3_get_json(bucket, key)
+    return payload if isinstance(payload, dict) else None
 
 
 def _save_s3(player_id: int, payload: Dict) -> None:
     if not _s3_enabled():
         return
-    client = _s3_client()
-    if not client:
+    bucket = _s3_bucket()
+    if not bucket:
         return
-    key = _s3_key(player_id)
-    try:
-        body = json.dumps(payload, ensure_ascii=False, indent=2).encode("utf-8")
-        client.put_object(
-            Bucket=S3_BUCKET,
-            Key=key,
-            Body=body,
-            ContentType="application/json; charset=utf-8",
-            CacheControl="max-age=0, no-cache",
-        )
-    except (ClientError, BotoCoreError, Exception):
-        pass
+    _s3_put_json(bucket, _s3_key(player_id), payload)
 
 
 def _fresh(payload: Optional[Dict]) -> bool:
@@ -119,14 +89,36 @@ def _fresh(payload: Optional[Dict]) -> bool:
     return datetime.utcnow() - cached < TTL
 
 
-def _fetch_remote(player_id: int) -> Optional[Dict]:
+def _http_headers() -> Dict[str, str]:
+    headers = dict(HEADERS_GENERIC)
+    headers.setdefault("Accept", "application/json, text/plain, */*")
+    headers.setdefault("Referer", "https://gaming.uefa.com/en/uclfantasy/")
+    headers.setdefault("Origin", "https://gaming.uefa.com")
+    headers.setdefault("Accept-Language", "en-US,en;q=0.9")
+    headers.setdefault("Cache-Control", "no-cache")
+    headers.setdefault("Pragma", "no-cache")
+    return headers
+
+
+def _fetch_remote(url: str) -> Optional[Dict]:
+    headers = _http_headers()
+    attempts = (
+        {"params": None},
+        {"params": {"_": str(int(time.time()))}},
+    )
+    for attempt in attempts:
+        try:
+            resp = HTTP_SESSION.get(url, headers=headers, timeout=10, **{k: v for k, v in attempt.items() if v})
+            resp.raise_for_status()
+            return resp.json()
+        except Exception:
+            continue
+    return None
+
+
+def _fetch_remote_player(player_id: int) -> Optional[Dict]:
     url = f"https://gaming.uefa.com/en/uclfantasy/services/feeds/popupstats/popupstats_80_{int(player_id)}.json"
-    try:
-        resp = requests.get(url, timeout=10)
-        resp.raise_for_status()
-        return resp.json()
-    except Exception:
-        return None
+    return _fetch_remote(url)
 
 
 def get_player_stats(player_id: int) -> Dict:
@@ -138,7 +130,7 @@ def get_player_stats(player_id: int) -> Dict:
             cached = s3_payload
             _save_local(player_id, cached)
         else:
-            remote = _fetch_remote(player_id)
+            remote = _fetch_remote_player(player_id)
             if remote is not None:
                 cached = {
                     "cached_at": datetime.utcnow().isoformat(),
@@ -190,44 +182,25 @@ def _save_feed_local(payload: Dict) -> None:
 def _load_feed_s3() -> Optional[Dict]:
     if not _s3_enabled():
         return None
-    client = _s3_client()
-    if not client:
+    bucket = _s3_bucket()
+    if not bucket:
         return None
-    try:
-        obj = client.get_object(Bucket=S3_BUCKET, Key=_s3_feed_key())
-        body = obj["Body"].read().decode("utf-8")
-        return json.loads(body)
-    except (ClientError, BotoCoreError, Exception):
-        return None
+    payload = _s3_get_json(bucket, _s3_feed_key())
+    return payload if isinstance(payload, dict) else None
 
 
 def _save_feed_s3(payload: Dict) -> None:
     if not _s3_enabled():
         return
-    client = _s3_client()
-    if not client:
+    bucket = _s3_bucket()
+    if not bucket:
         return
-    try:
-        body = json.dumps(payload, ensure_ascii=False, indent=2).encode("utf-8")
-        client.put_object(
-            Bucket=S3_BUCKET,
-            Key=_s3_feed_key(),
-            Body=body,
-            ContentType="application/json; charset=utf-8",
-            CacheControl="max-age=0, no-cache",
-        )
-    except (ClientError, BotoCoreError, Exception):
-        pass
+    _s3_put_json(bucket, _s3_feed_key(), payload)
 
 
 def _fetch_feed_remote() -> Optional[Dict]:
     url = "https://gaming.uefa.com/en/uclfantasy/services/feeds/players/players_80_en_1.json"
-    try:
-        resp = requests.get(url, timeout=10)
-        resp.raise_for_status()
-        return resp.json()
-    except Exception:
-        return None
+    return _fetch_remote(url)
 
 
 def _load_local_players_backup() -> Optional[Dict]:
