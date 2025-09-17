@@ -1,7 +1,7 @@
 from __future__ import annotations
 import json
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set
+from typing import Any, Dict, List, Optional, Set, Tuple
 from flask import Blueprint, render_template, request, session, url_for, jsonify
 import os
 try:
@@ -805,34 +805,61 @@ def _ucl_default_matchday(state: Dict[str, Any]) -> int:
 def _ucl_points_for_md(stats: Dict[str, Any], md: int) -> Optional[Dict[str, Any]]:
     if not isinstance(stats, dict):
         return None
+
     data = stats.get("data") if isinstance(stats.get("data"), dict) else stats
     value = data.get("value") if isinstance(data.get("value"), dict) else data
-    points = value.get("points") if isinstance(value.get("points"), list) else data.get("points")
-    if not isinstance(points, list):
+
+    def _candidate_lists(container: Dict[str, Any], keys: Tuple[str, ...]) -> List[List[Dict[str, Any]]]:
+        result: List[List[Dict[str, Any]]] = []
+        for key in keys:
+            raw = container.get(key)
+            if isinstance(raw, list):
+                result.append(raw)
+        return result
+
+    point_lists = _candidate_lists(value, ("matchdayPoints", "points"))
+    if not point_lists and isinstance(data, dict):
+        point_lists = _candidate_lists(data, ("matchdayPoints", "points"))
+    if not point_lists and isinstance(stats, dict):
+        point_lists = _candidate_lists(stats, ("matchdayPoints", "points"))
+
+    stat_lists = _candidate_lists(value, ("matchdayStats", "stats"))
+    if not stat_lists and isinstance(data, dict):
+        stat_lists = _candidate_lists(data, ("matchdayStats", "stats"))
+
+    def _find_entry(sources: List[List[Dict[str, Any]]]) -> Optional[Dict[str, Any]]:
+        for src in sources:
+            for entry in src:
+                if not isinstance(entry, dict):
+                    continue
+                md_val = _normalize_md(entry.get("mdId"))
+                if md_val is None:
+                    continue
+                if md_val == int(md):
+                    return entry
         return None
 
-    target = None
-    for entry in points:
-        if not isinstance(entry, dict):
-            continue
-        md_val = _normalize_md(entry.get("mdId"))
-        if md_val is None:
-            continue
-        if md_val == int(md):
-            target = entry
-            break
+    point_entry = _find_entry(point_lists)
+    stat_entry = _find_entry(stat_lists)
 
-    if target is None:
+    if point_entry and stat_entry and point_entry is not stat_entry:
+        merged = {**stat_entry, **point_entry}
+    else:
+        merged = point_entry or stat_entry
+
+    if not isinstance(merged, dict):
         return None
 
     normalized: Dict[str, Any] = {}
-    for key, val in target.items():
+    for key, val in merged.items():
         if key == "mdId":
             md_val = _normalize_md(val)
             normalized[key] = md_val if md_val is not None else val
-        elif isinstance(val, (int, float)):
+            continue
+        if isinstance(val, (int, float)):
             normalized[key] = int(val)
-        elif isinstance(val, str):
+            continue
+        if isinstance(val, str):
             digits = "".join(ch for ch in val if (ch.isdigit() or ch in ".-"))
             if digits and any(ch.isdigit() for ch in digits):
                 try:
@@ -840,11 +867,12 @@ def _ucl_points_for_md(stats: Dict[str, Any], md: int) -> Optional[Dict[str, Any
                     continue
                 except Exception:
                     pass
-            normalized[key] = val
-        else:
-            normalized[key] = val
-    if "tPoints" in target and "tPoints" not in normalized:
-        normalized["tPoints"] = _safe_int(target.get("tPoints"))
+        normalized[key] = val
+
+    if "tPoints" not in normalized and isinstance(point_entry, dict):
+        normalized["tPoints"] = _safe_int(point_entry.get("tPoints"))
+
+    normalized.setdefault("tPoints", 0)
     return normalized
 
 
