@@ -512,6 +512,8 @@ def _normalize_epl_state(state: Dict[str, Any]) -> None:
         ts = payload.get("ts")
         if ts:
             normalized["ts"] = ts
+        if payload.get("auto"):
+            normalized["auto"] = True
         return normalized
 
     def _sanitize_payload(payload: Dict[str, Any], roster_ids: Set[int], roster_order: List[int], pos_map: Dict[int, str]) -> Optional[Dict[str, Any]]:
@@ -551,6 +553,8 @@ def _normalize_epl_state(state: Dict[str, Any]) -> None:
         ts = payload.get("ts")
         if ts:
             sanitized["ts"] = ts
+        if payload.get("auto"):
+            sanitized["auto"] = True
         return sanitized
 
     sanitized_lineups: Dict[str, Dict[str, Any]] = {}
@@ -1107,11 +1111,15 @@ def _auto_lineup_from_roster(order: List[int], pos_map: Dict[int, str]) -> Optio
             bench.append(pid)
     while len(players) < 11 and bench:
         players.append(bench.pop(0))
+    # if still not enough players, include whatever is available
     if len(players) < 11:
-        return None
+        players.extend(bench)
+        bench = []
     formation = f"{counts['DEF']}-{counts['MID']}-{counts['FWD']}"
-    return {
+    payload = {
         "formation": formation,
         "players": players,
         "bench": bench,
+        "auto": True,
     }
+    return payload

@@ -452,85 +452,94 @@ def lineups():
     status: Dict[str, bool] = {}
     pos_order = {"GK": 0, "DEF": 1, "MID": 2, "FWD": 3}
     for m in managers:
-        auto_candidates = build_auto_lineup(rosters.get(m, []))
         data_source = lineups_state.get(m) or {}
-        lineup = data_source.get(str(gw)) or auto_candidates
+        stored_lineup = data_source.get(str(gw))
+        fallback_lineup = build_auto_lineup(rosters.get(m, []))
+        lineup = stored_lineup or fallback_lineup
+        auto_generated = bool(lineup and lineup.get("auto"))
         starters: list[dict] = []
         bench: list[dict] = []
         ts = None
         if lineup:
-            for pid in lineup.get("players") or []:
-                meta = pidx.get(str(pid), {})
-                name = meta.get("shortName") or meta.get("fullName") or str(pid)
-                s = stats_map.get(int(pid), {})
-                starters.append({
-                    "name": name,
-                    "pos": meta.get("position"),
-                    "points": s.get("points", 0),
-                    "club": team_codes.get(meta.get("teamId")),
-                    "minutes": s.get("minutes", 0),
-                    "status": s.get("status", "not_started"),
-                })
-            for pid in lineup.get("bench") or []:
-                meta = pidx.get(str(pid), {})
-                name = meta.get("shortName") or meta.get("fullName") or str(pid)
-                s = stats_map.get(int(pid), {})
-                bench.append({
-                    "name": name,
-                    "pos": meta.get("position"),
-                    "points": s.get("points", 0),
-                    "club": team_codes.get(meta.get("teamId")),
-                    "minutes": s.get("minutes", 0),
-                    "status": s.get("status", "not_started"),
-                })
-            # Add remaining players to bench automatically
-            selected = {str(pid) for pid in (lineup.get("players") or []) + (lineup.get("bench") or [])}
-            extra = []
-            for pl in rosters.get(m, []) or []:
-                pid = pl.get("playerId") or pl.get("id")
-                if str(pid) in selected:
-                    continue
-                meta = pidx.get(str(pid), {})
-                name = meta.get("shortName") or meta.get("fullName") or pl.get("fullName") or str(pid)
-                s = stats_map.get(int(pid), {})
-                extra.append({
-                    "name": name,
-                    "pos": pl.get("position") or meta.get("position"),
-                    "points": s.get("points", 0),
-                    "club": team_codes.get(meta.get("teamId")),
-                    "minutes": s.get("minutes", 0),
-                    "status": s.get("status", "not_started"),
-                })
-            extra.sort(key=lambda p: pos_order.get(p.get("pos"), 99))
-            bench.extend(extra)
-            # Apply automatic substitutions / penalties: if starter didn't play and match finished,
-            # try to replace with first bench player of same position who played minutes > 0.
-            # If no such bench player exists, assign -2 points to the starter.
-            for s in starters:
-                if s["status"] == "finished" and s.get("minutes", 0) == 0:
-                    s["subbed_out"] = True
-                    replaced = False
-                    for b in bench:
-                        if (
-                            b.get("pos") == s.get("pos")
-                            and b.get("minutes", 0) > 0
-                            and not b.get("subbed_in")
-                        ):
-                            b["subbed_in"] = True
-                            replaced = True
-                            break
-                    if not replaced:
-                        s["penalized"] = True
-                        s["points"] = -2
-            # Lineup timestamp
-            ts_raw = lineup.get("ts")
-            if ts_raw:
-                try:
-                    ts = datetime.fromisoformat(ts_raw).astimezone(ZoneInfo("Europe/Warsaw"))
-                except Exception:
-                    ts = None
-            ts_raw = lineup.get("ts")
-            auto_generated = lineup is auto_candidates
+            if auto_generated:
+                roster_sorted = sorted(
+                    rosters.get(m, []) or [],
+                    key=lambda pl: (pos_order.get((pl.get("position") or "").upper(), 99), pl.get("fullName") or ""),
+                )
+                for pl in roster_sorted:
+                    pid = pl.get("playerId") or pl.get("id")
+                    meta = pidx.get(str(pid), {})
+                    name = meta.get("shortName") or meta.get("fullName") or pl.get("fullName") or str(pid)
+                    s = stats_map.get(int(pid), {})
+                    starters.append({
+                        "name": name,
+                        "pos": (pl.get("position") or meta.get("position")),
+                        "points": s.get("points", 0),
+                        "club": team_codes.get(meta.get("teamId")),
+                        "minutes": s.get("minutes", 0),
+                        "status": s.get("status", "not_started"),
+                    })
+            else:
+                for pid in lineup.get("players") or []:
+                    meta = pidx.get(str(pid), {})
+                    name = meta.get("shortName") or meta.get("fullName") or str(pid)
+                    s = stats_map.get(int(pid), {})
+                    starters.append({
+                        "name": name,
+                        "pos": meta.get("position"),
+                        "points": s.get("points", 0),
+                        "club": team_codes.get(meta.get("teamId")),
+                        "minutes": s.get("minutes", 0),
+                        "status": s.get("status", "not_started"),
+                    })
+                for pid in lineup.get("bench") or []:
+                    meta = pidx.get(str(pid), {})
+                    name = meta.get("shortName") or meta.get("fullName") or str(pid)
+                    s = stats_map.get(int(pid), {})
+                    bench.append({
+                        "name": name,
+                        "pos": meta.get("position"),
+                        "points": s.get("points", 0),
+                        "club": team_codes.get(meta.get("teamId")),
+                        "minutes": s.get("minutes", 0),
+                        "status": s.get("status", "not_started"),
+                    })
+                selected = {str(pid) for pid in (lineup.get("players") or []) + (lineup.get("bench") or [])}
+                extra = []
+                for pl in rosters.get(m, []) or []:
+                    pid = pl.get("playerId") or pl.get("id")
+                    if str(pid) in selected:
+                        continue
+                    meta = pidx.get(str(pid), {})
+                    name = meta.get("shortName") or meta.get("fullName") or pl.get("fullName") or str(pid)
+                    s = stats_map.get(int(pid), {})
+                    extra.append({
+                        "name": name,
+                        "pos": pl.get("position") or meta.get("position"),
+                        "points": s.get("points", 0),
+                        "club": team_codes.get(meta.get("teamId")),
+                        "minutes": s.get("minutes", 0),
+                        "status": s.get("status", "not_started"),
+                    })
+                extra.sort(key=lambda p: pos_order.get(p.get("pos"), 99))
+                bench.extend(extra)
+                for s in starters:
+                    if s["status"] == "finished" and s.get("minutes", 0) == 0:
+                        s["subbed_out"] = True
+                        replaced = False
+                        for b in bench:
+                            if (
+                                b.get("pos") == s.get("pos")
+                                and b.get("minutes", 0) > 0
+                                and not b.get("subbed_in")
+                            ):
+                                b["subbed_in"] = True
+                                replaced = True
+                                break
+                        if not replaced:
+                            s["penalized"] = True
+                            s["points"] = -2
+            ts_raw = lineup.get("ts") if lineup else None
             if ts_raw and not auto_generated:
                 try:
                     ts = datetime.fromisoformat(ts_raw).astimezone(ZoneInfo("Europe/Warsaw"))
@@ -538,7 +547,11 @@ def lineups():
                     ts = None
             status[m] = not auto_generated
         else:
-            for pl in rosters.get(m, []) or []:
+            roster_sorted = sorted(
+                rosters.get(m, []) or [],
+                key=lambda pl: (pos_order.get((pl.get("position") or "").upper(), 99), pl.get("fullName") or ""),
+            )
+            for pl in roster_sorted:
                 pid = pl.get("playerId") or pl.get("id")
                 meta = pidx.get(str(pid), {})
                 name = meta.get("shortName") or meta.get("fullName") or pl.get("fullName") or str(pid)
@@ -551,9 +564,8 @@ def lineups():
                     "minutes": s.get("minutes", 0),
                     "status": s.get("status", "not_started"),
                 })
-            starters.sort(key=lambda p: pos_order.get(p.get("pos"), 99))
             status[m] = False
-        players_cnt = len(lineup.get("players") or []) if lineup else 0
+        players_cnt = len(lineup.get("players") or []) if (lineup and not auto_generated) else 0
         if lineup and players_cnt == 11:
             total_pts = 0
             for s in starters:
