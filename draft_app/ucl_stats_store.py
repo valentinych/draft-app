@@ -100,7 +100,7 @@ def _stats_put_json(key: str, payload: Dict) -> None:
 
 def _s3_key(player_id: int) -> str:
     prefix = _stats_prefix()
-    return f"{prefix}/{int(player_id)}.json"
+    return f"{prefix}/popupstats_80_{int(player_id)}.json"
 
 
 def _s3_feed_key() -> str:
@@ -114,7 +114,7 @@ def _stats_prefix() -> str:
         prefix = env_override.strip().strip("/")
         if prefix:
             return prefix
-    return "ucl_stats"
+    return "ucl"
 
 
 def _load_local(player_id: int) -> Optional[Dict]:
@@ -143,7 +143,19 @@ def _load_s3(player_id: int) -> Optional[Dict]:
     if not _stats_enabled():
         return None
     payload = _stats_get_json(_s3_key(player_id))
-    return payload if isinstance(payload, dict) else None
+    if not isinstance(payload, dict):
+        return None
+    if isinstance(payload.get("cached_at"), str) and "data" in payload:
+        return payload
+    wrapped = {
+        "cached_at": datetime.utcnow().isoformat(),
+        "data": payload,
+    }
+    try:
+        _stats_put_json(_s3_key(player_id), wrapped)
+    except Exception:
+        pass
+    return wrapped
 
 
 def _save_s3(player_id: int, payload: Dict) -> None:
@@ -233,55 +245,6 @@ def _fetch_remote_player(player_id: int) -> Optional[Dict]:
     return _fetch_remote(url)
 
 
-def _load_local_popupstats(player_id: int) -> Optional[Dict]:
-    paths = [
-        POPUP_DIR / f"popupstats_80_{int(player_id)}.json",
-        POPUP_DIR / f"popupstats_70_{int(player_id)}.json",
-    ]
-    for path in paths:
-        if not path.exists():
-            continue
-        try:
-            with path.open("r", encoding="utf-8") as f:
-                return json.load(f)
-        except Exception:
-            continue
-    return None
-
-
-def _total_points(payload: Dict) -> int:
-    try:
-        data = payload.get("data") if isinstance(payload.get("data"), dict) else payload
-        value = data.get("value") if isinstance(data.get("value"), dict) else data
-
-        lists = []
-        for source in (value, data, payload):
-            if isinstance(source, dict):
-                for key in ("matchdayPoints", "points"):
-                    raw = source.get(key)
-                    if isinstance(raw, list):
-                        lists.append(raw)
-
-        total = 0
-        for lst in lists:
-            for entry in lst:
-                if not isinstance(entry, dict):
-                    continue
-                val = entry.get("tPoints")
-                if isinstance(val, (int, float)):
-                    total += int(val)
-                elif isinstance(val, str):
-                    digits = "".join(ch for ch in val if (ch.isdigit() or ch in ".-"))
-                    if digits and any(ch.isdigit() for ch in digits):
-                        try:
-                            total += int(float(digits))
-                        except Exception:
-                            continue
-        return total
-    except Exception:
-        return 0
-
-
 def get_player_stats(player_id: int) -> Dict:
     """Return cached popup stats for a player, updating if stale."""
     cached = _load_local(player_id)
@@ -297,24 +260,10 @@ def get_player_stats(player_id: int) -> Dict:
                     "cached_at": datetime.utcnow().isoformat(),
                     "data": remote,
                 }
-                local_popup = _load_local_popupstats(player_id)
-                if local_popup is not None:
-                    remote_points = _total_points(remote)
-                    fallback_points = _total_points(local_popup)
-                    if fallback_points and remote_points == 0:
-                        cached["data"] = local_popup
                 _save_local(player_id, cached)
                 _save_s3(player_id, cached)
             else:
-                local_popup = _load_local_popupstats(player_id)
-                if local_popup is not None:
-                    cached = {
-                        "cached_at": datetime.utcnow().isoformat(),
-                        "data": local_popup,
-                    }
-                    _save_local(player_id, cached)
-                    _save_s3(player_id, cached)
-                elif s3_payload:
+                if s3_payload:
                     cached = s3_payload
                     _save_local(player_id, cached)
     return (cached or {}).get("data", {})
