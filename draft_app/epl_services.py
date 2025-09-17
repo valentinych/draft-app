@@ -496,7 +496,6 @@ def _normalize_epl_state(state: Dict[str, Any]) -> None:
             lineups_raw[manager] = {} if entries is None else {}
             changed = True
             entries = lineups_raw[manager]
-        roster_ids = roster_id_map.get(manager, set())
         roster_order = roster_order_map.get(manager, [])
         removable: List[str] = []
         for gw_key, payload in list(entries.items()):
@@ -513,8 +512,6 @@ def _normalize_epl_state(state: Dict[str, Any]) -> None:
                         pid = int(val)
                     except Exception:
                         continue
-                    if roster_ids and pid not in roster_ids:
-                        continue
                     if pid in seen:
                         continue
                     players.append(pid)
@@ -525,8 +522,6 @@ def _normalize_epl_state(state: Dict[str, Any]) -> None:
                     try:
                         pid = int(val)
                     except Exception:
-                        continue
-                    if roster_ids and pid not in roster_ids:
                         continue
                     if pid in seen:
                         continue
