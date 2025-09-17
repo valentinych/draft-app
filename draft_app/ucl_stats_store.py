@@ -17,8 +17,8 @@ CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
 POPUP_DIR = BASE_DIR / "popupstats"
 
-TTL = timedelta(hours=3)
-FEED_TTL = timedelta(hours=6)
+TTL = None  # TTL disabled: cached payloads stay until explicitly refreshed
+FEED_TTL = None
 PLAYERS_FEED_LOCAL = BASE_DIR / "players_80_en_1.json"
 REQUEST_TIMEOUT = 5  # seconds per HTTP attempt
 REMOTE_FAILURE_COOLDOWN = 300  # seconds to skip remote fetches after failure
@@ -165,16 +165,7 @@ def _save_s3(player_id: int, payload: Dict) -> None:
 
 
 def _fresh(payload: Optional[Dict]) -> bool:
-    if not payload:
-        return False
-    ts = payload.get("cached_at")
-    if not ts:
-        return False
-    try:
-        cached = datetime.fromisoformat(ts)
-    except Exception:
-        return False
-    return datetime.utcnow() - cached < TTL
+    return bool(payload)
 
 
 def _http_headers() -> Dict[str, str]:
@@ -270,16 +261,7 @@ def get_player_stats(player_id: int) -> Dict:
 
 
 def _feed_fresh(payload: Optional[Dict]) -> bool:
-    if not payload:
-        return False
-    ts = payload.get("cached_at")
-    if not ts:
-        return False
-    try:
-        cached = datetime.fromisoformat(ts)
-    except Exception:
-        return False
-    return datetime.utcnow() - cached < FEED_TTL
+    return bool(payload)
 
 
 def _load_feed_local() -> Optional[Dict]:
