@@ -474,15 +474,24 @@ def _normalize_epl_state(state: Dict[str, Any]) -> None:
         changed = True
 
     roster_id_map: Dict[str, Set[int]] = {}
+    roster_order_map: Dict[str, List[int]] = {}
+    roster_pos_map: Dict[str, Dict[int, str]] = {}
     for manager, arr in rosters.items():
         ids: Set[int] = set()
+        order: List[int] = []
+        pos_map: Dict[int, str] = {}
         for pl in arr:
             try:
                 pid = int(pl.get("playerId"))
             except Exception:
                 continue
             ids.add(pid)
+            order.append(pid)
+            pos = (pl.get("position") or "").upper()
+            pos_map[pid] = pos
         roster_id_map[manager] = ids
+        roster_order_map[manager] = order
+        roster_pos_map[manager] = pos_map
 
     def _normalize_payload(payload: Dict[str, Any]) -> Dict[str, Any]:
         def _coerce(seq: Any) -> List[int]:
@@ -505,7 +514,7 @@ def _normalize_epl_state(state: Dict[str, Any]) -> None:
             normalized["ts"] = ts
         return normalized
 
-    def _sanitize_payload(payload: Dict[str, Any], roster_ids: Set[int]) -> Optional[Dict[str, Any]]:
+    def _sanitize_payload(payload: Dict[str, Any], roster_ids: Set[int], roster_order: List[int], pos_map: Dict[int, str]) -> Optional[Dict[str, Any]]:
         seen: Set[int] = set()
         players: List[int] = []
         for pid in payload.get("players", []):
@@ -518,7 +527,22 @@ def _normalize_epl_state(state: Dict[str, Any]) -> None:
                 bench.append(pid)
                 seen.add(pid)
         if len(players) < 11:
+            for pid in roster_order:
+                if pid in seen:
+                    continue
+                if pid in roster_ids:
+                    players.append(pid)
+                    seen.add(pid)
+                if len(players) == 11:
+                    break
+        if len(players) < 11:
             return None
+        for pid in roster_order:
+            if pid in seen:
+                continue
+            if pid in roster_ids:
+                bench.append(pid)
+                seen.add(pid)
         sanitized = {
             "formation": payload.get("formation") or "auto",
             "players": players,
@@ -548,12 +572,25 @@ def _normalize_epl_state(state: Dict[str, Any]) -> None:
                     store_remove_lineup(manager, gw_int)
                     continue
                 normalized_payload = _normalize_payload(payload)
-                sanitized_payload = _sanitize_payload(normalized_payload, roster_id_map.get(manager, set()))
+                sanitized_payload = _sanitize_payload(
+                    normalized_payload,
+                    roster_id_map.get(manager, set()),
+                    roster_order_map.get(manager, []),
+                    roster_pos_map.get(manager, {}),
+                )
                 if sanitized_payload is None:
-                    if normalized_payload.get("players"):
-                        changed = True
-                    store_remove_lineup(manager, gw_int)
-                    continue
+                    auto_payload = _auto_lineup_from_roster(
+                        roster_order_map.get(manager, []),
+                        roster_pos_map.get(manager, {}),
+                    )
+                    if auto_payload is None:
+                        if normalized_payload.get("players"):
+                            changed = True
+                        store_remove_lineup(manager, gw_int)
+                        continue
+                    sanitized_payload = auto_payload
+                    changed = True
+                    store_save_lineup(manager, gw_int, sanitized_payload)
                 sanitized_manager[str(gw_int)] = sanitized_payload
                 if sanitized_payload != normalized_payload:
                     changed = True
@@ -1041,3 +1078,40 @@ def gw_info(bootstrap: Optional[Dict[str, Any]] = None) -> Dict[str, Optional[in
     if nxt is None and cur is not None:
         nxt = cur + 1
     return {"current": cur, "next": nxt, "finished": last_finished}
+def build_auto_lineup(roster: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+    order: List[int] = []
+    pos_map: Dict[int, str] = {}
+    for pl in roster:
+        try:
+            pid = int(pl.get("playerId"))
+        except Exception:
+            continue
+        order.append(pid)
+        pos_map[pid] = (pl.get("position") or "").upper()
+    return _auto_lineup_from_roster(order, pos_map)
+
+
+def _auto_lineup_from_roster(order: List[int], pos_map: Dict[int, str]) -> Optional[Dict[str, Any]]:
+    if not order:
+        return None
+    formation_counts = {"GK": 1, "DEF": 4, "MID": 4, "FWD": 2}
+    counts = {"GK": 0, "DEF": 0, "MID": 0, "FWD": 0}
+    players: List[int] = []
+    bench: List[int] = []
+    for pid in order:
+        pos = pos_map.get(pid, "")
+        if pos in formation_counts and counts[pos] < formation_counts[pos]:
+            players.append(pid)
+            counts[pos] += 1
+        else:
+            bench.append(pid)
+    while len(players) < 11 and bench:
+        players.append(bench.pop(0))
+    if len(players) < 11:
+        return None
+    formation = f"{counts['DEF']}-{counts['MID']}-{counts['FWD']}"
+    return {
+        "formation": formation,
+        "players": players,
+        "bench": bench,
+    }

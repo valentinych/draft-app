@@ -12,6 +12,7 @@ from .epl_services import (
     load_state, save_state, who_is_on_clock,
     picked_fpl_ids_from_state, annotate_can_pick,
     build_status_context,
+    build_auto_lineup,
     wishlist_load, wishlist_save,
     fetch_element_summary, fp_last_from_summary, photo_url_for,
     fixtures_for_gw, points_for_gw, gw_info,
@@ -221,6 +222,10 @@ def squad():
     roster = (state.get("rosters") or {}).get(user, []) or []
     lineup_state = state.setdefault("lineups", {}).setdefault(user, {})
     selected = load_lineup(user, gw) or lineup_state.get(str(gw), {})
+    if not selected:
+        auto_payload = build_auto_lineup(roster)
+        if auto_payload:
+            selected = auto_payload
     formation = selected.get("formation", "auto")
     lineup_ids = [str(x) for x in (selected.get("players") or [])]
     bench_ids = [str(x) for x in (selected.get("bench") or [])]
@@ -447,7 +452,9 @@ def lineups():
     status: Dict[str, bool] = {}
     pos_order = {"GK": 0, "DEF": 1, "MID": 2, "FWD": 3}
     for m in managers:
-        lineup = (lineups_state.get(m) or {}).get(str(gw))
+        auto_candidates = build_auto_lineup(rosters.get(m, []))
+        data_source = lineups_state.get(m) or {}
+        lineup = data_source.get(str(gw)) or auto_candidates
         starters: list[dict] = []
         bench: list[dict] = []
         ts = None
@@ -522,7 +529,14 @@ def lineups():
                     ts = datetime.fromisoformat(ts_raw).astimezone(ZoneInfo("Europe/Warsaw"))
                 except Exception:
                     ts = None
-            status[m] = True
+            ts_raw = lineup.get("ts")
+            auto_generated = lineup is auto_candidates
+            if ts_raw and not auto_generated:
+                try:
+                    ts = datetime.fromisoformat(ts_raw).astimezone(ZoneInfo("Europe/Warsaw"))
+                except Exception:
+                    ts = None
+            status[m] = not auto_generated
         else:
             for pl in rosters.get(m, []) or []:
                 pid = pl.get("playerId") or pl.get("id")
