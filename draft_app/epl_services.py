@@ -454,6 +454,23 @@ def _normalize_epl_state(state: Dict[str, Any]) -> None:
         state["rosters"] = rosters
         changed = True
 
+    roster_id_map: Dict[str, Set[int]] = {}
+    roster_order_map: Dict[str, List[int]] = {}
+    for manager, arr in rosters.items():
+        ids: Set[int] = set()
+        order: List[int] = []
+        for pl in arr:
+            try:
+                pid = int(pl.get("playerId") or pl.get("id"))
+            except Exception:
+                continue
+            if pid in ids:
+                continue
+            ids.add(pid)
+            order.append(pid)
+        roster_id_map[manager] = ids
+        roster_order_map[manager] = order
+
     picks = state.get("picks")
     if isinstance(picks, list):
         filtered = [row for row in picks if (row or {}).get("user") in EPL_MANAGER_SET]
@@ -477,6 +494,61 @@ def _normalize_epl_state(state: Dict[str, Any]) -> None:
         entries = lineups_raw.get(manager)
         if not isinstance(entries, dict):
             lineups_raw[manager] = {} if entries is None else {}
+            changed = True
+            entries = lineups_raw[manager]
+        roster_ids = roster_id_map.get(manager, set())
+        roster_order = roster_order_map.get(manager, [])
+        removable: List[str] = []
+        for gw_key, payload in list(entries.items()):
+            if not isinstance(payload, dict):
+                removable.append(gw_key)
+                continue
+            players_raw = payload.get("players")
+            bench_raw = payload.get("bench")
+            players: List[int] = []
+            seen: Set[int] = set()
+            if isinstance(players_raw, (list, tuple)):
+                for val in players_raw:
+                    try:
+                        pid = int(val)
+                    except Exception:
+                        continue
+                    if roster_ids and pid not in roster_ids:
+                        continue
+                    if pid in seen:
+                        continue
+                    players.append(pid)
+                    seen.add(pid)
+            bench: List[int] = []
+            if isinstance(bench_raw, (list, tuple)):
+                for val in bench_raw:
+                    try:
+                        pid = int(val)
+                    except Exception:
+                        continue
+                    if roster_ids and pid not in roster_ids:
+                        continue
+                    if pid in seen:
+                        continue
+                    bench.append(pid)
+                    seen.add(pid)
+            # Auto-extend bench with remaining roster players
+            for pid in roster_order:
+                if pid in seen:
+                    continue
+                bench.append(pid)
+                seen.add(pid)
+
+            normalized = dict(payload)
+            if normalized.get("players") != players:
+                normalized["players"] = players
+            if normalized.get("bench") != bench:
+                normalized["bench"] = bench
+            if normalized != payload:
+                entries[gw_key] = normalized
+                changed = True
+        for key in removable:
+            entries.pop(key, None)
             changed = True
 
     extra_keys = set(lineups_raw.keys()) - set(EPL_USERS)

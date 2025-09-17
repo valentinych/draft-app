@@ -422,6 +422,7 @@ def lineups():
         gw = info.get("current") or 1
         if info.get("finished", 0) >= gw and info.get("next"):
             gw = info.get("next")
+    last_finished = info.get("finished") or 0
     state = load_state()
     lineups_state = state.get("lineups") or {}
     rosters = state.get("rosters") or {}
@@ -455,6 +456,11 @@ def lineups():
         data_source = lineups_state.get(m) or {}
         lineup = data_source.get(str(gw))
         auto_generated = False
+        if not lineup and last_finished and gw <= last_finished:
+            auto_payload = build_auto_lineup(rosters.get(m, []) or [])
+            if auto_payload:
+                lineup = auto_payload
+                auto_generated = True
         starters: list[dict] = []
         bench: list[dict] = []
         ts = None
@@ -524,7 +530,7 @@ def lineups():
                     ts = datetime.fromisoformat(ts_raw).astimezone(ZoneInfo("Europe/Warsaw"))
                 except Exception:
                     ts = None
-            status[m] = True
+            status[m] = not auto_generated
         else:
             roster_sorted = sorted(
                 rosters.get(m, []) or [],
@@ -544,7 +550,7 @@ def lineups():
                     "status": s.get("status", "not_started"),
                 })
             status[m] = False
-        players_cnt = len(lineup.get("players") or []) if (lineup and not auto_generated) else 0
+        players_cnt = len(lineup.get("players") or []) if lineup else 0
         if lineup and players_cnt == 11:
             total_pts = 0
             for s in starters:
@@ -560,9 +566,10 @@ def lineups():
         table[m] = {
             "starters": starters,
             "bench": bench,
-            "has_lineup": status[m],
+            "has_lineup": bool(lineup),
             "ts": ts,
             "total": total_pts,
+            "auto_generated": auto_generated,
         }
     # Persist per-gameweek totals so that results page can reuse exact values
     scores: Dict[str, int] = {}
