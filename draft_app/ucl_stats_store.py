@@ -6,7 +6,9 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, Optional
 
-from .epl_services import _s3_bucket, _s3_enabled, _s3_get_json, _s3_put_json
+import boto3
+from botocore.exceptions import ClientError
+
 from .services import HEADERS_GENERIC, HTTP_SESSION
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -22,6 +24,78 @@ REQUEST_TIMEOUT = 5  # seconds per HTTP attempt
 REMOTE_FAILURE_COOLDOWN = 300  # seconds to skip remote fetches after failure
 
 _REMOTE_FAILURE_AT: float = 0.0
+_S3_CLIENT = None
+
+
+def _stats_bucket() -> Optional[str]:
+    for var in ("UCL_STATS_S3_BUCKET", "DRAFT_S3_BUCKET", "AWS_S3_BUCKET"):
+        val = (os.getenv(var) or "").strip()
+        if val:
+            return val
+    return None
+
+
+def _stats_client():
+    global _S3_CLIENT
+    if _S3_CLIENT is not None:
+        return _S3_CLIENT
+    bucket = _stats_bucket()
+    if not bucket:
+        return None
+    try:
+        region = os.getenv("AWS_REGION") or os.getenv("AWS_DEFAULT_REGION") or "us-east-1"
+        _S3_CLIENT = boto3.client(
+            "s3",
+            region_name=region,
+            config=boto3.session.Config(
+                connect_timeout=5,
+                read_timeout=8,
+                retries={"max_attempts": 3, "mode": "standard"},
+            ),
+        )
+    except Exception:
+        _S3_CLIENT = None
+    return _S3_CLIENT
+
+
+def _stats_enabled() -> bool:
+    return _stats_client() is not None
+
+
+def _stats_get_json(key: str) -> Optional[Dict]:
+    client = _stats_client()
+    bucket = _stats_bucket()
+    if not client or not bucket:
+        return None
+    try:
+        obj = client.get_object(Bucket=bucket, Key=key)
+        return json.loads(obj["Body"].read().decode("utf-8"))
+    except ClientError as exc:
+        code = exc.response.get("Error", {}).get("Code")
+        if code in {"NoSuchKey", "404"}:
+            return None
+        print(f"[UCL:S3] get {key} failed: {exc}")
+        return None
+    except Exception as exc:
+        print(f"[UCL:S3] get {key} failed: {exc}")
+        return None
+
+
+def _stats_put_json(key: str, payload: Dict) -> None:
+    client = _stats_client()
+    bucket = _stats_bucket()
+    if not client or not bucket:
+        return
+    try:
+        client.put_object(
+            Bucket=bucket,
+            Key=key,
+            Body=json.dumps(payload, ensure_ascii=False, indent=2).encode("utf-8"),
+            ContentType="application/json; charset=utf-8",
+            CacheControl="max-age=10800, public",
+        )
+    except Exception as exc:
+        print(f"[UCL:S3] put {key} failed: {exc}")
 
 
 def _s3_key(player_id: int) -> str:
@@ -66,23 +140,16 @@ def _save_local(player_id: int, payload: Dict) -> None:
 
 
 def _load_s3(player_id: int) -> Optional[Dict]:
-    if not _s3_enabled():
+    if not _stats_enabled():
         return None
-    bucket = _s3_bucket()
-    if not bucket:
-        return None
-    key = _s3_key(player_id)
-    payload = _s3_get_json(bucket, key)
+    payload = _stats_get_json(_s3_key(player_id))
     return payload if isinstance(payload, dict) else None
 
 
 def _save_s3(player_id: int, payload: Dict) -> None:
-    if not _s3_enabled():
+    if not _stats_enabled():
         return
-    bucket = _s3_bucket()
-    if not bucket:
-        return
-    _s3_put_json(bucket, _s3_key(player_id), payload)
+    _stats_put_json(_s3_key(player_id), payload)
 
 
 def _fresh(payload: Optional[Dict]) -> bool:
@@ -289,22 +356,16 @@ def _save_feed_local(payload: Dict) -> None:
 
 
 def _load_feed_s3() -> Optional[Dict]:
-    if not _s3_enabled():
+    if not _stats_enabled():
         return None
-    bucket = _s3_bucket()
-    if not bucket:
-        return None
-    payload = _s3_get_json(bucket, _s3_feed_key())
+    payload = _stats_get_json(_s3_feed_key())
     return payload if isinstance(payload, dict) else None
 
 
 def _save_feed_s3(payload: Dict) -> None:
-    if not _s3_enabled():
+    if not _stats_enabled():
         return
-    bucket = _s3_bucket()
-    if not bucket:
-        return
-    _s3_put_json(bucket, _s3_feed_key(), payload)
+    _stats_put_json(_s3_feed_key(), payload)
 
 
 def _fetch_feed_remote() -> Optional[Dict]:
