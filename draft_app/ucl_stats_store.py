@@ -16,6 +16,10 @@ CACHE_DIR.mkdir(parents=True, exist_ok=True)
 TTL = timedelta(hours=12)
 FEED_TTL = timedelta(hours=6)
 PLAYERS_FEED_LOCAL = BASE_DIR / "players_80_en_1.json"
+REQUEST_TIMEOUT = 5  # seconds per HTTP attempt
+REMOTE_FAILURE_COOLDOWN = 300  # seconds to skip remote fetches after failure
+
+_REMOTE_FAILURE_AT: float = 0.0
 
 
 def _s3_key(player_id: int) -> str:
@@ -30,8 +34,24 @@ def _s3_feed_key() -> str:
 
 def _stats_prefix() -> str:
     env_override = os.getenv("UCL_STATS_S3_PREFIX") or os.getenv("UCL_S3_STATS_PREFIX")
-    prefix = (env_override or "ucl_stat").strip().strip("/")
-    return prefix or "ucl_stat"
+    if env_override:
+        prefix = env_override.strip().strip("/")
+        if prefix:
+            return prefix
+
+    state_key = (
+        os.getenv("DRAFT_S3_UCL_STATE_KEY")
+        or os.getenv("DRAFT_S3_STATE_KEY")
+        or os.getenv("UCL_S3_STATE_KEY")
+        or ""
+    )
+    state_key = state_key.strip().strip("/")
+    if state_key and "/" in state_key:
+        parent = state_key.rsplit("/", 1)[0].strip().strip("/")
+        if parent:
+            return f"{parent}/ucl_stat"
+
+    return "ucl_stat"
 
 
 def _load_local(player_id: int) -> Optional[Dict]:
@@ -91,28 +111,64 @@ def _fresh(payload: Optional[Dict]) -> bool:
 
 def _http_headers() -> Dict[str, str]:
     headers = dict(HEADERS_GENERIC)
+    headers["User-Agent"] = (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/124.0.0.0 Safari/537.36"
+    )
     headers.setdefault("Accept", "application/json, text/plain, */*")
     headers.setdefault("Referer", "https://gaming.uefa.com/en/uclfantasy/")
     headers.setdefault("Origin", "https://gaming.uefa.com")
     headers.setdefault("Accept-Language", "en-US,en;q=0.9")
     headers.setdefault("Cache-Control", "no-cache")
     headers.setdefault("Pragma", "no-cache")
+    headers.setdefault("Accept-Encoding", "gzip, deflate, br")
+    headers.setdefault("Connection", "keep-alive")
+    headers.setdefault("X-Requested-With", "XMLHttpRequest")
+    headers.setdefault("Sec-Fetch-Dest", "empty")
+    headers.setdefault("Sec-Fetch-Mode", "cors")
+    headers.setdefault("Sec-Fetch-Site", "same-origin")
+    headers.setdefault("sec-ch-ua", '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"')
+    headers.setdefault("sec-ch-ua-mobile", "?0")
+    headers.setdefault("sec-ch-ua-platform", '"Windows"')
     return headers
 
 
 def _fetch_remote(url: str) -> Optional[Dict]:
+    global _REMOTE_FAILURE_AT
+
+    if _REMOTE_FAILURE_AT and (time.time() - _REMOTE_FAILURE_AT) < REMOTE_FAILURE_COOLDOWN:
+        return None
+
     headers = _http_headers()
-    attempts = (
-        {"params": None},
+    query_variants = (
+        {},
         {"params": {"_": str(int(time.time()))}},
     )
-    for attempt in attempts:
+    warmup_done = False
+    for idx in range(2):
+        variant = query_variants[idx % len(query_variants)]
+        kwargs = {k: v for k, v in variant.items() if v}
         try:
-            resp = HTTP_SESSION.get(url, headers=headers, timeout=10, **{k: v for k, v in attempt.items() if v})
+            resp = HTTP_SESSION.get(url, headers=headers, timeout=REQUEST_TIMEOUT, **kwargs)
             resp.raise_for_status()
+            _REMOTE_FAILURE_AT = 0.0
             return resp.json()
         except Exception:
+            if not warmup_done:
+                warmup_done = True
+                try:
+                    HTTP_SESSION.get(
+                        "https://gaming.uefa.com/en/uclfantasy/",
+                        headers=headers,
+                        timeout=REQUEST_TIMEOUT,
+                    )
+                except Exception:
+                    pass
+            time.sleep(0.3)
             continue
+
+    _REMOTE_FAILURE_AT = time.time()
     return None
 
 
