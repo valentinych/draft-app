@@ -63,9 +63,22 @@ def main() -> int:
         try:
             stats = get_player_stats(pid)
             if not stats:
+                failures += 1
                 print(f"[{idx}/{len(players)}] pid={pid}: empty stats", flush=True)
-            elif (stats.get("data") or {}).get("value") is None:
-                print(f"[{idx}/{len(players)}] pid={pid}: missing value", flush=True)
+                continue
+
+            value = stats.get("value")
+            if value is None:
+                value = (stats.get("data") or {}).get("value")
+
+            if not isinstance(value, dict):
+                failures += 1
+                print(f"[{idx}/{len(players)}] pid={pid}: missing value section", flush=True)
+                continue
+
+            points = value.get("points") or value.get("matchdayPoints") or []
+            info = value.get("shortName") or value.get("fullName") or value.get("name") or ""
+            print(f"[{idx}/{len(players)}] pid={pid}: {info} points_entries={len(points)}", flush=True)
         except Exception as exc:
             failures += 1
             print(f"[{idx}/{len(players)}] pid={pid}: error {exc}", flush=True)
