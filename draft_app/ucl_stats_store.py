@@ -11,6 +11,18 @@ from botocore.exceptions import ClientError
 
 from .services import HEADERS_GENERIC, HTTP_SESSION
 
+_DEBUG_ENABLED = (os.getenv("UCL_STATS_DEBUG") or "").strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _debug(event: str, **data) -> None:
+    if not _DEBUG_ENABLED:
+        return
+    payload = " ".join(f"{k}={v}" for k, v in data.items())
+    message = f"[UCL:debug] {event}"
+    if payload:
+        message = f"{message} {payload}"
+    print(message, flush=True)
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 CACHE_DIR = BASE_DIR / "data" / "cache" / "ucl_stat"
 CACHE_DIR.mkdir(parents=True, exist_ok=True)
@@ -120,32 +132,46 @@ def _stats_prefix() -> str:
 def _load_local(player_id: int) -> Optional[Dict]:
     path = CACHE_DIR / f"{int(player_id)}.json"
     if not path.exists():
+        _debug("local_cache_miss", player_id=int(player_id), path=path)
         return None
     try:
         with path.open("r", encoding="utf-8") as f:
-            return json.load(f)
-    except Exception:
+            payload = json.load(f)
+        _debug("local_cache_hit", player_id=int(player_id), path=path)
+        return payload
+    except Exception as exc:
+        _debug("local_cache_error", player_id=int(player_id), path=path, error=exc)
         return None
 
 
 def _save_local(player_id: int, payload: Dict) -> None:
+    target = CACHE_DIR / f"{int(player_id)}.json"
     try:
         fd, tmp_name = tempfile.mkstemp(prefix="ucl_stat_", suffix=".json", dir=str(CACHE_DIR))
         os.close(fd)
         with open(tmp_name, "w", encoding="utf-8") as f:
             json.dump(payload, f, ensure_ascii=False, indent=2)
-        os.replace(tmp_name, CACHE_DIR / f"{int(player_id)}.json")
-    except Exception:
-        pass
+        os.replace(tmp_name, target)
+        size = None
+        try:
+            size = target.stat().st_size
+        except Exception:
+            pass
+        _debug("local_cache_write", player_id=int(player_id), path=target, bytes=size)
+    except Exception as exc:
+        _debug("local_cache_write_error", player_id=int(player_id), path=target, error=exc)
 
 
 def _load_s3(player_id: int) -> Optional[Dict]:
     if not _stats_enabled():
+        _debug("s3_disabled", player_id=int(player_id))
         return None
     payload = _stats_get_json(_s3_key(player_id))
     if not isinstance(payload, dict):
+        _debug("s3_cache_miss", player_id=int(player_id))
         return None
     if isinstance(payload.get("cached_at"), str) and "data" in payload:
+        _debug("s3_cache_hit", player_id=int(player_id))
         return payload
     wrapped = {
         "cached_at": datetime.utcnow().isoformat(),
@@ -155,13 +181,16 @@ def _load_s3(player_id: int) -> Optional[Dict]:
         _stats_put_json(_s3_key(player_id), wrapped)
     except Exception:
         pass
+    _debug("s3_cache_legacy_wrap", player_id=int(player_id))
     return wrapped
 
 
 def _save_s3(player_id: int, payload: Dict) -> None:
     if not _stats_enabled():
+        _debug("s3_disabled", player_id=int(player_id), action="save")
         return
     _stats_put_json(_s3_key(player_id), payload)
+    _debug("s3_cache_write", player_id=int(player_id))
 
 
 def _fresh(payload: Optional[Dict]) -> bool:
@@ -197,6 +226,8 @@ def _fetch_remote(url: str) -> Optional[Dict]:
     global _REMOTE_FAILURE_AT
 
     if _REMOTE_FAILURE_AT and (time.time() - _REMOTE_FAILURE_AT) < REMOTE_FAILURE_COOLDOWN:
+        remaining = REMOTE_FAILURE_COOLDOWN - (time.time() - _REMOTE_FAILURE_AT)
+        _debug("remote_skip_cooldown", url=url, seconds=max(int(remaining), 0))
         return None
 
     headers = _http_headers()
@@ -208,26 +239,41 @@ def _fetch_remote(url: str) -> Optional[Dict]:
     for idx in range(2):
         variant = query_variants[idx % len(query_variants)]
         kwargs = {k: v for k, v in variant.items() if v}
+        variant_label = "cachebuster" if kwargs else "default"
+        attempt = idx + 1
+        _debug("remote_attempt", url=url, attempt=attempt, variant=variant_label)
         try:
             resp = HTTP_SESSION.get(url, headers=headers, timeout=REQUEST_TIMEOUT, **kwargs)
             resp.raise_for_status()
             _REMOTE_FAILURE_AT = 0.0
+            _debug(
+                "remote_success",
+                url=url,
+                attempt=attempt,
+                variant=variant_label,
+                status=resp.status_code,
+                content_length=resp.headers.get("Content-Length"),
+            )
             return resp.json()
-        except Exception:
+        except Exception as exc:
+            _debug("remote_failure", url=url, attempt=attempt, variant=variant_label, error=exc)
             if not warmup_done:
                 warmup_done = True
+                _debug("warmup_begin", url=url)
                 try:
-                    HTTP_SESSION.get(
+                    warmup_resp = HTTP_SESSION.get(
                         "https://gaming.uefa.com/en/uclfantasy/",
                         headers=headers,
                         timeout=REQUEST_TIMEOUT,
                     )
-                except Exception:
-                    pass
+                    _debug("warmup_success", status=warmup_resp.status_code)
+                except Exception as warm_exc:
+                    _debug("warmup_failure", error=warm_exc)
             time.sleep(0.3)
             continue
 
     _REMOTE_FAILURE_AT = time.time()
+    _debug("remote_exhausted", url=url)
     return None
 
 
