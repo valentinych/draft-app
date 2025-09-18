@@ -23,6 +23,26 @@ def _debug(event: str, **data) -> None:
         message = f"{message} {payload}"
     print(message, flush=True)
 
+
+def _env_float(name: str, default: float) -> float:
+    raw = os.getenv(name)
+    if not raw:
+        return default
+    try:
+        return float(raw)
+    except Exception:
+        return default
+
+
+def _env_int(name: str, default: int) -> int:
+    raw = os.getenv(name)
+    if not raw:
+        return default
+    try:
+        return int(float(raw))
+    except Exception:
+        return default
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 CACHE_DIR = BASE_DIR / "data" / "cache" / "ucl_stat"
 CACHE_DIR.mkdir(parents=True, exist_ok=True)
@@ -32,8 +52,13 @@ POPUP_DIR = BASE_DIR / "popupstats"
 TTL = None  # TTL disabled: cached payloads stay until explicitly refreshed
 FEED_TTL = None
 PLAYERS_FEED_LOCAL = BASE_DIR / "players_80_en_1.json"
-REQUEST_TIMEOUT = 5  # seconds per HTTP attempt
-REMOTE_FAILURE_COOLDOWN = 300  # seconds to skip remote fetches after failure
+REQUEST_CONNECT_TIMEOUT = _env_float("UCL_STATS_CONNECT_TIMEOUT", 4.0)
+REQUEST_READ_TIMEOUT = _env_float("UCL_STATS_READ_TIMEOUT", 15.0)
+REQUEST_TIMEOUT = (REQUEST_CONNECT_TIMEOUT, REQUEST_READ_TIMEOUT)
+WARMUP_TIMEOUT = _env_float("UCL_STATS_WARMUP_TIMEOUT", max(REQUEST_READ_TIMEOUT, 10.0))
+REMOTE_ATTEMPTS = max(2, _env_int("UCL_STATS_ATTEMPTS", 3))
+REMOTE_FAILURE_COOLDOWN = max(0.0, _env_float("UCL_STATS_REMOTE_COOLDOWN", 120.0))
+RETRY_DELAY = _env_float("UCL_STATS_RETRY_DELAY", 0.6)
 
 _REMOTE_FAILURE_AT: float = 0.0
 _S3_CLIENT = None
@@ -236,7 +261,7 @@ def _fetch_remote(url: str) -> Optional[Dict]:
         {"params": {"_": str(int(time.time()))}},
     )
     warmup_done = False
-    for idx in range(2):
+    for idx in range(REMOTE_ATTEMPTS):
         variant = query_variants[idx % len(query_variants)]
         kwargs = {k: v for k, v in variant.items() if v}
         variant_label = "cachebuster" if kwargs else "default"
@@ -264,12 +289,12 @@ def _fetch_remote(url: str) -> Optional[Dict]:
                     warmup_resp = HTTP_SESSION.get(
                         "https://gaming.uefa.com/en/uclfantasy/",
                         headers=headers,
-                        timeout=REQUEST_TIMEOUT,
+                        timeout=(REQUEST_CONNECT_TIMEOUT, max(WARMUP_TIMEOUT, REQUEST_READ_TIMEOUT)),
                     )
                     _debug("warmup_success", status=warmup_resp.status_code)
                 except Exception as warm_exc:
                     _debug("warmup_failure", error=warm_exc)
-            time.sleep(0.3)
+            time.sleep(RETRY_DELAY)
             continue
 
     _REMOTE_FAILURE_AT = time.time()
