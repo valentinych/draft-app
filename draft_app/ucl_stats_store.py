@@ -1,5 +1,6 @@
 import json
 import os
+import random
 import tempfile
 import time
 from datetime import datetime, timedelta
@@ -59,6 +60,8 @@ WARMUP_TIMEOUT = _env_float("UCL_STATS_WARMUP_TIMEOUT", max(REQUEST_READ_TIMEOUT
 REMOTE_ATTEMPTS = max(2, _env_int("UCL_STATS_ATTEMPTS", 3))
 REMOTE_FAILURE_COOLDOWN = max(0.0, _env_float("UCL_STATS_REMOTE_COOLDOWN", 120.0))
 RETRY_DELAY = _env_float("UCL_STATS_RETRY_DELAY", 0.6)
+RETRY_BACKOFF = max(1.0, _env_float("UCL_STATS_RETRY_BACKOFF", 1.4))
+RETRY_JITTER = max(0.0, _env_float("UCL_STATS_RETRY_JITTER", 1.2))
 
 _REMOTE_FAILURE_AT: float = 0.0
 _S3_CLIENT = None
@@ -294,7 +297,11 @@ def _fetch_remote(url: str) -> Optional[Dict]:
                     _debug("warmup_success", status=warmup_resp.status_code)
                 except Exception as warm_exc:
                     _debug("warmup_failure", error=warm_exc)
-            time.sleep(RETRY_DELAY)
+            base_delay = RETRY_DELAY * (RETRY_BACKOFF ** idx)
+            jitter = random.random() * RETRY_JITTER
+            sleep_for = base_delay + jitter
+            _debug("remote_retry_wait", url=url, attempt=attempt, seconds=round(sleep_for, 2))
+            time.sleep(sleep_for)
             continue
 
     _REMOTE_FAILURE_AT = time.time()
