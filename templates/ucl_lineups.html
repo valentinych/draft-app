@@ -2,6 +2,16 @@
 {% block title %}UCL Лайнапы{% endblock %}
 {% block content %}
 <h1 class="title">UCL Лайнапы MD{{ md }}</h1>
+{% if session.get('godmode') %}
+<div class="mb-3">
+  <form method="post" action="{{ url_for('ucl.cache_stats') }}" style="display:inline-block;">
+    <button class="button is-link" type="submit"{% if stats_refresh_running %} disabled{% endif %}>Обновить статку</button>
+  </form>
+  {% if stats_refresh_running %}
+    <span class="tag is-info" style="margin-left:8px;">Обновление выполняется…</span>
+  {% endif %}
+</div>
+{% endif %}
 <form method="get" class="mb-4">
   <label class="label">Matchday</label>
   <div class="field has-addons">

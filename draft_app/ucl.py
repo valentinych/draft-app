@@ -1,5 +1,6 @@
 from __future__ import annotations
 import json
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple
 from flask import (
@@ -1045,10 +1046,16 @@ def _ucl_points_for_md(stats: Dict[str, Any], md: int) -> Optional[Dict[str, Any
 @bp.get("/ucl/lineups")
 def ucl_lineups():
     state = _ucl_state_load()
+    state = _ensure_ucl_state_shape(state)
+    _flash_stats_refresh_result()
     md = request.args.get("md", type=int)
     if not md:
-        md = _ucl_matchday_from_state_only(_ensure_ucl_state_shape(state))
-    return render_template("ucl_lineups.html", md=md)
+        md = _ucl_matchday_from_state_only(state)
+    return render_template(
+        "ucl_lineups.html",
+        md=md,
+        stats_refresh_running=_stats_refresh_running(),
+    )
 
 
 @bp.get("/ucl/lineups/data")
