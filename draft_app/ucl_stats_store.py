@@ -256,6 +256,7 @@ def _fetch_remote(url: str) -> Optional[Dict]:
     if _REMOTE_FAILURE_AT and (time.time() - _REMOTE_FAILURE_AT) < REMOTE_FAILURE_COOLDOWN:
         remaining = REMOTE_FAILURE_COOLDOWN - (time.time() - _REMOTE_FAILURE_AT)
         _debug("remote_skip_cooldown", url=url, seconds=max(int(remaining), 0))
+        print(f"[ucl:fetch] skip due to cooldown url={url} remaining={round(max(remaining,0),2)}s", flush=True)
         return None
 
     headers = _http_headers()
@@ -270,6 +271,7 @@ def _fetch_remote(url: str) -> Optional[Dict]:
         variant_label = "cachebuster" if kwargs else "default"
         attempt = idx + 1
         _debug("remote_attempt", url=url, attempt=attempt, variant=variant_label)
+        print(f"[ucl:fetch] attempt={attempt} variant={variant_label} url={url}", flush=True)
         try:
             resp = HTTP_SESSION.get(url, headers=headers, timeout=REQUEST_TIMEOUT, **kwargs)
             resp.raise_for_status()
@@ -282,9 +284,17 @@ def _fetch_remote(url: str) -> Optional[Dict]:
                 status=resp.status_code,
                 content_length=resp.headers.get("Content-Length"),
             )
+            print(
+                f"[ucl:fetch] success attempt={attempt} variant={variant_label} url={url} status={resp.status_code} len={resp.headers.get('Content-Length')}",
+                flush=True,
+            )
             return resp.json()
         except Exception as exc:
             _debug("remote_failure", url=url, attempt=attempt, variant=variant_label, error=exc)
+            print(
+                f"[ucl:fetch] failure attempt={attempt} variant={variant_label} url={url} error={exc}",
+                flush=True,
+            )
             if not warmup_done:
                 warmup_done = True
                 _debug("warmup_begin", url=url)
@@ -295,17 +305,27 @@ def _fetch_remote(url: str) -> Optional[Dict]:
                         timeout=(REQUEST_CONNECT_TIMEOUT, max(WARMUP_TIMEOUT, REQUEST_READ_TIMEOUT)),
                     )
                     _debug("warmup_success", status=warmup_resp.status_code)
+                    print(
+                        f"[ucl:fetch] warmup url=https://gaming.uefa.com/en/uclfantasy/ status={warmup_resp.status_code}",
+                        flush=True,
+                    )
                 except Exception as warm_exc:
                     _debug("warmup_failure", error=warm_exc)
+                    print(f"[ucl:fetch] warmup failure error={warm_exc}", flush=True)
             base_delay = RETRY_DELAY * (RETRY_BACKOFF ** idx)
             jitter = random.random() * RETRY_JITTER
             sleep_for = base_delay + jitter
             _debug("remote_retry_wait", url=url, attempt=attempt, seconds=round(sleep_for, 2))
+            print(
+                f"[ucl:fetch] retry in {round(sleep_for,2)}s attempt={attempt} url={url}",
+                flush=True,
+            )
             time.sleep(sleep_for)
             continue
 
     _REMOTE_FAILURE_AT = time.time()
     _debug("remote_exhausted", url=url)
+    print(f"[ucl:fetch] exhausted attempts url={url}", flush=True)
     return None
 
 
@@ -358,17 +378,21 @@ def refresh_player_stats(player_id: int) -> Dict:
         }
         _save_local(player_id, payload)
         _save_s3(player_id, payload)
+        print(f"[ucl:refresh] player={player_id} fetched remote and saved", flush=True)
         return remote
 
     cached = _load_local(player_id)
     if _fresh(cached):
+        print(f"[ucl:refresh] player={player_id} using local cache", flush=True)
         return (cached or {}).get("data", {})
 
     s3_payload = _load_s3(player_id)
     if _fresh(s3_payload):
         _save_local(player_id, s3_payload)
+        print(f"[ucl:refresh] player={player_id} restored from S3 cache", flush=True)
         return (s3_payload or {}).get("data", {})
 
+    print(f"[ucl:refresh] player={player_id} no data available", flush=True)
     return {}
 
 
