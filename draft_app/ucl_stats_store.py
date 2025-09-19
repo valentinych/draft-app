@@ -62,9 +62,15 @@ REMOTE_FAILURE_COOLDOWN = max(0.0, _env_float("UCL_STATS_REMOTE_COOLDOWN", 120.0
 RETRY_DELAY = _env_float("UCL_STATS_RETRY_DELAY", 0.6)
 RETRY_BACKOFF = max(1.0, _env_float("UCL_STATS_RETRY_BACKOFF", 1.4))
 RETRY_JITTER = max(0.0, _env_float("UCL_STATS_RETRY_JITTER", 1.2))
+WARMUP_URL = (os.getenv("UCL_STATS_WARMUP_URL") or "https://gaming.uefa.com/en/uclfantasy/").strip()
+WARMUP_PER_REQUEST = (os.getenv("UCL_STATS_WARMUP_PER_REQUEST") or "").strip().lower() in {"1", "true", "yes", "on"}
+COOKIE_STRING = (os.getenv("UCL_STATS_COOKIE") or "").strip()
+USER_AGENT = (os.getenv("UCL_STATS_USER_AGENT") or "").strip()
 
 _REMOTE_FAILURE_AT: float = 0.0
 _S3_CLIENT = None
+_SESSION_PREPARED: bool = False
+_SESSION_WARMED: bool = False
 
 
 def _stats_bucket() -> Optional[str]:
@@ -227,11 +233,14 @@ def _fresh(payload: Optional[Dict]) -> bool:
 
 def _http_headers() -> Dict[str, str]:
     headers = dict(HEADERS_GENERIC)
-    headers["User-Agent"] = (
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-        "AppleWebKit/537.36 (KHTML, like Gecko) "
-        "Chrome/124.0.0.0 Safari/537.36"
-    )
+    if USER_AGENT:
+        headers["User-Agent"] = USER_AGENT
+    else:
+        headers["User-Agent"] = (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+            "AppleWebKit/537.36 (KHTML, like Gecko) "
+            "Chrome/124.0.0.0 Safari/537.36"
+        )
     headers.setdefault("Accept", "application/json, text/plain, */*")
     headers.setdefault("Referer", "https://gaming.uefa.com/en/uclfantasy/")
     headers.setdefault("Origin", "https://gaming.uefa.com")
@@ -247,11 +256,54 @@ def _http_headers() -> Dict[str, str]:
     headers.setdefault("sec-ch-ua", '"Chromium";v="124", "Google Chrome";v="124", "Not-A.Brand";v="99"')
     headers.setdefault("sec-ch-ua-mobile", "?0")
     headers.setdefault("sec-ch-ua-platform", '"Windows"')
+    if COOKIE_STRING:
+        headers.setdefault("Cookie", COOKIE_STRING)
     return headers
+
+
+def _prepare_session() -> None:
+    global _SESSION_PREPARED
+    if _SESSION_PREPARED:
+        return
+    sess = HTTP_SESSION
+    sess.headers.update(_http_headers())
+    if COOKIE_STRING:
+        cookie_pairs = [chunk.strip() for chunk in COOKIE_STRING.split(";") if chunk.strip()]
+        for pair in cookie_pairs:
+            if "=" not in pair:
+                continue
+            key, value = pair.split("=", 1)
+            sess.cookies.set(key.strip(), value.strip())
+    _SESSION_PREPARED = True
+
+
+def _warmup_session(force: bool = False) -> None:
+    global _SESSION_WARMED
+    if not force and _SESSION_WARMED:
+        return
+    if not WARMUP_URL:
+        _SESSION_WARMED = True
+        return
+    try:
+        resp = HTTP_SESSION.get(WARMUP_URL, timeout=WARMUP_TIMEOUT, allow_redirects=True)
+        print(
+            f"[ucl:warmup] url={WARMUP_URL} status={resp.status_code} bytes={len(resp.content)}",
+            flush=True,
+        )
+    except Exception as exc:
+        print(f"[ucl:warmup] failed url={WARMUP_URL} error={exc}", flush=True)
+    finally:
+        _SESSION_WARMED = True
 
 
 def _fetch_remote(url: str) -> Optional[Dict]:
     global _REMOTE_FAILURE_AT
+
+    _prepare_session()
+    if WARMUP_PER_REQUEST:
+        _warmup_session(force=True)
+    else:
+        _warmup_session()
 
     if _REMOTE_FAILURE_AT and (time.time() - _REMOTE_FAILURE_AT) < REMOTE_FAILURE_COOLDOWN:
         remaining = REMOTE_FAILURE_COOLDOWN - (time.time() - _REMOTE_FAILURE_AT)
@@ -259,7 +311,6 @@ def _fetch_remote(url: str) -> Optional[Dict]:
         print(f"[ucl:fetch] skip due to cooldown url={url} remaining={round(max(remaining,0),2)}s", flush=True)
         return None
 
-    headers = _http_headers()
     query_variants = (
         {},
         {"params": {"_": str(int(time.time()))}},
@@ -273,7 +324,7 @@ def _fetch_remote(url: str) -> Optional[Dict]:
         _debug("remote_attempt", url=url, attempt=attempt, variant=variant_label)
         print(f"[ucl:fetch] attempt={attempt} variant={variant_label} url={url}", flush=True)
         try:
-            resp = HTTP_SESSION.get(url, headers=headers, timeout=REQUEST_TIMEOUT, **kwargs)
+            resp = HTTP_SESSION.get(url, timeout=REQUEST_TIMEOUT, **kwargs)
             resp.raise_for_status()
             _REMOTE_FAILURE_AT = 0.0
             _debug(
@@ -295,18 +346,18 @@ def _fetch_remote(url: str) -> Optional[Dict]:
                 f"[ucl:fetch] failure attempt={attempt} variant={variant_label} url={url} error={exc}",
                 flush=True,
             )
-            if not warmup_done:
+            if not warmup_done and not WARMUP_PER_REQUEST:
                 warmup_done = True
                 _debug("warmup_begin", url=url)
                 try:
                     warmup_resp = HTTP_SESSION.get(
-                        "https://gaming.uefa.com/en/uclfantasy/",
-                        headers=headers,
+                        WARMUP_URL,
                         timeout=(REQUEST_CONNECT_TIMEOUT, max(WARMUP_TIMEOUT, REQUEST_READ_TIMEOUT)),
+                        allow_redirects=True,
                     )
                     _debug("warmup_success", status=warmup_resp.status_code)
                     print(
-                        f"[ucl:fetch] warmup url=https://gaming.uefa.com/en/uclfantasy/ status={warmup_resp.status_code}",
+                        f"[ucl:fetch] warmup url={WARMUP_URL} status={warmup_resp.status_code}",
                         flush=True,
                     )
                 except Exception as warm_exc:
