@@ -363,14 +363,14 @@ def _ucl_matchday_from_state_only(state: Dict[str, Any]) -> int:
     except Exception:
         md = 0
     if md <= 0:
+        cached_md = get_current_matchday_cached()
+        if cached_md:
+            return cached_md
         try:
             md = int(state.get("current_pick_index") or 0)
         except Exception:
             md = 0
     if md <= 0:
-        cached_md = get_current_matchday_cached()
-        if cached_md:
-            return cached_md
         return 1
     return max(1, md)
 

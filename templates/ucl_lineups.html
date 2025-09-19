@@ -42,6 +42,9 @@
   .ucl-player-row { display:flex; justify-content:space-between; align-items:center; white-space:nowrap; }
   .ucl-player-name { overflow:hidden; text-overflow:ellipsis; margin-right:6px; }
   .ucl-points-box { background:#add8e6; border-radius:4px; padding:0 6px; min-width:2.4em; text-align:center; cursor:pointer; }
+  .ucl-team-logo { width:20px; height:20px; object-fit:contain; margin-right:6px; }
+  .ucl-player-info { display:flex; align-items:center; overflow:hidden; }
+  .ucl-player-text { overflow:hidden; text-overflow:ellipsis; }
 </style>
 
 <script>
@@ -207,17 +210,27 @@ document.addEventListener('DOMContentLoaded', () => {
           const row = document.createElement('div');
           row.className = 'ucl-player-row';
           row.style.backgroundColor = rowIndex % 2 === 0 ? c1 : c2;
+          const infoWrap = document.createElement('span');
+          infoWrap.className = 'ucl-player-info';
+          if (player.teamId) {
+            const img = document.createElement('img');
+            img.className = 'ucl-team-logo';
+            img.src = `https://img.uefa.com/imgml/TP/teams/logos/140x140/${player.teamId}.png`;
+            img.alt = player.club || '';
+            infoWrap.appendChild(img);
+          }
           const spanName = document.createElement('span');
-          spanName.className = 'ucl-player-name';
+          spanName.className = player.teamId ? 'ucl-player-text' : 'ucl-player-name';
           spanName.textContent = player.name;
-          if (player.club) {
+          if (player.club && !player.teamId) {
             spanName.textContent += ` (${player.club})`;
           }
+          infoWrap.appendChild(spanName);
           const spanPoints = document.createElement('span');
           spanPoints.className = 'ucl-points-box';
           spanPoints.textContent = player.points;
           spanPoints.addEventListener('click', () => showPopup(player));
-          row.appendChild(spanName);
+          row.appendChild(infoWrap);
           row.appendChild(spanPoints);
           block.appendChild(row);
           rowIndex += 1;
