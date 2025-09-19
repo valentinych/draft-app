@@ -74,6 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
     { label: 'Ассисты', rawKey: 'gA', pointsKey: 'gA' },
     { label: 'Сухие матчи', rawKey: 'cS', pointsKey: 'cS' },
     { label: 'Минуты', rawKey: 'oF', pointsKey: 'oF' },
+    { label: 'Игрок Матча', rawKey: 'mOM', pointsKey: 'mOM' },
     { label: 'Сэйвы', rawKey: 'sS', pointsKey: 'sS' },
     { label: 'Возвраты', rawKey: 'bR', pointsKey: 'bR' },
     { label: 'Голов пропущено', rawKey: 'gC', pointsKey: 'gC' },
@@ -99,6 +100,55 @@ document.addEventListener('DOMContentLoaded', () => {
       return Number.isFinite(num) ? num : 0;
     };
 
+    // Создаём контейнер для изображений и таблицы
+    const contentContainer = document.createElement('div');
+    contentContainer.style.display = 'flex';
+    contentContainer.style.alignItems = 'flex-start';
+    contentContainer.style.gap = '20px';
+
+    // Контейнер для изображений
+    const imagesContainer = document.createElement('div');
+    imagesContainer.style.display = 'flex';
+    imagesContainer.style.flexDirection = 'column';
+    imagesContainer.style.alignItems = 'center';
+    imagesContainer.style.gap = '10px';
+    imagesContainer.style.minWidth = '100px';
+
+    // Лого клуба
+    const clubLogo = document.createElement('img');
+    clubLogo.style.width = '80px';
+    clubLogo.style.height = '80px';
+    clubLogo.style.objectFit = 'contain';
+    if (player.teamId) {
+      clubLogo.src = `https://img.uefa.com/imgml/TP/teams/logos/140x140/${player.teamId}.png`;
+    } else {
+      clubLogo.src = 'https://img.uefa.com/imgml/TP/teams/logos/140x140/0.png';
+    }
+    clubLogo.alt = player.club || 'Club';
+
+    // Портрет игрока  
+    const playerPortrait = document.createElement('img');
+    playerPortrait.style.width = '80px';
+    playerPortrait.style.height = '80px';
+    playerPortrait.style.borderRadius = '8px';
+    playerPortrait.style.objectFit = 'cover';
+    if (player.playerId) {
+      playerPortrait.src = `https://img.uefa.com/imgml/TP/players/1/2026/324x324/${player.playerId}.jpg`;
+    } else {
+      playerPortrait.src = 'https://gaming.uefa.com/en/uclfantasy/static-assets/ucl2020/images/default_player@2x.png';
+    }
+    playerPortrait.onerror = () => {
+      playerPortrait.src = 'https://gaming.uefa.com/en/uclfantasy/static-assets/ucl2020/images/default_player@2x.png';
+    };
+    playerPortrait.alt = player.name;
+
+    imagesContainer.appendChild(clubLogo);
+    imagesContainer.appendChild(playerPortrait);
+
+    // Контейнер для таблицы
+    const tableContainer = document.createElement('div');
+    tableContainer.style.flex = '1';
+    
     const table = document.createElement('table');
     table.className = 'table is-narrow';
     const tbody = document.createElement('tbody');
@@ -113,19 +163,33 @@ document.addEventListener('DOMContentLoaded', () => {
       } else if (field.rawKey) {
         pointsValue = rawValue ?? 0;
       }
-      const tr = document.createElement('tr');
-      const tdL = document.createElement('td');
-      tdL.textContent = field.rawKey ? `${field.label} (${rawValue ?? 0})` : field.label;
-      const tdV = document.createElement('td');
-      tdV.className = 'has-text-right';
-      tdV.textContent = pointsValue;
-      tr.appendChild(tdL);
-      tr.appendChild(tdV);
-      tbody.appendChild(tr);
+
+      // Показать строку если это Очки или Минуты, или если есть ненулевые значения
+      const shouldShow = field.pointsKey === 'tPoints' || 
+                        field.rawKey === 'oF' || 
+                        (rawValue !== null && rawValue !== 0) || 
+                        pointsValue !== 0;
+
+      if (shouldShow) {
+        const tr = document.createElement('tr');
+        const tdL = document.createElement('td');
+        tdL.textContent = field.rawKey ? `${field.label} (${rawValue ?? 0})` : field.label;
+        const tdV = document.createElement('td');
+        tdV.className = 'has-text-right';
+        tdV.textContent = pointsValue;
+        tr.appendChild(tdL);
+        tr.appendChild(tdV);
+        tbody.appendChild(tr);
+      }
     });
 
     table.appendChild(tbody);
-    modalBody.appendChild(table);
+    tableContainer.appendChild(table);
+    
+    contentContainer.appendChild(imagesContainer);
+    contentContainer.appendChild(tableContainer);
+    modalBody.appendChild(contentContainer);
+    
     modal.classList.add('is-active');
   };
 
