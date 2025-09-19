@@ -2,16 +2,37 @@ from __future__ import annotations
 import json
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple
-from flask import Blueprint, render_template, request, session, url_for, jsonify
+from flask import (
+    Blueprint,
+    abort,
+    current_app,
+    flash,
+    redirect,
+    render_template,
+    request,
+    session,
+    url_for,
+    jsonify,
+)
 import os
+import threading
 try:
     import boto3
 except Exception:
     boto3 = None
 
-from .ucl_stats_store import get_player_stats, get_current_matchday
+from .ucl_stats_store import get_player_stats, get_current_matchday, refresh_players_batch
 
 bp = Blueprint("ucl", __name__)
+
+_STATS_REFRESH_STATE: Dict[str, Any] = {
+    "running": False,
+    "started": None,
+    "summary": None,
+    "error": None,
+    "finished": None,
+}
+_STATS_REFRESH_LOCK = threading.Lock()
 
 # --- файлы данных (подгони пути под свой проект при необходимости) ---
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -223,6 +244,105 @@ def _picked_ids_from_state(state: Dict[str, Any]) -> Set[str]:
             picked.add(str(pid))
     return picked
 
+
+def _collect_player_ids_for_stats(state: Dict[str, Any]) -> List[int]:
+    seen: Set[int] = set()
+
+    for roster in (state.get("rosters") or {}).values():
+        if not isinstance(roster, list):
+            continue
+        for entry in roster:
+            if not isinstance(entry, dict):
+                continue
+            pid = entry.get("playerId") or entry.get("id") or entry.get("pid")
+            if pid is None:
+                continue
+            try:
+                seen.add(int(pid))
+            except Exception:
+                continue
+
+    for pick in state.get("picks") or []:
+        if not isinstance(pick, dict):
+            continue
+        pid = pick.get("playerId") or pick.get("id") or (pick.get("player") or {}).get("playerId")
+        if pid is None:
+            continue
+        try:
+            seen.add(int(pid))
+        except Exception:
+            continue
+
+    return sorted(seen)
+
+
+def _stats_refresh_running() -> bool:
+    with _STATS_REFRESH_LOCK:
+        return bool(_STATS_REFRESH_STATE.get("running"))
+
+
+def _consume_stats_refresh_result() -> Tuple[Optional[Dict[str, Any]], Optional[str], Optional[datetime]]:
+    with _STATS_REFRESH_LOCK:
+        summary = _STATS_REFRESH_STATE.get("summary")
+        error = _STATS_REFRESH_STATE.get("error")
+        finished = _STATS_REFRESH_STATE.get("finished")
+        if summary is None and error is None:
+            return (None, None, None)
+        _STATS_REFRESH_STATE["summary"] = None
+        _STATS_REFRESH_STATE["error"] = None
+        _STATS_REFRESH_STATE["finished"] = None
+    return (summary, error, finished)
+
+
+def _start_stats_refresh_job(app, player_ids: List[int]) -> bool:
+    with _STATS_REFRESH_LOCK:
+        if _STATS_REFRESH_STATE.get("running"):
+            return False
+        _STATS_REFRESH_STATE["running"] = True
+        _STATS_REFRESH_STATE["started"] = datetime.utcnow()
+        _STATS_REFRESH_STATE["summary"] = None
+        _STATS_REFRESH_STATE["error"] = None
+        _STATS_REFRESH_STATE["finished"] = None
+
+    thread = threading.Thread(target=_stats_refresh_worker, args=(app, list(player_ids)), daemon=True)
+    thread.start()
+    return True
+
+
+def _stats_refresh_worker(app, player_ids: List[int]) -> None:
+    try:
+        summary = refresh_players_batch(player_ids)
+        error = None
+        app.logger.info(
+            "[UCL] popup stats refresh finished: %s total, %s failures",
+            summary.get("total"),
+            summary.get("failures"),
+        )
+    except Exception as exc:
+        summary = None
+        error = str(exc)
+        app.logger.exception("[UCL] popup stats refresh failed")
+
+    with _STATS_REFRESH_LOCK:
+        _STATS_REFRESH_STATE["running"] = False
+        _STATS_REFRESH_STATE["summary"] = summary
+        _STATS_REFRESH_STATE["error"] = error
+        _STATS_REFRESH_STATE["finished"] = datetime.utcnow()
+
+
+def _flash_stats_refresh_result() -> Optional[Dict[str, Any]]:
+    summary, refresh_error, _finished = _consume_stats_refresh_result()
+    if summary:
+        total = int(summary.get("total") or 0)
+        failures = int(summary.get("failures") or 0)
+        success = max(0, total - failures)
+        level = "success" if failures == 0 else "warning"
+        flash(f"Обновление статистики завершено: {success}/{total} игроков", level)
+        return summary
+    if refresh_error:
+        flash(f"Обновление статистики завершилось ошибкой: {refresh_error}", "danger")
+    return summary
+
 UCL_SLOTS_DEFAULT = {"GK": 3, "DEF": 8, "MID": 9, "FWD": 5}
 UCL_MAX_FROM_CLUB_DEFAULT = 1
 
@@ -399,6 +519,7 @@ def _build_status_context_ucl() -> Dict[str, Any]:
     state = _ucl_state_load()
     state = _ensure_ucl_state_shape(state)
     state = _ensure_turn_started(state)
+    _flash_stats_refresh_result()
     players_raw = _json_load(UCL_PLAYERS) or []
     pidx = {str(p["playerId"]): p for p in _players_from_ucl(players_raw)}
 
@@ -497,6 +618,7 @@ def index():
     state = _ucl_state_load()
     state = _ensure_ucl_state_shape(state)
     state = _ensure_turn_started(state)
+    _flash_stats_refresh_result()
 
     # Hide already picked players
     picked_ids = _picked_ids_from_state(state)
@@ -728,6 +850,7 @@ def index():
             status_url=url_for("ucl.status"),
             undo_url=url_for("ucl.undo_last_pick"),
             managers=sorted((state.get("rosters") or {}).keys()),
+            stats_refresh_running=_stats_refresh_running(),
         )
 
     # filters
@@ -763,7 +886,27 @@ def index():
         status_url=url_for("ucl.status"),
         undo_url=url_for("ucl.undo_last_pick"),
         managers=sorted((state.get("rosters") or {}).keys()),
+        stats_refresh_running=_stats_refresh_running(),
     )
+
+
+@bp.route("/ucl/cache_stats", methods=["POST"])
+def cache_stats():
+    if not session.get("godmode"):
+        abort(403)
+
+    state = _ensure_ucl_state_shape(_ucl_state_load())
+    player_ids = _collect_player_ids_for_stats(state)
+    if not player_ids:
+        flash("Не найдено игроков для обновления статистики", "warning")
+        return redirect(url_for("ucl.index"))
+
+    app = current_app._get_current_object()
+    if not _start_stats_refresh_job(app, player_ids):
+        flash("Обновление статистики уже выполняется", "warning")
+    else:
+        flash(f"Запущено обновление статистики для {len(player_ids)} игроков", "info")
+    return redirect(url_for("ucl.index"))
 
 
 def _safe_int(val: Any) -> int:

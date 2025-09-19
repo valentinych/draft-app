@@ -5,7 +5,7 @@ import tempfile
 import time
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Dict, Iterable, Optional
 
 import boto3
 from botocore.exceptions import ClientError
@@ -370,6 +370,96 @@ def refresh_player_stats(player_id: int) -> Dict:
         return (s3_payload or {}).get("data", {})
 
     return {}
+
+
+def _describe_cache_state(path: Path, before_mtime: Optional[float]) -> tuple[str, Optional[int]]:
+    if not path.exists():
+        return ("missing", None)
+    stat = path.stat()
+    if before_mtime is None:
+        state = "written"
+    elif stat.st_mtime > (before_mtime + 1e-6):
+        state = "updated"
+    else:
+        state = "unchanged"
+    return (state, stat.st_size)
+
+
+def refresh_players_batch(player_ids: Iterable[int]) -> Dict[str, object]:
+    """Refresh popup stats for multiple players and mirror them to S3."""
+
+    bucket = stats_bucket()
+    results = []
+    failures = 0
+
+    for raw_pid in player_ids:
+        try:
+            pid = int(raw_pid)
+        except Exception:
+            continue
+
+        cache_path = CACHE_DIR / f"{pid}.json"
+        try:
+            before_mtime = cache_path.stat().st_mtime
+        except Exception:
+            before_mtime = None
+
+        record: Dict[str, object] = {
+            "player_id": pid,
+            "cache_state": "missing",
+            "cache_size": None,
+            "points_entries": None,
+            "name": "",
+            "s3_key": stats_s3_key(pid),
+            "error": None,
+            "exception": None,
+        }
+
+        try:
+            stats = refresh_player_stats(pid)
+            cache_state, cache_size = _describe_cache_state(cache_path, before_mtime)
+            record["cache_state"] = cache_state
+            record["cache_size"] = cache_size
+
+            if not stats:
+                record["error"] = "empty"
+                failures += 1
+            else:
+                value = stats.get("value") if isinstance(stats, dict) else None
+                if value is None and isinstance(stats, dict):
+                    data = stats.get("data") if isinstance(stats.get("data"), dict) else {}
+                    value = data.get("value") if isinstance(data.get("value"), dict) else None
+                if not isinstance(value, dict):
+                    record["error"] = "missing_value"
+                    failures += 1
+                else:
+                    points = value.get("points") or value.get("matchdayPoints") or []
+                    if isinstance(points, list):
+                        record["points_entries"] = len(points)
+                    display_name = (
+                        value.get("shortName")
+                        or value.get("fullName")
+                        or value.get("name")
+                        or ""
+                    )
+                    record["name"] = display_name
+        except Exception as exc:
+            cache_state, cache_size = _describe_cache_state(cache_path, before_mtime)
+            record["cache_state"] = cache_state
+            record["cache_size"] = cache_size
+            record["error"] = "exception"
+            record["exception"] = repr(exc)
+            failures += 1
+
+        results.append(record)
+
+    total = len(results)
+    return {
+        "bucket": bucket,
+        "total": total,
+        "failures": failures,
+        "results": results,
+    }
 
 
 def _feed_fresh(payload: Optional[Dict]) -> bool:
