@@ -1016,6 +1016,17 @@ def _ucl_points_for_md(stats: Dict[str, Any], md: int) -> Optional[Dict[str, Any
     point_entry = _find_entry(point_lists)
     stat_entry = _find_entry(stat_lists)
 
+    stats_count = 0
+    for src in stat_lists:
+        for entry in src:
+            if not isinstance(entry, dict):
+                continue
+            md_val = _normalize_md(entry.get("mdId"))
+            if md_val is None:
+                continue
+            if md_val == int(md):
+                stats_count += 1
+
     if point_entry and stat_entry and point_entry is not stat_entry:
         merged = {**stat_entry, **point_entry}
     else:
@@ -1047,6 +1058,7 @@ def _ucl_points_for_md(stats: Dict[str, Any], md: int) -> Optional[Dict[str, Any
         normalized["tPoints"] = _safe_int(point_entry.get("tPoints"))
 
     normalized.setdefault("tPoints", 0)
+    normalized.setdefault("_stats_count", stats_count)
     return normalized
 
 
@@ -1102,14 +1114,36 @@ def ucl_lineups_data():
             points_entry = _ucl_points_for_md(stats, md)
             stat_payload: Dict[str, Any] = points_entry or {}
             points = _safe_int(stat_payload.get("tPoints")) if stat_payload else 0
+            stats_value = {}
+            if isinstance(stats, dict):
+                stats_value = stats.get("value") if isinstance(stats.get("value"), dict) else stats
+            team_id = (
+                stat_payload.get("tId")
+                or stat_payload.get("teamId")
+                or (stats_value.get("teamId") if isinstance(stats_value, dict) else None)
+                or payload.get("teamId")
+            )
+            if team_id is not None:
+                try:
+                    team_id = str(int(team_id))
+                except Exception:
+                    team_id = str(team_id)
+            club_name = (
+                payload.get("clubName")
+                or stat_payload.get("tName")
+                or (stats_value.get("teamName") if isinstance(stats_value, dict) else None)
+                or (stats_value.get("tName") if isinstance(stats_value, dict) else None)
+            )
             total += points
             lineup.append(
                 {
                     "name": payload.get("fullName") or payload.get("name") or str(pid_int),
                     "pos": payload.get("position"),
-                    "club": payload.get("clubName"),
+                    "club": club_name,
+                    "teamId": team_id,
                     "points": points,
                     "stat": stat_payload,
+                    "statsCount": stat_payload.get("_stats_count", 0),
                 }
             )
         results[manager] = {"players": lineup, "total": total}

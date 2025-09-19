@@ -85,10 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
     modalBody.innerHTML = '';
     modal.querySelector('.modal-card-title').textContent = player.name;
     const stat = player.stat || {};
-    const statsLists = [];
-    if (Array.isArray(stat.matchdayStats)) statsLists.push(...stat.matchdayStats);
-    if (Array.isArray(stat.stats)) statsLists.push(...stat.stats);
-    const statsCount = statsLists.length;
+    const statsCount = Number(player.statsCount) || 0;
     if (statsCount) {
       const summary = document.createElement('p');
       summary.className = 'mb-2';
