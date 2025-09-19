@@ -462,6 +462,54 @@ def refresh_players_batch(player_ids: Iterable[int]) -> Dict[str, object]:
     }
 
 
+def get_player_stats_cached(player_id: int) -> Dict:
+    """Return locally cached popup stats without performing remote requests."""
+
+    cached = _load_local(player_id)
+    if _fresh(cached):
+        return (cached or {}).get("data", {})
+    return {}
+
+
+def get_current_matchday_cached() -> Optional[int]:
+    """Return matchday derived from locally cached feeds only."""
+
+    feed = _load_feed_local()
+    if not feed:
+        return None
+    payload = feed.get("data") if isinstance(feed, dict) else None
+    value = payload.get("value") if isinstance(payload, dict) else None
+    players = []
+    if isinstance(value, dict):
+        raw = value.get("playerList") or []
+        if isinstance(raw, list):
+            players = raw
+    if not players and isinstance(payload, dict):
+        alt = payload.get("playerList")
+        if isinstance(alt, list):
+            players = alt
+    if not players and isinstance(feed, dict):
+        alt = feed.get("playerList")
+        if isinstance(alt, list):
+            players = alt
+    for player in players:
+        matches = player.get("currentMatchesList") or player.get("upcomingMatchesList") or []
+        for match in matches:
+            md_raw = match.get("mdId")
+            if md_raw is None:
+                continue
+            if isinstance(md_raw, int):
+                return md_raw
+            if isinstance(md_raw, str):
+                digits = "".join(ch for ch in md_raw if ch.isdigit())
+                if digits:
+                    try:
+                        return int(digits)
+                    except Exception:
+                        continue
+    return None
+
+
 def _feed_fresh(payload: Optional[Dict]) -> bool:
     return bool(payload)
 

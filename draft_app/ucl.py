@@ -21,7 +21,12 @@ try:
 except Exception:
     boto3 = None
 
-from .ucl_stats_store import get_player_stats, get_current_matchday, refresh_players_batch
+from .ucl_stats_store import (
+    get_current_matchday,
+    get_current_matchday_cached,
+    get_player_stats_cached,
+    refresh_players_batch,
+)
 
 bp = Blueprint("ucl", __name__)
 
@@ -342,6 +347,24 @@ def _flash_stats_refresh_result() -> Optional[Dict[str, Any]]:
     if refresh_error:
         flash(f"Обновление статистики завершилось ошибкой: {refresh_error}", "danger")
     return summary
+
+
+def _ucl_matchday_from_state_only(state: Dict[str, Any]) -> int:
+    try:
+        md = int(state.get("next_round") or 0)
+    except Exception:
+        md = 0
+    if md <= 0:
+        try:
+            md = int(state.get("current_pick_index") or 0)
+        except Exception:
+            md = 0
+    if md <= 0:
+        cached_md = get_current_matchday_cached()
+        if cached_md:
+            return cached_md
+        return 1
+    return max(1, md)
 
 UCL_SLOTS_DEFAULT = {"GK": 3, "DEF": 8, "MID": 9, "FWD": 5}
 UCL_MAX_FROM_CLUB_DEFAULT = 1
@@ -1024,7 +1047,7 @@ def ucl_lineups():
     state = _ucl_state_load()
     md = request.args.get("md", type=int)
     if not md:
-        md = _ucl_default_matchday(state)
+        md = _ucl_matchday_from_state_only(_ensure_ucl_state_shape(state))
     return render_template("ucl_lineups.html", md=md)
 
 
@@ -1034,7 +1057,7 @@ def ucl_lineups_data():
     state = _ensure_ucl_state_shape(state)
     md = request.args.get("md", type=int)
     if not md:
-        md = _ucl_default_matchday(state)
+        md = _ucl_matchday_from_state_only(state)
 
     rosters = state.get("rosters") or {}
     managers = [m for m in UCL_PARTICIPANTS if m in rosters]
@@ -1061,7 +1084,7 @@ def ucl_lineups_data():
                 pid_int = int(pid)
             except Exception:
                 continue
-            stats = get_player_stats(pid_int)
+            stats = get_player_stats_cached(pid_int)
             points_entry = _ucl_points_for_md(stats, md)
             stat_payload: Dict[str, Any] = points_entry or {}
             points = _safe_int(stat_payload.get("tPoints")) if stat_payload else 0
