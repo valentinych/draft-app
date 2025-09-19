@@ -212,13 +212,28 @@ document.addEventListener('DOMContentLoaded', () => {
           row.style.backgroundColor = rowIndex % 2 === 0 ? c1 : c2;
           const infoWrap = document.createElement('span');
           infoWrap.className = 'ucl-player-info';
+          const logo = document.createElement('img');
+          logo.className = 'ucl-team-logo';
           if (player.teamId) {
-            const img = document.createElement('img');
-            img.className = 'ucl-team-logo';
-            img.src = `https://img.uefa.com/imgml/TP/teams/logos/140x140/${player.teamId}.png`;
-            img.alt = player.club || '';
-            infoWrap.appendChild(img);
+            logo.src = `https://img.uefa.com/imgml/TP/teams/logos/140x140/${player.teamId}.png`;
+          } else {
+            logo.src = 'https://img.uefa.com/imgml/TP/teams/logos/140x140/0.png';
           }
+          logo.alt = player.club || '';
+          infoWrap.appendChild(logo);
+
+          const portrait = document.createElement('img');
+          portrait.className = 'ucl-player-portrait';
+          if (player.playerId) {
+            portrait.src = `https://img.uefa.com/imgml/TP/players/1/2026/324x324/${player.playerId}.jpg`;
+          } else {
+            portrait.src = 'https://gaming.uefa.com/en/uclfantasy/static-assets/ucl2020/images/default_player@2x.png';
+          }
+          portrait.onerror = () => {
+            portrait.src = 'https://gaming.uefa.com/en/uclfantasy/static-assets/ucl2020/images/default_player@2x.png';
+          };
+          portrait.alt = player.name;
+          infoWrap.appendChild(portrait);
           const spanName = document.createElement('span');
           spanName.className = player.teamId ? 'ucl-player-text' : 'ucl-player-name';
           spanName.textContent = player.name;

@@ -1161,6 +1161,7 @@ def ucl_lineups_data():
                     "points": points,
                     "stat": stat_payload,
                     "statsCount": stat_payload.get("_stats_count", 0),
+                    "playerId": str(pid_int),
                 }
             )
         results[manager] = {"players": lineup, "total": total}
