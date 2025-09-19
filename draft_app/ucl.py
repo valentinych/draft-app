@@ -303,6 +303,7 @@ def _consume_stats_refresh_result() -> Tuple[Optional[Dict[str, Any]], Optional[
 def _start_stats_refresh_job(app, player_ids: List[int]) -> bool:
     with _STATS_REFRESH_LOCK:
         if _STATS_REFRESH_STATE.get("running"):
+            print("[ucl:refresh] job already running", flush=True)
             return False
         _STATS_REFRESH_STATE["running"] = True
         _STATS_REFRESH_STATE["started"] = datetime.utcnow()
@@ -310,6 +311,7 @@ def _start_stats_refresh_job(app, player_ids: List[int]) -> bool:
         _STATS_REFRESH_STATE["error"] = None
         _STATS_REFRESH_STATE["finished"] = None
 
+    print(f"[ucl:refresh] scheduling background job players={len(player_ids)}", flush=True)
     thread = threading.Thread(target=_stats_refresh_worker, args=(app, list(player_ids)), daemon=True)
     thread.start()
     return True
@@ -324,10 +326,15 @@ def _stats_refresh_worker(app, player_ids: List[int]) -> None:
             summary.get("total"),
             summary.get("failures"),
         )
+        print(
+            f"[ucl:refresh] worker finished total={summary.get('total')} failures={summary.get('failures')}",
+            flush=True,
+        )
     except Exception as exc:
         summary = None
         error = str(exc)
         app.logger.exception("[UCL] popup stats refresh failed")
+        print(f"[ucl:refresh] worker exception={exc}", flush=True)
 
     with _STATS_REFRESH_LOCK:
         _STATS_REFRESH_STATE["running"] = False

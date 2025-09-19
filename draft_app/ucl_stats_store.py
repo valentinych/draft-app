@@ -392,10 +392,14 @@ def refresh_players_batch(player_ids: Iterable[int]) -> Dict[str, object]:
     results = []
     failures = 0
 
-    for raw_pid in player_ids:
+    ids_list = list(player_ids)
+    print(f"[ucl:refresh] start batch players={len(ids_list)} bucket={bucket}", flush=True)
+
+    for raw_pid in ids_list:
         try:
             pid = int(raw_pid)
         except Exception:
+            print(f"[ucl:refresh] skip invalid player id={raw_pid}", flush=True)
             continue
 
         cache_path = CACHE_DIR / f"{pid}.json"
@@ -424,6 +428,10 @@ def refresh_players_batch(player_ids: Iterable[int]) -> Dict[str, object]:
             if not stats:
                 record["error"] = "empty"
                 failures += 1
+                print(
+                    f"[ucl:refresh] player={pid} empty stats cache={cache_state} size={cache_size}",
+                    flush=True,
+                )
             else:
                 value = stats.get("value") if isinstance(stats, dict) else None
                 if value is None and isinstance(stats, dict):
@@ -432,6 +440,10 @@ def refresh_players_batch(player_ids: Iterable[int]) -> Dict[str, object]:
                 if not isinstance(value, dict):
                     record["error"] = "missing_value"
                     failures += 1
+                    print(
+                        f"[ucl:refresh] player={pid} value missing cache={cache_state} size={cache_size}",
+                        flush=True,
+                    )
                 else:
                     points = value.get("points") or value.get("matchdayPoints") or []
                     if isinstance(points, list):
@@ -443,6 +455,10 @@ def refresh_players_batch(player_ids: Iterable[int]) -> Dict[str, object]:
                         or ""
                     )
                     record["name"] = display_name
+                    print(
+                        f"[ucl:refresh] player={pid} ok name={display_name!r} points_entries={record['points_entries']} cache={cache_state} size={cache_size}",
+                        flush=True,
+                    )
         except Exception as exc:
             cache_state, cache_size = _describe_cache_state(cache_path, before_mtime)
             record["cache_state"] = cache_state
@@ -450,10 +466,15 @@ def refresh_players_batch(player_ids: Iterable[int]) -> Dict[str, object]:
             record["error"] = "exception"
             record["exception"] = repr(exc)
             failures += 1
+            print(
+                f"[ucl:refresh] player={pid} exception={exc} cache={cache_state} size={cache_size}",
+                flush=True,
+            )
 
         results.append(record)
 
     total = len(results)
+    print(f"[ucl:refresh] done batch total={total} failures={failures}", flush=True)
     return {
         "bucket": bucket,
         "total": total,
