@@ -4,6 +4,34 @@
 
 <h1 class="title">{{ draft_type }} - История трансферов</h1>
 
+<!-- Transfer Window Status -->
+<div id="transfer-window-status" class="notification is-info">
+  <div class="level">
+    <div class="level-left">
+      <div class="level-item">
+        <span id="window-status-text">Загрузка статуса трансферного окна...</span>
+      </div>
+    </div>
+    <div class="level-right">
+      <div class="level-item">
+        <div class="buttons">
+          {% if session.get('godmode') %}
+          <button class="button is-small is-success" onclick="showStartWindowModal()">
+            Открыть окно
+          </button>
+          <form method="post" action="{{ url_for('transfers.close_transfer_window', draft_type=draft_type) }}" style="display: inline;">
+            <button type="submit" class="button is-small is-danger">Закрыть окно</button>
+          </form>
+          {% endif %}
+          <form method="post" action="{{ url_for('transfers.skip_transfer_turn', draft_type=draft_type) }}" style="display: inline;">
+            <button type="submit" class="button is-small is-light">Пропустить ход</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="field is-horizontal">
   <div class="field-label">
     <label class="label">Менеджер:</label>
@@ -107,6 +135,43 @@
 }
 </style>
 
+<!-- Start Window Modal -->
+{% if session.get('godmode') %}
+<div id="start-window-modal" class="modal" aria-hidden="true">
+  <div class="modal-backdrop" data-close="1"></div>
+  <div class="modal-dialog" role="dialog" aria-modal="true">
+    <div class="modal-header">
+      <div class="modal-title">Открыть трансферное окно</div>
+      <button type="button" class="modal-close" data-close="1" aria-label="Закрыть">×</button>
+    </div>
+    <div class="modal-body">
+      <form method="post" action="{{ url_for('transfers.start_transfer_window', draft_type=draft_type) }}">
+        <div class="field">
+          <label class="label">Gameweek</label>
+          <div class="control">
+            <input class="input" type="number" name="gw" min="1" max="38" required>
+          </div>
+          <p class="help">Gameweek после которого открывается трансферное окно</p>
+        </div>
+        
+        <div class="field">
+          <label class="label">Порядок менеджеров</label>
+          <div class="control">
+            <textarea class="textarea" name="managers_order" rows="3" placeholder="Руслан&#10;Андрей&#10;Саша">{% for user in users %}{{ user }}&#10;{% endfor %}</textarea>
+          </div>
+          <p class="help">По одному менеджеру на строку. Пустое поле = обратный порядок от standings</p>
+        </div>
+        
+        <div class="buttons">
+          <button type="submit" class="button is-primary">Открыть окно</button>
+          <button type="button" class="button" data-close="1">Отмена</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+
 <script>
 function filterByManager() {
   const select = document.getElementById('manager-filter');
@@ -121,6 +186,74 @@ function filterByManager() {
   
   window.location.href = currentUrl.toString();
 }
+
+// Load transfer window status
+async function loadTransferWindowStatus() {
+  try {
+    const response = await fetch(`/transfers/{{ draft_type|lower }}/window-status`);
+    const data = await response.json();
+    
+    const statusElement = document.getElementById('window-status-text');
+    const containerElement = document.getElementById('transfer-window-status');
+    
+    if (data.success) {
+      if (data.window_active) {
+        const window_info = data.window_info;
+        const current_manager = data.current_manager;
+        
+        statusElement.innerHTML = `
+          <strong>Трансферное окно активно</strong> - GW${window_info.gw}, 
+          раунд ${window_info.current_round}/${window_info.total_rounds}
+          ${current_manager ? `<br><span class="tag is-warning">Ход: ${current_manager}</span>` : ''}
+        `;
+        containerElement.className = 'notification is-success';
+      } else {
+        statusElement.innerHTML = `
+          <strong>Трансферное окно закрыто</strong>
+          <br><small>Расписание: ${Object.keys(data.schedule || {}).join(', ') || 'Не задано'}</small>
+        `;
+        containerElement.className = 'notification is-light';
+      }
+    } else {
+      statusElement.textContent = 'Ошибка загрузки статуса: ' + data.error;
+      containerElement.className = 'notification is-danger';
+    }
+  } catch (error) {
+    console.error('Error loading transfer window status:', error);
+    document.getElementById('window-status-text').textContent = 'Ошибка загрузки статуса';
+    document.getElementById('transfer-window-status').className = 'notification is-danger';
+  }
+}
+
+function showStartWindowModal() {
+  document.getElementById('start-window-modal').setAttribute('aria-hidden', 'false');
+}
+
+// Close modal handlers
+document.addEventListener('DOMContentLoaded', function() {
+  loadTransferWindowStatus();
+  
+  // Auto-refresh status every 30 seconds
+  setInterval(loadTransferWindowStatus, 30000);
+  
+  // Close modal handlers
+  document.querySelectorAll('[data-close="1"]').forEach(el => {
+    el.addEventListener('click', () => {
+      document.querySelectorAll('.modal').forEach(modal => {
+        modal.setAttribute('aria-hidden', 'true');
+      });
+    });
+  });
+  
+  // Escape key handler
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      document.querySelectorAll('.modal').forEach(modal => {
+        modal.setAttribute('aria-hidden', 'true');
+      });
+    }
+  });
+});
 </script>
 
 {% endblock %}

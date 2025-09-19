@@ -44,6 +44,20 @@ def execute_transfer(draft_type: str):
         state = transfer_system.load_state()
         current_gw = get_current_gw(draft_type)
         
+        # Check if transfer window is active
+        if not transfer_system.is_transfer_window_active(state):
+            flash("Трансферное окно не активно", "warning")
+            return redirect(request.referrer or url_for("home.index"))
+        
+        # Check if it's current user's turn
+        current_manager = transfer_system.get_current_transfer_manager(state)
+        if current_manager != current_user:
+            if current_manager:
+                flash(f"Сейчас ход менеджера {current_manager}", "warning")
+            else:
+                flash("Трансферное окно завершено", "info")
+            return redirect(request.referrer or url_for("home.index"))
+        
         # Get transfer parameters
         out_player_id = request.form.get("out_player_id", type=int)
         in_player_data = {
@@ -58,9 +72,9 @@ def execute_transfer(draft_type: str):
             flash("Некорректные данные трансфера", "danger")
             return redirect(request.referrer or url_for("home.index"))
         
-        # Validate transfer
+        # Validate transfer (skip window check since we already checked)
         is_valid, error_msg = transfer_system.validate_transfer(
-            state, current_user, out_player_id, in_player_data
+            state, current_user, out_player_id, in_player_data, check_window=False
         )
         
         if not is_valid:
@@ -212,6 +226,124 @@ def validate_transfer_ajax(draft_type: str):
             "success": False,
             "error": str(e)
         }), 500
+
+
+@bp.route("/<draft_type>/window-status")
+def transfer_window_status(draft_type: str):
+    """Get transfer window status as JSON"""
+    try:
+        transfer_system = create_transfer_system(draft_type)
+        state = transfer_system.load_state()
+        
+        is_active = transfer_system.is_transfer_window_active(state)
+        active_window = transfer_system.get_active_transfer_window(state)
+        current_manager = transfer_system.get_current_transfer_manager(state)
+        schedule = transfer_system.get_transfer_schedule()
+        
+        return jsonify({
+            "success": True,
+            "window_active": is_active,
+            "current_manager": current_manager,
+            "window_info": active_window,
+            "schedule": schedule
+        })
+        
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        }), 500
+
+
+@bp.route("/<draft_type>/start-window", methods=["POST"])
+def start_transfer_window(draft_type: str):
+    """Start transfer window - Admin only"""
+    if not session.get("godmode"):
+        abort(403)
+    
+    try:
+        transfer_system = create_transfer_system(draft_type)
+        state = transfer_system.load_state()
+        
+        gw = request.form.get("gw", type=int)
+        if not gw:
+            flash("Необходимо указать GW", "danger")
+            return redirect(request.referrer or url_for("home.index"))
+        
+        # Get managers order (reverse standings for fair order)
+        users = get_draft_users(draft_type)
+        managers_order = request.form.getlist("managers_order") or users[::-1]  # Reverse order
+        
+        success = transfer_system.start_transfer_window(state, gw, managers_order)
+        
+        if success:
+            transfer_system.save_state(state)
+            flash(f"Трансферное окно для GW{gw} открыто", "success")
+        else:
+            flash("Не удалось открыть трансферное окно", "danger")
+        
+        return redirect(request.referrer or url_for("home.index"))
+        
+    except Exception as e:
+        flash(f"Ошибка при открытии трансферного окна: {str(e)}", "danger")
+        return redirect(request.referrer or url_for("home.index"))
+
+
+@bp.route("/<draft_type>/close-window", methods=["POST"])
+def close_transfer_window(draft_type: str):
+    """Close transfer window - Admin only"""
+    if not session.get("godmode"):
+        abort(403)
+    
+    try:
+        transfer_system = create_transfer_system(draft_type)
+        state = transfer_system.load_state()
+        
+        success = transfer_system.close_transfer_window(state)
+        
+        if success:
+            transfer_system.save_state(state)
+            flash("Трансферное окно закрыто", "success")
+        else:
+            flash("Трансферное окно уже закрыто", "info")
+        
+        return redirect(request.referrer or url_for("home.index"))
+        
+    except Exception as e:
+        flash(f"Ошибка при закрытии трансферного окна: {str(e)}", "danger")
+        return redirect(request.referrer or url_for("home.index"))
+
+
+@bp.route("/<draft_type>/skip-turn", methods=["POST"])
+def skip_transfer_turn(draft_type: str):
+    """Skip current manager's turn"""
+    current_user = session.get("user_name")
+    if not current_user:
+        abort(401)
+    
+    try:
+        transfer_system = create_transfer_system(draft_type)
+        state = transfer_system.load_state()
+        
+        # Check if it's current user's turn or if user is admin
+        current_manager = transfer_system.get_current_transfer_manager(state)
+        if current_manager != current_user and not session.get("godmode"):
+            flash("Это не ваш ход", "danger")
+            return redirect(request.referrer or url_for("home.index"))
+        
+        success = transfer_system.advance_transfer_turn(state)
+        
+        if success:
+            transfer_system.save_state(state)
+            flash("Ход пропущен", "info")
+        else:
+            flash("Трансферное окно не активно", "warning")
+        
+        return redirect(request.referrer or url_for("home.index"))
+        
+    except Exception as e:
+        flash(f"Ошибка при пропуске хода: {str(e)}", "danger")
+        return redirect(request.referrer or url_for("home.index"))
 
 
 # Helper function to get player active gameweeks - can be used by scoring logic

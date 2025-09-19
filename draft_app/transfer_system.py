@@ -6,6 +6,7 @@ Provides functionality for:
 - Tracking GW-based scoring periods
 - Making transfer-out players available for re-draft
 - Maintaining transfer history
+- Transfer window management
 """
 
 from __future__ import annotations
@@ -15,6 +16,27 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Union
 from .services import load_json, save_json
+
+# Transfer window schedules for different draft types
+# Format: {gw: rounds_count} - rounds_count is number of transfer rounds available
+TRANSFER_SCHEDULES = {
+    "EPL": {
+        3: 2,   # After GW3, 2 rounds of transfers
+        10: 1,  # After GW10, 1 round of transfers
+        17: 1,  # After GW17, 1 round of transfers
+        24: 2,  # After GW24, 2 rounds of transfers
+        29: 1,  # After GW29, 1 round of transfers
+        34: 1,  # After GW34, 1 round of transfers
+    },
+    "UCL": {
+        # Will be defined later
+        # Example: 2: 1, 4: 1, 6: 1
+    },
+    "TOP4": {
+        # Will be defined later
+        # Example: 3: 1, 6: 1, 9: 1
+    }
+}
 
 
 class TransferSystem:
@@ -52,6 +74,114 @@ class TransferSystem:
             
         return state
     
+    def get_transfer_schedule(self) -> Dict[int, int]:
+        """Get transfer schedule for this draft type"""
+        return TRANSFER_SCHEDULES.get(self.draft_type, {})
+    
+    def is_transfer_window_active(self, state: Dict[str, Any]) -> bool:
+        """Check if a transfer window is currently active"""
+        state = self.ensure_transfer_structure(state)
+        active_window = state["transfers"]["active_window"]
+        
+        if not active_window:
+            return False
+            
+        # Check if window is still active (has remaining rounds)
+        current_round = active_window.get("current_round", 0)
+        total_rounds = active_window.get("total_rounds", 0)
+        
+        return current_round <= total_rounds
+    
+    def get_active_transfer_window(self, state: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """Get information about active transfer window"""
+        state = self.ensure_transfer_structure(state)
+        
+        if not self.is_transfer_window_active(state):
+            return None
+            
+        return state["transfers"]["active_window"]
+    
+    def start_transfer_window(self, state: Dict[str, Any], gw: int, managers_order: List[str]) -> bool:
+        """Start a transfer window for specific GW"""
+        schedule = self.get_transfer_schedule()
+        rounds = schedule.get(gw, 0)
+        
+        if rounds <= 0:
+            return False
+            
+        state = self.ensure_transfer_structure(state)
+        
+        # Check if window is already active for this GW
+        active_window = state["transfers"]["active_window"]
+        if active_window and active_window.get("gw") == gw:
+            return False
+            
+        # Start new transfer window
+        state["transfers"]["active_window"] = {
+            "gw": gw,
+            "total_rounds": rounds,
+            "current_round": 1,
+            "current_manager_index": 0,
+            "managers_order": managers_order,
+            "started_at": datetime.utcnow().isoformat(timespec="seconds")
+        }
+        
+        return True
+    
+    def close_transfer_window(self, state: Dict[str, Any]) -> bool:
+        """Close active transfer window"""
+        state = self.ensure_transfer_structure(state)
+        
+        if not self.is_transfer_window_active(state):
+            return False
+            
+        state["transfers"]["active_window"] = None
+        return True
+    
+    def advance_transfer_turn(self, state: Dict[str, Any]) -> bool:
+        """Advance to next manager in transfer window"""
+        if not self.is_transfer_window_active(state):
+            return False
+            
+        active_window = state["transfers"]["active_window"]
+        managers_order = active_window.get("managers_order", [])
+        current_index = active_window.get("current_manager_index", 0)
+        current_round = active_window.get("current_round", 1)
+        total_rounds = active_window.get("total_rounds", 1)
+        
+        # Move to next manager
+        next_index = current_index + 1
+        
+        if next_index >= len(managers_order):
+            # End of round, start next round or close window
+            next_round = current_round + 1
+            if next_round > total_rounds:
+                # Close window
+                return self.close_transfer_window(state)
+            else:
+                # Start next round
+                active_window["current_round"] = next_round
+                active_window["current_manager_index"] = 0
+        else:
+            active_window["current_manager_index"] = next_index
+            
+        return True
+    
+    def get_current_transfer_manager(self, state: Dict[str, Any]) -> Optional[str]:
+        """Get manager who should make next transfer"""
+        active_window = self.get_active_transfer_window(state)
+        
+        if not active_window:
+            return None
+            
+        managers_order = active_window.get("managers_order", [])
+        current_index = active_window.get("current_manager_index", 0)
+        
+        if current_index < len(managers_order):
+            return managers_order[current_index]
+            
+        return None
+    
     def normalize_player_data(self, player: Dict[str, Any], current_gw: int) -> Dict[str, Any]:
         """Normalize player data to include transfer tracking fields"""
         normalized = player.copy()
@@ -77,9 +207,19 @@ class TransferSystem:
                         manager: str, 
                         out_player_id: int, 
                         in_player: Dict[str, Any], 
-                        current_gw: int) -> Dict[str, Any]:
+                        current_gw: int,
+                        force: bool = False) -> Dict[str, Any]:
         """Execute a player transfer"""
         state = self.ensure_transfer_structure(state)
+        
+        # Check if transfer window is active and manager can transfer
+        if not force:
+            if not self.is_transfer_window_active(state):
+                raise ValueError("Трансферное окно не активно")
+            
+            current_manager = self.get_current_transfer_manager(state)
+            if current_manager != manager:
+                raise ValueError(f"Сейчас ход менеджера {current_manager}, а не {manager}")
         
         # Get manager's roster
         rosters = state.setdefault("rosters", {})
@@ -125,6 +265,10 @@ class TransferSystem:
         
         state["transfers"]["history"].append(transfer_record)
         
+        # Advance to next manager in transfer window (if not forced)
+        if not force:
+            self.advance_transfer_turn(state)
+        
         return state
     
     def get_available_transfer_players(self, state: Dict[str, Any]) -> List[Dict[str, Any]]:
@@ -136,9 +280,15 @@ class TransferSystem:
                            state: Dict[str, Any], 
                            manager: str, 
                            player_id: int, 
-                           current_gw: int) -> Dict[str, Any]:
+                           current_gw: int,
+                           require_window: bool = True) -> Dict[str, Any]:
         """Pick a transfer_out player for a new team"""
         state = self.ensure_transfer_structure(state)
+        
+        # Check if manager can pick transfer players (less strict than transfers)
+        if require_window:
+            if not self.is_transfer_window_active(state):
+                raise ValueError("Трансферное окно не активно - нельзя подобрать игроков")
         
         available_players = state["transfers"]["available_players"]
         picked_player = None
@@ -213,8 +363,23 @@ class TransferSystem:
                          state: Dict[str, Any], 
                          manager: str, 
                          out_player_id: int, 
-                         in_player: Dict[str, Any]) -> tuple[bool, str]:
+                         in_player: Dict[str, Any],
+                         check_window: bool = True) -> tuple[bool, str]:
         """Validate if transfer is allowed"""
+        state = self.ensure_transfer_structure(state)
+        
+        # Check transfer window status
+        if check_window:
+            if not self.is_transfer_window_active(state):
+                return False, "Трансферное окно не активно"
+            
+            current_manager = self.get_current_transfer_manager(state)
+            if current_manager != manager:
+                if current_manager:
+                    return False, f"Сейчас ход менеджера {current_manager}"
+                else:
+                    return False, "Трансферное окно завершено"
+        
         rosters = state.get("rosters", {})
         roster = rosters.get(manager, [])
         
@@ -224,7 +389,7 @@ class TransferSystem:
         )
         
         if not out_player_exists:
-            return False, f"Player {out_player_id} not found in roster"
+            return False, f"Игрок с ID {out_player_id} не найден в составе"
         
         # Check position constraints (implement based on draft type)
         out_player = next(p for p in roster if int(p.get("playerId", 0)) == out_player_id)
@@ -232,10 +397,10 @@ class TransferSystem:
         in_position = in_player.get("position")
         
         if out_position != in_position:
-            return False, f"Position mismatch: {out_position} -> {in_position}"
+            return False, f"Несоответствие позиций: {out_position} -> {in_position}"
         
         # Additional validation can be added here
-        return True, "Transfer is valid"
+        return True, "Трансфер разрешен"
 
 
 # Factory function to create transfer system for different draft types

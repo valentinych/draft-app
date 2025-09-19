@@ -109,11 +109,16 @@
 
 <script>
 class TransferManager {
-  constructor(draftType) {
+  constructor(draftType, currentUser = null) {
     this.draftType = draftType;
+    this.currentUser = currentUser;
     this.transferModal = document.getElementById('transfer-modal');
     this.transferPlayersModal = document.getElementById('transfer-players-modal');
     this.init();
+  }
+  
+  getCurrentUser() {
+    return this.currentUser || window.CURRENT_USER || null;
   }
   
   init() {
@@ -134,7 +139,30 @@ class TransferManager {
     }
   }
   
-  openTransferModal(outPlayer) {
+  async openTransferModal(outPlayer) {
+    // Check transfer window status first
+    try {
+      const response = await fetch(`/transfers/${this.draftType.toLowerCase()}/window-status`);
+      const data = await response.json();
+      
+      if (!data.success || !data.window_active) {
+        alert('Трансферное окно не активно');
+        return;
+      }
+      
+      // Check if it's current user's turn
+      const currentUser = this.getCurrentUser(); // This should be set by the page
+      if (data.current_manager && data.current_manager !== currentUser) {
+        alert(`Сейчас ход менеджера ${data.current_manager}`);
+        return;
+      }
+    } catch (error) {
+      console.error('Error checking transfer window status:', error);
+      if (!confirm('Не удалось проверить статус трансферного окна. Продолжить?')) {
+        return;
+      }
+    }
+    
     const outPlayerId = outPlayer.dataset.playerId || outPlayer.dataset.id;
     const outPlayerName = outPlayer.dataset.name || outPlayer.textContent.trim();
     const outPlayerClub = outPlayer.dataset.club || '';
@@ -336,7 +364,10 @@ class TransferManager {
 // Initialize transfer manager when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
   // This should be set by the including template
-  window.transferManager = new TransferManager(window.DRAFT_TYPE || 'UCL');
+  window.transferManager = new TransferManager(
+    window.DRAFT_TYPE || 'UCL',
+    window.CURRENT_USER || null
+  );
 });
 
 // Helper functions for integration with existing pages
