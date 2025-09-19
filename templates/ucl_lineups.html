@@ -82,6 +82,16 @@ document.addEventListener('DOMContentLoaded', () => {
     modalBody.innerHTML = '';
     modal.querySelector('.modal-card-title').textContent = player.name;
     const stat = player.stat || {};
+    const statsLists = [];
+    if (Array.isArray(stat.matchdayStats)) statsLists.push(...stat.matchdayStats);
+    if (Array.isArray(stat.stats)) statsLists.push(...stat.stats);
+    const statsCount = statsLists.length;
+    if (statsCount) {
+      const summary = document.createElement('p');
+      summary.className = 'mb-2';
+      summary.textContent = `Событий в матче: ${statsCount}`;
+      modalBody.appendChild(summary);
+    }
     if (!Object.keys(stat).length) {
       modalBody.textContent = 'Нет данных по выбранному туру';
       modal.classList.add('is-active');
@@ -128,6 +138,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const contents = document.createElement('div');
     contents.style.display = 'block';
+    const blocks = [];
 
     managers.forEach((manager, idx) => {
       const li = document.createElement('li');
@@ -152,11 +163,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const block = document.createElement('div');
       block.style.display = idx === 0 ? 'block' : 'none';
-      const players = (lineups[manager] && lineups[manager].players) || [];
+      const players = ((lineups[manager] && lineups[manager].players) || []).slice();
       const hue = idx * 60;
       const c1 = `hsl(${hue}, 70%, 90%)`;
       const c2 = `hsl(${hue}, 70%, 80%)`;
       players.sort((a, b) => {
+        const pointsA = Number.isFinite(Number(a.points)) ? Number(a.points) : 0;
+        const pointsB = Number.isFinite(Number(b.points)) ? Number(b.points) : 0;
+        if (pointsB !== pointsA) return pointsB - pointsA;
         const pa = (a.pos || '').toUpperCase();
         const pb = (b.pos || '').toUpperCase();
         return (posOrder[pa] ?? 99) - (posOrder[pb] ?? 99);
@@ -187,11 +201,12 @@ document.addEventListener('DOMContentLoaded', () => {
         block.appendChild(row);
       });
       contents.appendChild(block);
+      blocks.push(block);
 
       li.addEventListener('click', () => {
-        document.querySelectorAll('#ucl-lineups-container .tabs li').forEach(el => el.classList.remove('is-active'));
+        tabs.querySelectorAll('li').forEach(el => el.classList.remove('is-active'));
         li.classList.add('is-active');
-        contents.querySelectorAll('div').forEach((div, divIdx) => {
+        blocks.forEach((div, divIdx) => {
           div.style.display = divIdx === idx ? 'block' : 'none';
         });
       });
