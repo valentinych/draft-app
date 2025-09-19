@@ -25,6 +25,7 @@ except Exception:
 from .ucl_stats_store import (
     get_current_matchday,
     get_current_matchday_cached,
+    get_player_stats,
     get_player_stats_cached,
     refresh_players_batch,
 )
@@ -1097,6 +1098,89 @@ def ucl_lineups_data():
     if not managers:
         managers = sorted(rosters.keys())
 
+    def _norm_team_id(raw: Any) -> Optional[str]:
+        if raw in (None, "", [], {}):
+            return None
+        text = str(raw).strip()
+        if not text:
+            return None
+        try:
+            num = int(float(text))
+            if num <= 0:
+                return None
+            return str(num)
+        except Exception:
+            return text or None
+
+    def _first_non_empty(*values: Any) -> Optional[str]:
+        for val in values:
+            if isinstance(val, str) and val.strip():
+                return val.strip()
+            if isinstance(val, (int, float)) and val:
+                return str(val)
+        return None
+
+    def _stat_sections(stats_payload: Any) -> Tuple[Dict[str, Any], Dict[str, Any], Dict[str, Any], Dict[str, Any], Dict[str, Any]]:
+        stat_payload: Dict[str, Any] = {}
+        points_dict: Dict[str, Any] = {}
+        raw_stats: Dict[str, Any] = {}
+        data_section: Dict[str, Any] = {}
+        value_section: Dict[str, Any] = {}
+
+        if isinstance(stats_payload, dict):
+            stat_payload = _ucl_points_for_md(stats_payload, md) or {}
+            if isinstance(stat_payload.get("points"), dict):
+                points_dict = stat_payload.get("points") or {}
+            if isinstance(stat_payload.get("stats"), dict):
+                raw_stats = stat_payload.get("stats") or {}
+
+            if isinstance(stats_payload.get("data"), dict):
+                data_section = stats_payload.get("data") or {}
+                if isinstance(data_section.get("value"), dict):
+                    value_section = data_section.get("value") or {}
+            if not value_section and isinstance(stats_payload.get("value"), dict):
+                value_section = stats_payload.get("value") or {}
+
+        return stat_payload, points_dict, raw_stats, data_section, value_section
+
+    def _resolve_team_id(
+        payload: Dict[str, Any],
+        stat_payload: Dict[str, Any],
+        points_dict: Dict[str, Any],
+        raw_stats: Dict[str, Any],
+        data_section: Dict[str, Any],
+        value_section: Dict[str, Any],
+        full_stats: Any,
+    ) -> Optional[str]:
+        base_stats = full_stats if isinstance(full_stats, dict) else {}
+        stats_data = base_stats.get("data") if isinstance(base_stats.get("data"), dict) else {}
+        root_value = base_stats.get("value") if isinstance(base_stats.get("value"), dict) else {}
+
+        for candidate in (
+            stat_payload.get("teamId"),
+            stat_payload.get("tId"),
+            raw_stats.get("teamId"),
+            raw_stats.get("tId"),
+            points_dict.get("teamId"),
+            points_dict.get("tId"),
+            value_section.get("teamId"),
+            value_section.get("teamID"),
+            data_section.get("teamId"),
+            data_section.get("teamID"),
+            root_value.get("teamId"),
+            root_value.get("teamID"),
+            base_stats.get("teamId"),
+            base_stats.get("teamID"),
+            stats_data.get("teamId"),
+            stats_data.get("teamID"),
+            payload.get("teamId"),
+            payload.get("clubId"),
+        ):
+            norm = _norm_team_id(candidate)
+            if norm:
+                return norm
+        return None
+
     results: Dict[str, Dict[str, Any]] = {}
     for manager in managers:
         roster = rosters.get(manager) or []
@@ -1118,38 +1202,35 @@ def ucl_lineups_data():
             except Exception:
                 continue
             stats = get_player_stats_cached(pid_int)
-            points_entry = _ucl_points_for_md(stats, md)
-            stat_payload: Dict[str, Any] = points_entry or {}
-            points_dict = stat_payload.get("points") if isinstance(stat_payload.get("points"), dict) else {}
-            raw_stats = stat_payload.get("stats") if isinstance(stat_payload.get("stats"), dict) else {}
+            stat_payload, points_dict, raw_stats, data_section, value_section = _stat_sections(stats)
+            team_id = _resolve_team_id(payload, stat_payload, points_dict, raw_stats, data_section, value_section, stats)
+            if not team_id:
+                fresh_stats = get_player_stats(pid_int)
+                if isinstance(fresh_stats, dict):
+                    stats = fresh_stats
+                    stat_payload, points_dict, raw_stats, data_section, value_section = _stat_sections(stats)
+                    team_id = _resolve_team_id(payload, stat_payload, points_dict, raw_stats, data_section, value_section, stats)
             points = _safe_int(stat_payload.get("tPoints"))
-            stats_value = {}
-            if isinstance(stats, dict):
-                stats_value = stats.get("value") if isinstance(stats.get("value"), dict) else stats
-            team_id = (
-                stat_payload.get("teamId")
-                or stat_payload.get("tId")
-                or raw_stats.get("teamId")
-                or raw_stats.get("tId")
-                or points_dict.get("teamId")
-                or points_dict.get("tId")
-                or (stats_value.get("teamId") if isinstance(stats_value, dict) else None)
-                or payload.get("teamId")
-            )
-            if team_id is not None:
-                try:
-                    team_id = str(int(team_id))
-                except Exception:
-                    team_id = str(team_id)
-            club_name = (
-                payload.get("clubName")
-                or stat_payload.get("teamName")
-                or stat_payload.get("tName")
-                or raw_stats.get("teamName")
-                or raw_stats.get("tName")
-                or points_dict.get("teamName")
-                or points_dict.get("tName")
-                or (stats_value.get("teamName") if isinstance(stats_value, dict) else None)
+            base_stats = stats if isinstance(stats, dict) else {}
+            stats_data = base_stats.get("data") if isinstance(base_stats.get("data"), dict) else {}
+            stats_value = base_stats.get("value") if isinstance(base_stats.get("value"), dict) else {}
+            club_name = _first_non_empty(
+                payload.get("clubName"),
+                stat_payload.get("teamName"),
+                stat_payload.get("tName"),
+                raw_stats.get("teamName"),
+                raw_stats.get("tName"),
+                points_dict.get("teamName"),
+                points_dict.get("tName"),
+                value_section.get("teamName"),
+                value_section.get("tName"),
+                data_section.get("teamName"),
+                stats_value.get("teamName"),
+                stats_value.get("tName"),
+                stats_data.get("teamName"),
+                stats_data.get("tName"),
+                base_stats.get("teamName"),
+                base_stats.get("tName"),
             )
             total += points
             lineup.append(
