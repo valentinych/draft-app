@@ -6,6 +6,8 @@ import time
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, Iterable, Optional
+import subprocess
+import shlex
 
 import boto3
 from botocore.exceptions import ClientError
@@ -66,6 +68,14 @@ WARMUP_URL = (os.getenv("UCL_STATS_WARMUP_URL") or "https://gaming.uefa.com/en/u
 WARMUP_PER_REQUEST = (os.getenv("UCL_STATS_WARMUP_PER_REQUEST") or "").strip().lower() in {"1", "true", "yes", "on"}
 COOKIE_STRING = (os.getenv("UCL_STATS_COOKIE") or "").strip()
 USER_AGENT = (os.getenv("UCL_STATS_USER_AGENT") or "").strip()
+USE_CURL = (os.getenv("UCL_STATS_USE_CURL") or "").strip().lower() in {"1", "true", "yes", "on"}
+CURL_BIN = (os.getenv("UCL_STATS_CURL_BIN") or "curl").strip()
+CURL_TIMEOUT = _env_float("UCL_STATS_CURL_TIMEOUT", REQUEST_READ_TIMEOUT)
+CURL_EXTRA_ARGS = [
+    chunk
+    for chunk in shlex.split(os.getenv("UCL_STATS_CURL_ARGS", ""))
+    if chunk
+]
 
 _REMOTE_FAILURE_AT: float = 0.0
 _S3_CLIENT = None
@@ -296,8 +306,118 @@ def _warmup_session(force: bool = False) -> None:
         _SESSION_WARMED = True
 
 
+def _curl_headers() -> Dict[str, str]:
+    return _http_headers()
+
+
+def _run_curl(url: str, label: str) -> Optional[str]:
+    headers = _curl_headers()
+    cmd = [
+        CURL_BIN,
+        "-fsSL",
+        "--max-time",
+        str(CURL_TIMEOUT),
+        "--connect-timeout",
+        str(REQUEST_CONNECT_TIMEOUT),
+    ]
+    for key, value in headers.items():
+        cmd.extend(["-H", f"{key}: {value}"])
+    if CURL_EXTRA_ARGS:
+        cmd.extend(CURL_EXTRA_ARGS)
+    cmd.append(url)
+    try:
+        result = subprocess.run(
+            cmd,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            check=False,
+        )
+    except Exception as exc:
+        print(f"[ucl:curl] {label} command error url={url} error={exc}", flush=True)
+        return None
+    if result.returncode != 0:
+        print(
+            f"[ucl:curl] {label} nonzero exit={result.returncode} url={url} stderr={result.stderr.strip()}",
+            flush=True,
+        )
+        return None
+    print(
+        f"[ucl:curl] {label} ok url={url} bytes={len(result.stdout)}",
+        flush=True,
+    )
+    return result.stdout
+
+
+def _curl_warmup(force: bool = False) -> None:
+    global _SESSION_WARMED
+    if not force and _SESSION_WARMED:
+        return
+    if not WARMUP_URL:
+        _SESSION_WARMED = True
+        return
+    _run_curl(WARMUP_URL, "warmup")
+    _SESSION_WARMED = True
+
+
+def _cachebuster_url(url: str) -> str:
+    token = str(int(time.time()))
+    return f"{url}{'&' if '?' in url else '?'}_={token}"
+
+
+def _fetch_remote_curl(url: str) -> Optional[Dict]:
+    global _REMOTE_FAILURE_AT
+    if _REMOTE_FAILURE_AT and (time.time() - _REMOTE_FAILURE_AT) < REMOTE_FAILURE_COOLDOWN:
+        remaining = REMOTE_FAILURE_COOLDOWN - (time.time() - _REMOTE_FAILURE_AT)
+        print(f"[ucl:fetch] skip due to cooldown url={url} remaining={round(max(remaining,0),2)}s", flush=True)
+        return None
+
+    if WARMUP_PER_REQUEST:
+        _curl_warmup(force=True)
+    else:
+        _curl_warmup()
+
+    for idx in range(REMOTE_ATTEMPTS):
+        variant_label = "cachebuster" if idx % 2 == 1 else "default"
+        variant_url = _cachebuster_url(url) if variant_label == "cachebuster" else url
+        attempt = idx + 1
+        print(f"[ucl:fetch] attempt={attempt} variant={variant_label} url={variant_url}", flush=True)
+        stdout = _run_curl(variant_url, f"attempt={attempt}")
+        if stdout is None:
+            base_delay = RETRY_DELAY * (RETRY_BACKOFF ** idx)
+            jitter = random.random() * RETRY_JITTER
+            sleep_for = base_delay + jitter
+            print(
+                f"[ucl:fetch] retry in {round(sleep_for,2)}s attempt={attempt} url={url}",
+                flush=True,
+            )
+            time.sleep(sleep_for)
+            continue
+        try:
+            payload = json.loads(stdout)
+            _REMOTE_FAILURE_AT = 0.0
+            return payload
+        except Exception as exc:
+            print(
+                f"[ucl:fetch] parse error attempt={attempt} url={variant_url} error={exc}",
+                flush=True,
+            )
+            base_delay = RETRY_DELAY * (RETRY_BACKOFF ** idx)
+            jitter = random.random() * RETRY_JITTER
+            sleep_for = base_delay + jitter
+            time.sleep(sleep_for)
+            continue
+
+    _REMOTE_FAILURE_AT = time.time()
+    print(f"[ucl:fetch] exhausted attempts url={url}", flush=True)
+    return None
+
+
 def _fetch_remote(url: str) -> Optional[Dict]:
     global _REMOTE_FAILURE_AT
+
+    if USE_CURL:
+        return _fetch_remote_curl(url)
 
     _prepare_session()
     if WARMUP_PER_REQUEST:
