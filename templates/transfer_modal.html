@@ -1,0 +1,360 @@
+<!-- Transfer Modal - Include this in draft pages -->
+<div id="transfer-modal" class="modal" aria-hidden="true">
+  <div class="modal-backdrop" data-close="1"></div>
+  <div class="modal-dialog" role="dialog" aria-modal="true">
+    <div class="modal-header">
+      <div class="modal-title">Трансфер игрока</div>
+      <button type="button" class="modal-close" data-close="1" aria-label="Закрыть">×</button>
+    </div>
+    <div class="modal-body">
+      <form id="transfer-form" method="post" action="">
+        <input type="hidden" name="out_player_id" id="out-player-id">
+        <input type="hidden" name="in_player_id" id="in-player-id">
+        <input type="hidden" name="in_player_name" id="in-player-name">
+        <input type="hidden" name="in_player_club" id="in-player-club">
+        <input type="hidden" name="in_player_position" id="in-player-position">
+        <input type="hidden" name="in_player_price" id="in-player-price">
+        
+        <div class="transfer-summary">
+          <div class="columns">
+            <div class="column">
+              <h4 class="subtitle is-6">Убрать из состава:</h4>
+              <div id="out-player-info" class="box has-background-danger-light">
+                <p class="has-text-weight-semibold" id="out-player-display">-</p>
+                <p class="is-size-7 has-text-grey" id="out-player-details">-</p>
+              </div>
+            </div>
+            <div class="column">
+              <h4 class="subtitle is-6">Добавить в состав:</h4>
+              <div id="in-player-info" class="box has-background-success-light">
+                <p class="has-text-weight-semibold" id="in-player-display">-</p>
+                <p class="is-size-7 has-text-grey" id="in-player-details">-</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div id="validation-message" class="notification" style="display: none;"></div>
+        
+        <div class="buttons">
+          <button type="submit" class="button is-primary" id="confirm-transfer">
+            Подтвердить трансфер
+          </button>
+          <button type="button" class="button" data-close="1">
+            Отмена
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Available Transfer Players Modal -->
+<div id="transfer-players-modal" class="modal" aria-hidden="true">
+  <div class="modal-backdrop" data-close="1"></div>
+  <div class="modal-dialog modal-lg" role="dialog" aria-modal="true">
+    <div class="modal-header">
+      <div class="modal-title">Доступные трансферные игроки</div>
+      <button type="button" class="modal-close" data-close="1" aria-label="Закрыть">×</button>
+    </div>
+    <div class="modal-body">
+      <div id="transfer-players-loading" class="has-text-centered">
+        <span class="icon is-large">
+          <i class="fas fa-spinner fa-spin"></i>
+        </span>
+        <p>Загрузка...</p>
+      </div>
+      <div id="transfer-players-list" style="display: none;">
+        <div class="table-container">
+          <table class="table is-fullwidth is-striped">
+            <thead>
+              <tr>
+                <th>Игрок</th>
+                <th>Позиция</th>
+                <th>Клуб</th>
+                <th>Бывшая команда</th>
+                <th>Действие</th>
+              </tr>
+            </thead>
+            <tbody id="transfer-players-tbody">
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div id="transfer-players-empty" class="notification is-info" style="display: none;">
+        <p>Нет доступных трансферных игроков</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.transfer-summary .box {
+  min-height: 80px;
+}
+
+#transfer-modal .modal-dialog {
+  max-width: 600px;
+}
+
+#transfer-players-modal .modal-lg {
+  max-width: 800px;
+}
+
+.player-transfer-btn {
+  margin-left: 4px;
+  margin-right: 4px;
+}
+</style>
+
+<script>
+class TransferManager {
+  constructor(draftType) {
+    this.draftType = draftType;
+    this.transferModal = document.getElementById('transfer-modal');
+    this.transferPlayersModal = document.getElementById('transfer-players-modal');
+    this.init();
+  }
+  
+  init() {
+    // Close modal handlers
+    document.querySelectorAll('[data-close="1"]').forEach(el => {
+      el.addEventListener('click', () => this.closeModals());
+    });
+    
+    // Escape key handler
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') this.closeModals();
+    });
+    
+    // Form validation
+    const form = document.getElementById('transfer-form');
+    if (form) {
+      form.addEventListener('submit', (e) => this.handleTransferSubmit(e));
+    }
+  }
+  
+  openTransferModal(outPlayer) {
+    const outPlayerId = outPlayer.dataset.playerId || outPlayer.dataset.id;
+    const outPlayerName = outPlayer.dataset.name || outPlayer.textContent.trim();
+    const outPlayerClub = outPlayer.dataset.club || '';
+    const outPlayerPosition = outPlayer.dataset.position || '';
+    
+    // Set outgoing player info
+    document.getElementById('out-player-id').value = outPlayerId;
+    document.getElementById('out-player-display').textContent = outPlayerName;
+    document.getElementById('out-player-details').textContent = `${outPlayerClub} (${outPlayerPosition})`;
+    
+    // Clear incoming player info
+    this.clearIncomingPlayer();
+    
+    // Set form action
+    const form = document.getElementById('transfer-form');
+    form.action = `/transfers/${this.draftType}/execute`;
+    
+    this.showModal(this.transferModal);
+  }
+  
+  openTransferPlayersModal() {
+    this.showModal(this.transferPlayersModal);
+    this.loadAvailableTransferPlayers();
+  }
+  
+  async loadAvailableTransferPlayers() {
+    const loading = document.getElementById('transfer-players-loading');
+    const list = document.getElementById('transfer-players-list');
+    const empty = document.getElementById('transfer-players-empty');
+    
+    loading.style.display = 'block';
+    list.style.display = 'none';
+    empty.style.display = 'none';
+    
+    try {
+      const response = await fetch(`/transfers/${this.draftType}/available-players`);
+      const data = await response.json();
+      
+      if (data.success && data.players.length > 0) {
+        this.renderTransferPlayers(data.players);
+        list.style.display = 'block';
+      } else {
+        empty.style.display = 'block';
+      }
+    } catch (error) {
+      console.error('Error loading transfer players:', error);
+      empty.style.display = 'block';
+    }
+    
+    loading.style.display = 'none';
+  }
+  
+  renderTransferPlayers(players) {
+    const tbody = document.getElementById('transfer-players-tbody');
+    tbody.innerHTML = '';
+    
+    players.forEach(player => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>
+          <strong>${player.fullName || 'Unknown'}</strong>
+        </td>
+        <td>${player.position || '-'}</td>
+        <td>${player.clubName || '-'}</td>
+        <td>
+          <span class="has-text-grey">${this.getOriginalOwner(player) || '-'}</span>
+        </td>
+        <td>
+          <button class="button is-small is-primary" 
+                  onclick="transferManager.pickTransferPlayer(${player.playerId || player.id})">
+            Выбрать
+          </button>
+        </td>
+      `;
+      tbody.appendChild(row);
+    });
+  }
+  
+  getOriginalOwner(player) {
+    // This could be enhanced to track original owner
+    return 'Неизвестно';
+  }
+  
+  async pickTransferPlayer(playerId) {
+    try {
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = `/transfers/${this.draftType}/pick-transfer-player`;
+      
+      const playerIdInput = document.createElement('input');
+      playerIdInput.type = 'hidden';
+      playerIdInput.name = 'player_id';
+      playerIdInput.value = playerId;
+      
+      form.appendChild(playerIdInput);
+      document.body.appendChild(form);
+      form.submit();
+      
+    } catch (error) {
+      console.error('Error picking transfer player:', error);
+      alert('Ошибка при выборе игрока');
+    }
+  }
+  
+  setIncomingPlayer(playerId, playerName, playerClub, playerPosition, playerPrice = 0) {
+    document.getElementById('in-player-id').value = playerId;
+    document.getElementById('in-player-name').value = playerName;
+    document.getElementById('in-player-club').value = playerClub;
+    document.getElementById('in-player-position').value = playerPosition;
+    document.getElementById('in-player-price').value = playerPrice;
+    
+    document.getElementById('in-player-display').textContent = playerName;
+    document.getElementById('in-player-details').textContent = `${playerClub} (${playerPosition})`;
+    
+    this.validateTransfer();
+  }
+  
+  clearIncomingPlayer() {
+    document.getElementById('in-player-id').value = '';
+    document.getElementById('in-player-name').value = '';
+    document.getElementById('in-player-club').value = '';
+    document.getElementById('in-player-position').value = '';
+    document.getElementById('in-player-price').value = '';
+    
+    document.getElementById('in-player-display').textContent = 'Выберите игрока';
+    document.getElementById('in-player-details').textContent = '-';
+    
+    this.hideValidationMessage();
+  }
+  
+  async validateTransfer() {
+    const outPlayerId = document.getElementById('out-player-id').value;
+    const inPlayerId = document.getElementById('in-player-id').value;
+    
+    if (!outPlayerId || !inPlayerId) return;
+    
+    try {
+      const response = await fetch(`/transfers/${this.draftType}/validate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          out_player_id: parseInt(outPlayerId),
+          in_player: {
+            playerId: parseInt(inPlayerId),
+            position: document.getElementById('in-player-position').value
+          }
+        })
+      });
+      
+      const data = await response.json();
+      
+      if (data.success) {
+        this.showValidationMessage(data.message, data.valid ? 'success' : 'danger');
+        document.getElementById('confirm-transfer').disabled = !data.valid;
+      }
+    } catch (error) {
+      console.error('Validation error:', error);
+    }
+  }
+  
+  showValidationMessage(message, type) {
+    const msgEl = document.getElementById('validation-message');
+    msgEl.className = `notification is-${type}`;
+    msgEl.textContent = message;
+    msgEl.style.display = 'block';
+  }
+  
+  hideValidationMessage() {
+    document.getElementById('validation-message').style.display = 'none';
+  }
+  
+  handleTransferSubmit(e) {
+    const outPlayerId = document.getElementById('out-player-id').value;
+    const inPlayerId = document.getElementById('in-player-id').value;
+    
+    if (!outPlayerId || !inPlayerId) {
+      e.preventDefault();
+      alert('Необходимо выбрать игроков для трансфера');
+      return false;
+    }
+    
+    return confirm('Вы уверены, что хотите выполнить этот трансфер?');
+  }
+  
+  showModal(modal) {
+    modal.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+  }
+  
+  closeModals() {
+    this.transferModal.setAttribute('aria-hidden', 'true');
+    this.transferPlayersModal.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+  }
+}
+
+// Initialize transfer manager when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+  // This should be set by the including template
+  window.transferManager = new TransferManager(window.DRAFT_TYPE || 'UCL');
+});
+
+// Helper functions for integration with existing pages
+function openTransferModal(playerElement) {
+  if (window.transferManager) {
+    window.transferManager.openTransferModal(playerElement);
+  }
+}
+
+function openTransferPlayersModal() {
+  if (window.transferManager) {
+    window.transferManager.openTransferPlayersModal();
+  }
+}
+
+function selectPlayerForTransfer(playerId, playerName, playerClub, playerPosition, playerPrice) {
+  if (window.transferManager) {
+    window.transferManager.setIncomingPlayer(playerId, playerName, playerClub, playerPosition, playerPrice);
+  }
+}
+</script>

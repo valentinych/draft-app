@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% block title %}{{ draft_type }} Transfer History{% endblock %}
+{% block content %}
+
+<h1 class="title">{{ draft_type }} - История трансферов</h1>
+
+<div class="field is-horizontal">
+  <div class="field-label">
+    <label class="label">Менеджер:</label>
+  </div>
+  <div class="field-body">
+    <div class="field">
+      <div class="control">
+        <div class="select">
+          <select id="manager-filter" onchange="filterByManager()">
+            <option value="">Все менеджеры</option>
+            {% for user in users %}
+            <option value="{{ user }}" {% if user == selected_manager %}selected{% endif %}>{{ user }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if history %}
+<div class="table-container">
+  <table class="table is-fullwidth is-striped">
+    <thead>
+      <tr>
+        <th>Дата</th>
+        <th>GW</th>
+        <th>Менеджер</th>
+        <th>Действие</th>
+        <th>Игрок OUT</th>
+        <th>Игрок IN</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for record in history %}
+      <tr>
+        <td>{{ record.ts[:16].replace('T', ' ') if record.ts }}</td>
+        <td>{{ record.gw or '-' }}</td>
+        <td><strong>{{ record.manager }}</strong></td>
+        <td>
+          {% if record.action == 'pick_transfer_player' %}
+            <span class="tag is-info">Подбор трансф. игрока</span>
+          {% else %}
+            <span class="tag is-warning">Трансфер</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if record.out_player %}
+            <div class="player-info">
+              <strong>{{ record.out_player.fullName }}</strong><br>
+              <small class="has-text-grey">{{ record.out_player.clubName }} ({{ record.out_player.position }})</small>
+            </div>
+          {% else %}
+            -
+          {% endif %}
+        </td>
+        <td>
+          {% if record.in_player %}
+            <div class="player-info">
+              <strong>{{ record.in_player.fullName }}</strong><br>
+              <small class="has-text-grey">{{ record.in_player.clubName }} ({{ record.in_player.position }})</small>
+            </div>
+          {% elif record.player %}
+            <div class="player-info">
+              <strong>{{ record.player.fullName }}</strong><br>
+              <small class="has-text-grey">{{ record.player.clubName }} ({{ record.player.position }})</small>
+            </div>
+          {% else %}
+            -
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="notification is-info">
+  <p>История трансферов пуста</p>
+</div>
+{% endif %}
+
+<div class="buttons">
+  <a href="{{ url_for('home.index') }}" class="button">Назад к главной</a>
+  {% if session.get('godmode') %}
+  <form method="post" action="{{ url_for('transfers.normalize_players', draft_type=draft_type) }}" style="display: inline;">
+    <button type="submit" class="button is-warning" onclick="return confirm('Нормализовать всех игроков для системы трансферов?')">
+      Нормализовать игроков
+    </button>
+  </form>
+  {% endif %}
+</div>
+
+<style>
+.player-info {
+  min-width: 150px;
+}
+
+.table td {
+  vertical-align: middle;
+}
+</style>
+
+<script>
+function filterByManager() {
+  const select = document.getElementById('manager-filter');
+  const manager = select.value;
+  const currentUrl = new URL(window.location);
+  
+  if (manager) {
+    currentUrl.searchParams.set('manager', manager);
+  } else {
+    currentUrl.searchParams.delete('manager');
+  }
+  
+  window.location.href = currentUrl.toString();
+}
+</script>
+
+{% endblock %}

@@ -1,0 +1,247 @@
+<!-- Example of how to integrate transfer system into existing draft pages -->
+
+<!-- Include transfer modal -->
+{% include 'transfer_modal.html' %}
+
+<!-- Set draft type for JavaScript -->
+<script>
+window.DRAFT_TYPE = '{{ draft_type|upper }}';
+</script>
+
+<!-- Add transfer buttons to player cards -->
+<div class="player-card" data-player-id="{{ player.playerId }}" data-name="{{ player.fullName }}" 
+     data-club="{{ player.clubName }}" data-position="{{ player.position }}">
+  
+  <!-- Existing player info -->
+  <div class="player-info">
+    <h4>{{ player.fullName }}</h4>
+    <p>{{ player.clubName }} ({{ player.position }})</p>
+    
+    <!-- Transfer status indicator -->
+    {% if player.status == 'transfer_in' %}
+      <span class="tag is-success is-small">Transfer In GW{{ player.transferred_in_gw }}</span>
+    {% elif player.status == 'transfer_out' %}
+      <span class="tag is-danger is-small">Transfer Out GW{{ player.transferred_out_gw }}</span>
+    {% endif %}
+    
+    <!-- Active GWs indicator -->
+    {% if player.gws_active %}
+      <p class="is-size-7 has-text-grey">
+        Active GWs: {{ player.gws_active|join(', ') }}
+      </p>
+    {% endif %}
+  </div>
+  
+  <!-- Transfer actions -->
+  {% if session.get('user_name') and player.status != 'transfer_out' %}
+  <div class="player-actions">
+    <button class="button is-small is-warning player-transfer-btn" 
+            onclick="openTransferModal(this.closest('.player-card'))">
+      Трансфер
+    </button>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Transfer Players Button -->
+<div class="section">
+  <div class="buttons">
+    <button class="button is-info" onclick="openTransferPlayersModal()">
+      <span class="icon">
+        <i class="fas fa-exchange-alt"></i>
+      </span>
+      <span>Доступные игроки ({{ available_transfer_count }})</span>
+    </button>
+    
+    <a href="{{ url_for('transfers.transfer_history', draft_type=draft_type) }}" class="button is-light">
+      <span class="icon">
+        <i class="fas fa-history"></i>
+      </span>
+      <span>История трансферов</span>
+    </a>
+    
+    {% if session.get('godmode') %}
+    <form method="post" action="{{ url_for('transfers.normalize_players', draft_type=draft_type) }}" style="display: inline;">
+      <button type="submit" class="button is-warning is-outlined" 
+              onclick="return confirm('Нормализовать всех игроков для системы трансферов?')">
+        Нормализовать игроков
+      </button>
+    </form>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Example of how to use in existing draft table -->
+<table class="table is-fullwidth">
+  <thead>
+    <tr>
+      <th>Игрок</th>
+      <th>Клуб</th>
+      <th>Позиция</th>
+      <th>Статус</th>
+      <th>Активные GW</th>
+      <th>Действия</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for manager, roster in rosters.items() %}
+      {% for player in roster %}
+      <tr class="{% if player.status == 'transfer_out' %}has-background-danger-light{% elif player.status == 'transfer_in' %}has-background-success-light{% endif %}">
+        <td>
+          <strong>{{ player.fullName }}</strong>
+          <br><small class="has-text-grey">{{ manager }}</small>
+        </td>
+        <td>{{ player.clubName }}</td>
+        <td>{{ player.position }}</td>
+        <td>
+          {% if player.status == 'active' %}
+            <span class="tag is-success">Active</span>
+          {% elif player.status == 'transfer_in' %}
+            <span class="tag is-info">In GW{{ player.transferred_in_gw }}</span>
+          {% elif player.status == 'transfer_out' %}
+            <span class="tag is-warning">Out GW{{ player.transferred_out_gw }}</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if player.gws_active %}
+            <span class="is-size-7">{{ player.gws_active[:3]|join(',') }}{% if player.gws_active|length > 3 %}...{% endif %}</span>
+          {% else %}
+            -
+          {% endif %}
+        </td>
+        <td>
+          {% if session.get('user_name') == manager and player.status != 'transfer_out' %}
+          <button class="button is-small is-warning" 
+                  onclick="openTransferModal(this.closest('tr'))"
+                  data-player-id="{{ player.playerId }}"
+                  data-name="{{ player.fullName }}"
+                  data-club="{{ player.clubName }}"
+                  data-position="{{ player.position }}">
+            Transfer
+          </button>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    {% endfor %}
+  </tbody>
+</table>
+
+<!-- JavaScript for enhanced functionality -->
+<script>
+// Enhanced player click handler that includes transfer functionality
+function handlePlayerClick(playerElement, playerId) {
+  // Existing functionality...
+  
+  // Add transfer context menu or actions
+  const contextMenu = createTransferContextMenu(playerElement, playerId);
+  // Show context menu logic...
+}
+
+// Function to update player display with transfer status
+function updatePlayerTransferStatus(playerId, status, gw) {
+  const playerElements = document.querySelectorAll(`[data-player-id="${playerId}"]`);
+  
+  playerElements.forEach(element => {
+    // Update status indicator
+    const statusEl = element.querySelector('.player-status');
+    if (statusEl) {
+      statusEl.className = `tag is-small ${getStatusClass(status)}`;
+      statusEl.textContent = getStatusText(status, gw);
+    }
+    
+    // Update visual styling
+    element.classList.remove('transfer-in', 'transfer-out', 'active');
+    element.classList.add(status.replace('_', '-'));
+  });
+}
+
+function getStatusClass(status) {
+  switch(status) {
+    case 'transfer_in': return 'is-success';
+    case 'transfer_out': return 'is-danger';
+    default: return 'is-light';
+  }
+}
+
+function getStatusText(status, gw) {
+  switch(status) {
+    case 'transfer_in': return `In GW${gw}`;
+    case 'transfer_out': return `Out GW${gw}`;
+    default: return 'Active';
+  }
+}
+
+// Auto-refresh transfer players count
+async function refreshTransferPlayersCount() {
+  try {
+    const response = await fetch(`/transfers/${window.DRAFT_TYPE.toLowerCase()}/available-players`);
+    const data = await response.json();
+    
+    if (data.success) {
+      const countElements = document.querySelectorAll('.transfer-players-count');
+      countElements.forEach(el => {
+        el.textContent = data.count;
+      });
+    }
+  } catch (error) {
+    console.error('Error refreshing transfer players count:', error);
+  }
+}
+
+// Refresh count every 30 seconds
+setInterval(refreshTransferPlayersCount, 30000);
+</script>
+
+<!-- CSS for transfer-specific styling -->
+<style>
+.player-card.transfer-in {
+  border-left: 4px solid #48c774;
+  background-color: rgba(72, 199, 116, 0.1);
+}
+
+.player-card.transfer-out {
+  border-left: 4px solid #ff3860;
+  background-color: rgba(255, 56, 96, 0.1);
+  opacity: 0.7;
+}
+
+.transfer-status-indicator {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 10;
+}
+
+.player-actions .player-transfer-btn {
+  display: none;
+}
+
+.player-card:hover .player-actions .player-transfer-btn {
+  display: inline-flex;
+}
+
+.transfer-context-menu {
+  position: fixed;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  z-index: 1000;
+  min-width: 150px;
+}
+
+.transfer-context-menu button {
+  display: block;
+  width: 100%;
+  border: none;
+  background: none;
+  padding: 8px 16px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.transfer-context-menu button:hover {
+  background-color: #f5f5f5;
+}
+</style>
