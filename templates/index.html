@@ -37,7 +37,15 @@
         </form>
       {% endif %}
       {% if session.get('godmode') %}
-        <form method="post" action="{{ undo_url|default(url_for('epl.undo_last_pick')) }}">
+        {% if table_league == 'ucl' %}
+        <form method="post" action="{{ url_for('ucl.cache_stats') }}" style="display:inline; margin-left:8px;">
+          <button type="submit" class="btn"{% if stats_refresh_running %} disabled{% endif %}>Обновить статистику</button>
+        </form>
+        {% if stats_refresh_running %}
+          <span class="badge badge-info" style="margin-left:8px;">Обновление выполняется…</span>
+        {% endif %}
+        {% endif %}
+        <form method="post" action="{{ undo_url|default(url_for('epl.undo_last_pick')) }}" style="display:inline; margin-left:8px;">
           <button type="submit" class="btn btn-danger">Отменить последний пик</button>
         </form>
       {% endif %}

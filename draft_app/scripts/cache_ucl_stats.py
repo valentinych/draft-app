@@ -3,11 +3,10 @@ from __future__ import annotations
 
 import argparse
 import sys
-from pathlib import Path
-from typing import Optional, Set
+from typing import Set
 
 from draft_app.ucl import _ucl_state_load, _ensure_ucl_state_shape
-from draft_app.ucl_stats_store import CACHE_DIR, get_player_stats
+from draft_app.ucl_stats_store import refresh_players_batch
 
 
 def gather_player_ids(state) -> Set[int]:
@@ -48,19 +47,6 @@ def gather_player_ids(state) -> Set[int]:
     return seen
 
 
-def _cache_status(cache_path: Path, before_mtime: Optional[float]) -> tuple[str, Optional[int]]:
-    if not cache_path.exists():
-        return ("missing", None)
-    stat = cache_path.stat()
-    if before_mtime is None:
-        state = "written"
-    elif stat.st_mtime > (before_mtime + 1e-6):
-        state = "updated"
-    else:
-        state = "unchanged"
-    return (state, stat.st_size)
-
-
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--limit", type=int, default=None, help="limit number of players to prefetch")
@@ -80,57 +66,45 @@ def main() -> int:
     if args.limit is not None:
         players = players[: args.limit]
 
-    print(f"Prefetching stats for {len(players)} players…", flush=True)
-    failures = 0
-    for idx, pid in enumerate(players, 1):
-        cache_path = CACHE_DIR / f"{pid}.json"
-        before_mtime = None
-        try:
-            before_mtime = cache_path.stat().st_mtime
-        except Exception:
-            before_mtime = None
-        try:
-            stats = get_player_stats(pid)
-            cache_state, cache_size = _cache_status(cache_path, before_mtime)
-            if not stats:
-                failures += 1
-                print(
-                    f"[{idx}/{len(players)}] pid={pid}: empty stats cache={cache_state}",
-                    flush=True,
-                )
-                continue
+    summary = refresh_players_batch(players)
+    bucket = summary.get("bucket")
+    if bucket:
+        print(f"Using S3 bucket: {bucket}", flush=True)
+    else:
+        print("S3 bucket is not configured; stats will only be cached locally.", flush=True)
 
-            value = stats.get("value")
-            if value is None:
-                value = (stats.get("data") or {}).get("value")
+    total = summary.get("total", 0)
+    results = summary.get("results", [])
+    print(f"Prefetching stats for {total} players…", flush=True)
 
-            if not isinstance(value, dict):
-                failures += 1
-                print(
-                    f"[{idx}/{len(players)}] pid={pid}: missing value section cache={cache_state}",
-                    flush=True,
-                )
-                continue
+    for idx, item in enumerate(results, 1):
+        pid = item.get("player_id")
+        cache_state = item.get("cache_state", "?")
+        cache_size = item.get("cache_size")
+        key = item.get("s3_key")
+        target = f"s3://{bucket}/{key}" if bucket and key else "local cache"
+        cache_tail = f" cache={cache_state}"
+        if cache_size is not None:
+            cache_tail = f"{cache_tail} size={cache_size}"
+        cache_tail_str = f" {cache_tail.strip()}" if cache_tail else ""
 
-            points = value.get("points") or value.get("matchdayPoints") or []
-            info = value.get("shortName") or value.get("fullName") or value.get("name") or "<no-name>"
-            cache_tail = f" cache={cache_state}"
-            if cache_size is not None:
-                cache_tail = f"{cache_tail} size={cache_size}"
+        error = item.get("error")
+        if error == "empty":
+            print(f"[{idx}/{total}] pid={pid}: empty stats{cache_tail_str} target={target}", flush=True)
+        elif error == "missing_value":
+            print(f"[{idx}/{total}] pid={pid}: missing value section{cache_tail_str} target={target}", flush=True)
+        elif error == "exception":
             print(
-                f"[{idx}/{len(players)}] pid={pid}: {info} points_entries={len(points)}{cache_tail}",
+                f"[{idx}/{total}] pid={pid}: error {item.get('exception')}{cache_tail_str} target={target}",
                 flush=True,
             )
-        except Exception as exc:
-            failures += 1
-            cache_state, cache_size = _cache_status(cache_path, before_mtime)
-            cache_tail = f" cache={cache_state}"
-            if cache_size is not None:
-                cache_tail = f"{cache_tail} size={cache_size}"
-            print(
-                f"[{idx}/{len(players)}] pid={pid}: error {exc}{cache_tail}",
-                flush=True,
-            )
+        else:
+            name = item.get("name") or "<no-name>"
+            points_entries = item.get("points_entries") or 0
+            suffix = f" s3={target}" if bucket and key else ""
+            print(f"[{idx}/{total}] pid={pid}: {name} points_entries={points_entries}{cache_tail_str}{suffix}", flush=True)
+
+    failures = summary.get("failures", 0)
     if failures:
         print(f"Done with {failures} failures", flush=True)
         return 1

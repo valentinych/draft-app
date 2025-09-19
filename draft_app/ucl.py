@@ -1,17 +1,45 @@
 from __future__ import annotations
 import json
+from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple
-from flask import Blueprint, render_template, request, session, url_for, jsonify
+from flask import (
+    Blueprint,
+    abort,
+    current_app,
+    flash,
+    redirect,
+    render_template,
+    request,
+    session,
+    url_for,
+    jsonify,
+)
 import os
+import threading
 try:
     import boto3
 except Exception:
     boto3 = None
 
-from .ucl_stats_store import get_player_stats, get_current_matchday
+from .ucl_stats_store import (
+    get_current_matchday,
+    get_current_matchday_cached,
+    get_player_stats,
+    get_player_stats_cached,
+    refresh_players_batch,
+)
 
 bp = Blueprint("ucl", __name__)
+
+_STATS_REFRESH_STATE: Dict[str, Any] = {
+    "running": False,
+    "started": None,
+    "summary": None,
+    "error": None,
+    "finished": None,
+}
+_STATS_REFRESH_LOCK = threading.Lock()
 
 # --- файлы данных (подгони пути под свой проект при необходимости) ---
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -223,6 +251,130 @@ def _picked_ids_from_state(state: Dict[str, Any]) -> Set[str]:
             picked.add(str(pid))
     return picked
 
+
+def _collect_player_ids_for_stats(state: Dict[str, Any]) -> List[int]:
+    seen: Set[int] = set()
+
+    for roster in (state.get("rosters") or {}).values():
+        if not isinstance(roster, list):
+            continue
+        for entry in roster:
+            if not isinstance(entry, dict):
+                continue
+            pid = entry.get("playerId") or entry.get("id") or entry.get("pid")
+            if pid is None:
+                continue
+            try:
+                seen.add(int(pid))
+            except Exception:
+                continue
+
+    for pick in state.get("picks") or []:
+        if not isinstance(pick, dict):
+            continue
+        pid = pick.get("playerId") or pick.get("id") or (pick.get("player") or {}).get("playerId")
+        if pid is None:
+            continue
+        try:
+            seen.add(int(pid))
+        except Exception:
+            continue
+
+    return sorted(seen)
+
+
+def _stats_refresh_running() -> bool:
+    with _STATS_REFRESH_LOCK:
+        return bool(_STATS_REFRESH_STATE.get("running"))
+
+
+def _consume_stats_refresh_result() -> Tuple[Optional[Dict[str, Any]], Optional[str], Optional[datetime]]:
+    with _STATS_REFRESH_LOCK:
+        summary = _STATS_REFRESH_STATE.get("summary")
+        error = _STATS_REFRESH_STATE.get("error")
+        finished = _STATS_REFRESH_STATE.get("finished")
+        if summary is None and error is None:
+            return (None, None, None)
+        _STATS_REFRESH_STATE["summary"] = None
+        _STATS_REFRESH_STATE["error"] = None
+        _STATS_REFRESH_STATE["finished"] = None
+    return (summary, error, finished)
+
+
+def _start_stats_refresh_job(app, player_ids: List[int]) -> bool:
+    with _STATS_REFRESH_LOCK:
+        if _STATS_REFRESH_STATE.get("running"):
+            print("[ucl:refresh] job already running", flush=True)
+            return False
+        _STATS_REFRESH_STATE["running"] = True
+        _STATS_REFRESH_STATE["started"] = datetime.utcnow()
+        _STATS_REFRESH_STATE["summary"] = None
+        _STATS_REFRESH_STATE["error"] = None
+        _STATS_REFRESH_STATE["finished"] = None
+
+    print(f"[ucl:refresh] scheduling background job players={len(player_ids)}", flush=True)
+    thread = threading.Thread(target=_stats_refresh_worker, args=(app, list(player_ids)), daemon=True)
+    thread.start()
+    return True
+
+
+def _stats_refresh_worker(app, player_ids: List[int]) -> None:
+    try:
+        summary = refresh_players_batch(player_ids)
+        error = None
+        app.logger.info(
+            "[UCL] popup stats refresh finished: %s total, %s failures",
+            summary.get("total"),
+            summary.get("failures"),
+        )
+        print(
+            f"[ucl:refresh] worker finished total={summary.get('total')} failures={summary.get('failures')}",
+            flush=True,
+        )
+    except Exception as exc:
+        summary = None
+        error = str(exc)
+        app.logger.exception("[UCL] popup stats refresh failed")
+        print(f"[ucl:refresh] worker exception={exc}", flush=True)
+
+    with _STATS_REFRESH_LOCK:
+        _STATS_REFRESH_STATE["running"] = False
+        _STATS_REFRESH_STATE["summary"] = summary
+        _STATS_REFRESH_STATE["error"] = error
+        _STATS_REFRESH_STATE["finished"] = datetime.utcnow()
+
+
+def _flash_stats_refresh_result() -> Optional[Dict[str, Any]]:
+    summary, refresh_error, _finished = _consume_stats_refresh_result()
+    if summary:
+        total = int(summary.get("total") or 0)
+        failures = int(summary.get("failures") or 0)
+        success = max(0, total - failures)
+        level = "success" if failures == 0 else "warning"
+        flash(f"Обновление статистики завершено: {success}/{total} игроков", level)
+        return summary
+    if refresh_error:
+        flash(f"Обновление статистики завершилось ошибкой: {refresh_error}", "danger")
+    return summary
+
+
+def _ucl_matchday_from_state_only(state: Dict[str, Any]) -> int:
+    try:
+        md = int(state.get("next_round") or 0)
+    except Exception:
+        md = 0
+    if md <= 0:
+        cached_md = get_current_matchday_cached()
+        if cached_md:
+            return cached_md
+        try:
+            md = int(state.get("current_pick_index") or 0)
+        except Exception:
+            md = 0
+    if md <= 0:
+        return 1
+    return max(1, md)
+
 UCL_SLOTS_DEFAULT = {"GK": 3, "DEF": 8, "MID": 9, "FWD": 5}
 UCL_MAX_FROM_CLUB_DEFAULT = 1
 
@@ -399,6 +551,7 @@ def _build_status_context_ucl() -> Dict[str, Any]:
     state = _ucl_state_load()
     state = _ensure_ucl_state_shape(state)
     state = _ensure_turn_started(state)
+    _flash_stats_refresh_result()
     players_raw = _json_load(UCL_PLAYERS) or []
     pidx = {str(p["playerId"]): p for p in _players_from_ucl(players_raw)}
 
@@ -497,6 +650,7 @@ def index():
     state = _ucl_state_load()
     state = _ensure_ucl_state_shape(state)
     state = _ensure_turn_started(state)
+    _flash_stats_refresh_result()
 
     # Hide already picked players
     picked_ids = _picked_ids_from_state(state)
@@ -728,6 +882,7 @@ def index():
             status_url=url_for("ucl.status"),
             undo_url=url_for("ucl.undo_last_pick"),
             managers=sorted((state.get("rosters") or {}).keys()),
+            stats_refresh_running=_stats_refresh_running(),
         )
 
     # filters
@@ -763,7 +918,27 @@ def index():
         status_url=url_for("ucl.status"),
         undo_url=url_for("ucl.undo_last_pick"),
         managers=sorted((state.get("rosters") or {}).keys()),
+        stats_refresh_running=_stats_refresh_running(),
     )
+
+
+@bp.route("/ucl/cache_stats", methods=["POST"])
+def cache_stats():
+    if not session.get("godmode"):
+        abort(403)
+
+    state = _ensure_ucl_state_shape(_ucl_state_load())
+    player_ids = _collect_player_ids_for_stats(state)
+    if not player_ids:
+        flash("Не найдено игроков для обновления статистики", "warning")
+        return redirect(url_for("ucl.index"))
+
+    app = current_app._get_current_object()
+    if not _start_stats_refresh_job(app, player_ids):
+        flash("Обновление статистики уже выполняется", "warning")
+    else:
+        flash(f"Запущено обновление статистики для {len(player_ids)} игроков", "info")
+    return redirect(url_for("ucl.index"))
 
 
 def _safe_int(val: Any) -> int:
@@ -842,47 +1017,72 @@ def _ucl_points_for_md(stats: Dict[str, Any], md: int) -> Optional[Dict[str, Any
     point_entry = _find_entry(point_lists)
     stat_entry = _find_entry(stat_lists)
 
-    if point_entry and stat_entry and point_entry is not stat_entry:
-        merged = {**stat_entry, **point_entry}
-    else:
-        merged = point_entry or stat_entry
+    stats_count = 0
+    for src in stat_lists:
+        for entry in src:
+            if not isinstance(entry, dict):
+                continue
+            md_val = _normalize_md(entry.get("mdId"))
+            if md_val is None:
+                continue
+            if md_val == int(md):
+                stats_count += 1
 
-    if not isinstance(merged, dict):
-        return None
+    def _normalize_entry(entry: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+        if not isinstance(entry, dict):
+            return {}
+        normalized: Dict[str, Any] = {}
+        for key, val in entry.items():
+            if key == "mdId":
+                md_val = _normalize_md(val)
+                normalized[key] = md_val if md_val is not None else val
+                continue
+            if isinstance(val, (int, float)):
+                normalized[key] = int(val)
+                continue
+            if isinstance(val, str):
+                digits = "".join(ch for ch in val if (ch.isdigit() or ch in ".-"))
+                if digits and any(ch.isdigit() for ch in digits):
+                    try:
+                        normalized[key] = int(float(digits))
+                        continue
+                    except Exception:
+                        pass
+            normalized[key] = val
+        return normalized
 
-    normalized: Dict[str, Any] = {}
-    for key, val in merged.items():
-        if key == "mdId":
-            md_val = _normalize_md(val)
-            normalized[key] = md_val if md_val is not None else val
-            continue
-        if isinstance(val, (int, float)):
-            normalized[key] = int(val)
-            continue
-        if isinstance(val, str):
-            digits = "".join(ch for ch in val if (ch.isdigit() or ch in ".-"))
-            if digits and any(ch.isdigit() for ch in digits):
-                try:
-                    normalized[key] = int(float(digits))
-                    continue
-                except Exception:
-                    pass
-        normalized[key] = val
+    normalized_points = _normalize_entry(point_entry)
+    normalized_stats = _normalize_entry(stat_entry)
 
-    if "tPoints" not in normalized and isinstance(point_entry, dict):
-        normalized["tPoints"] = _safe_int(point_entry.get("tPoints"))
+    result: Dict[str, Any] = {
+        "points": normalized_points,
+        "stats": normalized_stats,
+        "tPoints": _safe_int(normalized_points.get("tPoints") or normalized_stats.get("tPoints")),
+        "_stats_count": stats_count,
+    }
 
-    normalized.setdefault("tPoints", 0)
-    return normalized
+    for key in ("tId", "tName", "teamId", "teamName", "mOM", "isMOM"):
+        if key in normalized_stats and normalized_stats[key] is not None:
+            result.setdefault(key, normalized_stats[key])
+        elif key in normalized_points and normalized_points[key] is not None:
+            result.setdefault(key, normalized_points[key])
+
+    return result
 
 
 @bp.get("/ucl/lineups")
 def ucl_lineups():
     state = _ucl_state_load()
+    state = _ensure_ucl_state_shape(state)
+    _flash_stats_refresh_result()
     md = request.args.get("md", type=int)
-    if not md:
-        md = _ucl_default_matchday(state)
-    return render_template("ucl_lineups.html", md=md)
+    if md is None:
+        md = 1
+    return render_template(
+        "ucl_lineups.html",
+        md=md,
+        stats_refresh_running=_stats_refresh_running(),
+    )
 
 
 @bp.get("/ucl/lineups/data")
@@ -890,13 +1090,96 @@ def ucl_lineups_data():
     state = _ucl_state_load()
     state = _ensure_ucl_state_shape(state)
     md = request.args.get("md", type=int)
-    if not md:
-        md = _ucl_default_matchday(state)
+    if md is None:
+        md = 1
 
     rosters = state.get("rosters") or {}
     managers = [m for m in UCL_PARTICIPANTS if m in rosters]
     if not managers:
         managers = sorted(rosters.keys())
+
+    def _norm_team_id(raw: Any) -> Optional[str]:
+        if raw in (None, "", [], {}):
+            return None
+        text = str(raw).strip()
+        if not text:
+            return None
+        try:
+            num = int(float(text))
+            if num <= 0:
+                return None
+            return str(num)
+        except Exception:
+            return text or None
+
+    def _first_non_empty(*values: Any) -> Optional[str]:
+        for val in values:
+            if isinstance(val, str) and val.strip():
+                return val.strip()
+            if isinstance(val, (int, float)) and val:
+                return str(val)
+        return None
+
+    def _stat_sections(stats_payload: Any) -> Tuple[Dict[str, Any], Dict[str, Any], Dict[str, Any], Dict[str, Any], Dict[str, Any]]:
+        stat_payload: Dict[str, Any] = {}
+        points_dict: Dict[str, Any] = {}
+        raw_stats: Dict[str, Any] = {}
+        data_section: Dict[str, Any] = {}
+        value_section: Dict[str, Any] = {}
+
+        if isinstance(stats_payload, dict):
+            stat_payload = _ucl_points_for_md(stats_payload, md) or {}
+            if isinstance(stat_payload.get("points"), dict):
+                points_dict = stat_payload.get("points") or {}
+            if isinstance(stat_payload.get("stats"), dict):
+                raw_stats = stat_payload.get("stats") or {}
+
+            if isinstance(stats_payload.get("data"), dict):
+                data_section = stats_payload.get("data") or {}
+                if isinstance(data_section.get("value"), dict):
+                    value_section = data_section.get("value") or {}
+            if not value_section and isinstance(stats_payload.get("value"), dict):
+                value_section = stats_payload.get("value") or {}
+
+        return stat_payload, points_dict, raw_stats, data_section, value_section
+
+    def _resolve_team_id(
+        payload: Dict[str, Any],
+        stat_payload: Dict[str, Any],
+        points_dict: Dict[str, Any],
+        raw_stats: Dict[str, Any],
+        data_section: Dict[str, Any],
+        value_section: Dict[str, Any],
+        full_stats: Any,
+    ) -> Optional[str]:
+        base_stats = full_stats if isinstance(full_stats, dict) else {}
+        stats_data = base_stats.get("data") if isinstance(base_stats.get("data"), dict) else {}
+        root_value = base_stats.get("value") if isinstance(base_stats.get("value"), dict) else {}
+
+        for candidate in (
+            stat_payload.get("teamId"),
+            stat_payload.get("tId"),
+            raw_stats.get("teamId"),
+            raw_stats.get("tId"),
+            points_dict.get("teamId"),
+            points_dict.get("tId"),
+            value_section.get("teamId"),
+            value_section.get("teamID"),
+            data_section.get("teamId"),
+            data_section.get("teamID"),
+            root_value.get("teamId"),
+            root_value.get("teamID"),
+            base_stats.get("teamId"),
+            base_stats.get("teamID"),
+            stats_data.get("teamId"),
+            stats_data.get("teamID"),
+            payload.get("teamId"),
+            payload.get("clubId"),
+        ):
+            norm = _norm_team_id(candidate)
+            if norm:
+                return norm
+        return None
 
     results: Dict[str, Dict[str, Any]] = {}
     for manager in managers:
@@ -918,18 +1201,48 @@ def ucl_lineups_data():
                 pid_int = int(pid)
             except Exception:
                 continue
-            stats = get_player_stats(pid_int)
-            points_entry = _ucl_points_for_md(stats, md)
-            stat_payload: Dict[str, Any] = points_entry or {}
-            points = _safe_int(stat_payload.get("tPoints")) if stat_payload else 0
+            stats = get_player_stats_cached(pid_int)
+            stat_payload, points_dict, raw_stats, data_section, value_section = _stat_sections(stats)
+            team_id = _resolve_team_id(payload, stat_payload, points_dict, raw_stats, data_section, value_section, stats)
+            if not team_id:
+                fresh_stats = get_player_stats(pid_int)
+                if isinstance(fresh_stats, dict):
+                    stats = fresh_stats
+                    stat_payload, points_dict, raw_stats, data_section, value_section = _stat_sections(stats)
+                    team_id = _resolve_team_id(payload, stat_payload, points_dict, raw_stats, data_section, value_section, stats)
+            points = _safe_int(stat_payload.get("tPoints"))
+            base_stats = stats if isinstance(stats, dict) else {}
+            stats_data = base_stats.get("data") if isinstance(base_stats.get("data"), dict) else {}
+            stats_value = base_stats.get("value") if isinstance(base_stats.get("value"), dict) else {}
+            club_name = _first_non_empty(
+                payload.get("clubName"),
+                stat_payload.get("teamName"),
+                stat_payload.get("tName"),
+                raw_stats.get("teamName"),
+                raw_stats.get("tName"),
+                points_dict.get("teamName"),
+                points_dict.get("tName"),
+                value_section.get("teamName"),
+                value_section.get("tName"),
+                data_section.get("teamName"),
+                stats_value.get("teamName"),
+                stats_value.get("tName"),
+                stats_data.get("teamName"),
+                stats_data.get("tName"),
+                base_stats.get("teamName"),
+                base_stats.get("tName"),
+            )
             total += points
             lineup.append(
                 {
                     "name": payload.get("fullName") or payload.get("name") or str(pid_int),
                     "pos": payload.get("position"),
-                    "club": payload.get("clubName"),
+                    "club": club_name,
+                    "teamId": team_id,
                     "points": points,
                     "stat": stat_payload,
+                    "statsCount": stat_payload.get("_stats_count", 0),
+                    "playerId": str(pid_int),
                 }
             )
         results[manager] = {"players": lineup, "total": total}

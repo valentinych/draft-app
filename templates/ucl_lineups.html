@@ -2,6 +2,16 @@
 {% block title %}UCL Лайнапы{% endblock %}
 {% block content %}
 <h1 class="title">UCL Лайнапы MD{{ md }}</h1>
+{% if session.get('godmode') %}
+<div class="mb-3">
+  <form method="post" action="{{ url_for('ucl.cache_stats') }}" style="display:inline-block;">
+    <button class="button is-link" type="submit"{% if stats_refresh_running %} disabled{% endif %}>Обновить статку</button>
+  </form>
+  {% if stats_refresh_running %}
+    <span class="tag is-info" style="margin-left:8px;">Обновление выполняется…</span>
+  {% endif %}
+</div>
+{% endif %}
 <form method="get" class="mb-4">
   <label class="label">Matchday</label>
   <div class="field has-addons">
@@ -32,6 +42,10 @@
   .ucl-player-row { display:flex; justify-content:space-between; align-items:center; white-space:nowrap; }
   .ucl-player-name { overflow:hidden; text-overflow:ellipsis; margin-right:6px; }
   .ucl-points-box { background:#add8e6; border-radius:4px; padding:0 6px; min-width:2.4em; text-align:center; cursor:pointer; }
+  .ucl-team-logo { width:25px; height:25px; object-fit:contain; margin-right:6px; }
+  .ucl-player-portrait { width:25px; height:25px; border-radius:50%; object-fit:cover; margin-right:20px; }
+  .ucl-player-info { display:flex; align-items:center; overflow:hidden; }
+  .ucl-player-text { overflow:hidden; text-overflow:ellipsis; }
 </style>
 
 <script>
@@ -55,59 +69,138 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   const STAT_FIELDS = [
-    ['tPoints', 'Очки'],
-    ['gS', 'Голы'],
-    ['gA', 'Ассисты'],
-    ['cS', 'Сухие матчи'],
-    ['oF', 'Минуты (оф)'],
-    ['sS', 'Сэйвы'],
-    ['pE', 'Заработанные пенальти'],
-    ['pS', 'Реализованные пенальти'],
-    ['pM', 'Промахи с пенальти'],
-    ['yC', 'Жёлтые'],
-    ['rC', 'Красные']
+    { label: 'Очки', pointsKey: 'tPoints' },
+    { label: 'Голы', rawKey: 'gS', pointsKey: 'gS' },
+    { label: 'Ассисты', rawKey: 'gA', pointsKey: 'gA' },
+    { label: 'Сухие матчи', rawKey: 'cS', pointsKey: 'cS' },
+    { label: 'Минуты', rawKey: 'oF', pointsKey: 'oF' },
+    { label: 'Игрок Матча', rawKey: 'mOM', pointsKey: 'mOM' },
+    { label: 'Сэйвы', rawKey: 'sS', pointsKey: 'sS' },
+    { label: 'Возвраты', rawKey: 'bR', pointsKey: 'bR' },
+    { label: 'Голов пропущено', rawKey: 'gC', pointsKey: 'gC' },
+    { label: 'Заработанные пенальти', rawKey: 'pE', pointsKey: 'pE' },
+    { label: 'Реализованные пенальти', rawKey: 'pS', pointsKey: 'pS' },
+    { label: 'Промахи с пенальти', rawKey: 'pM', pointsKey: 'pM' },
+    { label: 'Пропущенные пенальти', rawKey: 'pC', pointsKey: 'pC' },
+    { label: 'Жёлтые', rawKey: 'yC', pointsKey: 'yC' },
+    { label: 'Красные', rawKey: 'rC', pointsKey: 'rC' },
+    { label: 'Автоголы', rawKey: 'oG', pointsKey: 'oG' },
+    { label: 'Голы из-за штрафной', rawKey: 'gOB', pointsKey: 'gOB' },
   ];
 
   const showPopup = player => {
     modalBody.innerHTML = '';
     modal.querySelector('.modal-card-title').textContent = player.name;
     const stat = player.stat || {};
-    if (!Object.keys(stat).length) {
-      modalBody.textContent = 'Нет данных по выбранному туру';
-      modal.classList.add('is-active');
-      return;
+    const rawStats = (stat.stats && typeof stat.stats === 'object') ? stat.stats : {};
+    const points = (stat.points && typeof stat.points === 'object') ? stat.points : {};
+
+    const getNumber = value => {
+      const num = Number(value);
+      return Number.isFinite(num) ? num : 0;
+    };
+
+    // Создаём контейнер для изображений и таблицы
+    const contentContainer = document.createElement('div');
+    contentContainer.style.display = 'flex';
+    contentContainer.style.alignItems = 'flex-start';
+    contentContainer.style.gap = '20px';
+
+    // Контейнер для изображений
+    const imagesContainer = document.createElement('div');
+    imagesContainer.style.display = 'flex';
+    imagesContainer.style.flexDirection = 'column';
+    imagesContainer.style.alignItems = 'center';
+    imagesContainer.style.gap = '10px';
+    imagesContainer.style.minWidth = '100px';
+
+    // Лого клуба
+    const clubLogo = document.createElement('img');
+    clubLogo.style.width = '80px';
+    clubLogo.style.height = '80px';
+    clubLogo.style.objectFit = 'contain';
+    if (player.teamId) {
+      clubLogo.src = `https://img.uefa.com/imgml/TP/teams/logos/140x140/${player.teamId}.png`;
+    } else {
+      clubLogo.src = 'https://img.uefa.com/imgml/TP/teams/logos/140x140/0.png';
     }
+    clubLogo.alt = player.club || 'Club';
+
+    // Портрет игрока  
+    const playerPortrait = document.createElement('img');
+    playerPortrait.style.width = '80px';
+    playerPortrait.style.height = '80px';
+    playerPortrait.style.borderRadius = '8px';
+    playerPortrait.style.objectFit = 'cover';
+    if (player.playerId) {
+      playerPortrait.src = `https://img.uefa.com/imgml/TP/players/1/2026/324x324/${player.playerId}.jpg`;
+    } else {
+      playerPortrait.src = 'https://gaming.uefa.com/en/uclfantasy/static-assets/ucl2020/images/default_player@2x.png';
+    }
+    playerPortrait.onerror = () => {
+      playerPortrait.src = 'https://gaming.uefa.com/en/uclfantasy/static-assets/ucl2020/images/default_player@2x.png';
+    };
+    playerPortrait.alt = player.name;
+
+    imagesContainer.appendChild(clubLogo);
+    imagesContainer.appendChild(playerPortrait);
+
+    // Контейнер для таблицы
+    const tableContainer = document.createElement('div');
+    tableContainer.style.flex = '1';
+    
     const table = document.createElement('table');
     table.className = 'table is-narrow';
     const tbody = document.createElement('tbody');
-    STAT_FIELDS.forEach(([key, label]) => {
-      if (stat[key] === undefined || stat[key] === null) return;
-      const tr = document.createElement('tr');
-      const tdL = document.createElement('td');
-      tdL.textContent = label;
-      const tdV = document.createElement('td');
-      tdV.className = 'has-text-right';
-      tdV.textContent = Number.isFinite(Number(stat[key])) ? Number(stat[key]) : stat[key];
-      tr.appendChild(tdL);
-      tr.appendChild(tdV);
-      tbody.appendChild(tr);
+
+    STAT_FIELDS.forEach(field => {
+      const rawValue = field.rawKey ? getNumber(rawStats[field.rawKey]) : null;
+      let pointsValue = 0;
+      if (field.pointsKey === 'tPoints') {
+        pointsValue = getNumber(stat.tPoints);
+      } else if (field.pointsKey) {
+        pointsValue = getNumber(points[field.pointsKey]);
+      } else if (field.rawKey) {
+        pointsValue = rawValue ?? 0;
+      }
+
+      // Показать строку если это Очки или Минуты, или если есть ненулевые значения
+      const shouldShow = field.pointsKey === 'tPoints' || 
+                        field.rawKey === 'oF' || 
+                        (rawValue !== null && rawValue !== 0) || 
+                        pointsValue !== 0;
+
+      if (shouldShow) {
+        const tr = document.createElement('tr');
+        const tdL = document.createElement('td');
+        tdL.textContent = field.rawKey ? `${field.label} (${rawValue ?? 0})` : field.label;
+        const tdV = document.createElement('td');
+        tdV.className = 'has-text-right';
+        tdV.textContent = pointsValue;
+        tr.appendChild(tdL);
+        tr.appendChild(tdV);
+        tbody.appendChild(tr);
+      }
     });
-    if (!tbody.children.length) {
-      const tr = document.createElement('tr');
-      const td = document.createElement('td');
-      td.colSpan = 2;
-      td.textContent = 'Нет статистики по показателям';
-      tr.appendChild(td);
-      tbody.appendChild(tr);
-    }
+
     table.appendChild(tbody);
-    modalBody.appendChild(table);
+    tableContainer.appendChild(table);
+    
+    contentContainer.appendChild(imagesContainer);
+    contentContainer.appendChild(tableContainer);
+    modalBody.appendChild(contentContainer);
+    
     modal.classList.add('is-active');
   };
 
   const render = data => {
-    const managers = data.managers || [];
+    const rawManagers = data.managers || [];
     const lineups = data.lineups || {};
+    const managers = rawManagers.slice().sort((a, b) => {
+      const totalA = Number(lineups[a] && lineups[a].total) || 0;
+      const totalB = Number(lineups[b] && lineups[b].total) || 0;
+      return totalB - totalA;
+    });
     container.innerHTML = '';
 
     const tabs = document.createElement('div');
@@ -118,6 +211,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const contents = document.createElement('div');
     contents.style.display = 'block';
+    const blocks = [];
 
     managers.forEach((manager, idx) => {
       const li = document.createElement('li');
@@ -142,46 +236,93 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const block = document.createElement('div');
       block.style.display = idx === 0 ? 'block' : 'none';
-      const players = (lineups[manager] && lineups[manager].players) || [];
+      const players = lineups[manager] && Array.isArray(lineups[manager].players)
+        ? lineups[manager].players.slice()
+        : [];
       const hue = idx * 60;
       const c1 = `hsl(${hue}, 70%, 90%)`;
       const c2 = `hsl(${hue}, 70%, 80%)`;
-      players.sort((a, b) => {
-        const pa = (a.pos || '').toUpperCase();
-        const pb = (b.pos || '').toUpperCase();
-        return (posOrder[pa] ?? 99) - (posOrder[pb] ?? 99);
+      const buckets = { GK: [], DEF: [], MID: [], FWD: [], OTHER: [] };
+      const normalizePos = (pos) => {
+        const upper = (pos || '').toString().toUpperCase();
+        if (upper.startsWith('GOAL')) return 'GK';
+        if (upper.startsWith('DEF')) return 'DEF';
+        if (upper.startsWith('MID')) return 'MID';
+        if (upper.startsWith('FWD')) return 'FWD';
+        if (upper === 'GK' || upper === 'GKP') return 'GK';
+        if (upper === 'GKP') return 'GK';
+        return upper;
+      };
+      players.forEach(player => {
+        const key = normalizePos(player.pos);
+        if (buckets[key]) {
+          buckets[key].push(player);
+        } else {
+          buckets.OTHER.push(player);
+        }
       });
-      let lastPos = null;
-      players.forEach((player, j) => {
-        if (lastPos && player.pos !== lastPos) {
+      const order = ['GK', 'DEF', 'MID', 'FWD', 'OTHER'];
+      let rowIndex = 0;
+      order.forEach((posKey, posIdx) => {
+        const group = buckets[posKey];
+        if (!group.length) return;
+        if (rowIndex > 0) {
           const hr = document.createElement('hr');
           hr.className = 'my-1';
           block.appendChild(hr);
         }
-        lastPos = player.pos;
-        const row = document.createElement('div');
-        row.className = 'ucl-player-row';
-        row.style.backgroundColor = j % 2 === 0 ? c1 : c2;
-        const spanName = document.createElement('span');
-        spanName.className = 'ucl-player-name';
-        spanName.textContent = player.name;
-        if (player.club) {
-          spanName.textContent += ` (${player.club})`;
-        }
-        const spanPoints = document.createElement('span');
-        spanPoints.className = 'ucl-points-box';
-        spanPoints.textContent = player.points;
-        spanPoints.addEventListener('click', () => showPopup(player));
-        row.appendChild(spanName);
-        row.appendChild(spanPoints);
-        block.appendChild(row);
+        group.forEach((player) => {
+          const row = document.createElement('div');
+          row.className = 'ucl-player-row';
+          row.style.backgroundColor = rowIndex % 2 === 0 ? c1 : c2;
+          const infoWrap = document.createElement('span');
+          infoWrap.className = 'ucl-player-info';
+          const logo = document.createElement('img');
+          logo.className = 'ucl-team-logo';
+          if (player.teamId) {
+            logo.src = `https://img.uefa.com/imgml/TP/teams/logos/140x140/${player.teamId}.png`;
+          } else {
+            logo.src = 'https://img.uefa.com/imgml/TP/teams/logos/140x140/0.png';
+          }
+          logo.alt = player.club || '';
+          infoWrap.appendChild(logo);
+
+          const portrait = document.createElement('img');
+          portrait.className = 'ucl-player-portrait';
+          if (player.playerId) {
+            portrait.src = `https://img.uefa.com/imgml/TP/players/1/2026/324x324/${player.playerId}.jpg`;
+          } else {
+            portrait.src = 'https://gaming.uefa.com/en/uclfantasy/static-assets/ucl2020/images/default_player@2x.png';
+          }
+          portrait.onerror = () => {
+            portrait.src = 'https://gaming.uefa.com/en/uclfantasy/static-assets/ucl2020/images/default_player@2x.png';
+          };
+          portrait.alt = player.name;
+          infoWrap.appendChild(portrait);
+          const spanName = document.createElement('span');
+          spanName.className = player.teamId ? 'ucl-player-text' : 'ucl-player-name';
+          spanName.textContent = player.name;
+          if (player.club && !player.teamId) {
+            spanName.textContent += ` (${player.club})`;
+          }
+          infoWrap.appendChild(spanName);
+          const spanPoints = document.createElement('span');
+          spanPoints.className = 'ucl-points-box';
+          spanPoints.textContent = player.points;
+          spanPoints.addEventListener('click', () => showPopup(player));
+          row.appendChild(infoWrap);
+          row.appendChild(spanPoints);
+          block.appendChild(row);
+          rowIndex += 1;
+        });
       });
       contents.appendChild(block);
+      blocks.push(block);
 
       li.addEventListener('click', () => {
-        document.querySelectorAll('#ucl-lineups-container .tabs li').forEach(el => el.classList.remove('is-active'));
+        tabs.querySelectorAll('li').forEach(el => el.classList.remove('is-active'));
         li.classList.add('is-active');
-        contents.querySelectorAll('div').forEach((div, divIdx) => {
+        blocks.forEach((div, divIdx) => {
           div.style.display = divIdx === idx ? 'block' : 'none';
         });
       });
