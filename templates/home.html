@@ -9,6 +9,7 @@
       <p class="title is-5">UCL Fantasy Draft</p>
       <div class="buttons">
         <a class="button is-info is-light" href="{{ url_for('ucl.index') }}">Пики</a>
+        <a class="button is-info is-light" href="{{ url_for('ucl.ucl_lineups') }}">Лайнапы</a>
       </div>
     </article>
   </div>
@@ -28,6 +29,7 @@
       <p class="title is-5">Топ-4 Драфт</p>
       <div class="buttons">
         <a class="button is-link is-light" href="{{ url_for('top4draft.index') }}">Пики</a>
+        <a class="button is-warning is-light" href="{{ url_for('top4draft.schedule_view') }}">Расписание</a>
         {% if session.get('godmode') %}
         <a class="button is-warning is-light" href="{{ url_for('top4.mapping') }}">Маппинг</a>
         {% endif %}
