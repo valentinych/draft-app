@@ -1027,39 +1027,46 @@ def _ucl_points_for_md(stats: Dict[str, Any], md: int) -> Optional[Dict[str, Any
             if md_val == int(md):
                 stats_count += 1
 
-    if point_entry and stat_entry and point_entry is not stat_entry:
-        merged = {**stat_entry, **point_entry}
-    else:
-        merged = point_entry or stat_entry
+    def _normalize_entry(entry: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+        if not isinstance(entry, dict):
+            return {}
+        normalized: Dict[str, Any] = {}
+        for key, val in entry.items():
+            if key == "mdId":
+                md_val = _normalize_md(val)
+                normalized[key] = md_val if md_val is not None else val
+                continue
+            if isinstance(val, (int, float)):
+                normalized[key] = int(val)
+                continue
+            if isinstance(val, str):
+                digits = "".join(ch for ch in val if (ch.isdigit() or ch in ".-"))
+                if digits and any(ch.isdigit() for ch in digits):
+                    try:
+                        normalized[key] = int(float(digits))
+                        continue
+                    except Exception:
+                        pass
+            normalized[key] = val
+        return normalized
 
-    if not isinstance(merged, dict):
-        return None
+    normalized_points = _normalize_entry(point_entry)
+    normalized_stats = _normalize_entry(stat_entry)
 
-    normalized: Dict[str, Any] = {}
-    for key, val in merged.items():
-        if key == "mdId":
-            md_val = _normalize_md(val)
-            normalized[key] = md_val if md_val is not None else val
-            continue
-        if isinstance(val, (int, float)):
-            normalized[key] = int(val)
-            continue
-        if isinstance(val, str):
-            digits = "".join(ch for ch in val if (ch.isdigit() or ch in ".-"))
-            if digits and any(ch.isdigit() for ch in digits):
-                try:
-                    normalized[key] = int(float(digits))
-                    continue
-                except Exception:
-                    pass
-        normalized[key] = val
+    result: Dict[str, Any] = {
+        "points": normalized_points,
+        "stats": normalized_stats,
+        "tPoints": _safe_int(normalized_points.get("tPoints") or normalized_stats.get("tPoints")),
+        "_stats_count": stats_count,
+    }
 
-    if "tPoints" not in normalized and isinstance(point_entry, dict):
-        normalized["tPoints"] = _safe_int(point_entry.get("tPoints"))
+    for key in ("tId", "tName", "teamId", "teamName", "mOM", "isMOM"):
+        if key in normalized_stats and normalized_stats[key] is not None:
+            result.setdefault(key, normalized_stats[key])
+        elif key in normalized_points and normalized_points[key] is not None:
+            result.setdefault(key, normalized_points[key])
 
-    normalized.setdefault("tPoints", 0)
-    normalized.setdefault("_stats_count", stats_count)
-    return normalized
+    return result
 
 
 @bp.get("/ucl/lineups")
@@ -1068,8 +1075,8 @@ def ucl_lineups():
     state = _ensure_ucl_state_shape(state)
     _flash_stats_refresh_result()
     md = request.args.get("md", type=int)
-    if not md:
-        md = _ucl_matchday_from_state_only(state)
+    if md is None:
+        md = 1
     return render_template(
         "ucl_lineups.html",
         md=md,
@@ -1082,8 +1089,8 @@ def ucl_lineups_data():
     state = _ucl_state_load()
     state = _ensure_ucl_state_shape(state)
     md = request.args.get("md", type=int)
-    if not md:
-        md = _ucl_matchday_from_state_only(state)
+    if md is None:
+        md = 1
 
     rosters = state.get("rosters") or {}
     managers = [m for m in UCL_PARTICIPANTS if m in rosters]
@@ -1113,13 +1120,19 @@ def ucl_lineups_data():
             stats = get_player_stats_cached(pid_int)
             points_entry = _ucl_points_for_md(stats, md)
             stat_payload: Dict[str, Any] = points_entry or {}
-            points = _safe_int(stat_payload.get("tPoints")) if stat_payload else 0
+            points_dict = stat_payload.get("points") if isinstance(stat_payload.get("points"), dict) else {}
+            raw_stats = stat_payload.get("stats") if isinstance(stat_payload.get("stats"), dict) else {}
+            points = _safe_int(stat_payload.get("tPoints"))
             stats_value = {}
             if isinstance(stats, dict):
                 stats_value = stats.get("value") if isinstance(stats.get("value"), dict) else stats
             team_id = (
-                stat_payload.get("tId")
-                or stat_payload.get("teamId")
+                stat_payload.get("teamId")
+                or stat_payload.get("tId")
+                or raw_stats.get("teamId")
+                or raw_stats.get("tId")
+                or points_dict.get("teamId")
+                or points_dict.get("tId")
                 or (stats_value.get("teamId") if isinstance(stats_value, dict) else None)
                 or payload.get("teamId")
             )
@@ -1130,9 +1143,13 @@ def ucl_lineups_data():
                     team_id = str(team_id)
             club_name = (
                 payload.get("clubName")
+                or stat_payload.get("teamName")
                 or stat_payload.get("tName")
+                or raw_stats.get("teamName")
+                or raw_stats.get("tName")
+                or points_dict.get("teamName")
+                or points_dict.get("tName")
                 or (stats_value.get("teamName") if isinstance(stats_value, dict) else None)
-                or (stats_value.get("tName") if isinstance(stats_value, dict) else None)
             )
             total += points
             lineup.append(

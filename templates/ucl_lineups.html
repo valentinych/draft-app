@@ -68,58 +68,61 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   const STAT_FIELDS = [
-    ['tPoints', 'Очки'],
-    ['gS', 'Голы'],
-    ['gA', 'Ассисты'],
-    ['cS', 'Сухие матчи'],
-    ['oF', 'Минуты (оф)'],
-    ['sS', 'Сэйвы'],
-    ['pE', 'Заработанные пенальти'],
-    ['pS', 'Реализованные пенальти'],
-    ['pM', 'Промахи с пенальти'],
-    ['yC', 'Жёлтые'],
-    ['rC', 'Красные']
+    { label: 'Очки', pointsKey: 'tPoints' },
+    { label: 'Голы', rawKey: 'gS', pointsKey: 'gS' },
+    { label: 'Ассисты', rawKey: 'gA', pointsKey: 'gA' },
+    { label: 'Сухие матчи', rawKey: 'cS', pointsKey: 'cS' },
+    { label: 'Минуты', rawKey: 'oF', pointsKey: 'oF' },
+    { label: 'Сэйвы', rawKey: 'sS', pointsKey: 'sS' },
+    { label: 'Возвраты', rawKey: 'bR', pointsKey: 'bR' },
+    { label: 'Голов пропущено', rawKey: 'gC', pointsKey: 'gC' },
+    { label: 'Заработанные пенальти', rawKey: 'pE', pointsKey: 'pE' },
+    { label: 'Реализованные пенальти', rawKey: 'pS', pointsKey: 'pS' },
+    { label: 'Промахи с пенальти', rawKey: 'pM', pointsKey: 'pM' },
+    { label: 'Пропущенные пенальти', rawKey: 'pC', pointsKey: 'pC' },
+    { label: 'Жёлтые', rawKey: 'yC', pointsKey: 'yC' },
+    { label: 'Красные', rawKey: 'rC', pointsKey: 'rC' },
+    { label: 'Автоголы', rawKey: 'oG', pointsKey: 'oG' },
+    { label: 'Голы из-за штрафной', rawKey: 'gOB', pointsKey: 'gOB' },
   ];
 
   const showPopup = player => {
     modalBody.innerHTML = '';
     modal.querySelector('.modal-card-title').textContent = player.name;
     const stat = player.stat || {};
-    const statsCount = Number(player.statsCount) || 0;
-    if (statsCount) {
-      const summary = document.createElement('p');
-      summary.className = 'mb-2';
-      summary.textContent = `Событий в матче: ${statsCount}`;
-      modalBody.appendChild(summary);
-    }
-    if (!Object.keys(stat).length) {
-      modalBody.textContent = 'Нет данных по выбранному туру';
-      modal.classList.add('is-active');
-      return;
-    }
+    const rawStats = (stat.stats && typeof stat.stats === 'object') ? stat.stats : {};
+    const points = (stat.points && typeof stat.points === 'object') ? stat.points : {};
+
+    const getNumber = value => {
+      const num = Number(value);
+      return Number.isFinite(num) ? num : 0;
+    };
+
     const table = document.createElement('table');
     table.className = 'table is-narrow';
     const tbody = document.createElement('tbody');
-    STAT_FIELDS.forEach(([key, label]) => {
-      if (stat[key] === undefined || stat[key] === null) return;
+
+    STAT_FIELDS.forEach(field => {
+      const rawValue = field.rawKey ? getNumber(rawStats[field.rawKey]) : null;
+      let pointsValue = 0;
+      if (field.pointsKey === 'tPoints') {
+        pointsValue = getNumber(stat.tPoints);
+      } else if (field.pointsKey) {
+        pointsValue = getNumber(points[field.pointsKey]);
+      } else if (field.rawKey) {
+        pointsValue = rawValue ?? 0;
+      }
       const tr = document.createElement('tr');
       const tdL = document.createElement('td');
-      tdL.textContent = label;
+      tdL.textContent = field.rawKey ? `${field.label} (${rawValue ?? 0})` : field.label;
       const tdV = document.createElement('td');
       tdV.className = 'has-text-right';
-      tdV.textContent = Number.isFinite(Number(stat[key])) ? Number(stat[key]) : stat[key];
+      tdV.textContent = pointsValue;
       tr.appendChild(tdL);
       tr.appendChild(tdV);
       tbody.appendChild(tr);
     });
-    if (!tbody.children.length) {
-      const tr = document.createElement('tr');
-      const td = document.createElement('td');
-      td.colSpan = 2;
-      td.textContent = 'Нет статистики по показателям';
-      tr.appendChild(td);
-      tbody.appendChild(tr);
-    }
+
     table.appendChild(tbody);
     modalBody.appendChild(table);
     modal.classList.add('is-active');
