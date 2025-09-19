@@ -126,8 +126,13 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   const render = data => {
-    const managers = data.managers || [];
+    const rawManagers = data.managers || [];
     const lineups = data.lineups || {};
+    const managers = rawManagers.slice().sort((a, b) => {
+      const totalA = Number(lineups[a] && lineups[a].total) || 0;
+      const totalB = Number(lineups[b] && lineups[b].total) || 0;
+      return totalB - totalA;
+    });
     container.innerHTML = '';
 
     const tabs = document.createElement('div');
@@ -163,42 +168,60 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const block = document.createElement('div');
       block.style.display = idx === 0 ? 'block' : 'none';
-      const players = ((lineups[manager] && lineups[manager].players) || []).slice();
+      const players = lineups[manager] && Array.isArray(lineups[manager].players)
+        ? lineups[manager].players.slice()
+        : [];
       const hue = idx * 60;
       const c1 = `hsl(${hue}, 70%, 90%)`;
       const c2 = `hsl(${hue}, 70%, 80%)`;
-      players.sort((a, b) => {
-        const pointsA = Number.isFinite(Number(a.points)) ? Number(a.points) : 0;
-        const pointsB = Number.isFinite(Number(b.points)) ? Number(b.points) : 0;
-        if (pointsB !== pointsA) return pointsB - pointsA;
-        const pa = (a.pos || '').toUpperCase();
-        const pb = (b.pos || '').toUpperCase();
-        return (posOrder[pa] ?? 99) - (posOrder[pb] ?? 99);
+      const buckets = { GK: [], DEF: [], MID: [], FWD: [], OTHER: [] };
+      const normalizePos = (pos) => {
+        const upper = (pos || '').toString().toUpperCase();
+        if (upper.startsWith('GOAL')) return 'GK';
+        if (upper.startsWith('DEF')) return 'DEF';
+        if (upper.startsWith('MID')) return 'MID';
+        if (upper.startsWith('FWD')) return 'FWD';
+        if (upper === 'GK' || upper === 'GKP') return 'GK';
+        if (upper === 'GKP') return 'GK';
+        return upper;
+      };
+      players.forEach(player => {
+        const key = normalizePos(player.pos);
+        if (buckets[key]) {
+          buckets[key].push(player);
+        } else {
+          buckets.OTHER.push(player);
+        }
       });
-      let lastPos = null;
-      players.forEach((player, j) => {
-        if (lastPos && player.pos !== lastPos) {
+      const order = ['GK', 'DEF', 'MID', 'FWD', 'OTHER'];
+      let rowIndex = 0;
+      order.forEach((posKey, posIdx) => {
+        const group = buckets[posKey];
+        if (!group.length) return;
+        if (rowIndex > 0) {
           const hr = document.createElement('hr');
           hr.className = 'my-1';
           block.appendChild(hr);
         }
-        lastPos = player.pos;
-        const row = document.createElement('div');
-        row.className = 'ucl-player-row';
-        row.style.backgroundColor = j % 2 === 0 ? c1 : c2;
-        const spanName = document.createElement('span');
-        spanName.className = 'ucl-player-name';
-        spanName.textContent = player.name;
-        if (player.club) {
-          spanName.textContent += ` (${player.club})`;
-        }
-        const spanPoints = document.createElement('span');
-        spanPoints.className = 'ucl-points-box';
-        spanPoints.textContent = player.points;
-        spanPoints.addEventListener('click', () => showPopup(player));
-        row.appendChild(spanName);
-        row.appendChild(spanPoints);
-        block.appendChild(row);
+        group.forEach((player) => {
+          const row = document.createElement('div');
+          row.className = 'ucl-player-row';
+          row.style.backgroundColor = rowIndex % 2 === 0 ? c1 : c2;
+          const spanName = document.createElement('span');
+          spanName.className = 'ucl-player-name';
+          spanName.textContent = player.name;
+          if (player.club) {
+            spanName.textContent += ` (${player.club})`;
+          }
+          const spanPoints = document.createElement('span');
+          spanPoints.className = 'ucl-points-box';
+          spanPoints.textContent = player.points;
+          spanPoints.addEventListener('click', () => showPopup(player));
+          row.appendChild(spanName);
+          row.appendChild(spanPoints);
+          block.appendChild(row);
+          rowIndex += 1;
+        });
       });
       contents.appendChild(block);
       blocks.push(block);
