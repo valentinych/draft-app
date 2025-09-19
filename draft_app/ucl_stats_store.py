@@ -684,6 +684,10 @@ def get_player_stats_cached(player_id: int) -> Dict:
     cached = _load_local(player_id)
     if _fresh(cached):
         return (cached or {}).get("data", {})
+    s3_payload = _load_s3(player_id)
+    if _fresh(s3_payload):
+        _save_local(player_id, s3_payload)
+        return (s3_payload or {}).get("data", {})
     return {}
 
 
@@ -691,6 +695,11 @@ def get_current_matchday_cached() -> Optional[int]:
     """Return matchday derived from locally cached feeds only."""
 
     feed = _load_feed_local()
+    if not feed:
+        s3_feed = _load_feed_s3()
+        if s3_feed:
+            _save_feed_local(s3_feed)
+            feed = s3_feed
     if not feed:
         return None
     payload = feed.get("data") if isinstance(feed, dict) else None
