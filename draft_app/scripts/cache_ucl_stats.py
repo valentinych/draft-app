@@ -7,7 +7,12 @@ from pathlib import Path
 from typing import Optional, Set
 
 from draft_app.ucl import _ucl_state_load, _ensure_ucl_state_shape
-from draft_app.ucl_stats_store import CACHE_DIR, get_player_stats
+from draft_app.ucl_stats_store import (
+    CACHE_DIR,
+    refresh_player_stats,
+    stats_bucket,
+    stats_s3_key,
+)
 
 
 def gather_player_ids(state) -> Set[int]:
@@ -80,6 +85,12 @@ def main() -> int:
     if args.limit is not None:
         players = players[: args.limit]
 
+    bucket = stats_bucket()
+    if bucket:
+        print(f"Using S3 bucket: {bucket}", flush=True)
+    else:
+        print("S3 bucket is not configured; stats will only be cached locally.", flush=True)
+
     print(f"Prefetching stats for {len(players)} players…", flush=True)
     failures = 0
     for idx, pid in enumerate(players, 1):
@@ -90,14 +101,13 @@ def main() -> int:
         except Exception:
             before_mtime = None
         try:
-            stats = get_player_stats(pid)
+            stats = refresh_player_stats(pid)
             cache_state, cache_size = _cache_status(cache_path, before_mtime)
+            key = stats_s3_key(pid)
             if not stats:
                 failures += 1
-                print(
-                    f"[{idx}/{len(players)}] pid={pid}: empty stats cache={cache_state}",
-                    flush=True,
-                )
+                target = f"s3://{bucket}/{key}" if bucket else "local cache"
+                print(f"[{idx}/{len(players)}] pid={pid}: empty stats cache={cache_state} target={target}", flush=True)
                 continue
 
             value = stats.get("value")
@@ -106,10 +116,8 @@ def main() -> int:
 
             if not isinstance(value, dict):
                 failures += 1
-                print(
-                    f"[{idx}/{len(players)}] pid={pid}: missing value section cache={cache_state}",
-                    flush=True,
-                )
+                target = f"s3://{bucket}/{key}" if bucket else "local cache"
+                print(f"[{idx}/{len(players)}] pid={pid}: missing value section cache={cache_state} target={target}", flush=True)
                 continue
 
             points = value.get("points") or value.get("matchdayPoints") or []
@@ -117,20 +125,16 @@ def main() -> int:
             cache_tail = f" cache={cache_state}"
             if cache_size is not None:
                 cache_tail = f"{cache_tail} size={cache_size}"
-            print(
-                f"[{idx}/{len(players)}] pid={pid}: {info} points_entries={len(points)}{cache_tail}",
-                flush=True,
-            )
+            target = f" s3=s3://{bucket}/{key}" if bucket else ""
+            print(f"[{idx}/{len(players)}] pid={pid}: {info} points_entries={len(points)}{cache_tail}{target}", flush=True)
         except Exception as exc:
             failures += 1
             cache_state, cache_size = _cache_status(cache_path, before_mtime)
             cache_tail = f" cache={cache_state}"
             if cache_size is not None:
                 cache_tail = f"{cache_tail} size={cache_size}"
-            print(
-                f"[{idx}/{len(players)}] pid={pid}: error {exc}{cache_tail}",
-                flush=True,
-            )
+            target = f" s3=s3://{bucket}/{stats_s3_key(pid)}" if bucket else ""
+            print(f"[{idx}/{len(players)}] pid={pid}: error {exc}{cache_tail}{target}", flush=True)
     if failures:
         print(f"Done with {failures} failures", flush=True)
         return 1

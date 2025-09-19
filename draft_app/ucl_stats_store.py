@@ -338,6 +338,40 @@ def get_player_stats(player_id: int) -> Dict:
     return (cached or {}).get("data", {})
 
 
+def stats_bucket() -> Optional[str]:
+    """Expose the S3 bucket used for cached stats uploads."""
+    return _stats_bucket()
+
+
+def stats_s3_key(player_id: int) -> str:
+    """Return the S3 key for a player's popup stats payload."""
+    return _s3_key(player_id)
+
+
+def refresh_player_stats(player_id: int) -> Dict:
+    """Force-refresh popup stats from the remote feed and mirror them to S3."""
+    remote = _fetch_remote_player(player_id)
+    if remote is not None:
+        payload = {
+            "cached_at": datetime.utcnow().isoformat(),
+            "data": remote,
+        }
+        _save_local(player_id, payload)
+        _save_s3(player_id, payload)
+        return remote
+
+    cached = _load_local(player_id)
+    if _fresh(cached):
+        return (cached or {}).get("data", {})
+
+    s3_payload = _load_s3(player_id)
+    if _fresh(s3_payload):
+        _save_local(player_id, s3_payload)
+        return (s3_payload or {}).get("data", {})
+
+    return {}
+
+
 def _feed_fresh(payload: Optional[Dict]) -> bool:
     return bool(payload)
 
