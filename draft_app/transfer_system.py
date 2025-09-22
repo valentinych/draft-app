@@ -386,17 +386,21 @@ class TransferSystem:
             if not window_active:
                 raise ValueError("Трансферное окно неактивно")
         
+        print(f"[TransferSystem] pick_transfer_player - searching for player_id: {player_id}")
         available_players = state["transfers"]["available_players"]
+        print(f"[TransferSystem] pick_transfer_player - available_players count: {len(available_players)}")
         picked_player = None
         remaining_players = []
         
         for player in available_players:
             if int(player.get("playerId") or player.get("id", 0)) == player_id:
                 picked_player = player.copy()
+                print(f"[TransferSystem] pick_transfer_player - found player: {player.get('fullName', player.get('name', 'Unknown'))}")
             else:
                 remaining_players.append(player)
         
         if not picked_player:
+            print(f"[TransferSystem] pick_transfer_player - player {player_id} not found in available_players")
             raise ValueError(f"Transfer player {player_id} not available")
         
         # Update player status
@@ -426,6 +430,7 @@ class TransferSystem:
         
         state["transfers"]["history"].append(pick_record)
         
+        print(f"[TransferSystem] pick_transfer_player - completed successfully for player {player_id}")
         return state
     
     def get_player_active_gws(self, player: Dict[str, Any]) -> List[int]:
