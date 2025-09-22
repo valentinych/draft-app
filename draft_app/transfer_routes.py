@@ -5,7 +5,6 @@ Transfer Routes - Unified transfer system endpoints for all draft types
 from flask import Blueprint, request, session, redirect, url_for, flash, abort, jsonify, render_template
 from typing import Dict, Any, Optional
 from .transfer_system import create_transfer_system
-from .auth import login_required
 
 bp = Blueprint("transfers", __name__, url_prefix="/transfers")
 
@@ -32,7 +31,6 @@ def get_draft_users(draft_type: str) -> list:
 
 
 @bp.route("/<draft_type>/execute", methods=["POST"])
-@login_required
 def execute_transfer(draft_type: str):
     """Execute a player transfer"""
     current_user = session.get("user_name")
@@ -97,7 +95,6 @@ def execute_transfer(draft_type: str):
 
 
 @bp.route("/<draft_type>/pick-transfer-player", methods=["POST"]) 
-@login_required
 def pick_transfer_player(draft_type: str):
     """Pick a transfer-out player for team"""
     current_user = session.get("user_name")
