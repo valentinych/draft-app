@@ -6,7 +6,7 @@ from typing import Dict
 
 from .config import EPL_USERS
 from .epl_services import (
-    LAST_SEASON, EPL_FPL,
+    LAST_SEASON, EPL_FPL, GW_STATS_DIR,
     ensure_fpl_bootstrap_fresh,
     players_from_fpl, players_index, nameclub_index,
     load_state, save_state, who_is_on_clock,
@@ -18,6 +18,7 @@ from .epl_services import (
     fixtures_for_gw, points_for_gw, gw_info,
     start_transfer_window, transfer_current_manager,
     advance_transfer_turn, record_transfer,
+    _s3_enabled, _s3_bucket, _gwstats_s3_key,
 )
 from .transfer_store import pop_transfer_target
 from .lineup_store import load_lineup, save_lineup
@@ -1061,3 +1062,72 @@ def fp_last_batch():
     for pid in ids:
         fp[str(pid)] = fp_last_from_summary(fetch_element_summary(pid)) or 0
     return jsonify({"fp": fp, "season": LAST_SEASON})
+
+
+# ---- Admin: Clear GW cache for recalculation ----
+@bp.post("/epl/admin/clear-gw-cache")
+def clear_gw_cache():
+    """Clear cached data for specific gameweek to force recalculation"""
+    if not session.get("godmode"):
+        abort(403)
+    
+    try:
+        gw = request.form.get("gw", type=int)
+        if not gw or gw < 1 or gw > 38:
+            flash("Некорректный номер GW (должен быть 1-38)", "danger")
+            return redirect(request.referrer or url_for("epl.lineups"))
+        
+        cleared_files = []
+        
+        # Clear local cache files
+        import os
+        
+        # Clear GW stats cache (individual player points)
+        gw_stats_file = GW_STATS_DIR / f"gw{gw}.json"
+        if gw_stats_file.exists():
+            os.remove(gw_stats_file)
+            cleared_files.append(f"gw_stats/gw{gw}.json")
+        
+        # Clear GW scores cache (manager totals)  
+        gw_scores_file = GW_SCORE_DIR / f"gw{gw}.json"
+        if gw_scores_file.exists():
+            os.remove(gw_scores_file)
+            cleared_files.append(f"gw_scores/gw{gw}.json")
+        
+        # Clear S3 cache if enabled
+        if _s3_enabled():
+            bucket = _s3_bucket()
+            if bucket:
+                import boto3
+                from botocore.exceptions import ClientError
+                
+                s3_client = boto3.client('s3')
+                
+                # Clear GW stats from S3
+                try:
+                    stats_key = _gwstats_s3_key(gw)
+                    s3_client.delete_object(Bucket=bucket, Key=stats_key)
+                    cleared_files.append(f"S3: {stats_key}")
+                except ClientError:
+                    pass  # File might not exist
+                
+                # Clear GW scores from S3
+                try:
+                    from .gw_score_store import _s3_key as scores_s3_key
+                    scores_key = scores_s3_key(gw)
+                    s3_client.delete_object(Bucket=bucket, Key=scores_key)
+                    cleared_files.append(f"S3: {scores_key}")
+                except ClientError:
+                    pass  # File might not exist
+        
+        if cleared_files:
+            flash(f"Кэш для GW{gw} очищен: {', '.join(cleared_files)}", "success")
+        else:
+            flash(f"Кэш для GW{gw} уже был пуст", "info")
+            
+        # Redirect back to lineups to trigger recalculation
+        return redirect(url_for("epl.lineups", gw=gw))
+        
+    except Exception as e:
+        flash(f"Ошибка при очистке кэша: {str(e)}", "danger")
+        return redirect(request.referrer or url_for("epl.lineups"))

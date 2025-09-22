@@ -22,8 +22,31 @@
     <div class="control">
       <button class="button is-link" type="submit">Показать</button>
     </div>
+    {% if session.get('godmode') %}
+    <div class="control">
+      <button class="button is-danger" type="button" onclick="clearGwCache()">
+        🔄 Пересчитать очки
+      </button>
+    </div>
+    {% endif %}
   </div>
 </form>
+
+{% if session.get('godmode') %}
+<!-- Hidden form for cache clearing -->
+<form id="clear-cache-form" method="post" action="{{ url_for('epl.clear_gw_cache') }}" style="display: none;">
+  <input type="hidden" name="gw" value="{{ gw }}">
+</form>
+
+<script>
+function clearGwCache() {
+  const gw = {{ gw }};
+  if (confirm(`Вы уверены, что хотите пересчитать очки для GW${gw}?\n\nЭто очистит кэш и заново загрузит данные с FPL API.`)) {
+    document.getElementById('clear-cache-form').submit();
+  }
+}
+</script>
+{% endif %}
 <table class="table is-striped is-compact">
   <thead>
     <tr>
