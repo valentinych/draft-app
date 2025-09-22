@@ -278,9 +278,46 @@ class TransferSystem:
         return state
     
     def get_available_transfer_players(self, state: Dict[str, Any]) -> List[Dict[str, Any]]:
-        """Get list of players available for transfer (transfer_out players)"""
+        """Get list of players available for transfer (transfer_out players + undrafted players for UCL)"""
         state = self.ensure_transfer_structure(state)
-        return state["transfers"]["available_players"]
+        available_players = list(state["transfers"]["available_players"])
+        
+        # For UCL, also include undrafted players
+        if self.draft_type.upper() == "UCL":
+            try:
+                # Get all drafted players
+                drafted_player_ids = set()
+                rosters = state.get("rosters", {})
+                for roster in rosters.values():
+                    for player in roster:
+                        player_id = player.get("playerId")
+                        if player_id:
+                            drafted_player_ids.add(int(player_id))
+                
+                # Get all UCL players from the main player list
+                from .ucl import _json_load, _players_from_ucl, UCL_PLAYERS
+                raw_players = _json_load(UCL_PLAYERS) or []
+                all_ucl_players = _players_from_ucl(raw_players)
+                
+                # Add undrafted players to available list
+                for player in all_ucl_players:
+                    player_id = player.get("playerId")
+                    if player_id and int(player_id) not in drafted_player_ids:
+                        # Add undrafted player to available list
+                        undrafted_player = {
+                            "playerId": player["playerId"],
+                            "fullName": player.get("fullName", player.get("name", "")),
+                            "clubName": player.get("clubName", player.get("club", "")),
+                            "position": player.get("position", ""),
+                            "price": player.get("price", 0),
+                            "status": "undrafted"
+                        }
+                        available_players.append(undrafted_player)
+                        
+            except Exception as e:
+                print(f"[TransferSystem] Error adding undrafted UCL players: {e}")
+        
+        return available_players
     
     def pick_transfer_player(self, 
                            state: Dict[str, Any], 
