@@ -180,6 +180,12 @@
                 FP 2025/26 <span id="fp-cur-sort-arrow">↓</span>
               </button>
             </th>
+            {% elif table_league == 'ucl' %}
+            <th class="num">
+              <button type="button" id="fp-cur-sort-btn" class="link" data-dir="desc" title="Сортировать по FP 2025/26">
+                FP 2025/26 <span id="fp-cur-sort-arrow">↓</span>
+              </button>
+            </th>
             {% endif %}
             <th class="num">
               <button type="button" id="fp-sort-btn" class="link" data-dir="desc" title="Сортировать по FP 2024/25">
@@ -243,6 +249,10 @@
               </td>
               <td class="num">
                 <span class="fp-cur-cell" data-fp="{{ (p.stats.points or 0)|int }}">{{ (p.stats.points or 0)|int }}</span>
+              </td>
+              {% elif table_league == 'ucl' %}
+              <td class="num">
+                <span class="fp-cur-cell" data-fp="{{ (p.fp_current or 0)|int }}">{{ (p.fp_current or 0)|int }}</span>
               </td>
               {% endif %}
               <td class="num">
