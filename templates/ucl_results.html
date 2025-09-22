@@ -202,6 +202,11 @@ document.addEventListener('DOMContentLoaded', () => {
       const c1 = `hsl(${hue}, 70%, 90%)`;
       const c2 = `hsl(${hue}, 70%, 80%)`;
       players.sort((a, b) => {
+        // First, sort by transfer status (transfer_out players go to the bottom)
+        if (a.transfer_out && !b.transfer_out) return 1;
+        if (!a.transfer_out && b.transfer_out) return -1;
+        
+        // Then sort by position
         const pa = (a.pos || '').toUpperCase();
         const pb = (b.pos || '').toUpperCase();
         return (posOrder[pa] ?? 99) - (posOrder[pb] ?? 99);
@@ -259,6 +264,17 @@ document.addEventListener('DOMContentLoaded', () => {
           nameSpan.textContent += ` - ${p.club}`;
         }
         infoWrap.appendChild(nameSpan);
+        
+        // Add transfer out indicator if applicable
+        if (p.transfer_out) {
+          const transferIcon = document.createElement('span');
+          transferIcon.textContent = ' ↓';
+          transferIcon.style.color = 'red';
+          transferIcon.style.fontWeight = 'bold';
+          transferIcon.title = 'Transfer out';
+          nameSpan.appendChild(transferIcon);
+          div.style.opacity = '0.7';
+        }
         
         div.appendChild(infoWrap);
         

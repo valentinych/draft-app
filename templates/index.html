@@ -44,6 +44,11 @@
         {% if stats_refresh_running %}
           <span class="badge badge-info" style="margin-left:8px;">Обновление выполняется…</span>
         {% endif %}
+        {% if draft_completed %}
+        <form method="post" action="{{ url_for('ucl.open_transfer_window') }}" style="display:inline; margin-left:8px;">
+          <button type="submit" class="btn btn-info">Открыть трансферное окно</button>
+        </form>
+        {% endif %}
         {% endif %}
         <form method="post" action="{{ undo_url|default(url_for('epl.undo_last_pick')) }}" style="display:inline; margin-left:8px;">
           <button type="submit" class="btn btn-danger">Отменить последний пик</button>

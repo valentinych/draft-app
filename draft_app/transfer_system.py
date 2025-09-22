@@ -428,3 +428,37 @@ def create_transfer_system(draft_type: str) -> TransferSystem:
         )
     else:
         raise ValueError(f"Unsupported draft type: {draft_type}")
+
+
+def init_transfers_for_league(
+    draft_type: str,
+    participants: List[str],
+    transfers_per_manager: int = 1,
+    position_limits: Dict[str, int] = None,
+    max_from_club: int = 1
+) -> bool:
+    """Initialize transfer window for a league"""
+    try:
+        ts = get_transfer_system(draft_type)
+        state = ts.load_state()
+        
+        # Set up transfer window
+        transfer_state = {
+            "active": True,
+            "current_user": participants[0] if participants else None,
+            "participant_order": participants,
+            "current_index": 0,
+            "transfers_per_manager": transfers_per_manager,
+            "transfers_completed": {user: 0 for user in participants},
+            "position_limits": position_limits or {"GK": 2, "DEF": 5, "MID": 5, "FWD": 3},
+            "max_from_club": max_from_club,
+            "started_at": datetime.utcnow().isoformat(),
+        }
+        
+        state["transfer_window"] = transfer_state
+        ts.save_state(state)
+        return True
+        
+    except Exception as e:
+        print(f"Error initializing transfers for {draft_type}: {e}")
+        return False

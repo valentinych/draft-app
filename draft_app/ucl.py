@@ -1104,6 +1104,29 @@ def ucl_lineups_data():
     managers = [m for m in UCL_PARTICIPANTS if m in rosters]
     if not managers:
         managers = sorted(rosters.keys())
+    
+    # Get transfer history to apply transfers for specific MD
+    transfer_history = state.get("transfer_history", [])
+    
+    def get_roster_for_md(manager: str, target_md: int) -> List[Dict]:
+        """Get manager's roster as it was for the specific MD"""
+        current_roster = list(rosters.get(manager, []))
+        
+        # Apply transfers that happened before or during this MD
+        for transfer in transfer_history:
+            if (transfer.get("manager") == manager and 
+                transfer.get("matchday", 999) <= target_md):
+                
+                # Remove transferred out player
+                if "player_out" in transfer:
+                    out_id = transfer["player_out"].get("playerId")
+                    current_roster = [p for p in current_roster if p.get("playerId") != out_id]
+                
+                # Add transferred in player
+                if "player_in" in transfer:
+                    current_roster.append(transfer["player_in"])
+        
+        return current_roster
 
     def _norm_team_id(raw: Any) -> Optional[str]:
         if raw in (None, "", [], {}):
@@ -1190,7 +1213,8 @@ def ucl_lineups_data():
 
     results: Dict[str, Dict[str, Any]] = {}
     for manager in managers:
-        roster = rosters.get(manager) or []
+        # Get roster as it was for this specific MD
+        roster = get_roster_for_md(manager, md)
         lineup: List[Dict[str, Any]] = []
         total = 0
         for item in roster:
@@ -1356,6 +1380,9 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
 
     # Get list of finished matchdays - only count points from these
     finished_matchdays = set(state.get("finished_matchdays", []))
+    
+    # Get transfer history to identify transfer_out players
+    transfer_history = state.get("transfer_history", [])
 
     results: Dict[str, Dict[str, Any]] = {}
     
@@ -1425,6 +1452,14 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
                 if not team_id:
                     team_id = stats.get("tId") or stats.get("teamId")
             
+            # Check if player was transferred out
+            is_transfer_out = any(
+                t.get("manager") == manager and 
+                t.get("player_out", {}).get("playerId") == pid_int and
+                t.get("type") == "transfer"
+                for t in transfer_history
+            )
+            
             total += points
             lineup.append({
                 "name": payload.get("fullName") or payload.get("name") or str(pid_int),
@@ -1434,6 +1469,7 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
                 "breakdown": breakdown,
                 "playerId": str(pid_int),
                 "teamId": team_id,  # For club logo
+                "transfer_out": is_transfer_out
             })
         
         results[manager] = {"players": lineup, "total": total}
@@ -1454,6 +1490,50 @@ def ucl_results_data():
     state = _ensure_ucl_state_shape(state)
     data = _build_ucl_results(state)
     return jsonify(data)
+
+
+@bp.route("/ucl/open_transfer_window", methods=["POST"])
+def open_transfer_window():
+    """Open UCL transfer window - godmode only"""
+    if not session.get("godmode"):
+        abort(403)
+    
+    try:
+        from .transfer_system import init_transfers_for_league
+        
+        # Calculate current standings to determine transfer order
+        state = _ucl_state_load()
+        results = _build_ucl_results(state)
+        
+        # Sort managers by total points (worst first for transfer priority)
+        manager_scores = []
+        for manager, data in results["lineups"].items():
+            total = data.get("total", 0)
+            manager_scores.append((manager, total))
+        
+        # Sort by total points ascending (worst first)
+        manager_scores.sort(key=lambda x: x[1])
+        transfer_order = [manager for manager, _ in manager_scores]
+        
+        # Initialize transfer window
+        success = init_transfers_for_league(
+            draft_type="ucl",
+            participants=transfer_order,
+            transfers_per_manager=1,  # 1 transfer after MD 1-7
+            position_limits={"GK": 3, "DEF": 8, "MID": 9, "FWD": 5},
+            max_from_club=1
+        )
+        
+        if success:
+            flash("Трансферное окно UCL открыто! Очередность: " + " → ".join(transfer_order), "success")
+        else:
+            flash("Ошибка при открытии трансферного окна", "error")
+            
+    except Exception as e:
+        print(f"Error opening UCL transfer window: {e}")
+        flash("Ошибка при открытии трансферного окна", "error")
+    
+    return redirect(url_for("ucl.index"))
 
 
 @bp.post("/ucl/admin/finish-matchday")
