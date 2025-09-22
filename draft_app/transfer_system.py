@@ -381,8 +381,10 @@ class TransferSystem:
         
         # Check if manager can pick transfer players (less strict than transfers)
         if require_window:
-            if not self.is_transfer_window_active(state):
-                raise ValueError("Трансферное окно не активно - нельзя подобрать игроков")
+            window_active = self.is_transfer_window_active(state)
+            print(f"[TransferSystem] pick_transfer_player - window_active: {window_active}")
+            if not window_active:
+                raise ValueError("Трансферное окно неактивно")
         
         available_players = state["transfers"]["available_players"]
         picked_player = None
