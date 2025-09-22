@@ -402,7 +402,7 @@ function selectPlayerForTransferOut(playerId, playerName, playerClub, playerPosi
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
-      body: `out_player_id=${playerId}`
+      body: `player_id=${playerId}`
     })
     .then(response => response.json())
     .then(data => {
