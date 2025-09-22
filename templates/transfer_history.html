@@ -39,18 +39,29 @@
   <div class="content">
     <p><strong>GW {{ active_window.gw }}</strong> - Раунд {{ active_window.current_round }}/{{ active_window.total_rounds }}</p>
     
+    {% if current_manager %}
+    <p><strong>Сейчас выбирает:</strong> <span class="tag is-warning">🎯 {{ current_manager }}</span></p>
+    {% endif %}
+    
     {% if active_window.managers_order %}
-    <div class="tags">
-      {% for manager in active_window.managers_order %}
-        {% if manager == current_manager %}
-          <span class="tag is-warning is-medium">
-            🎯 {{ manager }} (сейчас выбирает)
-          </span>
-        {% else %}
-          <span class="tag is-light">{{ manager }}</span>
-        {% endif %}
-      {% endfor %}
+    <div class="content">
+      <strong>Очередность:</strong>
+      <div class="tags">
+        {% for manager in active_window.managers_order %}
+          {% if manager == current_manager %}
+            <span class="tag is-warning is-medium">
+              🎯 {{ manager }} (сейчас)
+            </span>
+          {% else %}
+            <span class="tag is-light">{{ manager }}</span>
+          {% endif %}
+        {% endfor %}
+      </div>
     </div>
+    {% else %}
+    <p class="has-text-info">
+      <small>Очередность трансферов пока не определена</small>
+    </p>
     {% endif %}
   </div>
 </div>

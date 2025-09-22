@@ -210,6 +210,22 @@ def transfer_history(draft_type: str):
         current_manager = transfer_system.get_current_transfer_manager(state)
         current_user = session.get("user_name")
         
+        # Check for legacy transfer_window structure (from init_transfers_for_league)
+        legacy_window = state.get("transfer_window")
+        if legacy_window and legacy_window.get("active") and not active_window:
+            # Convert legacy structure to expected format
+            participants = legacy_window.get("participant_order", [])
+            current_index = legacy_window.get("current_index", 0)
+            active_window = {
+                "gw": 1,  # Default GW since legacy doesn't store it
+                "total_rounds": 1,
+                "current_round": 1,
+                "current_manager_index": current_index,
+                "managers_order": participants
+            }
+            current_manager = participants[current_index] if current_index < len(participants) else None
+            is_window_active = True
+        
         # Get user's current roster for transfer out selection
         user_roster = []
         if current_user and current_manager == current_user and is_window_active:
