@@ -1349,6 +1349,13 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
 
     results: Dict[str, Dict[str, Any]] = {}
     
+    def safe_int(value) -> int:
+        """Convert value to int, return 0 if not possible"""
+        try:
+            return int(value or 0)
+        except (ValueError, TypeError):
+            return 0
+    
     for manager in managers:
         roster = rosters.get(manager) or []
         lineup = []
@@ -1372,28 +1379,41 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
             stats = get_player_stats_cached(pid_int)
             if not isinstance(stats, dict):
                 stats = {}
-                
-            # Extract stats similar to ucl_lineups_data logic
-            stat_payload, points_dict, raw_stats, data_section, value_section = _stat_sections(stats)
-            points = _safe_int(stat_payload.get("tPoints"))
             
-            # Build breakdown by matchday (similar to TOP4 GW breakdown)
+            # Extract points from stats - simplified approach
+            points = 0
             breakdown = []
             
-            # Add matchday stats if available
-            matchday_stats = stat_payload.get("matchday_stats") or []
-            if isinstance(matchday_stats, list):
-                for md_stat in matchday_stats:
-                    if isinstance(md_stat, dict):
-                        md_points = _safe_int(md_stat.get("points", 0))
-                        md_num = md_stat.get("matchday") or md_stat.get("md")
-                        if md_num:
-                            breakdown.append({
-                                "label": f"MD{md_num}",
-                                "value": md_points
-                            })
+            # Try to get total points from various possible locations in stats
+            if isinstance(stats, dict):
+                # First try to get already calculated total points
+                data_section = stats.get("data", {})
+                if isinstance(data_section, dict):
+                    value_section = data_section.get("value", {})
+                    if isinstance(value_section, dict):
+                        # Try to get total points
+                        total_points = value_section.get("tPoints") or value_section.get("totalPoints")
+                        points = safe_int(total_points)
+                        
+                        # Try to get matchday breakdown
+                        matchday_points = value_section.get("matchdayPoints", [])
+                        if isinstance(matchday_points, list):
+                            for md_stat in matchday_points:
+                                if isinstance(md_stat, dict):
+                                    md_points = safe_int(md_stat.get("tPoints", 0))
+                                    md_num = md_stat.get("mdId")
+                                    if md_num and md_points > 0:
+                                        breakdown.append({
+                                            "label": f"MD{md_num}",
+                                            "value": md_points
+                                        })
+                
+                # Fallback: try direct access to points
+                if points == 0:
+                    direct_points = stats.get("tPoints") or stats.get("totalPoints")
+                    points = safe_int(direct_points)
             
-            # If no matchday breakdown, create single entry
+            # If no breakdown found and we have points, create general entry
             if not breakdown and points > 0:
                 breakdown.append({
                     "label": "Общий",
