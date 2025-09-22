@@ -43,17 +43,6 @@
     <p><strong>Сейчас выбирает:</strong> <span class="tag is-warning">🎯 {{ current_manager }}</span></p>
     {% endif %}
     
-    <!-- DEBUG INFO ALWAYS SHOWN -->
-    <div class="has-text-danger" style="background: #ffeeee; padding: 10px; margin: 10px 0;">
-      <p><strong>🔍 DEBUG INFO:</strong></p>
-      <p>active_window: {{ active_window }}</p>
-      <p>current_manager: {{ current_manager }}</p>
-      <p>is_window_active: {{ is_window_active }}</p>
-      {% if active_window %}
-      <p>managers_order: {{ active_window.managers_order }}</p>
-      <p>type of managers_order: {{ active_window.managers_order.__class__.__name__ if active_window.managers_order else "None" }}</p>
-      {% endif %}
-    </div>
     
     {% if active_window.managers_order %}
     <div class="content">

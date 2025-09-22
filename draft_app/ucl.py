@@ -907,14 +907,10 @@ def index():
         transfer_system = create_transfer_system("ucl")
         transfer_state = transfer_system.load_state()  # This loads the correct state
         
-        print(f"[UCL] UCL state has transfer_window: {state.get('transfer_window')}")
-        print(f"[UCL] Transfer state has transfer_window: {transfer_state.get('transfer_window')}")
-        
         # Check legacy window from transfer state (not UCL state)
         legacy_window = transfer_state.get("transfer_window")
         
         if legacy_window and legacy_window.get("active"):
-            print(f"[UCL] Found active legacy window in transfer state: {legacy_window}")
             transfer_window_active = True
             
             # Get manager from legacy window directly
@@ -930,10 +926,7 @@ def index():
                 current_transfer_manager = participants[current_index]
             else:
                 current_transfer_manager = None
-                
-            print(f"[UCL] Final values - transfer_window_active: {transfer_window_active}, current_transfer_manager: {current_transfer_manager}")
         else:
-            print(f"[UCL] No active legacy window found")
             transfer_window_active = False
             current_transfer_manager = None
         
