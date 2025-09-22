@@ -150,7 +150,7 @@ def pick_transfer_player(draft_type: str):
             return redirect(request.referrer or url_for("home.index"))
         
         updated_state = transfer_system.pick_transfer_player(
-            state, current_user, player_id, current_gw
+            state, current_user, player_id, current_gw, require_window=False
         )
         
         transfer_system.save_state(updated_state)
