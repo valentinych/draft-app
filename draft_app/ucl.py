@@ -1347,6 +1347,9 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
     if not managers:
         managers = sorted(rosters.keys())
 
+    # Get list of finished matchdays - only count points from these
+    finished_matchdays = set(state.get("finished_matchdays", []))
+
     results: Dict[str, Dict[str, Any]] = {}
     
     def safe_int(value) -> int:
@@ -1380,9 +1383,10 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
             if not isinstance(stats, dict):
                 stats = {}
             
-            # Extract points from stats - simplified approach
+            # Extract points and team data from stats
             points = 0
             breakdown = []
+            team_id = None
             
             # Try to get total points from various possible locations in stats
             if isinstance(stats, dict):
@@ -1391,11 +1395,10 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
                 if isinstance(data_section, dict):
                     value_section = data_section.get("value", {})
                     if isinstance(value_section, dict):
-                        # Try to get total points
-                        total_points = value_section.get("tPoints") or value_section.get("totalPoints")
-                        points = safe_int(total_points)
+                        # Try to get team ID
+                        team_id = value_section.get("tId") or value_section.get("teamId")
                         
-                        # Try to get matchday breakdown
+                        # Calculate points only from finished matchdays
                         matchday_points = value_section.get("matchdayPoints", [])
                         if isinstance(matchday_points, list):
                             for md_stat in matchday_points:
@@ -1403,22 +1406,17 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
                                     md_points = safe_int(md_stat.get("tPoints", 0))
                                     md_num = md_stat.get("mdId")
                                     if md_num and md_points > 0:
-                                        breakdown.append({
-                                            "label": f"MD{md_num}",
-                                            "value": md_points
-                                        })
+                                        # Only include if matchday is finished
+                                        if md_num in finished_matchdays:
+                                            breakdown.append({
+                                                "label": f"MD{md_num}",
+                                                "value": md_points
+                                            })
+                                            points += md_points
                 
-                # Fallback: try direct access to points
-                if points == 0:
-                    direct_points = stats.get("tPoints") or stats.get("totalPoints")
-                    points = safe_int(direct_points)
-            
-            # If no breakdown found and we have points, create general entry
-            if not breakdown and points > 0:
-                breakdown.append({
-                    "label": "Общий",
-                    "value": points
-                })
+                # Fallback: try to get team ID if not found
+                if not team_id:
+                    team_id = stats.get("tId") or stats.get("teamId")
             
             total += points
             lineup.append({
@@ -1428,6 +1426,7 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
                 "points": points,
                 "breakdown": breakdown,
                 "playerId": str(pid_int),
+                "teamId": team_id,  # For club logo
             })
         
         results[manager] = {"players": lineup, "total": total}
@@ -1448,3 +1447,43 @@ def ucl_results_data():
     state = _ensure_ucl_state_shape(state)
     data = _build_ucl_results(state)
     return jsonify(data)
+
+
+@bp.post("/ucl/admin/finish-matchday")
+def finish_matchday():
+    """Mark a matchday as finished (godmode only)"""
+    user_name = session.get("user_name")
+    if not session.get("godmode"):
+        return jsonify({"error": "Access denied"}), 403
+    
+    from flask import request
+    md = request.form.get("md")
+    if not md:
+        return jsonify({"error": "Missing matchday number"}), 400
+    
+    try:
+        md_int = int(md)
+    except ValueError:
+        return jsonify({"error": "Invalid matchday number"}), 400
+    
+    state = _ucl_state_load()
+    finished_matchdays = state.get("finished_matchdays", [])
+    
+    if md_int not in finished_matchdays:
+        finished_matchdays.append(md_int)
+        finished_matchdays.sort()
+        state["finished_matchdays"] = finished_matchdays
+        _ucl_state_save(state)
+    
+    return jsonify({"success": True, "finished_matchdays": finished_matchdays})
+
+
+@bp.get("/ucl/admin/matchday-status")
+def matchday_status():
+    """Get current matchday status"""
+    if not session.get("godmode"):
+        return jsonify({"error": "Access denied"}), 403
+    
+    state = _ucl_state_load()
+    finished_matchdays = state.get("finished_matchdays", [])
+    return jsonify({"finished_matchdays": finished_matchdays})

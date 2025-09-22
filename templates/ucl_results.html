@@ -2,6 +2,19 @@
 {% block title %}UCL Результаты{% endblock %}
 {% block content %}
 <h1 class="title">UCL Результаты</h1>
+{% if session.get('godmode') %}
+<div class="mb-4">
+  <div class="field has-addons">
+    <div class="control">
+      <input class="input" type="number" id="finish-md-input" placeholder="Номер MD" min="1" max="8" style="width:120px">
+    </div>
+    <div class="control">
+      <button class="button is-success" id="finish-md-btn">Закончить тур</button>
+    </div>
+  </div>
+  <div id="finished-status" class="mt-2"></div>
+</div>
+{% endif %}
 <div id="lineups-container">Загрузка...</div>
 
 <div id="points-modal" class="modal">
@@ -24,7 +37,11 @@
   #lineups-container .tabs ul { flex-grow:0; }
   .player-row { display:flex; justify-content:space-between; align-items:center; white-space:nowrap; }
   .player-name { overflow:hidden; text-overflow:ellipsis; margin-right:6px; }
-  .points-box { background:#add8e6; border-radius:4px; padding:0 6px; min-width:2em; text-align:center; cursor:pointer; }
+  .points-box { background:#add8e6; border-radius:4px; padding:0 6px; min-width:2.4em; text-align:center; cursor:pointer; }
+  .team-logo { width:25px; height:25px; object-fit:contain; margin-right:6px; }
+  .player-portrait { width:25px; height:25px; border-radius:50%; object-fit:cover; margin-right:20px; }
+  .player-info { display:flex; align-items:center; overflow:hidden; }
+  .player-text { overflow:hidden; text-overflow:ellipsis; }
 </style>
 
 <script>
@@ -40,6 +57,56 @@ document.addEventListener('DOMContentLoaded', () => {
   const url = `{{ url_for('ucl.ucl_results_data') }}`;
 
   const posOrder = { GK:0, DEF:1, MID:2, FWD:3 };
+
+  // Godmode functionality
+  {% if session.get('godmode') %}
+  const finishBtn = document.getElementById('finish-md-btn');
+  const finishInput = document.getElementById('finish-md-input');
+  const finishedStatus = document.getElementById('finished-status');
+  
+  const loadFinishedStatus = () => {
+    fetch('{{ url_for("ucl.matchday_status") }}')
+      .then(r => r.json())
+      .then(data => {
+        if (data.finished_matchdays && data.finished_matchdays.length > 0) {
+          finishedStatus.innerHTML = `<span class="tag is-success">Завершенные туры: ${data.finished_matchdays.join(', ')}</span>`;
+        } else {
+          finishedStatus.innerHTML = '<span class="tag is-light">Нет завершенных туров</span>';
+        }
+      })
+      .catch(err => console.error('Error loading status:', err));
+  };
+  
+  finishBtn.addEventListener('click', () => {
+    const md = finishInput.value;
+    if (!md) return;
+    
+    const form = new FormData();
+    form.append('md', md);
+    
+    fetch('{{ url_for("ucl.finish_matchday") }}', {
+      method: 'POST',
+      body: form
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) {
+        finishInput.value = '';
+        loadFinishedStatus();
+        // Reload results to reflect changes
+        fetch(url).then(r => r.json()).then(render);
+      } else {
+        alert('Ошибка: ' + (data.error || 'Неизвестная ошибка'));
+      }
+    })
+    .catch(err => {
+      console.error('Error finishing matchday:', err);
+      alert('Ошибка при завершении тура');
+    });
+  });
+  
+  loadFinishedStatus();
+  {% endif %}
 
   const showPopup = p => {
     modalBody.innerHTML = '';
@@ -155,10 +222,45 @@ document.addEventListener('DOMContentLoaded', () => {
         div.style.padding = '2px 4px';
         div.style.marginBottom = '1px';
         
+        // Create player info container with images
+        const infoWrap = document.createElement('span');
+        infoWrap.className = 'player-info';
+        
+        // Add club logo
+        const logo = document.createElement('img');
+        logo.className = 'team-logo';
+        if (p.teamId) {
+          logo.src = `https://img.uefa.com/imgml/TP/teams/logos/140x140/${p.teamId}.png`;
+        } else {
+          logo.src = 'https://img.uefa.com/imgml/TP/teams/logos/140x140/0.png';
+        }
+        logo.alt = p.club || '';
+        infoWrap.appendChild(logo);
+        
+        // Add player portrait
+        const portrait = document.createElement('img');
+        portrait.className = 'player-portrait';
+        if (p.playerId) {
+          portrait.src = `https://img.uefa.com/imgml/TP/players/1/2026/324x324/${p.playerId}.jpg`;
+        } else {
+          portrait.src = 'https://gaming.uefa.com/en/uclfantasy/static-assets/ucl2020/images/default_player@2x.png';
+        }
+        portrait.onerror = () => {
+          portrait.src = 'https://gaming.uefa.com/en/uclfantasy/static-assets/ucl2020/images/default_player@2x.png';
+        };
+        portrait.alt = p.name;
+        infoWrap.appendChild(portrait);
+        
+        // Add player name and position text
         const nameSpan = document.createElement('span');
-        nameSpan.className = 'player-name';
+        nameSpan.className = 'player-text';
         nameSpan.textContent = `${p.name} (${p.pos || '?'})`;
-        div.appendChild(nameSpan);
+        if (p.club && !p.teamId) {
+          nameSpan.textContent += ` - ${p.club}`;
+        }
+        infoWrap.appendChild(nameSpan);
+        
+        div.appendChild(infoWrap);
         
         const pointsSpan = document.createElement('span');
         pointsSpan.className = 'points-box';
