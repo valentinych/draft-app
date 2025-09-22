@@ -150,6 +150,35 @@
   </div>
   {% endif %}
 
+  {# DEBUG: Transfer window info #}
+  {% if table_league == 'ucl' %}
+  <div class="card" style="margin:10px 0; border: 2px solid #dc3545; background: #ffeeee;">
+    <div class="card-title" style="background: #dc3545; color: white;">
+      🔍 DEBUG: Transfer Window Info
+    </div>
+    <div class="card-body">
+      <p><strong>transfer_window_active:</strong> {{ transfer_window_active }}</p>
+      <p><strong>current_user:</strong> {{ current_user }}</p>
+      <p><strong>current_transfer_manager:</strong> {{ current_transfer_manager }}</p>
+      <p><strong>user_roster length:</strong> {{ user_roster|length if user_roster else 'None' }}</p>
+      <p><strong>Condition check:</strong> 
+        table_league=='ucl': {{ table_league == 'ucl' }}, 
+        transfer_window_active: {{ transfer_window_active }}, 
+        current_user==current_transfer_manager: {{ current_user == current_transfer_manager }}, 
+        user_roster exists: {{ user_roster is defined and user_roster }}
+      </p>
+      {% if user_roster %}
+      <p><strong>User roster players:</strong></p>
+      <ul>
+        {% for player in user_roster %}
+        <li>{{ player.fullName or player.name }} ({{ player.position }})</li>
+        {% endfor %}
+      </ul>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
   {# Transfer interface for UCL when window is active #}
   {% if table_league == 'ucl' and transfer_window_active and current_user == current_transfer_manager and user_roster %}
   <div class="card" style="margin:10px 0; border: 2px solid #ff6b35;">
