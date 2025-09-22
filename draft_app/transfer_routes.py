@@ -78,7 +78,10 @@ def execute_transfer(draft_type: str):
         }
         
         if not out_player_id or not in_player_data["playerId"]:
-            flash("Некорректные данные трансфера", "danger")
+            error_msg = "Некорректные данные трансфера"
+            if request.headers.get('Content-Type') == 'application/x-www-form-urlencoded':
+                return jsonify({"success": False, "error": error_msg})
+            flash(error_msg, "danger")
             return redirect(request.referrer or url_for("home.index"))
         
         # Validate transfer (skip window check since we already checked)
