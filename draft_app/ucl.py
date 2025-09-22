@@ -902,10 +902,14 @@ def index():
         from .transfer_system import create_transfer_system
         transfer_system = create_transfer_system("ucl")
         
+        print(f"[UCL] Transfer system created for user: {current_user_name}")
+        
         # Use transfer system to check if window is active
         is_window_active = transfer_system.is_transfer_window_active(state)
         active_window = transfer_system.get_active_transfer_window(state)
         current_manager = transfer_system.get_current_transfer_manager(state)
+        
+        print(f"[UCL] Initial check - is_window_active: {is_window_active}, current_manager: {current_manager}")
         
         # Check for legacy transfer_window structure (same as transfer_routes.py)
         legacy_window = state.get("transfer_window")
@@ -928,19 +932,12 @@ def index():
                 # Also check if we need to get the transfer order from UCL results
                 if not participants or participants == ['']:
                     try:
-                        results = _build_ucl_results(state)
-                        # Sort managers by total points (worst first for transfer priority)
-                        manager_scores = []
-                        for manager, data in results["lineups"].items():
-                            total = data.get("total", 0)
-                            manager_scores.append((manager, total))
-                        
-                        # Sort by total points ascending (worst first)
-                        manager_scores.sort(key=lambda x: x[1])
-                        participants = [manager for manager, _ in manager_scores]
-                    except Exception:
                         from .config import UCL_USERS
                         participants = UCL_USERS
+                        print(f"[UCL] Using UCL_USERS as fallback: {participants}")
+                    except Exception as e:
+                        print(f"[UCL] Error getting UCL_USERS: {e}")
+                        participants = ["Сергей", "Андрей", "Серёга Б", "Женя", "Ксана", "Саша", "Руслан", "Макс"]
                 
                 active_window = {
                     "gw": 1,  # Default GW since legacy doesn't store it
