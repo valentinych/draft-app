@@ -439,7 +439,7 @@ def init_transfers_for_league(
 ) -> bool:
     """Initialize transfer window for a league"""
     try:
-        ts = get_transfer_system(draft_type)
+        ts = create_transfer_system(draft_type)
         state = ts.load_state()
         
         # Set up transfer window
