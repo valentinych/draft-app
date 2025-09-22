@@ -278,8 +278,8 @@ document.addEventListener('DOMContentLoaded', () => {
       // Tab click handler
       a.addEventListener('click', e => {
         e.preventDefault();
-        // Hide all manager divs
-        contents.querySelectorAll('div').forEach(div => div.style.display = 'none');
+        // Hide all manager divs (only direct children of contents)
+        Array.from(contents.children).forEach(div => div.style.display = 'none');
         // Show this manager's div
         mgrDiv.style.display = 'block';
         // Update active tab
