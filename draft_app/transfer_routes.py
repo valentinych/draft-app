@@ -217,23 +217,25 @@ def transfer_history(draft_type: str):
         print(f"[DEBUG] transfer_history - active_window: {active_window}")
         print(f"[DEBUG] transfer_history - current_manager: {current_manager}")
         
-        if legacy_window and legacy_window.get("active") and not active_window:
-            # Convert legacy structure to expected format
-            participants = legacy_window.get("participant_order", [])
-            current_index = legacy_window.get("current_index", 0)
-            print(f"[DEBUG] Converting legacy - participants: {participants}, current_index: {current_index}")
-            
-            active_window = {
-                "gw": 1,  # Default GW since legacy doesn't store it
-                "total_rounds": 1,
-                "current_round": 1,
-                "current_manager_index": current_index,
-                "managers_order": participants
-            }
-            current_manager = participants[current_index] if current_index < len(participants) else None
-            is_window_active = True
-            print(f"[DEBUG] Converted - active_window: {active_window}")
-            print(f"[DEBUG] Converted - current_manager: {current_manager}")
+        # Check if we have legacy transfer_window but no proper active_window managers_order
+        if legacy_window and legacy_window.get("active"):
+            if not active_window or not active_window.get("managers_order"):
+                # Convert legacy structure to expected format
+                participants = legacy_window.get("participant_order", [])
+                current_index = legacy_window.get("current_index", 0)
+                print(f"[DEBUG] Converting legacy - participants: {participants}, current_index: {current_index}")
+                
+                active_window = {
+                    "gw": 1,  # Default GW since legacy doesn't store it
+                    "total_rounds": 1,
+                    "current_round": 1,
+                    "current_manager_index": current_index,
+                    "managers_order": participants
+                }
+                current_manager = participants[current_index] if current_index < len(participants) else None
+                is_window_active = True
+                print(f"[DEBUG] Converted - active_window: {active_window}")
+                print(f"[DEBUG] Converted - current_manager: {current_manager}")
         
         # Get user's current roster for transfer out selection
         user_roster = []
