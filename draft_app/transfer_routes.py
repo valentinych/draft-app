@@ -224,6 +224,14 @@ def transfer_history(draft_type: str):
                 participants = legacy_window.get("participant_order", [])
                 current_index = legacy_window.get("current_index", 0)
                 print(f"[DEBUG] Converting legacy - participants: {participants}, current_index: {current_index}")
+                print(f"[DEBUG] Raw legacy_window contents: {legacy_window}")
+                
+                # Filter out empty participants and use UCL_USERS if participants is empty
+                participants = [p for p in participants if p and p.strip()]
+                if not participants:
+                    from .config import UCL_USERS
+                    participants = UCL_USERS
+                    print(f"[DEBUG] Used UCL_USERS as participants: {participants}")
                 
                 active_window = {
                     "gw": 1,  # Default GW since legacy doesn't store it
