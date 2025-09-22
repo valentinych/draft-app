@@ -219,19 +219,46 @@ def transfer_history(draft_type: str):
         
         # Check if we have legacy transfer_window but no proper active_window managers_order
         if legacy_window and legacy_window.get("active"):
-            if not active_window or not active_window.get("managers_order"):
+            # Always check if managers_order is empty or contains empty strings
+            if not active_window or not active_window.get("managers_order") or active_window.get("managers_order") == ['']:
                 # Convert legacy structure to expected format
                 participants = legacy_window.get("participant_order", [])
                 current_index = legacy_window.get("current_index", 0)
-                print(f"[DEBUG] Converting legacy - participants: {participants}, current_index: {current_index}")
+                print(f"[DEBUG] Converting legacy - participants BEFORE filter: {participants}, current_index: {current_index}")
                 print(f"[DEBUG] Raw legacy_window contents: {legacy_window}")
                 
                 # Filter out empty participants and use UCL_USERS if participants is empty
                 participants = [p for p in participants if p and p.strip()]
+                print(f"[DEBUG] Participants AFTER filter: {participants}")
+                
                 if not participants:
                     from .config import UCL_USERS
                     participants = UCL_USERS
                     print(f"[DEBUG] Used UCL_USERS as participants: {participants}")
+                
+                # Also check if we need to get the transfer order from UCL results
+                if not participants or participants == ['']:
+                    print("[DEBUG] Participants still empty, trying to get from UCL results...")
+                    try:
+                        from .ucl import _ucl_state_load, _build_ucl_results
+                        ucl_state = _ucl_state_load()
+                        results = _build_ucl_results(ucl_state)
+                        
+                        # Sort managers by total points (worst first for transfer priority)
+                        manager_scores = []
+                        for manager, data in results["lineups"].items():
+                            total = data.get("total", 0)
+                            manager_scores.append((manager, total))
+                        
+                        # Sort by total points ascending (worst first)
+                        manager_scores.sort(key=lambda x: x[1])
+                        participants = [manager for manager, _ in manager_scores]
+                        print(f"[DEBUG] Got participants from UCL results: {participants}")
+                    except Exception as e:
+                        print(f"[DEBUG] Failed to get UCL results: {e}")
+                        from .config import UCL_USERS
+                        participants = UCL_USERS
+                        print(f"[DEBUG] Fallback to UCL_USERS: {participants}")
                 
                 active_window = {
                     "gw": 1,  # Default GW since legacy doesn't store it
