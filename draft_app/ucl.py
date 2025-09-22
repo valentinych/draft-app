@@ -899,63 +899,24 @@ def index():
     user_roster = []
     
     try:
+        # FORCE the transfer window to be active since we know it works on transfer page
+        # The issue is that transfer system reads from different state than UCL main page
+        
+        # Let's load the transfer system state directly
         from .transfer_system import create_transfer_system
         transfer_system = create_transfer_system("ucl")
+        transfer_state = transfer_system.load_state()  # This loads the correct state
         
-        print(f"[UCL] Transfer system created for user: {current_user_name}")
+        print(f"[UCL] UCL state has transfer_window: {state.get('transfer_window')}")
+        print(f"[UCL] Transfer state has transfer_window: {transfer_state.get('transfer_window')}")
         
-        # Use transfer system to check if window is active
-        is_window_active = transfer_system.is_transfer_window_active(state)
-        active_window = transfer_system.get_active_transfer_window(state)
-        current_manager = transfer_system.get_current_transfer_manager(state)
+        # Check legacy window from transfer state (not UCL state)
+        legacy_window = transfer_state.get("transfer_window")
         
-        print(f"[UCL] Initial check - is_window_active: {is_window_active}, current_manager: {current_manager}")
-        
-        # Check for legacy transfer_window structure (same as transfer_routes.py)
-        legacy_window = state.get("transfer_window")
-        
-        print(f"[UCL] legacy_window: {legacy_window}")
-        print(f"[UCL] active_window from transfer_system: {active_window}")
-        
-        # Same conversion logic as in transfer_routes.py
         if legacy_window and legacy_window.get("active"):
-            print(f"[UCL] Found active legacy window")
-            # Always check if managers_order is empty or contains empty strings
-            if not active_window or not active_window.get("managers_order") or active_window.get("managers_order") == ['']:
-                # Convert legacy structure to expected format
-                participants = legacy_window.get("participant_order", [])
-                current_index = legacy_window.get("current_index", 0)
-                
-                # Filter out empty participants
-                participants = [p for p in participants if p and p.strip()]
-                
-                if not participants:
-                    from .config import UCL_USERS
-                    participants = UCL_USERS
-                
-                # Also check if we need to get the transfer order from UCL results
-                if not participants or participants == ['']:
-                    try:
-                        from .config import UCL_USERS
-                        participants = UCL_USERS
-                        print(f"[UCL] Using UCL_USERS as fallback: {participants}")
-                    except Exception as e:
-                        print(f"[UCL] Error getting UCL_USERS: {e}")
-                        participants = ["Сергей", "Андрей", "Серёга Б", "Женя", "Ксана", "Саша", "Руслан", "Макс"]
-                
-                active_window = {
-                    "gw": 1,  # Default GW since legacy doesn't store it
-                    "total_rounds": 1,
-                    "current_round": 1,
-                    "current_manager_index": current_index,
-                    "managers_order": participants
-                }
-                current_manager = participants[current_index] if current_index < len(participants) else None
-                is_window_active = True
-        
-        # Set final values - force True if we have legacy window
-        if legacy_window and legacy_window.get("active"):
+            print(f"[UCL] Found active legacy window in transfer state: {legacy_window}")
             transfer_window_active = True
+            
             # Get manager from legacy window directly
             participant_order = legacy_window.get("participant_order", [])
             current_index = legacy_window.get("current_index", 0)
@@ -969,11 +930,12 @@ def index():
                 current_transfer_manager = participants[current_index]
             else:
                 current_transfer_manager = None
-            
-            print(f"[UCL] Using legacy window - transfer_window_active: {transfer_window_active}, current_transfer_manager: {current_transfer_manager}")
+                
+            print(f"[UCL] Final values - transfer_window_active: {transfer_window_active}, current_transfer_manager: {current_transfer_manager}")
         else:
-            transfer_window_active = is_window_active
-            current_transfer_manager = current_manager
+            print(f"[UCL] No active legacy window found")
+            transfer_window_active = False
+            current_transfer_manager = None
         
         # Get user's current roster if transfer window is active and it's their turn
         if transfer_window_active and current_user_name == current_transfer_manager:
