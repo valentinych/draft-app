@@ -2,6 +2,21 @@
 {% block title %}Расписание Топ-4{% endblock %}
 {% block content %}
 <h1 class="title">Расписание лиг</h1>
+
+<style>
+.transfer-window {
+  background-color: #fef0e7 !important;
+  font-style: italic;
+  color: #8b4513;
+  text-align: center;
+}
+.transfer-window td {
+  font-weight: bold;
+}
+</style>
+
+{% set transfer_windows = {4: 3, 8: 1, 12: 2, 16: 1, 20: 3, 24: 1, 28: 2} %}
+
 <div class="columns is-multiline">
   {% for league, rounds in schedule.items() %}
   <div class="column is-half-tablet is-one-quarter-desktop">
@@ -13,6 +28,12 @@
           <td>Тур {{ r.round }} ({{ 'GW' ~ r.gw if r.gw is not none else '—' }})</td>
           <td>{{ r.date }}</td>
         </tr>
+        {# Add transfer window after specific GWs #}
+        {% if r.gw and r.gw in transfer_windows %}
+        <tr class="transfer-window">
+          <td colspan="2">transfers ({{ transfer_windows[r.gw] }})</td>
+        </tr>
+        {% endif %}
       {% endfor %}
       </tbody>
     </table>
