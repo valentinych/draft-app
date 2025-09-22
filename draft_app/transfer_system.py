@@ -189,22 +189,37 @@ class TransferSystem:
     
     def get_current_transfer_manager(self, state: Dict[str, Any]) -> Optional[str]:
         """Get manager who should make next transfer"""
+        print(f"[TransferSystem] get_current_transfer_manager - draft_type: {self.draft_type}")
+        
         # First try standard format
         active_window = self.get_active_transfer_window(state)
         
         if active_window:
             managers_order = active_window.get("managers_order", [])
             current_index = active_window.get("current_manager_index", 0)
+            print(f"[TransferSystem] standard format - managers_order: {managers_order}, current_index: {current_index}")
             
-            if current_index < len(managers_order):
-                return managers_order[current_index]
+            # Filter out empty strings from managers_order
+            valid_managers = [m for m in managers_order if m and m.strip()]
+            print(f"[TransferSystem] valid_managers after filtering: {valid_managers}")
+            
+            if current_index < len(valid_managers):
+                manager = valid_managers[current_index]
+                print(f"[TransferSystem] standard format returning: {manager}")
+                return manager
+            elif len(valid_managers) == 0:
+                print(f"[TransferSystem] no valid managers in standard format, trying legacy")
+            else:
+                print(f"[TransferSystem] current_index {current_index} >= valid_managers length {len(valid_managers)}")
         
         # Fallback to legacy format (for UCL)
         legacy_window = state.get("transfer_window")
+        print(f"[TransferSystem] legacy_window: {legacy_window}")
         if legacy_window and legacy_window.get("active"):
             participant_order = legacy_window.get("participant_order", [])
             current_index = legacy_window.get("current_index", 0)
             participants = [p for p in participant_order if p and p.strip()]
+            print(f"[TransferSystem] legacy format - participants: {participants}, current_index: {current_index}")
             
             if not participants:
                 # Fallback to default users if needed
@@ -212,12 +227,16 @@ class TransferSystem:
                     try:
                         from .config import UCL_USERS
                         participants = UCL_USERS
+                        print(f"[TransferSystem] using UCL_USERS fallback: {participants}")
                     except ImportError:
                         participants = []
             
             if current_index < len(participants):
-                return participants[current_index]
-                
+                manager = participants[current_index]
+                print(f"[TransferSystem] legacy format returning: {manager}")
+                return manager
+        
+        print(f"[TransferSystem] no manager found, returning None")        
         return None
     
     def normalize_player_data(self, player: Dict[str, Any], current_gw: int) -> Dict[str, Any]:
