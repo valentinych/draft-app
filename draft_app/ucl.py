@@ -914,8 +914,12 @@ def index():
         # Check for legacy transfer_window structure (same as transfer_routes.py)
         legacy_window = state.get("transfer_window")
         
+        print(f"[UCL] legacy_window: {legacy_window}")
+        print(f"[UCL] active_window from transfer_system: {active_window}")
+        
         # Same conversion logic as in transfer_routes.py
         if legacy_window and legacy_window.get("active"):
+            print(f"[UCL] Found active legacy window")
             # Always check if managers_order is empty or contains empty strings
             if not active_window or not active_window.get("managers_order") or active_window.get("managers_order") == ['']:
                 # Convert legacy structure to expected format
@@ -949,9 +953,27 @@ def index():
                 current_manager = participants[current_index] if current_index < len(participants) else None
                 is_window_active = True
         
-        # Set final values
-        transfer_window_active = is_window_active
-        current_transfer_manager = current_manager
+        # Set final values - force True if we have legacy window
+        if legacy_window and legacy_window.get("active"):
+            transfer_window_active = True
+            # Get manager from legacy window directly
+            participant_order = legacy_window.get("participant_order", [])
+            current_index = legacy_window.get("current_index", 0)
+            participants = [p for p in participant_order if p and p.strip()]
+            
+            if not participants:
+                from .config import UCL_USERS
+                participants = UCL_USERS
+            
+            if current_index < len(participants):
+                current_transfer_manager = participants[current_index]
+            else:
+                current_transfer_manager = None
+            
+            print(f"[UCL] Using legacy window - transfer_window_active: {transfer_window_active}, current_transfer_manager: {current_transfer_manager}")
+        else:
+            transfer_window_active = is_window_active
+            current_transfer_manager = current_manager
         
         # Get user's current roster if transfer window is active and it's their turn
         if transfer_window_active and current_user_name == current_transfer_manager:
