@@ -872,25 +872,8 @@ def index():
                     state["draft_completed"] = True
                 _ucl_state_save(state)
 
-        # Redirect to GET to show updated table
-        return render_template(
-            "index.html",
-            draft_title=draft_title,
-            players=[p for p in _players_from_ucl(raw) if str(p.get("playerId")) not in _picked_ids_from_state(state)],
-            clubs=_uniq_sorted([p.get("clubName") for p in _players_from_ucl(raw)]),
-            positions=_uniq_sorted([p.get("position") for p in _players_from_ucl(raw)]),
-            club_filter="",
-            pos_filter="",
-            table_league="ucl",
-            current_user=session.get("user_name"),
-            next_user=_who_is_on_clock(state) or state.get("next_user"),
-            next_round=state.get("next_round"),
-            draft_completed=bool(state.get("draft_completed")),
-            status_url=url_for("ucl.status"),
-            undo_url=url_for("ucl.undo_last_pick"),
-            managers=sorted((state.get("rosters") or {}).keys()),
-            stats_refresh_running=_stats_refresh_running(),
-        )
+        # Redirect to GET to show updated table - redirect to avoid resubmission
+        return redirect(url_for('ucl.index'))
 
     # filters
     club_filter = request.args.get("club", "").strip()
@@ -909,6 +892,42 @@ def index():
     draft_completed = bool(state.get("draft_completed"))
     _annotate_can_pick_ucl(filtered, state, session.get("user_name"))
 
+    # Transfer window info
+    current_user_name = session.get("user_name")
+    transfer_window_active = False
+    current_transfer_manager = None
+    user_roster = []
+    
+    # Check if transfer window is active
+    legacy_window = state.get("transfer_window")
+    active_window = state.get("transfers", {}).get("active_window")
+    
+    if legacy_window and legacy_window.get("active"):
+        transfer_window_active = True
+        participant_order = legacy_window.get("participant_order", [])
+        current_index = legacy_window.get("current_index", 0)
+        
+        # Filter out empty participants
+        participants = [p for p in participant_order if p and p.strip()]
+        if not participants:
+            from .config import UCL_USERS
+            participants = UCL_USERS
+        
+        if current_index < len(participants):
+            current_transfer_manager = participants[current_index]
+    elif active_window and active_window.get("managers_order"):
+        transfer_window_active = True
+        managers_order = active_window.get("managers_order", [])
+        current_manager_index = active_window.get("current_manager_index", 0)
+        if current_manager_index < len(managers_order):
+            current_transfer_manager = managers_order[current_manager_index]
+    
+    # Get user's current roster if transfer window is active and it's their turn
+    if transfer_window_active and current_user_name == current_transfer_manager:
+        rosters = state.get("rosters", {})
+        if current_user_name in rosters:
+            user_roster = rosters[current_user_name] or []
+
     return render_template(
         "index.html",
         draft_title=draft_title,
@@ -918,7 +937,7 @@ def index():
         club_filter=club_filter,
         pos_filter=pos_filter,
         table_league="ucl",
-        current_user=session.get("user_name"),
+        current_user=current_user_name,
         next_user=next_user,
         next_round=next_round,
         draft_completed=draft_completed,
@@ -926,6 +945,10 @@ def index():
         undo_url=url_for("ucl.undo_last_pick"),
         managers=sorted((state.get("rosters") or {}).keys()),
         stats_refresh_running=_stats_refresh_running(),
+        # Transfer window info
+        transfer_window_active=transfer_window_active,
+        current_transfer_manager=current_transfer_manager,
+        user_roster=user_roster,
     )
 
 

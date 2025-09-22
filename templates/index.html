@@ -150,6 +150,62 @@
   </div>
   {% endif %}
 
+  {# Transfer interface for UCL when window is active #}
+  {% if table_league == 'ucl' and transfer_window_active and current_user == current_transfer_manager and user_roster %}
+  <div class="card" style="margin:10px 0; border: 2px solid #ff6b35;">
+    <div class="card-title" style="background: #ff6b35; color: white;">
+      ⚽ Ваш ход в трансферном окне - выберите игрока для transfer out
+    </div>
+    <div class="card-body">
+      <div style="display: flex; flex-wrap: wrap; gap: 10px;">
+        {% set positions = ['GK', 'DEF', 'MID', 'FWD'] %}
+        {% for pos in positions %}
+          {% set players_in_pos = user_roster | selectattr('position', 'equalto', pos) | list %}
+          {% if players_in_pos %}
+          <div style="min-width: 200px;">
+            <h6 style="font-weight: bold; margin-bottom: 5px; color: #333;">{{ pos }}</h6>
+            <div style="display: flex; flex-direction: column; gap: 5px;">
+              {% for player in players_in_pos %}
+              <button class="btn btn-small" style="background: #ffeaa7; border: 1px solid #fdcb6e; text-align: left; padding: 8px;"
+                      onclick="selectPlayerForTransferOut({{ player.playerId or player.id }}, '{{ player.fullName or player.name }}', '{{ player.clubName or player.club }}', '{{ player.position }}')">
+                <strong>{{ player.fullName or player.name }}</strong><br>
+                <small style="color: #666;">{{ player.clubName or player.club }}</small>
+              </button>
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+      
+      <div style="margin-top: 15px; padding: 10px; background: #f8f9fa; border-radius: 5px;">
+        <h6 style="font-weight: bold; margin-bottom: 10px;">📝 Как делать трансфер:</h6>
+        <ol style="margin: 0; padding-left: 20px; line-height: 1.6;">
+          <li><strong>Выберите игрока</strong> для отдачи из списка выше</li>
+          <li><strong>Подтвердите выбор</strong> в появившемся окне</li>
+          <li><strong>Выберите замену</strong> из доступных игроков (transfer out пул)</li>
+          <li><strong>Подтвердите трансфер</strong> - ход переходит к следующему</li>
+        </ol>
+        <p style="margin: 10px 0 0 0; color: #6c757d; font-size: 14px;">
+          ℹ️ <strong>Лимиты:</strong> Соблюдаются ограничения по позициям и клубам. 
+          Доступны только игроки из transfer out пула (отданные другими менеджерами).
+        </p>
+      </div>
+    </div>
+  </div>
+  {% elif table_league == 'ucl' and transfer_window_active and current_transfer_manager %}
+  <div class="card" style="margin:10px 0; border: 2px solid #74b9ff;">
+    <div class="card-title" style="background: #74b9ff; color: white;">
+      🕒 Трансферное окно активно
+    </div>
+    <div class="card-body">
+      <p><strong>Сейчас ход:</strong> {{ current_transfer_manager }}</p>
+      <p>Ожидайте своей очереди для выбора трансфера.</p>
+      <p><small><a href="{{ url_for('transfers.transfer_history', draft_type='ucl') }}">Перейти на страницу трансферов →</a></small></p>
+    </div>
+  </div>
+  {% endif %}
+
   {% set show_price = players and players[0].get('price') is not none %}
   {% set current_sort = request.args.get('sort') or 'price' %}
   {% set current_dir = request.args.get('dir', 'desc') %}
@@ -325,4 +381,196 @@
 <script src="{{ url_for('static', filename='js/draft_common.js') }}"></script>
 {% endif %}
 <script src="{{ url_for('static', filename='wishlist.js') }}"></script>
+
+{# Transfer functionality for UCL #}
+{% if table_league == 'ucl' and transfer_window_active %}
+<script>
+// Transfer functions for UCL main page
+function selectPlayerForTransferOut(playerId, playerName, playerClub, playerPosition) {
+  if (confirm(`Отдать игрока ${playerName} (${playerClub}, ${playerPosition}) в transfer out пул?`)) {
+    // Show loading state
+    const buttons = document.querySelectorAll('button[onclick*="selectPlayerForTransferOut"]');
+    buttons.forEach(btn => {
+      btn.disabled = true;
+      btn.style.opacity = '0.6';
+    });
+    
+    // Send transfer out request
+    fetch('/transfers/ucl/pick-transfer-player', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: `out_player_id=${playerId}`
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        // Show available replacement players
+        showAvailableTransferPlayers(playerId);
+      } else {
+        alert('Ошибка при отправке игрока: ' + (data.error || 'Неизвестная ошибка'));
+        // Re-enable buttons
+        buttons.forEach(btn => {
+          btn.disabled = false;
+          btn.style.opacity = '1';
+        });
+      }
+    })
+    .catch(error => {
+      console.error('Transfer out error:', error);
+      alert('Ошибка при отправке игрока: ' + error.message);
+      // Re-enable buttons
+      buttons.forEach(btn => {
+        btn.disabled = false;
+        btn.style.opacity = '1';
+      });
+    });
+  }
+}
+
+function showAvailableTransferPlayers(outPlayerId) {
+  // Fetch available players for transfer in
+  fetch('/transfers/ucl/available-players')
+    .then(response => response.json())
+    .then(data => {
+      if (data.success && data.players && data.players.length > 0) {
+        displayAvailablePlayers(data.players, outPlayerId);
+      } else {
+        alert('Нет доступных игроков для трансфера');
+        window.location.reload(); // Reload to show updated state
+      }
+    })
+    .catch(error => {
+      console.error('Available players error:', error);
+      alert('Ошибка при получении доступных игроков: ' + error.message);
+      window.location.reload();
+    });
+}
+
+function displayAvailablePlayers(players, outPlayerId) {
+  // Create modal for player selection
+  const modal = document.createElement('div');
+  modal.style.cssText = `
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+    background: rgba(0,0,0,0.5); z-index: 1000; display: flex; 
+    align-items: center; justify-content: center; padding: 20px;
+  `;
+  
+  const modalContent = document.createElement('div');
+  modalContent.style.cssText = `
+    background: white; padding: 20px; border-radius: 8px; 
+    max-width: 800px; max-height: 80vh; overflow-y: auto; width: 100%;
+  `;
+  
+  modalContent.innerHTML = `
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+      <h3 style="margin: 0;">Выберите игрока для transfer in</h3>
+      <button onclick="closeTransferReplacementModal()" style="background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">✕</button>
+    </div>
+    <div id="available-players-list"></div>
+  `;
+  
+  modal.appendChild(modalContent);
+  document.body.appendChild(modal);
+  modal.id = 'transfer-replacement-modal';
+  
+  // Group players by position
+  const positions = ['GK', 'DEF', 'MID', 'FWD'];
+  const playersByPosition = {};
+  players.forEach(player => {
+    const pos = player.position || 'OTHER';
+    if (!playersByPosition[pos]) playersByPosition[pos] = [];
+    playersByPosition[pos].push(player);
+  });
+  
+  const listContainer = document.getElementById('available-players-list');
+  positions.forEach(pos => {
+    if (playersByPosition[pos] && playersByPosition[pos].length > 0) {
+      const posSection = document.createElement('div');
+      posSection.style.marginBottom = '20px';
+      
+      const posTitle = document.createElement('h4');
+      posTitle.textContent = pos;
+      posTitle.style.cssText = 'margin-bottom: 10px; color: #333; border-bottom: 1px solid #eee; padding-bottom: 5px;';
+      posSection.appendChild(posTitle);
+      
+      const playersGrid = document.createElement('div');
+      playersGrid.style.cssText = 'display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px;';
+      
+      playersByPosition[pos].forEach(player => {
+        const playerBtn = document.createElement('button');
+        playerBtn.style.cssText = `
+          background: #e8f5e8; border: 1px solid #28a745; padding: 10px; 
+          border-radius: 5px; text-align: left; cursor: pointer; transition: background 0.2s;
+        `;
+        playerBtn.innerHTML = `
+          <strong>${player.fullName || player.name}</strong><br>
+          <small style="color: #666;">${player.clubName || player.club}</small>
+        `;
+        playerBtn.onmouseover = () => playerBtn.style.background = '#d4edda';
+        playerBtn.onmouseout = () => playerBtn.style.background = '#e8f5e8';
+        playerBtn.onclick = () => selectReplacementPlayer(outPlayerId, player.playerId || player.id, player.fullName || player.name, player.clubName || player.club, player.position);
+        
+        playersGrid.appendChild(playerBtn);
+      });
+      
+      posSection.appendChild(playersGrid);
+      listContainer.appendChild(posSection);
+    }
+  });
+  
+  // Close modal on background click
+  modal.onclick = (e) => {
+    if (e.target === modal) closeTransferReplacementModal();
+  };
+}
+
+function selectReplacementPlayer(outPlayerId, inPlayerId, inPlayerName, inPlayerClub, inPlayerPosition) {
+  if (confirm(`Взять игрока ${inPlayerName} (${inPlayerClub}, ${inPlayerPosition}) в команду?`)) {
+    // Execute the transfer
+    fetch('/transfers/ucl/execute', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: `out_player_id=${outPlayerId}&in_player_id=${inPlayerId}`
+    })
+    .then(response => {
+      if (response.redirected) {
+        window.location.href = response.url;
+        return;
+      }
+      return response.json();
+    })
+    .then(data => {
+      if (data && !data.success) {
+        alert('Ошибка при выполнении трансфера: ' + (data.error || 'Неизвестная ошибка'));
+      } else {
+        // Success - reload page to show updated state
+        window.location.reload();
+      }
+    })
+    .catch(error => {
+      console.error('Execute transfer error:', error);
+      alert('Ошибка при выполнении трансфера: ' + error.message);
+    });
+  }
+}
+
+function closeTransferReplacementModal() {
+  const modal = document.getElementById('transfer-replacement-modal');
+  if (modal) {
+    modal.remove();
+  }
+  // Re-enable transfer out buttons
+  const buttons = document.querySelectorAll('button[onclick*="selectPlayerForTransferOut"]');
+  buttons.forEach(btn => {
+    btn.disabled = false;
+    btn.style.opacity = '1';
+  });
+}
+</script>
+{% endif %}
+
 {% endblock %}
