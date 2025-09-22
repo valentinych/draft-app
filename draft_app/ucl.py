@@ -892,41 +892,82 @@ def index():
     draft_completed = bool(state.get("draft_completed"))
     _annotate_can_pick_ucl(filtered, state, session.get("user_name"))
 
-    # Transfer window info
+    # Transfer window info - use same logic as transfer_routes.py
     current_user_name = session.get("user_name")
     transfer_window_active = False
     current_transfer_manager = None
     user_roster = []
     
-    # Check if transfer window is active
-    legacy_window = state.get("transfer_window")
-    active_window = state.get("transfers", {}).get("active_window")
-    
-    if legacy_window and legacy_window.get("active"):
-        transfer_window_active = True
-        participant_order = legacy_window.get("participant_order", [])
-        current_index = legacy_window.get("current_index", 0)
+    try:
+        from .transfer_system import create_transfer_system
+        transfer_system = create_transfer_system("ucl")
         
-        # Filter out empty participants
-        participants = [p for p in participant_order if p and p.strip()]
-        if not participants:
-            from .config import UCL_USERS
-            participants = UCL_USERS
+        # Use transfer system to check if window is active
+        is_window_active = transfer_system.is_transfer_window_active(state)
+        active_window = transfer_system.get_active_transfer_window(state)
+        current_manager = transfer_system.get_current_transfer_manager(state)
         
-        if current_index < len(participants):
-            current_transfer_manager = participants[current_index]
-    elif active_window and active_window.get("managers_order"):
-        transfer_window_active = True
-        managers_order = active_window.get("managers_order", [])
-        current_manager_index = active_window.get("current_manager_index", 0)
-        if current_manager_index < len(managers_order):
-            current_transfer_manager = managers_order[current_manager_index]
-    
-    # Get user's current roster if transfer window is active and it's their turn
-    if transfer_window_active and current_user_name == current_transfer_manager:
-        rosters = state.get("rosters", {})
-        if current_user_name in rosters:
-            user_roster = rosters[current_user_name] or []
+        # Check for legacy transfer_window structure (same as transfer_routes.py)
+        legacy_window = state.get("transfer_window")
+        
+        # Same conversion logic as in transfer_routes.py
+        if legacy_window and legacy_window.get("active"):
+            # Always check if managers_order is empty or contains empty strings
+            if not active_window or not active_window.get("managers_order") or active_window.get("managers_order") == ['']:
+                # Convert legacy structure to expected format
+                participants = legacy_window.get("participant_order", [])
+                current_index = legacy_window.get("current_index", 0)
+                
+                # Filter out empty participants
+                participants = [p for p in participants if p and p.strip()]
+                
+                if not participants:
+                    from .config import UCL_USERS
+                    participants = UCL_USERS
+                
+                # Also check if we need to get the transfer order from UCL results
+                if not participants or participants == ['']:
+                    try:
+                        results = _build_ucl_results(state)
+                        # Sort managers by total points (worst first for transfer priority)
+                        manager_scores = []
+                        for manager, data in results["lineups"].items():
+                            total = data.get("total", 0)
+                            manager_scores.append((manager, total))
+                        
+                        # Sort by total points ascending (worst first)
+                        manager_scores.sort(key=lambda x: x[1])
+                        participants = [manager for manager, _ in manager_scores]
+                    except Exception:
+                        from .config import UCL_USERS
+                        participants = UCL_USERS
+                
+                active_window = {
+                    "gw": 1,  # Default GW since legacy doesn't store it
+                    "total_rounds": 1,
+                    "current_round": 1,
+                    "current_manager_index": current_index,
+                    "managers_order": participants
+                }
+                current_manager = participants[current_index] if current_index < len(participants) else None
+                is_window_active = True
+        
+        # Set final values
+        transfer_window_active = is_window_active
+        current_transfer_manager = current_manager
+        
+        # Get user's current roster if transfer window is active and it's their turn
+        if transfer_window_active and current_user_name == current_transfer_manager:
+            rosters = state.get("rosters", {})
+            if current_user_name in rosters:
+                user_roster = rosters[current_user_name] or []
+                
+    except Exception as e:
+        print(f"[UCL] Transfer window check error: {e}")
+        # Fallback to False values
+        transfer_window_active = False
+        current_transfer_manager = None
+        user_roster = []
 
     return render_template(
         "index.html",
