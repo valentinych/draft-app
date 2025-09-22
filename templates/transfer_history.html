@@ -32,6 +32,77 @@
   </div>
 </div>
 
+<!-- Transfer Queue & Current Turn -->
+{% if is_window_active and active_window %}
+<div class="notification is-light">
+  <h4 class="title is-5">📋 Очередь трансферов</h4>
+  <div class="content">
+    <p><strong>GW {{ active_window.gw }}</strong> - Раунд {{ active_window.current_round }}/{{ active_window.total_rounds }}</p>
+    
+    {% if active_window.managers_order %}
+    <div class="tags">
+      {% for manager in active_window.managers_order %}
+        {% if manager == current_manager %}
+          <span class="tag is-warning is-medium">
+            🎯 {{ manager }} (сейчас выбирает)
+          </span>
+        {% else %}
+          <span class="tag is-light">{{ manager }}</span>
+        {% endif %}
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+
+<!-- Current User Transfer Interface -->
+{% if is_window_active and current_user == current_manager and user_roster %}
+<div class="notification is-primary">
+  <h4 class="title is-5">⚽ Ваш ход - выберите игрока для transfer out</h4>
+  
+  <div class="columns">
+    {% set positions = ['GK', 'DEF', 'MID', 'FWD'] %}
+    {% for pos in positions %}
+      {% set players_in_pos = user_roster | selectattr('position', 'equalto', pos) | list %}
+      {% if players_in_pos %}
+      <div class="column">
+        <h6 class="subtitle is-6">{{ pos }}</h6>
+        <div class="buttons">
+          {% for player in players_in_pos %}
+          <button class="button is-small is-outlined" 
+                  onclick="selectPlayerForTransferOut({{ player.playerId or player.id }}, '{{ player.fullName or player.name }}', '{{ player.clubName or player.club }}', '{{ player.position }}')">
+            {{ player.fullName or player.name }}<br>
+            <small>{{ player.clubName or player.club }}</small>
+          </button>
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+    {% endfor %}
+  </div>
+  
+  <div class="content">
+    <h6 class="subtitle is-6">📝 Как делать трансфер:</h6>
+    <ol>
+      <li><strong>Выберите игрока</strong> для отдачи из списка выше</li>
+      <li><strong>Подтвердите выбор</strong> в появившемся окне</li>
+      <li><strong>Выберите замену</strong> из доступных игроков (transfer out пул)</li>
+      <li><strong>Подтвердите трансфер</strong> - ход переходит к следующему</li>
+    </ol>
+    <p class="has-text-info">
+      ℹ️ <strong>Лимиты:</strong> Соблюдаются ограничения по позициям и клубам. 
+      Доступны только игроки из transfer out пула (отданные другими менеджерами).
+    </p>
+  </div>
+</div>
+{% elif is_window_active and current_manager %}
+<div class="notification is-info">
+  <p>🕒 <strong>Сейчас ход:</strong> {{ current_manager }}</p>
+  <p>Ожидайте своей очереди для выбора трансфера.</p>
+</div>
+{% endif %}
+
 <div class="field is-horizontal">
   <div class="field-label">
     <label class="label">Менеджер:</label>
@@ -318,6 +389,177 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   });
 });
+
+// Transfer Out Functions
+function selectPlayerForTransferOut(playerId, playerName, playerClub, playerPosition) {
+  if (confirm(`Отдать игрока ${playerName} (${playerClub}, ${playerPosition}) в transfer out пул?`)) {
+    // Show loading state
+    const loadingNotification = document.createElement('div');
+    loadingNotification.className = 'notification is-info';
+    loadingNotification.innerHTML = '<p>⏳ Отправка игрока в transfer out пул...</p>';
+    document.body.insertBefore(loadingNotification, document.body.firstChild);
+    
+    fetch(`/transfers/{{ draft_type|lower }}/pick-transfer-player`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        'player_id': playerId,
+        'player_name': playerName,
+        'player_club': playerClub,
+        'player_position': playerPosition
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      // Remove loading notification
+      if (loadingNotification.parentNode) {
+        loadingNotification.parentNode.removeChild(loadingNotification);
+      }
+      
+      if (data.success) {
+        showAvailableTransferPlayers(playerId);
+      } else {
+        alert('Ошибка при отправке игрока: ' + (data.error || 'Неизвестная ошибка'));
+      }
+    })
+    .catch(error => {
+      // Remove loading notification
+      if (loadingNotification.parentNode) {
+        loadingNotification.parentNode.removeChild(loadingNotification);
+      }
+      console.error('Error:', error);
+      alert('Ошибка при отправке игрока: ' + error.message);
+    });
+  }
+}
+
+function showAvailableTransferPlayers(outPlayerId) {
+  // Create modal for selecting replacement player
+  const modal = document.createElement('div');
+  modal.id = 'transfer-replacement-modal';
+  modal.className = 'modal';
+  modal.style.display = 'flex';
+  modal.innerHTML = `
+    <div class="modal-backdrop" onclick="closeTransferReplacementModal()"></div>
+    <div class="modal-dialog" style="max-width: 800px;">
+      <div class="modal-header">
+        <div class="modal-title">Выберите замену из transfer out пула</div>
+        <button type="button" class="modal-close" onclick="closeTransferReplacementModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div id="available-players-loading">
+          <p>⏳ Загрузка доступных игроков...</p>
+        </div>
+        <div id="available-players-list" style="display: none;">
+          <div id="available-players-content"></div>
+        </div>
+        <div id="available-players-empty" style="display: none;">
+          <p>😔 Нет доступных игроков в transfer out пуле</p>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  document.body.appendChild(modal);
+  
+  // Load available transfer players
+  fetch(`/transfers/{{ draft_type|lower }}/available-players`)
+    .then(response => response.json())
+    .then(data => {
+      document.getElementById('available-players-loading').style.display = 'none';
+      
+      if (data.success && data.players && data.players.length > 0) {
+        displayAvailablePlayers(data.players, outPlayerId);
+        document.getElementById('available-players-list').style.display = 'block';
+      } else {
+        document.getElementById('available-players-empty').style.display = 'block';
+      }
+    })
+    .catch(error => {
+      console.error('Error loading available players:', error);
+      document.getElementById('available-players-loading').innerHTML = 
+        '<p class="has-text-danger">❌ Ошибка загрузки игроков</p>';
+    });
+}
+
+function displayAvailablePlayers(players, outPlayerId) {
+  const container = document.getElementById('available-players-content');
+  
+  // Group players by position
+  const positions = {};
+  players.forEach(player => {
+    const pos = player.position || 'Unknown';
+    if (!positions[pos]) positions[pos] = [];
+    positions[pos].push(player);
+  });
+  
+  let html = '<div class="columns is-multiline">';
+  Object.keys(positions).forEach(pos => {
+    html += `<div class="column is-half">
+      <h6 class="subtitle is-6">${pos}</h6>
+      <div class="buttons">`;
+    
+    positions[pos].forEach(player => {
+      html += `<button class="button is-small is-primary is-outlined" 
+                      onclick="selectReplacementPlayer(${outPlayerId}, ${player.playerId || player.id}, '${player.fullName}', '${player.clubName}', '${player.position}')">
+                 ${player.fullName}<br>
+                 <small>${player.clubName}</small>
+               </button>`;
+    });
+    
+    html += '</div></div>';
+  });
+  html += '</div>';
+  
+  container.innerHTML = html;
+}
+
+function selectReplacementPlayer(outPlayerId, inPlayerId, inPlayerName, inPlayerClub, inPlayerPosition) {
+  if (confirm(`Взять игрока ${inPlayerName} (${inPlayerClub}, ${inPlayerPosition}) в команду?`)) {
+    // Execute the transfer
+    fetch(`/transfers/{{ draft_type|lower }}/execute`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        'out_player_id': outPlayerId,
+        'in_player_id': inPlayerId,
+        'in_player_name': inPlayerName,
+        'in_player_club': inPlayerClub,
+        'in_player_position': inPlayerPosition
+      })
+    })
+    .then(response => {
+      if (response.redirected) {
+        window.location.href = response.url;
+      } else {
+        return response.json();
+      }
+    })
+    .then(data => {
+      if (data && !data.success) {
+        alert('Ошибка при выполнении трансфера: ' + (data.error || 'Неизвестная ошибка'));
+      } else {
+        // Success - reload the page
+        window.location.reload();
+      }
+    })
+    .catch(error => {
+      console.error('Error executing transfer:', error);
+      alert('Ошибка при выполнении трансфера: ' + error.message);
+    });
+  }
+}
+
+function closeTransferReplacementModal() {
+  const modal = document.getElementById('transfer-replacement-modal');
+  if (modal) {
+    modal.parentNode.removeChild(modal);
+  }
+}
 </script>
 
 {% endblock %}

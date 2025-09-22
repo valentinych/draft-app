@@ -1499,7 +1499,7 @@ def open_transfer_window():
         abort(403)
     
     try:
-        from .transfer_system import init_transfers_for_league, get_transfer_system
+        from .transfer_system import init_transfers_for_league
         
         # Calculate current standings to determine transfer order
         state = _ucl_state_load()

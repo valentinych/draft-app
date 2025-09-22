@@ -35,6 +35,8 @@ def execute_transfer(draft_type: str):
     """Execute a player transfer"""
     current_user = session.get("user_name")
     if not current_user:
+        if request.headers.get('Content-Type') == 'application/x-www-form-urlencoded':
+            return jsonify({"success": False, "error": "Unauthorized"}), 401
         abort(401)
     
     try:
@@ -44,16 +46,25 @@ def execute_transfer(draft_type: str):
         
         # Check if transfer window is active
         if not transfer_system.is_transfer_window_active(state):
-            flash("Трансферное окно не активно", "warning")
+            error_msg = "Трансферное окно не активно"
+            if request.headers.get('Content-Type') == 'application/x-www-form-urlencoded':
+                return jsonify({"success": False, "error": error_msg})
+            flash(error_msg, "warning")
             return redirect(request.referrer or url_for("home.index"))
         
         # Check if it's current user's turn
         current_manager = transfer_system.get_current_transfer_manager(state)
         if current_manager != current_user:
             if current_manager:
-                flash(f"Сейчас ход менеджера {current_manager}", "warning")
+                error_msg = f"Сейчас ход менеджера {current_manager}"
+                flash_type = "warning"
             else:
-                flash("Трансферное окно завершено", "info")
+                error_msg = "Трансферное окно завершено"
+                flash_type = "info"
+            
+            if request.headers.get('Content-Type') == 'application/x-www-form-urlencoded':
+                return jsonify({"success": False, "error": error_msg})
+            flash(error_msg, flash_type)
             return redirect(request.referrer or url_for("home.index"))
         
         # Get transfer parameters
@@ -76,7 +87,10 @@ def execute_transfer(draft_type: str):
         )
         
         if not is_valid:
-            flash(f"Трансфер отклонен: {error_msg}", "danger")
+            error_response = f"Трансфер отклонен: {error_msg}"
+            if request.headers.get('Content-Type') == 'application/x-www-form-urlencoded':
+                return jsonify({"success": False, "error": error_response})
+            flash(error_response, "danger")
             return redirect(request.referrer or url_for("home.index"))
         
         # Execute transfer
@@ -86,11 +100,18 @@ def execute_transfer(draft_type: str):
         
         transfer_system.save_state(updated_state)
         
-        flash("Трансфер успешно выполнен!", "success")
+        success_msg = "Трансфер успешно выполнен!"
+        if request.headers.get('Content-Type') == 'application/x-www-form-urlencoded':
+            return jsonify({"success": True, "message": success_msg})
+        
+        flash(success_msg, "success")
         return redirect(request.referrer or url_for("home.index"))
         
     except Exception as e:
-        flash(f"Ошибка при выполнении трансфера: {str(e)}", "danger")
+        error_msg = f"Ошибка при выполнении трансфера: {str(e)}"
+        if request.headers.get('Content-Type') == 'application/x-www-form-urlencoded':
+            return jsonify({"success": False, "error": error_msg})
+        flash(error_msg, "danger")
         return redirect(request.referrer or url_for("home.index"))
 
 
@@ -99,6 +120,8 @@ def pick_transfer_player(draft_type: str):
     """Pick a transfer-out player for team"""
     current_user = session.get("user_name")
     if not current_user:
+        if request.content_type == 'application/json' or request.headers.get('Content-Type') == 'application/x-www-form-urlencoded':
+            return jsonify({"success": False, "error": "Unauthorized"}), 401
         abort(401)
     
     try:
@@ -108,7 +131,19 @@ def pick_transfer_player(draft_type: str):
         
         player_id = request.form.get("player_id", type=int)
         if not player_id:
-            flash("Некорректный ID игрока", "danger")
+            error_msg = "Некорректный ID игрока"
+            if request.headers.get('Content-Type') == 'application/x-www-form-urlencoded':
+                return jsonify({"success": False, "error": error_msg})
+            flash(error_msg, "danger")
+            return redirect(request.referrer or url_for("home.index"))
+        
+        # Check if it's user's turn
+        current_manager = transfer_system.get_current_transfer_manager(state)
+        if current_manager != current_user:
+            error_msg = f"Сейчас ход менеджера {current_manager}" if current_manager else "Трансферное окно неактивно"
+            if request.headers.get('Content-Type') == 'application/x-www-form-urlencoded':
+                return jsonify({"success": False, "error": error_msg})
+            flash(error_msg, "danger")
             return redirect(request.referrer or url_for("home.index"))
         
         updated_state = transfer_system.pick_transfer_player(
@@ -117,11 +152,18 @@ def pick_transfer_player(draft_type: str):
         
         transfer_system.save_state(updated_state)
         
-        flash("Игрок успешно добавлен в состав!", "success")
+        success_msg = "Игрок отправлен в transfer out пул!"
+        if request.headers.get('Content-Type') == 'application/x-www-form-urlencoded':
+            return jsonify({"success": True, "message": success_msg})
+        
+        flash(success_msg, "success")
         return redirect(request.referrer or url_for("home.index"))
         
     except Exception as e:
-        flash(f"Ошибка при добавлении игрока: {str(e)}", "danger")
+        error_msg = f"Ошибка при отправке игрока: {str(e)}"
+        if request.headers.get('Content-Type') == 'application/x-www-form-urlencoded':
+            return jsonify({"success": False, "error": error_msg})
+        flash(error_msg, "danger")
         return redirect(request.referrer or url_for("home.index"))
 
 
@@ -159,12 +201,29 @@ def transfer_history(draft_type: str):
         
         users = get_draft_users(draft_type)
         
+        # Get transfer window info
+        is_window_active = transfer_system.is_transfer_window_active(state)
+        active_window = transfer_system.get_active_transfer_window(state)
+        current_manager = transfer_system.get_current_transfer_manager(state)
+        current_user = session.get("user_name")
+        
+        # Get user's current roster for transfer out selection
+        user_roster = []
+        if current_user and current_manager == current_user and is_window_active:
+            rosters = state.get("rosters", {})
+            user_roster = rosters.get(current_user, [])
+        
         return render_template(
             "transfer_history.html",
             draft_type=draft_type,
             history=history,
             users=users,
-            selected_manager=manager_filter
+            selected_manager=manager_filter,
+            is_window_active=is_window_active,
+            active_window=active_window,
+            current_manager=current_manager,
+            current_user=current_user,
+            user_roster=user_roster
         )
         
     except Exception as e:
