@@ -89,14 +89,20 @@ class TransferSystem:
         state = self.ensure_transfer_structure(state)
         active_window = state["transfers"]["active_window"]
         
-        if not active_window:
-            return False
-            
-        # Check if window is still active (has remaining rounds)
-        current_round = active_window.get("current_round", 0)
-        total_rounds = active_window.get("total_rounds", 0)
+        # Check standard active_window format
+        if active_window:
+            # Check if window is still active (has remaining rounds)
+            current_round = active_window.get("current_round", 0)
+            total_rounds = active_window.get("total_rounds", 0)
+            if current_round <= total_rounds:
+                return True
         
-        return current_round <= total_rounds
+        # Check legacy transfer_window format (for UCL)
+        legacy_window = state.get("transfer_window")
+        if legacy_window and legacy_window.get("active"):
+            return True
+            
+        return False
     
     def get_active_transfer_window(self, state: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         """Get information about active transfer window"""
@@ -175,17 +181,35 @@ class TransferSystem:
     
     def get_current_transfer_manager(self, state: Dict[str, Any]) -> Optional[str]:
         """Get manager who should make next transfer"""
+        # First try standard format
         active_window = self.get_active_transfer_window(state)
         
-        if not active_window:
-            return None
+        if active_window:
+            managers_order = active_window.get("managers_order", [])
+            current_index = active_window.get("current_manager_index", 0)
             
-        managers_order = active_window.get("managers_order", [])
-        current_index = active_window.get("current_manager_index", 0)
+            if current_index < len(managers_order):
+                return managers_order[current_index]
         
-        if current_index < len(managers_order):
-            return managers_order[current_index]
+        # Fallback to legacy format (for UCL)
+        legacy_window = state.get("transfer_window")
+        if legacy_window and legacy_window.get("active"):
+            participant_order = legacy_window.get("participant_order", [])
+            current_index = legacy_window.get("current_index", 0)
+            participants = [p for p in participant_order if p and p.strip()]
             
+            if not participants:
+                # Fallback to default users if needed
+                if self.draft_type.upper() == "UCL":
+                    try:
+                        from .config import UCL_USERS
+                        participants = UCL_USERS
+                    except ImportError:
+                        participants = []
+            
+            if current_index < len(participants):
+                return participants[current_index]
+                
         return None
     
     def normalize_player_data(self, player: Dict[str, Any], current_gw: int) -> Dict[str, Any]:
