@@ -255,27 +255,19 @@ def _fetch_player(pid: int) -> dict:
         return {}
 
 def _load_player(
-    pid: int, debug: list[str] | None = None, round_no: int | None = None
+    pid: int, debug: list[str] | None = None, round_no: int | None = None, force_refresh: bool = False
 ) -> dict:
     """Load cached player stats from disk or fetch from the API.
 
-    The ``round_no`` parameter is kept for backward compatibility but the
-    caching logic now solely relies on a timestamp.  Cached responses are
-    considered fresh for ``SCORE_CACHE_TTL`` minutes.
+    The ``round_no`` parameter is kept for backward compatibility.
+    With TTL removed, cached responses are always considered fresh unless force_refresh is True.
     """
 
-    data = load_top4_score(pid)
-    if data:
-        ts = data.get("cached_at")
-        if ts:
-            try:
-                cached = datetime.fromisoformat(ts)
-                if datetime.utcnow() - cached < SCORE_CACHE_TTL:
-                    if debug is not None:
-                        debug.append(f"cached pid {pid}")
-                    return data
-            except Exception:
-                pass
+    data = load_top4_score(pid, force_refresh=force_refresh)
+    if data and not force_refresh:
+        if debug is not None:
+            debug.append(f"cached pid {pid}")
+        return data
 
     data = _fetch_player(pid)
     if debug is not None:
@@ -795,3 +787,43 @@ def results_data():
 @bp.route("/results")
 def results():
     return render_template("top4_results.html")
+
+
+@bp.route("/refresh_stats", methods=["POST"])
+def refresh_stats():
+    """Refresh statistics for all Top-4 players."""
+    if not session.get("godmode"):
+        return jsonify({"error": "Access denied"}), 403
+    
+    try:
+        state = load_top4_state()
+        mapping = load_player_map()
+        rosters = state.get("rosters") or {}
+        
+        # Collect all player IDs from rosters
+        all_player_ids = set()
+        for roster in rosters.values():
+            for item in roster or []:
+                pl = item.get("player") if isinstance(item, dict) and item.get("player") else item
+                fid = str(pl.get("playerId") or pl.get("id"))
+                if fid in mapping:
+                    all_player_ids.add(mapping[fid])
+        
+        # Refresh stats for all players
+        refreshed_count = 0
+        for pid in all_player_ids:
+            try:
+                _load_player(int(pid), force_refresh=True)
+                refreshed_count += 1
+            except Exception as e:
+                print(f"[TOP4] Failed to refresh player {pid}: {e}")
+        
+        return jsonify({
+            "success": True, 
+            "refreshed": refreshed_count,
+            "total": len(all_player_ids)
+        })
+    
+    except Exception as e:
+        print(f"[TOP4] Stats refresh error: {e}")
+        return jsonify({"error": str(e)}), 500

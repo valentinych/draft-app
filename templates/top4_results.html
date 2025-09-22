@@ -2,6 +2,12 @@
 {% block title %}Результаты{% endblock %}
 {% block content %}
 <h1 class="title">Результаты</h1>
+{% if session.get('godmode') %}
+<div class="mb-4">
+  <button class="button is-info" id="refresh-stats-btn">Пересобрать статистику</button>
+  <div id="refresh-status" class="mt-2"></div>
+</div>
+{% endif %}
 <div id="lineups-container">Загрузка...</div>
 
 <div id="points-modal" class="modal">
@@ -40,6 +46,40 @@ document.addEventListener('DOMContentLoaded', () => {
   const url = `{{ url_for('top4.results_data') }}`;
 
   const posOrder = { GKP:0, GK:0, G:0, DEF:1, D:1, MID:2, M:2, FWD:3, F:3 };
+
+  // Godmode functionality
+  {% if session.get('godmode') %}
+  const refreshBtn = document.getElementById('refresh-stats-btn');
+  const refreshStatus = document.getElementById('refresh-status');
+  
+  refreshBtn.addEventListener('click', () => {
+    refreshBtn.disabled = true;
+    refreshBtn.textContent = 'Обновление...';
+    refreshStatus.innerHTML = '<span class="tag is-info">Обновление статистики...</span>';
+    
+    fetch('{{ url_for("top4.refresh_stats") }}', {
+      method: 'POST'
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) {
+        refreshStatus.innerHTML = `<span class="tag is-success">Обновлено ${data.refreshed} из ${data.total} игроков</span>`;
+        // Reload results to reflect changes
+        fetch(url).then(r => r.json()).then(render);
+      } else {
+        refreshStatus.innerHTML = `<span class="tag is-danger">Ошибка: ${data.error}</span>`;
+      }
+    })
+    .catch(err => {
+      console.error('Error refreshing stats:', err);
+      refreshStatus.innerHTML = '<span class="tag is-danger">Ошибка при обновлении статистики</span>';
+    })
+    .finally(() => {
+      refreshBtn.disabled = false;
+      refreshBtn.textContent = 'Пересобрать статистику';
+    });
+  });
+  {% endif %}
 
   const showPopup = p => {
     modalBody.innerHTML = '';

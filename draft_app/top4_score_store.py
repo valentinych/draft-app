@@ -39,26 +39,31 @@ def _s3_key(pid: int) -> str:
     return f"{prefix}/{int(pid)}.json"
 
 
-def _fresh(data: Dict) -> bool:
+def _fresh(data: Dict, force_refresh: bool = False) -> bool:
+    """Check if cached data is fresh. If force_refresh is True, always return False."""
+    if force_refresh:
+        return False
     ts = data.get("cached_at")
     if not ts:
         return False
-    try:
-        cached = datetime.fromisoformat(ts)
-    except Exception:
-        return False
-    return datetime.utcnow() - cached < SCORE_CACHE_TTL
+    # With TTL removed, cached data is always considered fresh (unless forced refresh)
+    return True
 
 
-def load_top4_score(pid: int) -> Dict:
-    """Load cached response for a Top-4 player (local first, then S3)."""
+def load_top4_score(pid: int, force_refresh: bool = False) -> Dict:
+    """Load cached response for a Top-4 player (local first, then S3).
+    
+    Args:
+        pid: Player ID
+        force_refresh: If True, ignore cached data and always return empty dict to force refetch
+    """
     p = TOP4_SCORE_DIR / f"{int(pid)}.json"
     data = None
     if p.exists():
         try:
             with p.open("r", encoding="utf-8") as f:
                 data = json.load(f)
-            if _fresh(data):
+            if _fresh(data, force_refresh):
                 return data
         except Exception:
             data = None
@@ -67,14 +72,14 @@ def load_top4_score(pid: int) -> Dict:
         key = _s3_key(pid)
         if bucket and key:
             s3_data = _s3_get_json(bucket, key)
-            if isinstance(s3_data, dict):
+            if isinstance(s3_data, dict) and _fresh(s3_data, force_refresh):
                 tmp_fd, tmp_name = tempfile.mkstemp(prefix="top4_", suffix=".json", dir=str(TOP4_SCORE_DIR))
                 os.close(tmp_fd)
                 with open(tmp_name, "w", encoding="utf-8") as f:
                     json.dump(s3_data, f, ensure_ascii=False, indent=2)
                 os.replace(tmp_name, p)
                 return s3_data
-    return data or {}
+    return data or {} if not force_refresh else {}
 
 
 def save_top4_score(pid: int, data: Dict) -> None:
