@@ -204,6 +204,8 @@ def _players_from_ucl(raw: Any) -> List[Dict[str, Any]]:
                         # Optional status-like fields for UI
                         "status": p.get("pStatus") or p.get("qStatus") or "",
                         "news": p.get("trained") or "",
+                        # Current season points from UEFA feed
+                        "curGDPts": p.get("curGDPts", 0),
                         # Assume can pick by default; server can refine later
                         "canPick": True,
                     }
@@ -646,28 +648,10 @@ def index():
         pid = p.get("playerId")
         p["fp_last"] = points_map.get(pid, 0)
 
-    # points from current season (2025/26)
+    # points from current season (2025/26) - use curGDPts from UEFA feed
     for p in players:
-        pid = p.get("playerId")
-        if pid:
-            try:
-                stats = get_player_stats_cached(int(pid))
-                # Extract total points from stats
-                points = 0
-                if isinstance(stats, dict):
-                    # Try different possible locations for points in the stats structure
-                    if "data" in stats:
-                        stat_data = stats.get("data", {})
-                        if isinstance(stat_data, dict):
-                            points = stat_data.get("tPoints", 0) or 0
-                    # Fallback: try direct access
-                    if not points:
-                        points = stats.get("tPoints", 0) or 0
-                p["fp_current"] = int(points) if points else 0
-            except Exception:
-                p["fp_current"] = 0
-        else:
-            p["fp_current"] = 0
+        # curGDPts is already available in the UEFA JSON feed data
+        p["fp_current"] = int(p.get("curGDPts", 0) or 0)
 
     # state
     state = _ucl_state_load()
