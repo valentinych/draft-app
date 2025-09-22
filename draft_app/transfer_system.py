@@ -29,8 +29,14 @@ TRANSFER_SCHEDULES = {
         34: 1,  # After GW34, 1 round of transfers
     },
     "UCL": {
-        # Will be defined later
-        # Example: 2: 1, 4: 1, 6: 1
+        1: 1,   # After MD1, 1 round of transfers
+        2: 1,   # After MD2, 1 round of transfers  
+        3: 1,   # After MD3, 1 round of transfers
+        4: 1,   # After MD4, 1 round of transfers
+        5: 1,   # After MD5, 1 round of transfers
+        6: 1,   # After MD6, 1 round of transfers
+        7: 1,   # After MD7, 1 round of transfers
+        8: 1,   # After MD8, 1 round of transfers (knockout phase)
     },
     "TOP4": {
         # Will be defined later
