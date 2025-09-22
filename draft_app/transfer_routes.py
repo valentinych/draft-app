@@ -142,8 +142,10 @@ def pick_transfer_player(draft_type: str):
         
         # Check if it's user's turn
         current_manager = transfer_system.get_current_transfer_manager(state)
+        print(f"[TransferRoutes] pick_transfer_player - current_user: '{current_user}', current_manager: '{current_manager}'")
         if current_manager != current_user:
             error_msg = f"Сейчас ход менеджера {current_manager}" if current_manager else "Трансферное окно неактивно"
+            print(f"[TransferRoutes] pick_transfer_player - manager mismatch, error: '{error_msg}'")
             if request.headers.get('Content-Type') == 'application/x-www-form-urlencoded':
                 return jsonify({"success": False, "error": error_msg})
             flash(error_msg, "danger")
