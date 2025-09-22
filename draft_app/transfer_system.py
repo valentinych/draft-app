@@ -430,6 +430,12 @@ def create_transfer_system(draft_type: str) -> TransferSystem:
         raise ValueError(f"Unsupported draft type: {draft_type}")
 
 
+# Alias for backward compatibility
+def get_transfer_system(draft_type: str) -> TransferSystem:
+    """Alias for create_transfer_system - for backward compatibility"""
+    return create_transfer_system(draft_type)
+
+
 def init_transfers_for_league(
     draft_type: str,
     participants: List[str],
