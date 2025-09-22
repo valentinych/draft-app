@@ -1338,3 +1338,93 @@ def undo_last_pick():
         status_url=url_for("ucl.status"),
         undo_url=url_for("ucl.undo_last_pick"),
     )
+
+
+def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
+    """Build UCL results data similar to TOP4 results"""
+    rosters = state.get("rosters") or {}
+    managers = [m for m in UCL_PARTICIPANTS if m in rosters]
+    if not managers:
+        managers = sorted(rosters.keys())
+
+    results: Dict[str, Dict[str, Any]] = {}
+    
+    for manager in managers:
+        roster = rosters.get(manager) or []
+        lineup = []
+        total = 0
+        
+        for item in roster:
+            payload = item.get("player") if isinstance(item, dict) and item.get("player") else item
+            if not isinstance(payload, dict):
+                continue
+                
+            pid = payload.get("playerId") or payload.get("id") or payload.get("pid")
+            if pid is None:
+                continue
+                
+            try:
+                pid_int = int(pid)
+            except Exception:
+                continue
+                
+            # Get player stats
+            stats = get_player_stats_cached(pid_int)
+            if not isinstance(stats, dict):
+                stats = {}
+                
+            # Extract stats similar to ucl_lineups_data logic
+            stat_payload, points_dict, raw_stats, data_section, value_section = _stat_sections(stats)
+            points = _safe_int(stat_payload.get("tPoints"))
+            
+            # Build breakdown by matchday (similar to TOP4 GW breakdown)
+            breakdown = []
+            
+            # Add matchday stats if available
+            matchday_stats = stat_payload.get("matchday_stats") or []
+            if isinstance(matchday_stats, list):
+                for md_stat in matchday_stats:
+                    if isinstance(md_stat, dict):
+                        md_points = _safe_int(md_stat.get("points", 0))
+                        md_num = md_stat.get("matchday") or md_stat.get("md")
+                        if md_num:
+                            breakdown.append({
+                                "label": f"MD{md_num}",
+                                "value": md_points
+                            })
+            
+            # If no matchday breakdown, create single entry
+            if not breakdown and points > 0:
+                breakdown.append({
+                    "label": "Общий",
+                    "value": points
+                })
+            
+            total += points
+            lineup.append({
+                "name": payload.get("fullName") or payload.get("name") or str(pid_int),
+                "pos": payload.get("position"),
+                "club": payload.get("clubName"),
+                "points": points,
+                "breakdown": breakdown,
+                "playerId": str(pid_int),
+            })
+        
+        results[manager] = {"players": lineup, "total": total}
+    
+    return {"lineups": results, "managers": managers}
+
+
+@bp.get("/ucl/results")
+def ucl_results():
+    """UCL results page"""
+    return render_template("ucl_results.html")
+
+
+@bp.get("/ucl/results/data")  
+def ucl_results_data():
+    """UCL results data API"""
+    state = _ucl_state_load()
+    state = _ensure_ucl_state_shape(state)
+    data = _build_ucl_results(state)
+    return jsonify(data)
