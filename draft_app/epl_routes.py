@@ -752,11 +752,9 @@ def results():
             class_points_by_manager[m][gw] = cls_pts
             class_total[m] += cls_pts
             raw_total[m] += pts
-        if ordered_managers:
-            max_pts = gw_scores.get(ordered_managers[0], 0)
-            for m in managers:
-                if gw_scores.get(m, 0) == max_pts:
-                    wins_total[m] += 1
+            # Count wins only for managers who got 8 class points (1st place)
+            if cls_pts == 8:
+                wins_total[m] += 1
 
     standings = [
         {
