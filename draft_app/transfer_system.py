@@ -89,19 +89,27 @@ class TransferSystem:
         state = self.ensure_transfer_structure(state)
         active_window = state["transfers"]["active_window"]
         
+        print(f"[TransferSystem] is_transfer_window_active - draft_type: {self.draft_type}")
+        print(f"[TransferSystem] active_window: {active_window}")
+        
         # Check standard active_window format
         if active_window:
             # Check if window is still active (has remaining rounds)
             current_round = active_window.get("current_round", 0)
             total_rounds = active_window.get("total_rounds", 0)
+            print(f"[TransferSystem] standard format - current_round: {current_round}, total_rounds: {total_rounds}")
             if current_round <= total_rounds:
+                print(f"[TransferSystem] standard format active - returning True")
                 return True
         
         # Check legacy transfer_window format (for UCL)
         legacy_window = state.get("transfer_window")
+        print(f"[TransferSystem] legacy_window: {legacy_window}")
         if legacy_window and legacy_window.get("active"):
+            print(f"[TransferSystem] legacy format active - returning True")
             return True
-            
+        
+        print(f"[TransferSystem] no active window found - returning False")    
         return False
     
     def get_active_transfer_window(self, state: Dict[str, Any]) -> Optional[Dict[str, Any]]:
