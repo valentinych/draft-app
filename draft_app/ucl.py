@@ -1637,8 +1637,9 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
     # Get list of finished matchdays - only count points from these
     finished_matchdays = set(state.get("finished_matchdays", []))
     
-    # Get transfer history to identify transfer_out players
-    transfer_history = state.get("transfer_history", [])
+    # Get transfer history from both old and new systems
+    old_transfer_history = state.get("transfer_history", [])
+    new_transfer_history = state.get("transfers", {}).get("history", [])
 
     results: Dict[str, Dict[str, Any]] = {}
     
@@ -1649,13 +1650,119 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
         except (ValueError, TypeError):
             return 0
     
+    def get_all_manager_players(manager: str) -> Dict[str, Dict]:
+        """Get all players who were ever in manager's roster with their active periods"""
+        all_players = {}
+        
+        # Start with current roster
+        current_roster = rosters.get(manager, [])
+        for player in current_roster:
+            player_id = player.get("playerId")
+            if player_id:
+                all_players[str(player_id)] = {
+                    "player": player,
+                    "active_mds": set(range(1, 9)),  # Assume active for all MDs initially
+                    "transfer_status": "current"  # current, transfer_in, transfer_out
+                }
+        
+        # Process transfer history to determine actual active periods and transfer status
+        all_transfers = []
+        
+        # Add old format transfers
+        for transfer in old_transfer_history:
+            if transfer.get("manager") == manager:
+                all_transfers.append({
+                    "gw": transfer.get("matchday", 1),
+                    "action": "combined",
+                    "out_player": transfer.get("player_out"),
+                    "in_player": transfer.get("player_in"),
+                    "ts": transfer.get("ts", "")
+                })
+        
+        # Add new format transfers
+        for transfer in new_transfer_history:
+            if transfer.get("manager") == manager:
+                all_transfers.append({
+                    "gw": transfer.get("gw", 1),
+                    "action": transfer.get("action"),
+                    "out_player": transfer.get("out_player"),
+                    "in_player": transfer.get("in_player"),
+                    "ts": transfer.get("ts", "")
+                })
+        
+        # Sort transfers by time
+        all_transfers.sort(key=lambda x: x.get("ts", ""))
+        
+        # Apply transfers to determine active periods
+        for transfer in all_transfers:
+            transfer_gw = transfer.get("gw", 1)
+            
+            if transfer.get("action") == "combined":
+                # Old format: one transfer with both out and in
+                out_player = transfer.get("out_player")
+                in_player = transfer.get("in_player")
+                
+                if out_player:
+                    out_id = str(out_player.get("playerId"))
+                    if out_id in all_players:
+                        # Player was active until this transfer
+                        all_players[out_id]["active_mds"] = set(range(1, transfer_gw))
+                        all_players[out_id]["transfer_status"] = "transfer_out"
+                    else:
+                        # Add player who was transferred out
+                        all_players[out_id] = {
+                            "player": out_player,
+                            "active_mds": set(range(1, transfer_gw)),
+                            "transfer_status": "transfer_out"
+                        }
+                
+                if in_player:
+                    in_id = str(in_player.get("playerId"))
+                    all_players[in_id] = {
+                        "player": in_player,
+                        "active_mds": set(range(transfer_gw, 9)),
+                        "transfer_status": "transfer_in"
+                    }
+            
+            elif transfer.get("action") == "transfer_out":
+                out_player = transfer.get("out_player")
+                if out_player:
+                    out_id = str(out_player.get("playerId"))
+                    if out_id in all_players:
+                        # Player was active until this transfer
+                        all_players[out_id]["active_mds"] = set(range(1, transfer_gw))
+                        all_players[out_id]["transfer_status"] = "transfer_out"
+                    else:
+                        # Add player who was transferred out
+                        all_players[out_id] = {
+                            "player": out_player,
+                            "active_mds": set(range(1, transfer_gw)),
+                            "transfer_status": "transfer_out"
+                        }
+            
+            elif transfer.get("action") == "transfer_in":
+                in_player = transfer.get("in_player")
+                if in_player:
+                    in_id = str(in_player.get("playerId"))
+                    all_players[in_id] = {
+                        "player": in_player,
+                        "active_mds": set(range(transfer_gw, 9)),
+                        "transfer_status": "transfer_in"
+                    }
+        
+        return all_players
+    
     for manager in managers:
-        roster = rosters.get(manager) or []
+        # Get all players who were ever in this manager's roster
+        all_manager_players = get_all_manager_players(manager)
         lineup = []
         total = 0
         
-        for item in roster:
-            payload = item.get("player") if isinstance(item, dict) and item.get("player") else item
+        for player_id, player_data in all_manager_players.items():
+            payload = player_data["player"]
+            active_mds = player_data["active_mds"]
+            transfer_status = player_data["transfer_status"]
+            
             if not isinstance(payload, dict):
                 continue
                 
@@ -1688,7 +1795,7 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
                         # Try to get team ID
                         team_id = value_section.get("tId") or value_section.get("teamId")
                         
-                        # Calculate points only from finished matchdays
+                        # Calculate points only from finished matchdays when player was active
                         matchday_points = value_section.get("matchdayPoints", [])
                         if isinstance(matchday_points, list):
                             for md_stat in matchday_points:
@@ -1696,8 +1803,8 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
                                     md_points = safe_int(md_stat.get("tPoints", 0))
                                     md_num = md_stat.get("mdId")
                                     if md_num and md_points > 0:
-                                        # Only include if matchday is finished
-                                        if md_num in finished_matchdays:
+                                        # Only include if matchday is finished AND player was active in this MD
+                                        if md_num in finished_matchdays and md_num in active_mds:
                                             breakdown.append({
                                                 "label": f"MD{md_num}",
                                                 "value": md_points
@@ -1708,14 +1815,6 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
                 if not team_id:
                     team_id = stats.get("tId") or stats.get("teamId")
             
-            # Check if player was transferred out
-            is_transfer_out = any(
-                t.get("manager") == manager and 
-                t.get("player_out", {}).get("playerId") == pid_int and
-                t.get("type") == "transfer"
-                for t in transfer_history
-            )
-            
             total += points
             lineup.append({
                 "name": payload.get("fullName") or payload.get("name") or str(pid_int),
@@ -1725,7 +1824,8 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
                 "breakdown": breakdown,
                 "playerId": str(pid_int),
                 "teamId": team_id,  # For club logo
-                "transfer_out": is_transfer_out
+                "transfer_status": transfer_status,  # current, transfer_in, transfer_out
+                "active_mds": list(active_mds)  # List of MDs when player was active
             })
         
         results[manager] = {"players": lineup, "total": total}

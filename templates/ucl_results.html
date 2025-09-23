@@ -265,15 +265,22 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         infoWrap.appendChild(nameSpan);
         
-        // Add transfer out indicator if applicable
-        if (p.transfer_out) {
+        // Add transfer status indicator
+        if (p.transfer_status === 'transfer_out') {
           const transferIcon = document.createElement('span');
-          transferIcon.textContent = ' ↓';
+          transferIcon.textContent = ' ⬇️';
           transferIcon.style.color = 'red';
           transferIcon.style.fontWeight = 'bold';
           transferIcon.title = 'Transfer out';
           nameSpan.appendChild(transferIcon);
           div.style.opacity = '0.7';
+        } else if (p.transfer_status === 'transfer_in') {
+          const transferIcon = document.createElement('span');
+          transferIcon.textContent = ' ⬆️';
+          transferIcon.style.color = 'green';
+          transferIcon.style.fontWeight = 'bold';
+          transferIcon.title = 'Transfer in';
+          nameSpan.appendChild(transferIcon);
         }
         
         div.appendChild(infoWrap);
