@@ -432,6 +432,7 @@ class TransferSystem:
                         available_players.append(undrafted_player)
                         
             except Exception as e:
+                pass
         
         return available_players
     
