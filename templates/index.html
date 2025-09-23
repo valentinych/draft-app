@@ -56,7 +56,7 @@
           <input type="hidden" name="manager" value="Сергей">
           <button type="submit" class="btn btn-success">Вернуть Jobe Bellingham</button>
         </form>
-        {% elif draft_title and 'Top-4' in draft_title %}
+        {% elif draft_title and 'Top-4' in draft_title and session.get('godmode') %}
         <!-- MantraFootball Integration Controls -->
         <button type="button" class="btn" onclick="syncMantraData('tournaments')" style="margin-left:8px;" id="sync-tournaments-btn">Синхронизировать турниры</button>
         <button type="button" class="btn" onclick="syncMantraData('players')" style="margin-left:8px;" id="sync-players-btn">Синхронизировать игроков</button>
