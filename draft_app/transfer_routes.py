@@ -121,7 +121,9 @@ def execute_transfer(draft_type: str):
 @bp.route("/<draft_type>/pick-transfer-player", methods=["POST"]) 
 def pick_transfer_player(draft_type: str):
     """Pick a transfer-out player for team"""
+    print(f"[TransferRoutes] pick_transfer_player ENTRY - draft_type: {draft_type}, method: {request.method}")
     current_user = session.get("user_name")
+    print(f"[TransferRoutes] pick_transfer_player - current_user: {current_user}")
     if not current_user:
         if request.content_type == 'application/json' or request.headers.get('Content-Type') == 'application/x-www-form-urlencoded':
             return jsonify({"success": False, "error": "Unauthorized"}), 401
