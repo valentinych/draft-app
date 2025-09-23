@@ -1303,18 +1303,35 @@ def ucl_lineups_data():
                 
                 # Add transferred in player
                 if "player_in" in transfer:
-                    current_roster.append(transfer["player_in"])
+                    in_player = transfer["player_in"]
+                    in_player_id = in_player.get("playerId")
+                    in_name = in_player.get("fullName", "Unknown")
+                    
+                    # Check if player is already in roster to avoid duplicates
+                    already_in_roster = any(p.get("playerId") == in_player_id for p in current_roster)
+                    if already_in_roster:
+                        print(f"[UCL Lineups] Player {in_name} (ID: {in_player_id}) already in roster, skipping add for MD{target_md} (legacy)")
+                    else:
+                        print(f"[UCL Lineups] Adding player: {in_name} (ID: {in_player_id}) for MD{target_md} (legacy)")
+                        current_roster.append(in_player)
         
         # Apply new format transfers (from new transfer system)
         # New system creates separate transfer_out and transfer_in events
-        for transfer in new_transfer_history:
+        # Sort transfers by timestamp to apply them in correct order
+        relevant_transfers = [
+            transfer for transfer in new_transfer_history
+            if (transfer.get("manager") == manager and transfer.get("gw", 999) <= target_md)
+        ]
+        relevant_transfers.sort(key=lambda x: x.get("ts", ""))
+        
+        for transfer in relevant_transfers:
             transfer_gw = transfer.get("gw", 999)
             transfer_manager = transfer.get("manager")
             transfer_action = transfer.get("action")
             
             print(f"[UCL Lineups] Processing transfer: manager={transfer_manager}, gw={transfer_gw}, action={transfer_action}, target_md={target_md}")
             
-            if (transfer_manager == manager and transfer_gw <= target_md):
+            if True:  # Already filtered above
                 
                 # Remove transferred out player
                 if transfer_action == "transfer_out" and "out_player" in transfer:
@@ -1327,8 +1344,15 @@ def ucl_lineups_data():
                 elif transfer_action == "transfer_in" and "in_player" in transfer:
                     in_player = transfer["in_player"]
                     in_name = in_player.get("fullName", "Unknown")
-                    print(f"[UCL Lineups] Adding player: {in_name} for MD{target_md}")
-                    current_roster.append(in_player)
+                    in_player_id = in_player.get("playerId")
+                    
+                    # Check if player is already in roster to avoid duplicates
+                    already_in_roster = any(p.get("playerId") == in_player_id for p in current_roster)
+                    if already_in_roster:
+                        print(f"[UCL Lineups] Player {in_name} (ID: {in_player_id}) already in roster, skipping add for MD{target_md}")
+                    else:
+                        print(f"[UCL Lineups] Adding player: {in_name} (ID: {in_player_id}) for MD{target_md}")
+                        current_roster.append(in_player)
         
         print(f"[UCL Lineups] Final roster for {manager} MD{target_md}: {len(current_roster)} players")
         for p in current_roster:
