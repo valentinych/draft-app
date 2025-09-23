@@ -444,6 +444,43 @@ def _annotate_can_pick_ucl(players: List[Dict[str, Any]], state: Dict[str, Any],
         can_club = club_counts.get(club, 0) < max_from_club if club else True
         p["canPick"] = bool(can_pos and can_club)
 
+
+def _annotate_can_pick_ucl_transfer(players: List[Dict[str, Any]], state: Dict[str, Any], current_user: Optional[str]) -> None:
+    """Annotate canPick for transfer in phase - similar to regular but considers transfer limits"""
+    if not current_user:
+        for p in players:
+            p["canPick"] = False
+        return
+    
+    # For transfers, we always allow picking (no draft completion or turn checks)
+    roster = (state.get("rosters") or {}).get(current_user, []) or []
+    slots = _slots_from_state(state)
+    max_from_club = _max_from_club(state)
+    
+    # Count current positions and clubs (excluding players that were transferred out)
+    pos_counts = {"GK": 0, "DEF": 0, "MID": 0, "FWD": 0}
+    club_counts: Dict[str, int] = {}
+    
+    for pl in roster:
+        # Skip players that have been transferred out
+        if pl.get("status") == "transfer_out":
+            continue
+            
+        pos = pl.get("position")
+        if pos in pos_counts:
+            pos_counts[pos] += 1
+        club = (pl.get("clubName") or "").upper()
+        if club:
+            club_counts[club] = club_counts.get(club, 0) + 1
+    
+    for p in players:
+        pos = p.get("position")
+        club = (p.get("clubName") or "").upper()
+        can_pos = pos in slots and pos_counts.get(pos, 0) < slots[pos]
+        can_club = club_counts.get(club, 0) < max_from_club if club else True
+        p["canPick"] = bool(can_pos and can_club)
+
+
 def _snake_order(users: List[str], rounds: int) -> List[str]:
     order: List[str] = []
     for r in range(int(rounds)):
@@ -988,12 +1025,18 @@ def index():
                 # Create a copy with required fields
                 player_copy = roster_player.copy()
                 player_copy["status"] = "owned"  # Mark as owned by current user
-                player_copy["canPick"] = True    # Enable clicking
+                player_copy["canPick"] = True    # Enable clicking (all owned players can be transferred out)
+                # Ensure we have the required fields
+                if "shortName" not in player_copy:
+                    player_copy["shortName"] = player_copy.get("fullName", "")
                 transfer_players.append(player_copy)
             
+            # Apply filters to user's roster for transfer out
+            filtered_transfer_out = _apply_filters(transfer_players, club_filter, pos_filter)
+            
             # Replace filtered players with user's roster for transfer mode
-            filtered = transfer_players
-            print(f"[UCL] Transfer OUT mode: showing {len(filtered)} players from {current_user_name}'s roster")
+            filtered = filtered_transfer_out
+            print(f"[UCL] Transfer OUT mode: showing {len(filtered)} players from {current_user_name}'s roster (after filters)")
             
         elif current_phase == "in":
             # TRANSFER IN phase: show available players from transfer out pool
@@ -1004,15 +1047,20 @@ def index():
                 # Create a copy with required fields for table display
                 player_copy = available_player.copy()
                 player_copy["status"] = "transfer_available"  # Mark as available for transfer in
-                player_copy["canPick"] = True    # Enable clicking
                 # Ensure we have the required fields
                 if "shortName" not in player_copy:
                     player_copy["shortName"] = player_copy.get("fullName", "")
                 transfer_players.append(player_copy)
             
+            # Apply filters to transfer players
+            filtered_transfer_players = _apply_filters(transfer_players, club_filter, pos_filter)
+            
+            # Apply canPick logic with limits checking for transfer in
+            _annotate_can_pick_ucl_transfer(filtered_transfer_players, state, current_user_name)
+            
             # Replace filtered players with available transfer players
-            filtered = transfer_players
-            print(f"[UCL] Transfer IN mode: showing {len(filtered)} available players for transfer in")
+            filtered = filtered_transfer_players
+            print(f"[UCL] Transfer IN mode: showing {len(filtered)} available players for transfer in (after filters)")
 
     return render_template(
         "index.html",
