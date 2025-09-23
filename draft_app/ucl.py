@@ -1279,15 +1279,20 @@ def ucl_lineups_data():
     if not managers:
         managers = sorted(rosters.keys())
     
-    # Get transfer history to apply transfers for specific MD
-    transfer_history = state.get("transfer_history", [])
+    # Get transfer history from both old and new systems
+    old_transfer_history = state.get("transfer_history", [])
+    new_transfer_history = state.get("transfers", {}).get("history", [])
     
     def get_roster_for_md(manager: str, target_md: int) -> List[Dict]:
         """Get manager's roster as it was for the specific MD"""
         current_roster = list(rosters.get(manager, []))
+        print(f"[UCL Lineups] get_roster_for_md - manager: {manager}, target_md: {target_md}")
+        print(f"[UCL Lineups] get_roster_for_md - initial roster size: {len(current_roster)}")
+        print(f"[UCL Lineups] get_roster_for_md - old transfers: {len(old_transfer_history)}")
+        print(f"[UCL Lineups] get_roster_for_md - new transfers: {len(new_transfer_history)}")
         
-        # Apply transfers that happened before or during this MD
-        for transfer in transfer_history:
+        # Apply old format transfers first (legacy)
+        for transfer in old_transfer_history:
             if (transfer.get("manager") == manager and 
                 transfer.get("matchday", 999) <= target_md):
                 
@@ -1299,6 +1304,35 @@ def ucl_lineups_data():
                 # Add transferred in player
                 if "player_in" in transfer:
                     current_roster.append(transfer["player_in"])
+        
+        # Apply new format transfers (from new transfer system)
+        # New system creates separate transfer_out and transfer_in events
+        for transfer in new_transfer_history:
+            transfer_gw = transfer.get("gw", 999)
+            transfer_manager = transfer.get("manager")
+            transfer_action = transfer.get("action")
+            
+            print(f"[UCL Lineups] Processing transfer: manager={transfer_manager}, gw={transfer_gw}, action={transfer_action}, target_md={target_md}")
+            
+            if (transfer_manager == manager and transfer_gw <= target_md):
+                
+                # Remove transferred out player
+                if transfer_action == "transfer_out" and "out_player" in transfer:
+                    out_id = transfer["out_player"].get("playerId")
+                    out_name = transfer["out_player"].get("fullName", "Unknown")
+                    print(f"[UCL Lineups] Removing player: {out_name} (ID: {out_id}) for MD{target_md}")
+                    current_roster = [p for p in current_roster if p.get("playerId") != out_id]
+                
+                # Add transferred in player  
+                elif transfer_action == "transfer_in" and "in_player" in transfer:
+                    in_player = transfer["in_player"]
+                    in_name = in_player.get("fullName", "Unknown")
+                    print(f"[UCL Lineups] Adding player: {in_name} for MD{target_md}")
+                    current_roster.append(in_player)
+        
+        print(f"[UCL Lineups] Final roster for {manager} MD{target_md}: {len(current_roster)} players")
+        for p in current_roster:
+            print(f"  - {p.get('fullName', 'Unknown')} (ID: {p.get('playerId')})")
         
         return current_roster
 
