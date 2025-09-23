@@ -682,7 +682,7 @@ function showAvailableTransferPlayersForIn() {
   modal.id = 'transfer-in-modal';
   modal.className = 'modal';
   modal.style.display = 'flex';
-  modal.innerHTML = \`
+  modal.innerHTML = `
     <div class="modal-backdrop" onclick="closeTransferInModal()"></div>
     <div class="modal-dialog" style="max-width: 800px;">
       <div class="modal-header">
@@ -701,12 +701,12 @@ function showAvailableTransferPlayersForIn() {
         </div>
       </div>
     </div>
-  \`;
+  `;
   
   document.body.appendChild(modal);
   
   // Load available transfer players
-  fetch(\`/transfers/{{ draft_type|lower }}/available-players\`)
+  fetch(`/transfers/{{ draft_type|lower }}/available-players`)
     .then(response => response.json())
     .then(data => {
       document.getElementById('transfer-in-loading').style.display = 'none';
@@ -738,16 +738,16 @@ function displayTransferInPlayers(players) {
   
   let html = '<div class="columns is-multiline">';
   Object.keys(positions).forEach(pos => {
-    html += \`<div class="column is-half">
-      <h6 class="subtitle is-6">\${pos}</h6>
-      <div class="buttons">\`;
+    html += `<div class="column is-half">
+      <h6 class="subtitle is-6">${pos}</h6>
+      <div class="buttons">`;
     
     positions[pos].forEach(player => {
-      html += \`<button class="button is-small is-success is-outlined" 
-                      onclick="selectTransferInPlayer(\${player.playerId || player.id}, '\${player.fullName}', '\${player.clubName}', '\${player.position}')">
-                 \${player.fullName}<br>
-                 <small>\${player.clubName}</small>
-               </button>\`;
+      html += `<button class="button is-small is-success is-outlined" 
+                      onclick="selectTransferInPlayer(${player.playerId || player.id}, '${player.fullName}', '${player.clubName}', '${player.position}')">
+                 ${player.fullName}<br>
+                 <small>${player.clubName}</small>
+               </button>`;
     });
     
     html += '</div></div>';
@@ -758,9 +758,9 @@ function displayTransferInPlayers(players) {
 }
 
 function selectTransferInPlayer(inPlayerId, inPlayerName, inPlayerClub, inPlayerPosition) {
-  if (confirm(\`Взять игрока \${inPlayerName} (\${inPlayerClub}, \${inPlayerPosition}) в команду?\`)) {
+  if (confirm(`Взять игрока ${inPlayerName} (${inPlayerClub}, ${inPlayerPosition}) в команду?`)) {
     // Execute the transfer in
-    fetch(\`/transfers/{{ draft_type|lower }}/transfer-player-in\`, {
+    fetch(`/transfers/{{ draft_type|lower }}/transfer-player-in`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
