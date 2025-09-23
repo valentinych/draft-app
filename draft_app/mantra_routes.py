@@ -790,13 +790,24 @@ def results():
     return render_template("top4_results.html")
 
 
-@bp.route("/refresh_stats", methods=["POST"])
-def refresh_stats():
-    """Refresh statistics for all Top-4 players."""
-    if not session.get("godmode"):
-        return jsonify({"error": "Access denied"}), 403
+# Global status for stats refresh
+stats_refresh_status = {
+    'running': False,
+    'progress': 0,
+    'message': '',
+    'total': 0,
+    'refreshed': 0
+}
+
+def run_stats_refresh():
+    """Run stats refresh in background"""
+    global stats_refresh_status
     
     try:
+        stats_refresh_status['running'] = True
+        stats_refresh_status['progress'] = 0
+        stats_refresh_status['message'] = 'Starting stats refresh...'
+        
         state = load_top4_state()
         mapping = load_player_map()
         rosters = state.get("rosters") or {}
@@ -810,21 +821,48 @@ def refresh_stats():
                 if fid in mapping:
                     all_player_ids.add(mapping[fid])
         
+        stats_refresh_status['total'] = len(all_player_ids)
+        stats_refresh_status['refreshed'] = 0
+        
         # Refresh stats for all players
-        refreshed_count = 0
-        for pid in all_player_ids:
+        for i, pid in enumerate(all_player_ids):
             try:
                 _load_player(int(pid), force_refresh=True)
-                refreshed_count += 1
+                stats_refresh_status['refreshed'] += 1
+                stats_refresh_status['progress'] = int((i + 1) / len(all_player_ids) * 100)
+                stats_refresh_status['message'] = f'Refreshed {stats_refresh_status["refreshed"]}/{stats_refresh_status["total"]} players'
             except Exception as e:
                 print(f"[TOP4] Failed to refresh player {pid}: {e}")
         
-        return jsonify({
-            "success": True, 
-            "refreshed": refreshed_count,
-            "total": len(all_player_ids)
-        })
-    
+        stats_refresh_status['progress'] = 100
+        stats_refresh_status['message'] = f'Completed: refreshed {stats_refresh_status["refreshed"]}/{stats_refresh_status["total"]} players'
+        
     except Exception as e:
         print(f"[TOP4] Stats refresh error: {e}")
-        return jsonify({"error": str(e)}), 500
+        stats_refresh_status['message'] = f'Error: {str(e)}'
+    finally:
+        stats_refresh_status['running'] = False
+
+@bp.route("/refresh_stats", methods=["POST"])
+def refresh_stats():
+    """Refresh statistics for all Top-4 players."""
+    if not session.get("godmode"):
+        return jsonify({"error": "Access denied"}), 403
+    
+    if stats_refresh_status['running']:
+        return jsonify({'error': 'Stats refresh already running'}), 400
+    
+    # Start refresh in background
+    thread = Thread(target=run_stats_refresh)
+    thread.daemon = True
+    thread.start()
+    
+    return jsonify({'message': 'Stats refresh started', 'status': 'running'})
+
+@bp.route("/refresh_stats/status", methods=["GET"])
+def refresh_stats_status():
+    """Get stats refresh status"""
+    if not session.get("godmode"):
+        return jsonify({"error": "Access denied"}), 403
+    
+    return jsonify(stats_refresh_status)
