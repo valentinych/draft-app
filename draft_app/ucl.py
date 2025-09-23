@@ -1287,20 +1287,6 @@ def ucl_lineups_data():
         """Get manager's roster as it was for the specific MD"""
         # Start with current roster (after all transfers) and work backwards
         current_roster = list(rosters.get(manager, []))
-        print(f"[UCL Lineups] get_roster_for_md - manager: {manager}, target_md: {target_md}")
-        print(f"[UCL Lineups] get_roster_for_md - initial roster size: {len(current_roster)}")
-        print(f"[UCL Lineups] get_roster_for_md - old transfers: {len(old_transfer_history)}")
-        print(f"[UCL Lineups] get_roster_for_md - new transfers: {len(new_transfer_history)}")
-        
-        # Log players in initial roster to debug Hans Vanaken issue
-        if manager == "Сергей":
-            hans_vanaken_in_initial = any("Hans Vanaken" in p.get("fullName", "") for p in current_roster)
-            jobe_bellingham_in_initial = any("Jobe Bellingham" in p.get("fullName", "") for p in current_roster)
-            print(f"[UCL Lineups] Initial roster check - Hans Vanaken: {hans_vanaken_in_initial}, Jobe Bellingham: {jobe_bellingham_in_initial}")
-            if hans_vanaken_in_initial:
-                for p in current_roster:
-                    if "Hans Vanaken" in p.get("fullName", ""):
-                        print(f"[UCL Lineups] Hans Vanaken found in initial roster: ID={p.get('playerId')}, name={p.get('fullName')}")
         
         # Apply old format transfers first (legacy)
         for transfer in old_transfer_history:
@@ -1320,10 +1306,7 @@ def ucl_lineups_data():
                     
                     # Check if player is already in roster to avoid duplicates
                     already_in_roster = any(p.get("playerId") == in_player_id for p in current_roster)
-                    if already_in_roster:
-                        print(f"[UCL Lineups] Player {in_name} (ID: {in_player_id}) already in roster, skipping add for MD{target_md} (legacy)")
-                    else:
-                        print(f"[UCL Lineups] Adding player: {in_name} (ID: {in_player_id}) for MD{target_md} (legacy)")
+                    if not already_in_roster:
                         current_roster.append(in_player)
         
         # Rollback transfers that happened AFTER the target MD
@@ -1335,16 +1318,9 @@ def ucl_lineups_data():
             transfer_gw = transfer.get("gw", 999)
             transfer_manager = transfer.get("manager")
             transfer_action = transfer.get("action")
-            print(f"[UCL Lineups] Checking transfer: manager='{transfer_manager}' vs target='{manager}', gw={transfer_gw}, target_md={target_md}, action={transfer_action}")
             if transfer_manager == manager:
-                print(f"[UCL Lineups] Found transfer for {manager}: gw={transfer_gw}, target_md={target_md}, action={transfer_action}")
                 if transfer_gw >= target_md:
                     rollback_transfers.append(transfer)
-                    print(f"[UCL Lineups] Transfer will be ROLLED BACK (gw {transfer_gw} >= target_md {target_md})")
-                else:
-                    print(f"[UCL Lineups] Transfer will be KEPT (gw {transfer_gw} < target_md {target_md})")
-            else:
-                print(f"[UCL Lineups] Transfer manager '{transfer_manager}' != target manager '{manager}', skipping")
         
         # Sort transfers in REVERSE chronological order for rollback
         rollback_transfers.sort(key=lambda x: x.get("ts", ""), reverse=True)
@@ -1354,14 +1330,10 @@ def ucl_lineups_data():
             transfer_gw = transfer.get("gw", 999)
             transfer_manager = transfer.get("manager")
             transfer_action = transfer.get("action")
-            
-            print(f"[UCL Lineups] Rolling back transfer: manager={transfer_manager}, gw={transfer_gw}, action={transfer_action}, target_md={target_md}")
-            
             # Rollback transfer_in: remove the player that was added
             if transfer_action == "transfer_in" and "in_player" in transfer:
                 in_player_id = transfer["in_player"].get("playerId")
                 in_name = transfer["in_player"].get("fullName", "Unknown")
-                print(f"[UCL Lineups] Rolling back transfer_in: removing {in_name} (ID: {in_player_id}) for MD{target_md}")
                 current_roster = [p for p in current_roster if p.get("playerId") != in_player_id]
             
             # Rollback transfer_out: add back the player that was removed
@@ -1372,15 +1344,8 @@ def ucl_lineups_data():
                 
                 # Check if player is already in roster to avoid duplicates
                 already_in_roster = any(p.get("playerId") == out_player_id for p in current_roster)
-                if already_in_roster:
-                    print(f"[UCL Lineups] Player {out_name} (ID: {out_player_id}) already in roster, skipping rollback add for MD{target_md}")
-                else:
-                    print(f"[UCL Lineups] Rolling back transfer_out: adding back {out_name} (ID: {out_player_id}) for MD{target_md}")
+                if not already_in_roster:
                     current_roster.append(out_player)
-        
-        print(f"[UCL Lineups] Final roster for {manager} MD{target_md}: {len(current_roster)} players")
-        for p in current_roster:
-            print(f"  - {p.get('fullName', 'Unknown')} (ID: {p.get('playerId')})")
         
         return current_roster
 
@@ -1749,15 +1714,6 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
                         "active_mds": set(range(transfer_gw + 1, 9)),
                         "transfer_status": "transfer_in"
                     }
-        
-        # Debug logging for Сергей
-        if manager == "Сергей":
-            print(f"[UCL Results] get_all_manager_players for {manager}:")
-            for player_id, player_data in all_players.items():
-                name = player_data["player"].get("fullName", "Unknown")
-                active_mds = sorted(list(player_data["active_mds"]))
-                status = player_data["transfer_status"]
-                print(f"  - {name} (ID: {player_id}): active_mds={active_mds}, status={status}")
         
         return all_players
     
