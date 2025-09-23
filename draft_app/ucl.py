@@ -1530,6 +1530,51 @@ def ucl_results_data():
     return jsonify(data)
 
 
+@bp.route("/ucl/populate_test_rosters", methods=["POST"])
+def populate_test_rosters():
+    """Populate UCL rosters with test data - GODMODE ONLY"""
+    current_user = session.get("user_name")
+    if not current_user or not session.get("godmode"):
+        abort(403)
+    
+    try:
+        state = _ucl_state_load()
+        players = _players_from_ucl()
+        
+        # Get available players (first 200 for testing)
+        available_players = list(players.values())[:200]
+        
+        # UCL participants
+        participants = ["Сергей", "Андрей", "Серёга Б", "Женя", "Ксана", "Саша", "Руслан", "Макс"]
+        
+        # Assign 25 players to each participant
+        rosters = state.setdefault("rosters", {})
+        
+        for i, participant in enumerate(participants):
+            start_idx = i * 25
+            end_idx = start_idx + 25
+            participant_players = available_players[start_idx:end_idx]
+            
+            # Ensure we have players for this participant
+            if len(participant_players) < 25:
+                # If we run out of unique players, repeat from the beginning
+                remaining_needed = 25 - len(participant_players)
+                participant_players.extend(available_players[:remaining_needed])
+            
+            rosters[participant] = participant_players
+            print(f"Assigned {len(participant_players)} players to {participant}")
+        
+        _ucl_state_save(state)
+        flash(f"Тестовые составы созданы для {len(participants)} участников", "success")
+        
+        return redirect(request.referrer or url_for("home.index"))
+        
+    except Exception as e:
+        print(f"Error populating test rosters: {e}")
+        flash(f"Ошибка при создании тестовых составов: {str(e)}", "danger")
+        return redirect(request.referrer or url_for("home.index"))
+
+
 @bp.route("/ucl/open_transfer_window", methods=["POST"])
 def open_transfer_window():
     """Open UCL transfer window - godmode only"""
