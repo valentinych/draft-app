@@ -293,6 +293,7 @@ class TransferSystem:
                 phase = active_window.get("transfer_phase", "out")
                 return phase
             else:
+                pass
         
         # Legacy format - check if it has phase info
         legacy_window = state.get("transfer_window")
