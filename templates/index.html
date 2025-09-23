@@ -382,13 +382,34 @@ function selectPlayerForTransferOut(playerId, playerName, playerClub, playerPosi
       },
       body: `player_id=${playerId}`
     })
-    .then(response => response.json())
+    .then(response => {
+      // Check if response is ok
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      // Try to parse as JSON, if fails then it's probably a redirect/HTML
+      return response.text().then(text => {
+        try {
+          return JSON.parse(text);
+        } catch (e) {
+          // If not JSON, assume success and reload page
+          console.log('Non-JSON response, reloading page');
+          window.location.reload();
+          return null;
+        }
+      });
+    })
     .then(data => {
+      if (data === null) {
+        // Page will reload, no need to do anything
+        return;
+      }
       if (data.success) {
-        // Show available replacement players
-        showAvailableTransferPlayers(playerId);
+        // Show success message and reload page
+        alert('✅ ' + (data.message || 'Игрок отправлен в transfer out пул!'));
+        window.location.reload();
       } else {
-        alert('Ошибка при отправке игрока: ' + (data.error || 'Неизвестная ошибка'));
+        alert('❌ Ошибка: ' + (data.error || 'Неизвестная ошибка'));
         // Re-enable buttons
         buttons.forEach(btn => {
           btn.disabled = false;
@@ -398,7 +419,7 @@ function selectPlayerForTransferOut(playerId, playerName, playerClub, playerPosi
     })
     .catch(error => {
       console.error('Transfer out error:', error);
-      alert('Ошибка при отправке игрока: ' + error.message);
+      alert('❌ Ошибка при отправке игрока: ' + error.message);
       // Re-enable buttons
       buttons.forEach(btn => {
         btn.disabled = false;
