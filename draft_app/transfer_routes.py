@@ -151,7 +151,7 @@ def pick_transfer_player(draft_type: str):
             flash(error_msg, "danger")
             return redirect(request.referrer or url_for("home.index"))
         
-        updated_state = transfer_system.pick_transfer_player(
+        updated_state = transfer_system.transfer_player_out(
             state, current_user, player_id, current_gw
         )
         

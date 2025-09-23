@@ -433,6 +433,69 @@ class TransferSystem:
         print(f"[TransferSystem] pick_transfer_player - completed successfully for player {player_id}")
         return state
     
+    def transfer_player_out(self,
+                           state: Dict[str, Any],
+                           manager: str,
+                           player_id: int,
+                           current_gw: int) -> Dict[str, Any]:
+        """Transfer a player out from manager's roster to available pool"""
+        state = self.ensure_transfer_structure(state)
+        
+        print(f"[TransferSystem] transfer_player_out - manager: {manager}, player_id: {player_id}")
+        
+        # Check if transfer window is active
+        if not self.is_transfer_window_active(state):
+            raise ValueError("Трансферное окно неактивно")
+        
+        # Check if it's manager's turn
+        current_manager = self.get_current_transfer_manager(state)
+        if current_manager != manager:
+            raise ValueError(f"Сейчас ход менеджера {current_manager}, а не {manager}")
+        
+        # Get manager's roster
+        rosters = state.setdefault("rosters", {})
+        roster = rosters.setdefault(manager, [])
+        
+        print(f"[TransferSystem] transfer_player_out - roster size: {len(roster)}")
+        
+        # Find and remove outgoing player
+        out_player = None
+        new_roster = []
+        for player in roster:
+            current_player_id = int(player.get("playerId") or player.get("id", 0))
+            if current_player_id == player_id:
+                out_player = player.copy()
+                print(f"[TransferSystem] transfer_player_out - found player: {player.get('fullName', player.get('name', 'Unknown'))}")
+                # Mark as transferred out
+                out_player["status"] = "transfer_out"
+                out_player["transferred_out_gw"] = current_gw
+                # Add to available players pool
+                state["transfers"]["available_players"].append(out_player)
+            else:
+                new_roster.append(player)
+        
+        if not out_player:
+            print(f"[TransferSystem] transfer_player_out - player {player_id} not found in roster")
+            raise ValueError(f"Player {player_id} not found in {manager}'s roster")
+        
+        # Update roster
+        rosters[manager] = new_roster
+        
+        # Record in history as a transfer out event
+        transfer_record = {
+            "gw": current_gw,
+            "manager": manager,
+            "action": "transfer_out",
+            "out_player": out_player,
+            "ts": datetime.utcnow().isoformat(timespec="seconds"),
+            "draft_type": self.draft_type
+        }
+        
+        state["transfers"]["history"].append(transfer_record)
+        
+        print(f"[TransferSystem] transfer_player_out - completed successfully")
+        return state
+    
     def get_player_active_gws(self, player: Dict[str, Any]) -> List[int]:
         """Get list of GWs when player should be counted for scoring"""
         return player.get("gws_active", [])
