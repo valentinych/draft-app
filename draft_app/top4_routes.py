@@ -107,10 +107,6 @@ def index():
 
     annotate_can_pick(players, state, current_user)
 
-    # Debug: print session info for godmode users
-    if session.get('user_id') == '10':
-        print(f"[DEBUG] User ID=10: godmode={session.get('godmode')}, draft_title='{draft_title}'")
-    
     return render_template(
         "index.html",
         draft_title=draft_title,

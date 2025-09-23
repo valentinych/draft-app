@@ -56,8 +56,10 @@
           <input type="hidden" name="manager" value="Сергей">
           <button type="submit" class="btn btn-success">Вернуть Jobe Bellingham</button>
         </form>
-        {% elif draft_title and 'Top-4' in draft_title and session.get('godmode') %}
-        <!-- MantraFootball Integration Controls -->
+        {% endif %}
+        
+        <!-- MantraFootball Integration Controls (separate from draft_completed check) -->
+        {% if draft_title and 'Top-4' in draft_title and session.get('godmode') %}
         <button type="button" class="btn" onclick="syncMantraData('tournaments')" style="margin-left:8px;" id="sync-tournaments-btn">Синхронизировать турниры</button>
         <button type="button" class="btn" onclick="syncMantraData('players')" style="margin-left:8px;" id="sync-players-btn">Синхронизировать игроков</button>
         <button type="button" class="btn" onclick="syncMantraData('match-players')" style="margin-left:8px;" id="sync-matching-btn">Связать игроков</button>
@@ -65,12 +67,6 @@
         <button type="button" class="btn btn-info" onclick="toggleMantraMode()" style="margin-left:8px;" id="mantra-mode-btn">
           {{ 'Отключить MantraFootball' if request.args.get('use_mantra') == 'true' else 'Использовать MantraFootball' }}
         </button>
-        {% endif %}
-        <!-- Debug info for godmode users -->
-        {% if session.get('user_id') == '10' %}
-        <div style="margin-left:8px; color: red; font-size: 10px;">
-          DEBUG: draft_title="{{ draft_title }}", godmode={{ session.get('godmode') }}, user_id={{ session.get('user_id') }}
-        </div>
         {% endif %}
         {% endif %}
         <form method="post" action="{{ undo_url|default(url_for('epl.undo_last_pick')) }}" style="display:inline; margin-left:8px;">
