@@ -457,6 +457,10 @@ class TransferSystem:
         roster = rosters.setdefault(manager, [])
         
         print(f"[TransferSystem] transfer_player_out - roster size: {len(roster)}")
+        print(f"[TransferSystem] transfer_player_out - all rosters keys: {list(rosters.keys())}")
+        print(f"[TransferSystem] transfer_player_out - total rosters count: {sum(len(r) for r in rosters.values())}")
+        print(f"[TransferSystem] transfer_player_out - state keys: {list(state.keys())}")
+        print(f"[TransferSystem] transfer_player_out - state has picks: {len(state.get('picks', []))}")
         
         # Find and remove outgoing player
         out_player = None
