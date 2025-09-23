@@ -1546,6 +1546,80 @@ def ucl_results_data():
     return jsonify(data)
 
 
+@bp.route("/ucl/return_transfer_out_player", methods=["POST"])
+def return_transfer_out_player():
+    """Return a transfer out player back to their original roster - GODMODE ONLY"""
+    current_user = session.get("user_name")
+    if not current_user or not session.get("godmode"):
+        abort(403)
+    
+    try:
+        player_id = request.form.get("player_id", type=int)
+        manager = request.form.get("manager", "").strip()
+        
+        if not player_id or not manager:
+            flash("Некорректные параметры", "danger")
+            return redirect(request.referrer or url_for("home.index"))
+        
+        # Load transfer system state
+        from .transfer_system import create_transfer_system
+        transfer_system = create_transfer_system("ucl")
+        state = transfer_system.load_state()
+        
+        # Find the player in available_players (transfer out pool)
+        available_players = state.get("transfers", {}).get("available_players", [])
+        transfer_out_player = None
+        new_available_players = []
+        
+        for player in available_players:
+            current_player_id = int(player.get("playerId") or player.get("id", 0))
+            if current_player_id == player_id and player.get("status") == "transfer_out":
+                transfer_out_player = player.copy()
+                # Remove transfer out markers
+                transfer_out_player.pop("status", None)
+                transfer_out_player.pop("transferred_out_gw", None)
+                print(f"[UCL] Found transfer out player: {player.get('fullName', 'Unknown')}")
+            else:
+                new_available_players.append(player)
+        
+        if not transfer_out_player:
+            flash(f"Игрок с ID {player_id} не найден в transfer out пуле", "danger")
+            return redirect(request.referrer or url_for("home.index"))
+        
+        # Add player back to manager's roster
+        rosters = state.setdefault("rosters", {})
+        manager_roster = rosters.setdefault(manager, [])
+        manager_roster.append(transfer_out_player)
+        
+        # Update available players list
+        state["transfers"]["available_players"] = new_available_players
+        
+        # Remove the transfer out record from history
+        transfer_history = state.get("transfers", {}).get("history", [])
+        new_history = []
+        for record in transfer_history:
+            # Skip the transfer out record for this player and manager
+            if not (record.get("action") == "transfer_out" and 
+                    record.get("manager") == manager and
+                    record.get("out_player", {}).get("playerId") == player_id):
+                new_history.append(record)
+            else:
+                print(f"[UCL] Removing transfer out record for {transfer_out_player.get('fullName', 'Unknown')}")
+        
+        state["transfers"]["history"] = new_history
+        
+        # Save state
+        transfer_system.save_state(state)
+        
+        flash(f"Игрок {transfer_out_player.get('fullName', 'Unknown')} возвращен в состав {manager}", "success")
+        return redirect(request.referrer or url_for("home.index"))
+        
+    except Exception as e:
+        print(f"Error returning transfer out player: {e}")
+        flash(f"Ошибка при возврате игрока: {str(e)}", "danger")
+        return redirect(request.referrer or url_for("home.index"))
+
+
 @bp.route("/ucl/populate_test_rosters", methods=["POST"])
 def populate_test_rosters():
     """Populate UCL rosters with test data - GODMODE ONLY"""

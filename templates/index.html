@@ -51,6 +51,11 @@
         <form method="post" action="{{ url_for('ucl.open_transfer_window') }}" style="display:inline; margin-left:8px;">
           <button type="submit" class="btn btn-info">Открыть трансферное окно</button>
         </form>
+        <form method="post" action="{{ url_for('ucl.return_transfer_out_player') }}" style="display:inline; margin-left:8px;">
+          <input type="hidden" name="player_id" value="250167832">
+          <input type="hidden" name="manager" value="Сергей">
+          <button type="submit" class="btn btn-success">Вернуть Jobe Bellingham</button>
+        </form>
         {% endif %}
         {% endif %}
         <form method="post" action="{{ undo_url|default(url_for('epl.undo_last_pick')) }}" style="display:inline; margin-left:8px;">
