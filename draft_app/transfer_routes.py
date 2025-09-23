@@ -4,6 +4,7 @@ Transfer Routes - Unified transfer system endpoints for all draft types
 
 from flask import Blueprint, request, session, redirect, url_for, flash, abort, jsonify, render_template
 from typing import Dict, Any, Optional
+from datetime import datetime
 from .transfer_system import create_transfer_system
 
 bp = Blueprint("transfers", __name__, url_prefix="/transfers")
@@ -336,7 +337,8 @@ def transfer_history(draft_type: str):
                     "total_rounds": 1,
                     "current_round": 1,
                     "current_manager_index": current_index,
-                    "managers_order": participants
+                    "managers_order": participants,
+                    "transfer_phase": legacy_window.get("transfer_phase", "out")  # Preserve phase from legacy
                 }
                 current_manager = participants[current_index] if current_index < len(participants) else None
                 is_window_active = True
@@ -558,9 +560,30 @@ def fix_transfer_state(draft_type: str):
             flash("Необходимо указать менеджера", "danger")
             return redirect(request.referrer or url_for("home.index"))
         
-        # Fix legacy transfer window
+        # Fix transfer window (both legacy and standard formats)
         legacy_window = state.get("transfer_window")
-        if legacy_window and legacy_window.get("active"):
+        active_window = transfer_system.get_active_transfer_window(state)
+        
+        fixed = False
+        
+        # Try to fix standard active_window first
+        if active_window:
+            managers_order = active_window.get("managers_order", [])
+            valid_managers = [m for m in managers_order if m and m.strip()]
+            
+            if manager in valid_managers:
+                manager_index = valid_managers.index(manager)
+                active_window["current_manager_index"] = manager_index
+                active_window["transfer_phase"] = phase
+                
+                transfer_system.save_state(state)
+                flash(f"Состояние исправлено (стандартное окно): {manager} - фаза {phase}", "success")
+                fixed = True
+            else:
+                flash(f"Менеджер {manager} не найден в стандартном окне. Участники: {valid_managers}", "warning")
+        
+        # If not fixed, try legacy window
+        if not fixed and legacy_window and legacy_window.get("active"):
             participant_order = legacy_window.get("participant_order", [])
             if manager in participant_order:
                 manager_index = participant_order.index(manager)
@@ -575,16 +598,78 @@ def fix_transfer_state(draft_type: str):
                         transfers_completed[manager] = 0
                 
                 transfer_system.save_state(state)
-                flash(f"Состояние исправлено: {manager} - фаза {phase}", "success")
+                flash(f"Состояние исправлено (legacy окно): {manager} - фаза {phase}", "success")
+                fixed = True
             else:
-                flash(f"Менеджер {manager} не найден в списке участников", "danger")
-        else:
-            flash("Трансферное окно не активно", "warning")
+                flash(f"Менеджер {manager} не найден в legacy окне. Участники: {participant_order}", "danger")
+        
+        if not fixed:
+            flash("Трансферное окно не активно или менеджер не найден", "warning")
         
         return redirect(request.referrer or url_for("home.index"))
         
     except Exception as e:
         flash(f"Ошибка при исправлении состояния: {str(e)}", "danger")
+        return redirect(request.referrer or url_for("home.index"))
+
+
+@bp.route("/<draft_type>/rebuild-window", methods=["POST"])
+def rebuild_transfer_window(draft_type: str):
+    """Rebuild transfer window from legacy to standard format - Admin only"""
+    if not session.get("godmode"):
+        abort(403)
+    
+    try:
+        transfer_system = create_transfer_system(draft_type)
+        state = transfer_system.load_state()
+        
+        # Check if we have a legacy window to rebuild from
+        legacy_window = state.get("transfer_window")
+        if not legacy_window or not legacy_window.get("active"):
+            flash("Нет активного legacy трансферного окна для пересборки", "warning")
+            return redirect(request.referrer or url_for("home.index"))
+        
+        # Extract data from legacy window
+        participant_order = legacy_window.get("participant_order", [])
+        current_index = legacy_window.get("current_index", 0)
+        transfer_phase = legacy_window.get("transfer_phase", "out")
+        
+        # Filter out empty participants
+        valid_participants = [p for p in participant_order if p and p.strip()]
+        
+        if not valid_participants:
+            from .config import UCL_USERS
+            valid_participants = UCL_USERS
+            flash("Использованы участники по умолчанию из UCL_USERS", "info")
+        
+        # Adjust current_index if needed
+        if current_index >= len(valid_participants):
+            current_index = 0
+        
+        # Create proper standard transfer window
+        transfer_system.ensure_transfer_structure(state)
+        state["transfers"]["active_window"] = {
+            "gw": 1,
+            "total_rounds": 1,
+            "current_round": 1,
+            "current_manager_index": current_index,
+            "managers_order": valid_participants,
+            "transfer_phase": transfer_phase,
+            "started_at": datetime.utcnow().isoformat(timespec="seconds")
+        }
+        
+        # Keep legacy window for compatibility but mark it as converted
+        legacy_window["converted_to_standard"] = True
+        
+        transfer_system.save_state(state)
+        
+        current_manager = valid_participants[current_index] if current_index < len(valid_participants) else "Unknown"
+        flash(f"Трансферное окно пересобрано! Участники: {' → '.join(valid_participants)}, текущий: {current_manager}, фаза: {transfer_phase}", "success")
+        
+        return redirect(request.referrer or url_for("home.index"))
+        
+    except Exception as e:
+        flash(f"Ошибка при пересборке окна: {str(e)}", "danger")
         return redirect(request.referrer or url_for("home.index"))
 
 
