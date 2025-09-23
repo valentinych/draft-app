@@ -4,7 +4,7 @@ MantraFootball synchronization routes
 from flask import Blueprint, request, jsonify, redirect, url_for
 from .auth import require_auth
 from .mantra_store import mantra_store
-from .state import load_state
+from .top4_services import load_state
 import threading
 import time
 
