@@ -1294,7 +1294,7 @@ def ucl_lineups_data():
         # Apply old format transfers first (legacy)
         for transfer in old_transfer_history:
             if (transfer.get("manager") == manager and 
-                transfer.get("matchday", 999) <= target_md):
+                transfer.get("matchday", 999) < target_md):
                 
                 # Remove transferred out player
                 if "player_out" in transfer:
@@ -1318,10 +1318,20 @@ def ucl_lineups_data():
         # Apply new format transfers (from new transfer system)
         # New system creates separate transfer_out and transfer_in events
         # Sort transfers by timestamp to apply them in correct order
-        relevant_transfers = [
-            transfer for transfer in new_transfer_history
-            if (transfer.get("manager") == manager and transfer.get("gw", 999) <= target_md)
-        ]
+        # Only apply transfers that happened AFTER the target MD started
+        # For MD1: don't apply any transfers (they happen after MD1)
+        # For MD2: apply transfers with GW <= 2
+        relevant_transfers = []
+        for transfer in new_transfer_history:
+            transfer_gw = transfer.get("gw", 999)
+            transfer_manager = transfer.get("manager")
+            if transfer_manager == manager:
+                print(f"[UCL Lineups] Found transfer for {manager}: gw={transfer_gw}, target_md={target_md}, action={transfer.get('action')}")
+                if transfer_gw < target_md:
+                    relevant_transfers.append(transfer)
+                    print(f"[UCL Lineups] Transfer will be applied (gw {transfer_gw} < target_md {target_md})")
+                else:
+                    print(f"[UCL Lineups] Transfer will NOT be applied (gw {transfer_gw} >= target_md {target_md})")
         relevant_transfers.sort(key=lambda x: x.get("ts", ""))
         
         for transfer in relevant_transfers:
