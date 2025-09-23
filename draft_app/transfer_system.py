@@ -164,8 +164,15 @@ class TransferSystem:
         if not self.is_transfer_window_active(state):
             return False
         
+        print(f"[TransferSystem] advance_transfer_turn - starting")
+        
         # Check if using legacy window format
         legacy_window = state.get("transfer_window")
+        active_window = state.get("transfers", {}).get("active_window")
+        
+        print(f"[TransferSystem] advance_transfer_turn - legacy_window active: {legacy_window.get('active') if legacy_window else False}")
+        print(f"[TransferSystem] advance_transfer_turn - active_window exists: {active_window is not None}")
+        
         if legacy_window and legacy_window.get("active"):
             # Handle legacy window format with phases
             participant_order = legacy_window.get("participant_order", [])
@@ -230,20 +237,24 @@ class TransferSystem:
             active_window["transfer_phase"] = "out"
             next_index = current_index + 1
             
+            print(f"[TransferSystem] advance_transfer_turn (standard) - moving from 'in' to 'out', next_index: {next_index}")
+            
             if next_index >= len(managers_order):
                 # End of round, start next round or close window
                 next_round = current_round + 1
                 if next_round > total_rounds:
                     # Close window
+                    print(f"[TransferSystem] advance_transfer_turn (standard) - closing window")
                     return self.close_transfer_window(state)
                 else:
                     # Start next round
                     active_window["current_round"] = next_round
                     active_window["current_manager_index"] = 0
-                    print(f"[TransferSystem] advance_transfer_turn - starting round {next_round}")
+                    print(f"[TransferSystem] advance_transfer_turn (standard) - starting round {next_round}")
             else:
                 active_window["current_manager_index"] = next_index
-                print(f"[TransferSystem] advance_transfer_turn - next manager (index {next_index})")
+                next_manager = managers_order[next_index] if next_index < len(managers_order) else "Unknown"
+                print(f"[TransferSystem] advance_transfer_turn (standard) - next manager: {next_manager} (index {next_index}), phase: out")
                 
             return True
     
@@ -303,13 +314,18 @@ class TransferSystem:
         """Get current transfer phase ('out' or 'in')"""
         active_window = self.get_active_transfer_window(state)
         if active_window:
-            return active_window.get("transfer_phase", "out")
+            phase = active_window.get("transfer_phase", "out")
+            print(f"[TransferSystem] get_current_transfer_phase - active_window phase: {phase}")
+            return phase
         
         # Legacy format - check if it has phase info
         legacy_window = state.get("transfer_window")
         if legacy_window and legacy_window.get("active"):
-            return legacy_window.get("transfer_phase", "out")
+            phase = legacy_window.get("transfer_phase", "out")
+            print(f"[TransferSystem] get_current_transfer_phase - legacy_window phase: {phase}")
+            return phase
         
+        print(f"[TransferSystem] get_current_transfer_phase - no active window")
         return None
     
     def normalize_player_data(self, player: Dict[str, Any], current_gw: int) -> Dict[str, Any]:
