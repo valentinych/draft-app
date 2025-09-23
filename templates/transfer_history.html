@@ -25,6 +25,11 @@
           <button class="button is-small is-warning" onclick="showFixStateModal()">
             Исправить состояние
           </button>
+          <form method="post" action="{{ url_for('transfers.rebuild_transfer_window', draft_type=draft_type) }}" style="display: inline;">
+            <button type="submit" class="button is-small is-info" onclick="return confirm('Пересобрать трансферное окно? Это исправит испорченное стандартное окно.')">
+              Пересобрать окно
+            </button>
+          </form>
           {% endif %}
           <form method="post" action="{{ url_for('transfers.skip_transfer_turn', draft_type=draft_type) }}" style="display: inline;">
             <button type="submit" class="button is-small is-light">Пропустить ход</button>

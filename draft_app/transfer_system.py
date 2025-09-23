@@ -314,9 +314,16 @@ class TransferSystem:
         """Get current transfer phase ('out' or 'in')"""
         active_window = self.get_active_transfer_window(state)
         if active_window:
-            phase = active_window.get("transfer_phase", "out")
-            print(f"[TransferSystem] get_current_transfer_phase - active_window phase: {phase}")
-            return phase
+            managers_order = active_window.get("managers_order", [])
+            valid_managers = [m for m in managers_order if m and m.strip()]
+            
+            # Only use active_window if it has valid managers
+            if valid_managers:
+                phase = active_window.get("transfer_phase", "out")
+                print(f"[TransferSystem] get_current_transfer_phase - active_window phase: {phase}")
+                return phase
+            else:
+                print(f"[TransferSystem] get_current_transfer_phase - active_window has no valid managers, trying legacy")
         
         # Legacy format - check if it has phase info
         legacy_window = state.get("transfer_window")
