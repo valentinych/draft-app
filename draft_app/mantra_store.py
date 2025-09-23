@@ -7,13 +7,12 @@ import boto3
 from typing import Dict, List, Optional, Any
 from datetime import datetime
 from .mantra_api import MantraFootballAPI, PlayerMatcher, format_mantra_player_for_draft
-from .config import Config
 
 class MantraDataStore:
     def __init__(self):
         self.api = MantraFootballAPI()
         self.s3_client = None
-        self.bucket_name = Config.AWS_S3_BUCKET
+        self.bucket_name = os.environ.get('AWS_S3_BUCKET')
         
         if self.bucket_name:
             try:
