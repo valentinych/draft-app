@@ -1291,6 +1291,16 @@ def ucl_lineups_data():
         print(f"[UCL Lineups] get_roster_for_md - old transfers: {len(old_transfer_history)}")
         print(f"[UCL Lineups] get_roster_for_md - new transfers: {len(new_transfer_history)}")
         
+        # Log players in initial roster to debug Hans Vanaken issue
+        if manager == "Сергей":
+            hans_vanaken_in_initial = any("Hans Vanaken" in p.get("fullName", "") for p in current_roster)
+            jobe_bellingham_in_initial = any("Jobe Bellingham" in p.get("fullName", "") for p in current_roster)
+            print(f"[UCL Lineups] Initial roster check - Hans Vanaken: {hans_vanaken_in_initial}, Jobe Bellingham: {jobe_bellingham_in_initial}")
+            if hans_vanaken_in_initial:
+                for p in current_roster:
+                    if "Hans Vanaken" in p.get("fullName", ""):
+                        print(f"[UCL Lineups] Hans Vanaken found in initial roster: ID={p.get('playerId')}, name={p.get('fullName')}")
+        
         # Apply old format transfers first (legacy)
         for transfer in old_transfer_history:
             if (transfer.get("manager") == manager and 
