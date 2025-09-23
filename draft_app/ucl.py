@@ -1550,22 +1550,35 @@ def populate_test_rosters():
         # UCL participants
         participants = ["Сергей", "Андрей", "Серёга Б", "Женя", "Ксана", "Саша", "Руслан", "Макс"]
         
-        # Assign 25 players to each participant
+        # Group players by position
+        players_by_pos = {"GK": [], "DEF": [], "MID": [], "FWD": []}
+        for player in available_players:
+            pos = player.get("position", "MID")
+            if pos in players_by_pos:
+                players_by_pos[pos].append(player)
+        
+        print(f"Available players by position: GK={len(players_by_pos['GK'])}, DEF={len(players_by_pos['DEF'])}, MID={len(players_by_pos['MID'])}, FWD={len(players_by_pos['FWD'])}")
+        
+        # UCL position limits: GK=3, DEF=8, MID=9, FWD=5 (total=25)
+        position_limits = {"GK": 3, "DEF": 8, "MID": 9, "FWD": 5}
+        
+        # Assign players to each participant with proper position distribution
         rosters = state.setdefault("rosters", {})
         
         for i, participant in enumerate(participants):
-            start_idx = i * 25
-            end_idx = start_idx + 25
-            participant_players = available_players[start_idx:end_idx]
+            participant_roster = []
             
-            # Ensure we have players for this participant
-            if len(participant_players) < 25:
-                # If we run out of unique players, repeat from the beginning
-                remaining_needed = 25 - len(participant_players)
-                participant_players.extend(available_players[:remaining_needed])
+            for pos, limit in position_limits.items():
+                pos_players = players_by_pos[pos]
+                start_idx = (i * limit) % len(pos_players) if pos_players else 0
+                
+                for j in range(limit):
+                    if pos_players:
+                        player_idx = (start_idx + j) % len(pos_players)
+                        participant_roster.append(pos_players[player_idx])
             
-            rosters[participant] = participant_players
-            print(f"Assigned {len(participant_players)} players to {participant}")
+            rosters[participant] = participant_roster
+            print(f"Assigned {len(participant_roster)} players to {participant} (GK: {len([p for p in participant_roster if p.get('position') == 'GK'])}, DEF: {len([p for p in participant_roster if p.get('position') == 'DEF'])}, MID: {len([p for p in participant_roster if p.get('position') == 'MID'])}, FWD: {len([p for p in participant_roster if p.get('position') == 'FWD'])})")
         
         _ucl_state_save(state)
         flash(f"Тестовые составы созданы для {len(participants)} участников", "success")
@@ -1596,10 +1609,18 @@ def open_transfer_window():
         for manager, data in results["lineups"].items():
             total = data.get("total", 0)
             manager_scores.append((manager, total))
+            print(f"Manager {manager}: {total} points")
         
         # Sort by total points ascending (worst first)
         manager_scores.sort(key=lambda x: x[1])
         transfer_order = [manager for manager, _ in manager_scores]
+        
+        print(f"Transfer order (worst to best): {transfer_order}")
+        
+        # If all managers have same score (0), use predefined order with Сергей first
+        if all(score == manager_scores[0][1] for _, score in manager_scores):
+            print("All managers have same score, using predefined order")
+            transfer_order = ["Сергей", "Андрей", "Серёга Б", "Женя", "Ксана", "Саша", "Руслан", "Макс"]
         
         # Initialize transfer window
         success = init_transfers_for_league(

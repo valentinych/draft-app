@@ -1,13 +1,1421 @@
 {
   "rosters": {
-    "Ксана": [],
-    "Андрей": [],
-    "Саша": [],
-    "Руслан": [],
-    "Женя": [],
-    "Макс": [],
-    "Серёга Б": [],
-    "Сергей": []
+    "Ксана": [
+      {
+        "playerId": 250112880,
+        "fullName": "Raphinha",
+        "clubName": "Barcelona",
+        "position": "MID",
+        "price": 9.5
+      },
+      {
+        "playerId": 250068805,
+        "fullName": "Marcus Thuram",
+        "clubName": "Inter",
+        "position": "FWD",
+        "price": 8.0
+      },
+      {
+        "playerId": 250161881,
+        "fullName": "Arda Güler",
+        "clubName": "Real Madrid",
+        "position": "MID",
+        "price": 6.0
+      },
+      {
+        "playerId": 250171055,
+        "fullName": "Kenan Yıldız",
+        "clubName": "Juventus",
+        "position": "MID",
+        "price": 6.5
+      },
+      {
+        "playerId": 250139445,
+        "fullName": "Florian Wirtz",
+        "clubName": "Liverpool",
+        "position": "MID",
+        "price": 9.0
+      },
+      {
+        "playerId": 250101534,
+        "fullName": "Phil Foden",
+        "clubName": "Man City",
+        "position": "MID",
+        "price": 8.0
+      },
+      {
+        "playerId": 250117705,
+        "fullName": "Charles De Ketelaere",
+        "clubName": "Atalanta",
+        "position": "FWD",
+        "price": 6.0
+      },
+      {
+        "playerId": 250101444,
+        "fullName": "Vitinha",
+        "clubName": "Paris",
+        "position": "MID",
+        "price": 7.0
+      },
+      {
+        "playerId": 250088240,
+        "fullName": "Scott McTominay",
+        "clubName": "Napoli",
+        "position": "MID",
+        "price": 7.0
+      },
+      {
+        "playerId": 50327427,
+        "fullName": "Micky van de Ven",
+        "clubName": "Tottenham",
+        "position": "DEF",
+        "price": 5.0
+      },
+      {
+        "playerId": 250101728,
+        "fullName": "Jurriën Timber",
+        "clubName": "Arsenal",
+        "position": "DEF",
+        "price": 5.0
+      },
+      {
+        "playerId": 250055110,
+        "fullName": "Patrik Schick",
+        "clubName": "Leverkusen",
+        "position": "FWD",
+        "price": 7.0
+      },
+      {
+        "playerId": 250160436,
+        "fullName": "Maghnes Akliouche",
+        "clubName": "Monaco",
+        "position": "MID",
+        "price": 5.0
+      },
+      {
+        "playerId": 250124222,
+        "fullName": "Maximilian Beier",
+        "clubName": "B. Dortmund",
+        "position": "FWD",
+        "price": 6.0
+      },
+      {
+        "playerId": 250041770,
+        "fullName": "Serge Gnabry",
+        "clubName": "Bayern München",
+        "position": "MID",
+        "price": 6.5
+      },
+      {
+        "playerId": 250154983,
+        "fullName": "Robert Sánchez",
+        "clubName": "Chelsea",
+        "position": "GK",
+        "price": 5.0
+      },
+      {
+        "playerId": 250081921,
+        "fullName": "Benjamin Pavard",
+        "clubName": "Marseille",
+        "position": "DEF",
+        "price": 4.5
+      },
+      {
+        "playerId": 250017040,
+        "fullName": "Nicolás Otamendi",
+        "clubName": "Benfica",
+        "position": "DEF",
+        "price": 5.0
+      },
+      {
+        "playerId": 250097909,
+        "fullName": "Mehdi Taremi",
+        "clubName": "Olympiacos",
+        "position": "FWD",
+        "price": 7.0
+      },
+      {
+        "playerId": 250132323,
+        "fullName": "Wilfried Singo",
+        "clubName": "Galatasaray",
+        "position": "DEF",
+        "price": 4.5
+      },
+      {
+        "playerId": 250092668,
+        "fullName": "Dávid Hancko",
+        "clubName": "Atleti",
+        "position": "DEF",
+        "price": 4.5
+      },
+      {
+        "playerId": 103823,
+        "fullName": "Yuri Berchiche",
+        "clubName": "Athletic Club",
+        "position": "DEF",
+        "price": 4.5
+      },
+      {
+        "playerId": 250000919,
+        "fullName": "Kieran Trippier",
+        "clubName": "Newcastle",
+        "position": "DEF",
+        "price": 4.5
+      },
+      {
+        "playerId": 250062141,
+        "fullName": "Rui Silva",
+        "clubName": "Sporting CP",
+        "position": "GK",
+        "price": 5.0
+      },
+      {
+        "playerId": 250123304,
+        "fullName": "Kjell Scherpen",
+        "clubName": "Union SG",
+        "position": "GK",
+        "price": 4.0
+      }
+    ],
+    "Андрей": [
+      {
+        "playerId": 250103758,
+        "fullName": "Erling Haaland",
+        "clubName": "Man City",
+        "position": "FWD",
+        "price": 10.5
+      },
+      {
+        "playerId": 250089868,
+        "fullName": "Alexander Isak",
+        "clubName": "Liverpool",
+        "position": "FWD",
+        "price": 9.0
+      },
+      {
+        "playerId": 250105927,
+        "fullName": "Viktor Gyökeres",
+        "clubName": "Arsenal",
+        "position": "FWD",
+        "price": 9.0
+      },
+      {
+        "playerId": 250128377,
+        "fullName": "Jude Bellingham",
+        "clubName": "Real Madrid",
+        "position": "MID",
+        "price": 8.5
+      },
+      {
+        "playerId": 250121904,
+        "fullName": "Mohammed Kudus",
+        "clubName": "Tottenham",
+        "position": "MID",
+        "price": 7.0
+      },
+      {
+        "playerId": 250174838,
+        "fullName": "Enzo Fernández",
+        "clubName": "Chelsea",
+        "position": "MID",
+        "price": 6.5
+      },
+      {
+        "playerId": 250081720,
+        "fullName": "Dani Olmo",
+        "clubName": "Barcelona",
+        "position": "MID",
+        "price": 7.0
+      },
+      {
+        "playerId": 250162177,
+        "fullName": "Désiré Doué",
+        "clubName": "Paris",
+        "position": "MID",
+        "price": 8.0
+      },
+      {
+        "playerId": 250091199,
+        "fullName": "Alessandro Bastoni",
+        "clubName": "Inter",
+        "position": "DEF",
+        "price": 5.5
+      },
+      {
+        "playerId": 250132322,
+        "fullName": "Bremer",
+        "clubName": "Juventus",
+        "position": "DEF",
+        "price": 5.0
+      },
+      {
+        "playerId": 250143328,
+        "fullName": "Pedro Gonçalves",
+        "clubName": "Sporting CP",
+        "position": "MID",
+        "price": 6.0
+      },
+      {
+        "playerId": 250117036,
+        "fullName": "Anthony Gordon",
+        "clubName": "Newcastle",
+        "position": "MID",
+        "price": 7.0
+      },
+      {
+        "playerId": 250155025,
+        "fullName": "Georges Mikautadze",
+        "clubName": "Villarreal",
+        "position": "FWD",
+        "price": 6.0
+      },
+      {
+        "playerId": 250167111,
+        "fullName": "Mika Biereth",
+        "clubName": "Monaco",
+        "position": "FWD",
+        "price": 7.0
+      },
+      {
+        "playerId": 250069832,
+        "fullName": "Gregor Kobel",
+        "clubName": "B. Dortmund",
+        "position": "GK",
+        "price": 5.0
+      },
+      {
+        "playerId": 250076116,
+        "fullName": "Unai Simón",
+        "clubName": "Athletic Club",
+        "position": "GK",
+        "price": 5.0
+      },
+      {
+        "playerId": 250189214,
+        "fullName": "Francisco Ortega",
+        "clubName": "Olympiacos",
+        "position": "DEF",
+        "price": 4.5
+      },
+      {
+        "playerId": 250124430,
+        "fullName": "Jamal Musiala",
+        "clubName": "Bayern München",
+        "position": "MID",
+        "price": 9.0
+      },
+      {
+        "playerId": 250177886,
+        "fullName": "Igor Paixao",
+        "clubName": "Marseille",
+        "position": "MID",
+        "price": 6.0
+      },
+      {
+        "playerId": 250097317,
+        "fullName": "Owen Wijndal",
+        "clubName": "Ajax",
+        "position": "DEF",
+        "price": 4.5
+      },
+      {
+        "playerId": 250112513,
+        "fullName": "Robin Le Normand",
+        "clubName": "Atleti",
+        "position": "DEF",
+        "price": 4.5
+      },
+      {
+        "playerId": 250059233,
+        "fullName": "Amir Rrahmani",
+        "clubName": "Napoli",
+        "position": "DEF",
+        "price": 5.0
+      },
+      {
+        "playerId": 250104207,
+        "fullName": "Fredrik André Bjørkan",
+        "clubName": "Bodø/Glimt",
+        "position": "DEF",
+        "price": 5.0
+      },
+      {
+        "playerId": 250078452,
+        "fullName": "Uğurcan Çakır",
+        "clubName": "Galatasaray",
+        "position": "GK",
+        "price": 5.0
+      },
+      {
+        "playerId": 1900733,
+        "fullName": "David Luiz",
+        "clubName": "Pafos",
+        "position": "DEF",
+        "price": 4.0
+      }
+    ],
+    "Саша": [
+      {
+        "playerId": 250016833,
+        "fullName": "Harry Kane",
+        "clubName": "Bayern München",
+        "position": "FWD",
+        "price": 10.5
+      },
+      {
+        "playerId": 250121533,
+        "fullName": "Vinícius Júnior",
+        "clubName": "Real Madrid",
+        "position": "MID",
+        "price": 9.5
+      },
+      {
+        "playerId": 250101808,
+        "fullName": "Khvicha Kvaratskhelia",
+        "clubName": "Paris",
+        "position": "MID",
+        "price": 8.0
+      },
+      {
+        "playerId": 250188541,
+        "fullName": "João Pedro",
+        "clubName": "Chelsea",
+        "position": "FWD",
+        "price": 7.5
+      },
+      {
+        "playerId": 250096849,
+        "fullName": "Cody Gakpo",
+        "clubName": "Liverpool",
+        "position": "FWD",
+        "price": 7.5
+      },
+      {
+        "playerId": 250022829,
+        "fullName": "Hakan Çalhanoğlu",
+        "clubName": "Inter",
+        "position": "MID",
+        "price": 7.0
+      },
+      {
+        "playerId": 250128451,
+        "fullName": "Xavi Simons",
+        "clubName": "Tottenham",
+        "position": "MID",
+        "price": 6.5
+      },
+      {
+        "playerId": 250127360,
+        "fullName": "Nick Woltemade",
+        "clubName": "Newcastle",
+        "position": "FWD",
+        "price": 7.0
+      },
+      {
+        "playerId": 250096954,
+        "fullName": "Loïs Openda",
+        "clubName": "Juventus",
+        "position": "FWD",
+        "price": 7.5
+      },
+      {
+        "playerId": 250127347,
+        "fullName": "Karim Adeyemi",
+        "clubName": "B. Dortmund",
+        "position": "MID",
+        "price": 7.0
+      },
+      {
+        "playerId": 250187458,
+        "fullName": "Ruben van Bommel",
+        "clubName": "PSV",
+        "position": "MID",
+        "price": 5.5
+      },
+      {
+        "playerId": 250127284,
+        "fullName": "Joško Gvardiol",
+        "clubName": "Man City",
+        "position": "DEF",
+        "price": 5.5
+      },
+      {
+        "playerId": 250136464,
+        "fullName": "Gonçalo Inácio",
+        "clubName": "Sporting CP",
+        "position": "DEF",
+        "price": 4.5
+      },
+      {
+        "playerId": 250074671,
+        "fullName": "Iñaki Williams",
+        "clubName": "Athletic Club",
+        "position": "MID",
+        "price": 7.0
+      },
+      {
+        "playerId": 250050381,
+        "fullName": "Matteo Politano",
+        "clubName": "Napoli",
+        "position": "MID",
+        "price": 5.5
+      },
+      {
+        "playerId": 250012069,
+        "fullName": "Jan Oblak",
+        "clubName": "Atleti",
+        "position": "GK",
+        "price": 6.0
+      },
+      {
+        "playerId": 250005335,
+        "fullName": "İlkay Gündoğan",
+        "clubName": "Galatasaray",
+        "position": "MID",
+        "price": 6.5
+      },
+      {
+        "playerId": 250040521,
+        "fullName": "Lucas Vázquez",
+        "clubName": "Leverkusen",
+        "position": "DEF",
+        "price": 4.5
+      },
+      {
+        "playerId": 250128468,
+        "fullName": "António Silva",
+        "clubName": "Benfica",
+        "position": "DEF",
+        "price": 4.5
+      },
+      {
+        "playerId": 250129755,
+        "fullName": "Giorgio Scalvini",
+        "clubName": "Atalanta",
+        "position": "DEF",
+        "price": 4.5
+      },
+      {
+        "playerId": 250113263,
+        "fullName": "Vitězslav Jaroš",
+        "clubName": "Ajax",
+        "position": "GK",
+        "price": 4.0
+      },
+      {
+        "playerId": 250101087,
+        "fullName": "Nayef Aguerd",
+        "clubName": "Marseille",
+        "position": "DEF",
+        "price": 4.5
+      },
+      {
+        "playerId": 98078,
+        "fullName": "Simon Mignolet",
+        "clubName": "Club Brugge",
+        "position": "GK",
+        "price": 5.0
+      },
+      {
+        "playerId": 250103561,
+        "fullName": "Eric García",
+        "clubName": "Barcelona",
+        "position": "DEF",
+        "price": 4.5
+      },
+      {
+        "playerId": 250131901,
+        "fullName": "Gabriel",
+        "clubName": "Arsenal",
+        "position": "DEF",
+        "price": 5.5
+      }
+    ],
+    "Руслан": [
+      {
+        "playerId": 250076574,
+        "fullName": "Kylian Mbappé",
+        "clubName": "Real Madrid",
+        "position": "FWD",
+        "price": 10.5
+      },
+      {
+        "playerId": 250052469,
+        "fullName": "Mohamed Salah",
+        "clubName": "Liverpool",
+        "position": "MID",
+        "price": 10.5
+      },
+      {
+        "playerId": 250088061,
+        "fullName": "Achraf Hakimi",
+        "clubName": "Paris",
+        "position": "DEF",
+        "price": 6.0
+      },
+      {
+        "playerId": 250112690,
+        "fullName": "Denzel Dumfries",
+        "clubName": "Inter",
+        "position": "DEF",
+        "price": 6.0
+      },
+      {
+        "playerId": 250106939,
+        "fullName": "Bukayo Saka",
+        "clubName": "Arsenal",
+        "position": "MID",
+        "price": 9.5
+      },
+      {
+        "playerId": 250078012,
+        "fullName": "Vangelis Pavlidis",
+        "clubName": "Benfica",
+        "position": "FWD",
+        "price": 7.0
+      },
+      {
+        "playerId": 250143693,
+        "fullName": "Pedri",
+        "clubName": "Barcelona",
+        "position": "MID",
+        "price": 7.5
+      },
+      {
+        "playerId": 250147458,
+        "fullName": "Luis Suárez",
+        "clubName": "Sporting CP",
+        "position": "FWD",
+        "price": 5.0
+      },
+      {
+        "playerId": 250127436,
+        "fullName": "Rayan Aït-Nouri",
+        "clubName": "Man City",
+        "position": "DEF",
+        "price": 5.0
+      },
+      {
+        "playerId": 250116767,
+        "fullName": "Mason Greenwood",
+        "clubName": "Marseille",
+        "position": "FWD",
+        "price": 7.0
+      },
+      {
+        "playerId": 250166964,
+        "fullName": "Can Uzun",
+        "clubName": "Frankfurt",
+        "position": "MID",
+        "price": 5.0
+      },
+      {
+        "playerId": 250063984,
+        "fullName": "Leroy Sané",
+        "clubName": "Galatasaray",
+        "position": "MID",
+        "price": 7.0
+      },
+      {
+        "playerId": 250173127,
+        "fullName": "Tajon Buchanan",
+        "clubName": "Villarreal",
+        "position": "MID",
+        "price": 5.0
+      },
+      {
+        "playerId": 97923,
+        "fullName": "Manuel Neuer",
+        "clubName": "Bayern München",
+        "position": "GK",
+        "price": 6.0
+      },
+      {
+        "playerId": 250091828,
+        "fullName": "Raoul Bellanova",
+        "clubName": "Atalanta",
+        "position": "DEF",
+        "price": 4.0
+      },
+      {
+        "playerId": 250105890,
+        "fullName": "Joey Veerman",
+        "clubName": "PSV",
+        "position": "MID",
+        "price": 6.5
+      },
+      {
+        "playerId": 250178594,
+        "fullName": "Guglielmo Vicario",
+        "clubName": "Tottenham",
+        "position": "GK",
+        "price": 5.0
+      },
+      {
+        "playerId": 250106986,
+        "fullName": "Pedro Neto",
+        "clubName": "Chelsea",
+        "position": "MID",
+        "price": 7.0
+      },
+      {
+        "playerId": 250128391,
+        "fullName": "Jarell Quansah",
+        "clubName": "Leverkusen",
+        "position": "DEF",
+        "price": 4.5
+      },
+      {
+        "playerId": 250119677,
+        "fullName": "Ramy Bensebaini",
+        "clubName": "B. Dortmund",
+        "position": "DEF",
+        "price": 4.5
+      },
+      {
+        "playerId": 250126271,
+        "fullName": "Aitor Paredes",
+        "clubName": "Athletic Club",
+        "position": "DEF",
+        "price": 4.0
+      },
+      {
+        "playerId": 250130221,
+        "fullName": "Rasmus Højlund",
+        "clubName": "Napoli",
+        "position": "FWD",
+        "price": 6.0
+      },
+      {
+        "playerId": 250117508,
+        "fullName": "Tino Livramento",
+        "clubName": "Newcastle",
+        "position": "DEF",
+        "price": 4.5
+      },
+      {
+        "playerId": 250101201,
+        "fullName": "Michele Di Gregorio",
+        "clubName": "Juventus",
+        "position": "GK",
+        "price": 4.5
+      },
+      {
+        "playerId": 250153634,
+        "fullName": "Giuliano Simeone",
+        "clubName": "Atleti",
+        "position": "MID",
+        "price": 6.0
+      }
+    ],
+    "Женя": [
+      {
+        "playerId": 250176450,
+        "fullName": "Lamine Yamal",
+        "clubName": "Barcelona",
+        "position": "MID",
+        "price": 10.0
+      },
+      {
+        "playerId": 250124282,
+        "fullName": "Cole Palmer",
+        "clubName": "Chelsea",
+        "position": "MID",
+        "price": 9.5
+      },
+      {
+        "playerId": 250066886,
+        "fullName": "Ousmane Dembélé",
+        "clubName": "Paris",
+        "position": "FWD",
+        "price": 10.0
+      },
+      {
+        "playerId": 250172668,
+        "fullName": "Julián Alvarez",
+        "clubName": "Atleti",
+        "position": "FWD",
+        "price": 9.0
+      },
+      {
+        "playerId": 250008901,
+        "fullName": "Kevin De Bruyne",
+        "clubName": "Napoli",
+        "position": "MID",
+        "price": 8.0
+      },
+      {
+        "playerId": 250099180,
+        "fullName": "Dušan Vlahović",
+        "clubName": "Juventus",
+        "position": "FWD",
+        "price": 7.5
+      },
+      {
+        "playerId": 250081341,
+        "fullName": "Martin Ødegaard",
+        "clubName": "Arsenal",
+        "position": "MID",
+        "price": 8.5
+      },
+      {
+        "playerId": 250070417,
+        "fullName": "Joshua Kimmich",
+        "clubName": "Bayern München",
+        "position": "MID",
+        "price": 6.5
+      },
+      {
+        "playerId": 250056189,
+        "fullName": "Federico Dimarco",
+        "clubName": "Inter",
+        "position": "DEF",
+        "price": 5.5
+      },
+      {
+        "playerId": 250074434,
+        "fullName": "Mauro Icardi",
+        "clubName": "Galatasaray",
+        "position": "FWD",
+        "price": 6.5
+      },
+      {
+        "playerId": 250078682,
+        "fullName": "Wout Weghorst",
+        "clubName": "Ajax",
+        "position": "FWD",
+        "price": 6.5
+      },
+      {
+        "playerId": 250121294,
+        "fullName": "Tijjani Reijnders",
+        "clubName": "Man City",
+        "position": "MID",
+        "price": 6.5
+      },
+      {
+        "playerId": 250064232,
+        "fullName": "Davide Zappacosta",
+        "clubName": "Atalanta",
+        "position": "DEF",
+        "price": 4.5
+      },
+      {
+        "playerId": 250046522,
+        "fullName": "Julian Brandt",
+        "clubName": "B. Dortmund",
+        "position": "MID",
+        "price": 7.0
+      },
+      {
+        "playerId": 250104066,
+        "fullName": "Dominik Szoboszlai",
+        "clubName": "Liverpool",
+        "position": "MID",
+        "price": 6.5
+      },
+      {
+        "playerId": 250132829,
+        "fullName": "Rodrygo",
+        "clubName": "Real Madrid",
+        "position": "MID",
+        "price": 8.5
+      },
+      {
+        "playerId": 250145845,
+        "fullName": "Geny Catamo",
+        "clubName": "Sporting CP",
+        "position": "DEF",
+        "price": 5.5
+      },
+      {
+        "playerId": 250118266,
+        "fullName": "Nick Pope",
+        "clubName": "Newcastle",
+        "position": "GK",
+        "price": 5.0
+      },
+      {
+        "playerId": 250129412,
+        "fullName": "Rafa Marín",
+        "clubName": "Villarreal",
+        "position": "DEF",
+        "price": 4.5
+      },
+      {
+        "playerId": 250053044,
+        "fullName": "Brandon Mechele",
+        "clubName": "Club Brugge",
+        "position": "DEF",
+        "price": 5.0
+      },
+      {
+        "playerId": 250100056,
+        "fullName": "Emerson",
+        "clubName": "Marseille",
+        "position": "DEF",
+        "price": 5.0
+      },
+      {
+        "playerId": 250050416,
+        "fullName": "Eric Dier",
+        "clubName": "Monaco",
+        "position": "DEF",
+        "price": 4.5
+      },
+      {
+        "playerId": 250074850,
+        "fullName": "Rasmus Kristensen",
+        "clubName": "Frankfurt",
+        "position": "DEF",
+        "price": 4.5
+      },
+      {
+        "playerId": 250167143,
+        "fullName": "Mark Flekken",
+        "clubName": "Leverkusen",
+        "position": "GK",
+        "price": 5.0
+      },
+      {
+        "playerId": 250113444,
+        "fullName": "Anatoliy Trubin",
+        "clubName": "Benfica",
+        "position": "GK",
+        "price": 4.5
+      }
+    ],
+    "Макс": [
+      {
+        "playerId": 250134138,
+        "fullName": "Bradley Barcola",
+        "clubName": "Paris",
+        "position": "MID",
+        "price": 7.5
+      },
+      {
+        "playerId": 250132811,
+        "fullName": "Luis Díaz",
+        "clubName": "Bayern München",
+        "position": "FWD",
+        "price": 7.5
+      },
+      {
+        "playerId": 250080553,
+        "fullName": "Serhou Guirassy",
+        "clubName": "B. Dortmund",
+        "position": "FWD",
+        "price": 8.0
+      },
+      {
+        "playerId": 250002096,
+        "fullName": "Robert Lewandowski",
+        "clubName": "Barcelona",
+        "position": "FWD",
+        "price": 9.5
+      },
+      {
+        "playerId": 250042422,
+        "fullName": "Alejandro Grimaldo",
+        "clubName": "Leverkusen",
+        "position": "DEF",
+        "price": 6.0
+      },
+      {
+        "playerId": 250132987,
+        "fullName": "Victor Osimhen",
+        "clubName": "Galatasaray",
+        "position": "FWD",
+        "price": 7.5
+      },
+      {
+        "playerId": 250134376,
+        "fullName": "Eberechi Eze",
+        "clubName": "Arsenal",
+        "position": "MID",
+        "price": 7.5
+      },
+      {
+        "playerId": 97746,
+        "fullName": "Yann Sommer",
+        "clubName": "Inter",
+        "position": "GK",
+        "price": 6.0
+      },
+      {
+        "playerId": 250194474,
+        "fullName": "Dean Huijsen",
+        "clubName": "Real Madrid",
+        "position": "DEF",
+        "price": 4.5
+      },
+      {
+        "playerId": 50327420,
+        "fullName": "Virgil van Dijk",
+        "clubName": "Liverpool",
+        "position": "DEF",
+        "price": 6.0
+      },
+      {
+        "playerId": 250124460,
+        "fullName": "Christos Tzolis",
+        "clubName": "Club Brugge",
+        "position": "FWD",
+        "price": 6.0
+      },
+      {
+        "playerId": 250106003,
+        "fullName": "Nicolas Pépé",
+        "clubName": "Villarreal",
+        "position": "MID",
+        "price": 6.0
+      },
+      {
+        "playerId": 250082664,
+        "fullName": "Rodri",
+        "clubName": "Man City",
+        "position": "MID",
+        "price": 7.0
+      },
+      {
+        "playerId": 250086987,
+        "fullName": "André-Frank Zambo Anguissa",
+        "clubName": "Napoli",
+        "position": "MID",
+        "price": 5.5
+      },
+      {
+        "playerId": 250181610,
+        "fullName": "Moises Caicedo",
+        "clubName": "Chelsea",
+        "position": "MID",
+        "price": 6.0
+      },
+      {
+        "playerId": 250163623,
+        "fullName": "Andrea Cambiaso",
+        "clubName": "Juventus",
+        "position": "DEF",
+        "price": 5.0
+      },
+      {
+        "playerId": 250144325,
+        "fullName": "Cristian Romero",
+        "clubName": "Tottenham",
+        "position": "DEF",
+        "price": 5.0
+      },
+      {
+        "playerId": 250112122,
+        "fullName": "Francisco Trincão",
+        "clubName": "Sporting CP",
+        "position": "MID",
+        "price": 6.0
+      },
+      {
+        "playerId": 250105612,
+        "fullName": "Marco Carnesecchi",
+        "clubName": "Atalanta",
+        "position": "GK",
+        "price": 4.5
+      },
+      {
+        "playerId": 250079670,
+        "fullName": "Marcos Llorente",
+        "clubName": "Atleti",
+        "position": "MID",
+        "price": 6.5
+      },
+      {
+        "playerId": 250134309,
+        "fullName": "Ritsu Doan",
+        "clubName": "Frankfurt",
+        "position": "MID",
+        "price": 5.5
+      },
+      {
+        "playerId": 250194503,
+        "fullName": "Daniel Vivian",
+        "clubName": "Athletic Club",
+        "position": "DEF",
+        "price": 4.5
+      },
+      {
+        "playerId": 250117491,
+        "fullName": "Matěj Kovář",
+        "clubName": "PSV",
+        "position": "GK",
+        "price": 4.5
+      },
+      {
+        "playerId": 250186141,
+        "fullName": "Dan Burn",
+        "clubName": "Newcastle",
+        "position": "DEF",
+        "price": 4.5
+      },
+      {
+        "playerId": 250126449,
+        "fullName": "Amar Dedić",
+        "clubName": "Benfica",
+        "position": "DEF",
+        "price": 4.5
+      }
+    ],
+    "Серёга Б": [
+      {
+        "playerId": 250171184,
+        "fullName": "Michael Olise",
+        "clubName": "Bayern München",
+        "position": "MID",
+        "price": 8.0
+      },
+      {
+        "playerId": 250118281,
+        "fullName": "Lautaro Martínez",
+        "clubName": "Inter",
+        "position": "FWD",
+        "price": 9.5
+      },
+      {
+        "playerId": 250088320,
+        "fullName": "Ferran Torres",
+        "clubName": "Barcelona",
+        "position": "FWD",
+        "price": 7.0
+      },
+      {
+        "playerId": 250144643,
+        "fullName": "Hugo Ekitike",
+        "clubName": "Liverpool",
+        "position": "FWD",
+        "price": 8.0
+      },
+      {
+        "playerId": 250076168,
+        "fullName": "Marc Cucurella",
+        "clubName": "Chelsea",
+        "position": "DEF",
+        "price": 5.5
+      },
+      {
+        "playerId": 250106722,
+        "fullName": "Khephren Thuram",
+        "clubName": "Juventus",
+        "position": "MID",
+        "price": 5.5
+      },
+      {
+        "playerId": 250113134,
+        "fullName": "Noni Madueke",
+        "clubName": "Arsenal",
+        "position": "MID",
+        "price": 6.5
+      },
+      {
+        "playerId": 250078922,
+        "fullName": "Gianluigi Donnarumma",
+        "clubName": "Man City",
+        "position": "GK",
+        "price": 6.0
+      },
+      {
+        "playerId": 250064229,
+        "fullName": "Giovanni Di Lorenzo",
+        "clubName": "Napoli",
+        "position": "DEF",
+        "price": 5.5
+      },
+      {
+        "playerId": 250164991,
+        "fullName": "João Neves",
+        "clubName": "Paris",
+        "position": "MID",
+        "price": 6.0
+      },
+      {
+        "playerId": 250099258,
+        "fullName": "Ademola Lookman",
+        "clubName": "Atalanta",
+        "position": "MID",
+        "price": 7.0
+      },
+      {
+        "playerId": 150562676,
+        "fullName": "Pedro Porro",
+        "clubName": "Tottenham",
+        "position": "DEF",
+        "price": 5.0
+      },
+      {
+        "playerId": 250081223,
+        "fullName": "Takumi Minamino",
+        "clubName": "Monaco",
+        "position": "MID",
+        "price": 6.0
+      },
+      {
+        "playerId": 250050401,
+        "fullName": "Fabian Schär",
+        "clubName": "Newcastle",
+        "position": "DEF",
+        "price": 4.5
+      },
+      {
+        "playerId": 250088039,
+        "fullName": "Brahim Díaz",
+        "clubName": "Real Madrid",
+        "position": "MID",
+        "price": 6.5
+      },
+      {
+        "playerId": 250112998,
+        "fullName": "Sergiño Dest",
+        "clubName": "PSV",
+        "position": "DEF",
+        "price": 4.5
+      },
+      {
+        "playerId": 250163185,
+        "fullName": "Nico Williams",
+        "clubName": "Athletic Club",
+        "position": "MID",
+        "price": 8.0
+      },
+      {
+        "playerId": 250211809,
+        "fullName": "Michael Zetterer",
+        "clubName": "Frankfurt",
+        "position": "GK",
+        "price": 4.0
+      },
+      {
+        "playerId": 250139036,
+        "fullName": "Pablo Barrios",
+        "clubName": "Atleti",
+        "position": "MID",
+        "price": 5.5
+      },
+      {
+        "playerId": 250092517,
+        "fullName": "Julian Ryerson",
+        "clubName": "B. Dortmund",
+        "position": "DEF",
+        "price": 5.0
+      },
+      {
+        "playerId": 250118298,
+        "fullName": "Ayoub El Kaabi",
+        "clubName": "Olympiacos",
+        "position": "FWD",
+        "price": 6.0
+      },
+      {
+        "playerId": 250174052,
+        "fullName": "Anton Gaaei",
+        "clubName": "Ajax",
+        "position": "DEF",
+        "price": 4.0
+      },
+      {
+        "playerId": 250011037,
+        "fullName": "Pierre-Emerick Aubameyang",
+        "clubName": "Marseille",
+        "position": "FWD",
+        "price": 6.5
+      },
+      {
+        "playerId": 250210287,
+        "fullName": "Luiz Júnior",
+        "clubName": "Villarreal",
+        "position": "GK",
+        "price": 4.0
+      },
+      {
+        "playerId": 250161164,
+        "fullName": "Loic Bade",
+        "clubName": "Leverkusen",
+        "position": "DEF",
+        "price": 4.5
+      }
+    ],
+    "Сергей": [
+      {
+        "playerId": 250171278,
+        "fullName": "David Raya",
+        "clubName": "Arsenal",
+        "position": "GK",
+        "price": 5.5
+      },
+      {
+        "playerId": 250187620,
+        "fullName": "Ricardo Pepi",
+        "clubName": "PSV",
+        "position": "FWD",
+        "price": 6.0
+      },
+      {
+        "playerId": 250139217,
+        "fullName": "Omar Marmoush",
+        "clubName": "Man City",
+        "position": "FWD",
+        "price": 8.5
+      },
+      {
+        "playerId": 250164780,
+        "fullName": "Fermín López",
+        "clubName": "Barcelona",
+        "position": "MID",
+        "price": 6.5
+      },
+      {
+        "playerId": 250011668,
+        "fullName": "Thibaut Courtois",
+        "clubName": "Real Madrid",
+        "position": "GK",
+        "price": 6.0
+      },
+      {
+        "playerId": 250167832,
+        "fullName": "Jobe Bellingham",
+        "clubName": "B. Dortmund",
+        "position": "MID",
+        "price": 6.0
+      },
+      {
+        "playerId": 250130510,
+        "fullName": "Lloyd Kelly",
+        "clubName": "Juventus",
+        "position": "DEF",
+        "price": 4.5
+      },
+      {
+        "playerId": 250130428,
+        "fullName": "Samuel Dahl",
+        "clubName": "Benfica",
+        "position": "DEF",
+        "price": 4.5
+      },
+      {
+        "playerId": 250146926,
+        "fullName": "Randal Kolo Muani",
+        "clubName": "Tottenham",
+        "position": "FWD",
+        "price": 7.5
+      },
+      {
+        "playerId": 250075625,
+        "fullName": "Ayoze Pérez",
+        "clubName": "Villarreal",
+        "position": "FWD",
+        "price": 6.0
+      },
+      {
+        "playerId": 250113276,
+        "fullName": "Jeremie Frimpong",
+        "clubName": "Liverpool",
+        "position": "DEF",
+        "price": 5.5
+      },
+      {
+        "playerId": 250112220,
+        "fullName": "Josip Stanišić",
+        "clubName": "Bayern München",
+        "position": "DEF",
+        "price": 4.5
+      },
+      {
+        "playerId": 250066739,
+        "fullName": "Nicolò Barella",
+        "clubName": "Inter",
+        "position": "MID",
+        "price": 6.5
+      },
+      {
+        "playerId": 250088491,
+        "fullName": "Alessandro Buongiorno",
+        "clubName": "Napoli",
+        "position": "DEF",
+        "price": 4.0
+      },
+      {
+        "playerId": 250124269,
+        "fullName": "Anthony Elanga",
+        "clubName": "Newcastle",
+        "position": "MID",
+        "price": 7.0
+      },
+      {
+        "playerId": 250164528,
+        "fullName": "Jean-Matteo Bahoya",
+        "clubName": "Frankfurt",
+        "position": "MID",
+        "price": 5.0
+      },
+      {
+        "playerId": 250013855,
+        "fullName": "Davy Klaassen",
+        "clubName": "Ajax",
+        "position": "MID",
+        "price": 6.0
+      },
+      {
+        "playerId": 250110362,
+        "fullName": "Reece James",
+        "clubName": "Chelsea",
+        "position": "DEF",
+        "price": 5.0
+      },
+      {
+        "playerId": 250076743,
+        "fullName": "Gianluca Scamacca",
+        "clubName": "Atalanta",
+        "position": "FWD",
+        "price": 6.5
+      },
+      {
+        "playerId": 250127239,
+        "fullName": "Matteo Ruggeri",
+        "clubName": "Atleti",
+        "position": "DEF",
+        "price": 4.5
+      },
+      {
+        "playerId": 250115436,
+        "fullName": "Fabián Ruiz",
+        "clubName": "Paris",
+        "position": "MID",
+        "price": 6.5
+      },
+      {
+        "playerId": 250123677,
+        "fullName": "Malik Tillman",
+        "clubName": "Leverkusen",
+        "position": "MID",
+        "price": 6.5
+      },
+      {
+        "playerId": 250158929,
+        "fullName": "Barış Alper Yılmaz",
+        "clubName": "Galatasaray",
+        "position": "MID",
+        "price": 5.0
+      },
+      {
+        "playerId": 250141864,
+        "fullName": "Nikita Haikin",
+        "clubName": "Bodø/Glimt",
+        "position": "GK",
+        "price": 4.5
+      },
+      {
+        "playerId": 250077643,
+        "fullName": "Ricardo Mangas",
+        "clubName": "Sporting CP",
+        "position": "DEF",
+        "price": 4.5
+      }
+    ]
   },
   "limits": {
     "Slots": {
@@ -26,8 +1434,160 @@
     "Женя",
     "Макс",
     "Серёга Б",
-    "Сергей",
-    "Сергей",
+    "Серёга Б",
+    "Макс",
+    "Женя",
+    "Руслан",
+    "Саша",
+    "Андрей",
+    "Ксана",
+    "Ксана",
+    "Андрей",
+    "Саша",
+    "Руслан",
+    "Женя",
+    "Макс",
+    "Серёга Б",
+    "Серёга Б",
+    "Макс",
+    "Женя",
+    "Руслан",
+    "Саша",
+    "Андрей",
+    "Ксана",
+    "Ксана",
+    "Андрей",
+    "Саша",
+    "Руслан",
+    "Женя",
+    "Макс",
+    "Серёга Б",
+    "Серёга Б",
+    "Макс",
+    "Женя",
+    "Руслан",
+    "Саша",
+    "Андрей",
+    "Ксана",
+    "Ксана",
+    "Андрей",
+    "Саша",
+    "Руслан",
+    "Женя",
+    "Макс",
+    "Серёга Б",
+    "Серёга Б",
+    "Макс",
+    "Женя",
+    "Руслан",
+    "Саша",
+    "Андрей",
+    "Ксана",
+    "Ксана",
+    "Андрей",
+    "Саша",
+    "Руслан",
+    "Женя",
+    "Макс",
+    "Серёга Б",
+    "Серёга Б",
+    "Макс",
+    "Женя",
+    "Руслан",
+    "Саша",
+    "Андрей",
+    "Ксана",
+    "Ксана",
+    "Андрей",
+    "Саша",
+    "Руслан",
+    "Женя",
+    "Макс",
+    "Серёга Б",
+    "Серёга Б",
+    "Макс",
+    "Женя",
+    "Руслан",
+    "Саша",
+    "Андрей",
+    "Ксана",
+    "Ксана",
+    "Андрей",
+    "Саша",
+    "Руслан",
+    "Женя",
+    "Макс",
+    "Серёга Б",
+    "Серёга Б",
+    "Макс",
+    "Женя",
+    "Руслан",
+    "Саша",
+    "Андрей",
+    "Ксана",
+    "Ксана",
+    "Андрей",
+    "Саша",
+    "Руслан",
+    "Женя",
+    "Макс",
+    "Серёга Б",
+    "Серёга Б",
+    "Макс",
+    "Женя",
+    "Руслан",
+    "Саша",
+    "Андрей",
+    "Ксана",
+    "Ксана",
+    "Андрей",
+    "Саша",
+    "Руслан",
+    "Женя",
+    "Макс",
+    "Серёга Б",
+    "Серёга Б",
+    "Макс",
+    "Женя",
+    "Руслан",
+    "Саша",
+    "Андрей",
+    "Ксана",
+    "Ксана",
+    "Андрей",
+    "Саша",
+    "Руслан",
+    "Женя",
+    "Макс",
+    "Серёга Б",
+    "Серёга Б",
+    "Макс",
+    "Женя",
+    "Руслан",
+    "Саша",
+    "Андрей",
+    "Ксана",
+    "Ксана",
+    "Андрей",
+    "Саша",
+    "Руслан",
+    "Женя",
+    "Макс",
+    "Серёга Б",
+    "Серёга Б",
+    "Макс",
+    "Женя",
+    "Руслан",
+    "Саша",
+    "Андрей",
+    "Ксана",
+    "Ксана",
+    "Андрей",
+    "Саша",
+    "Руслан",
+    "Женя",
+    "Макс",
+    "Серёга Б",
     "Серёга Б",
     "Макс",
     "Женя",
@@ -44,185 +1604,1849 @@
     "Серёга Б",
     "Сергей",
     "Сергей",
-    "Серёга Б",
-    "Макс",
-    "Женя",
-    "Руслан",
-    "Саша",
-    "Андрей",
-    "Ксана",
-    "Ксана",
-    "Андрей",
-    "Саша",
-    "Руслан",
-    "Женя",
-    "Макс",
-    "Серёга Б",
     "Сергей",
     "Сергей",
-    "Серёга Б",
-    "Макс",
-    "Женя",
-    "Руслан",
-    "Саша",
-    "Андрей",
-    "Ксана",
-    "Ксана",
-    "Андрей",
-    "Саша",
-    "Руслан",
-    "Женя",
-    "Макс",
-    "Серёга Б",
     "Сергей",
     "Сергей",
-    "Серёга Б",
-    "Макс",
-    "Женя",
-    "Руслан",
-    "Саша",
-    "Андрей",
-    "Ксана",
-    "Ксана",
-    "Андрей",
-    "Саша",
-    "Руслан",
-    "Женя",
-    "Макс",
-    "Серёга Б",
     "Сергей",
     "Сергей",
-    "Серёга Б",
-    "Макс",
-    "Женя",
-    "Руслан",
-    "Саша",
-    "Андрей",
-    "Ксана",
-    "Ксана",
-    "Андрей",
-    "Саша",
-    "Руслан",
-    "Женя",
-    "Макс",
-    "Серёга Б",
     "Сергей",
     "Сергей",
-    "Серёга Б",
-    "Макс",
-    "Женя",
-    "Руслан",
-    "Саша",
-    "Андрей",
-    "Ксана",
-    "Ксана",
-    "Андрей",
-    "Саша",
-    "Руслан",
-    "Женя",
-    "Макс",
-    "Серёга Б",
     "Сергей",
     "Сергей",
-    "Серёга Б",
-    "Макс",
-    "Женя",
-    "Руслан",
-    "Саша",
-    "Андрей",
-    "Ксана",
-    "Ксана",
-    "Андрей",
-    "Саша",
-    "Руслан",
-    "Женя",
-    "Макс",
-    "Серёга Б",
     "Сергей",
     "Сергей",
-    "Серёга Б",
-    "Макс",
-    "Женя",
-    "Руслан",
-    "Саша",
-    "Андрей",
-    "Ксана",
-    "Ксана",
-    "Андрей",
-    "Саша",
-    "Руслан",
-    "Женя",
-    "Макс",
-    "Серёга Б",
     "Сергей",
     "Сергей",
-    "Серёга Б",
-    "Макс",
-    "Женя",
-    "Руслан",
-    "Саша",
-    "Андрей",
-    "Ксана",
-    "Ксана",
-    "Андрей",
-    "Саша",
-    "Руслан",
-    "Женя",
-    "Макс",
-    "Серёга Б",
     "Сергей",
     "Сергей",
-    "Серёга Б",
-    "Макс",
-    "Женя",
-    "Руслан",
-    "Саша",
-    "Андрей",
-    "Ксана",
-    "Ксана",
-    "Андрей",
-    "Саша",
-    "Руслан",
-    "Женя",
-    "Макс",
-    "Серёга Б",
     "Сергей",
     "Сергей",
-    "Серёга Б",
-    "Макс",
-    "Женя",
-    "Руслан",
-    "Саша",
-    "Андрей",
-    "Ксана",
-    "Ксана",
-    "Андрей",
-    "Саша",
-    "Руслан",
-    "Женя",
-    "Макс",
-    "Серёга Б",
     "Сергей",
     "Сергей",
-    "Серёга Б",
-    "Макс",
-    "Женя",
-    "Руслан",
-    "Саша",
-    "Андрей",
-    "Ксана",
-    "Ксана",
-    "Андрей",
-    "Саша",
-    "Руслан",
-    "Женя",
-    "Макс",
-    "Серёга Б",
+    "Сергей",
+    "Сергей",
     "Сергей"
   ],
-  "current_pick_index": 0,
-  "next_user": "Ксана",
-  "next_round": 1,
-  "picks": [],
-  "skip_bank": {}
+  "current_pick_index": 200,
+  "next_user": "Сергей",
+  "next_round": 26,
+  "picks": [
+    {
+      "round": 1,
+      "user": "Ксана",
+      "player_name": "Raphinha",
+      "club": "Barcelona",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250112880
+    },
+    {
+      "round": 1,
+      "user": "Андрей",
+      "player_name": "Erling Haaland",
+      "club": "Man City",
+      "pos": "FWD",
+      "ts": null,
+      "playerId": 250103758
+    },
+    {
+      "round": 1,
+      "user": "Саша",
+      "player_name": "Harry Kane",
+      "club": "Bayern München",
+      "pos": "FWD",
+      "ts": null,
+      "playerId": 250016833
+    },
+    {
+      "round": 1,
+      "user": "Руслан",
+      "player_name": "Kylian Mbappé",
+      "club": "Real Madrid",
+      "pos": "FWD",
+      "ts": null,
+      "playerId": 250076574
+    },
+    {
+      "round": 1,
+      "user": "Женя",
+      "player_name": "Lamine Yamal",
+      "club": "Barcelona",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250176450
+    },
+    {
+      "round": 1,
+      "user": "Макс",
+      "player_name": "Bradley Barcola",
+      "club": "Paris",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250134138
+    },
+    {
+      "round": 1,
+      "user": "Серёга Б",
+      "player_name": "Michael Olise",
+      "club": "Bayern München",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250171184
+    },
+    {
+      "round": 2,
+      "user": "Серёга Б",
+      "player_name": "Lautaro Martínez",
+      "club": "Inter",
+      "pos": "FWD",
+      "ts": null,
+      "playerId": 250118281
+    },
+    {
+      "round": 2,
+      "user": "Макс",
+      "player_name": "Luis Díaz",
+      "club": "Bayern München",
+      "pos": "FWD",
+      "ts": null,
+      "playerId": 250132811
+    },
+    {
+      "round": 2,
+      "user": "Женя",
+      "player_name": "Cole Palmer",
+      "club": "Chelsea",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250124282
+    },
+    {
+      "round": 2,
+      "user": "Руслан",
+      "player_name": "Mohamed Salah",
+      "club": "Liverpool",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250052469
+    },
+    {
+      "round": 2,
+      "user": "Саша",
+      "player_name": "Vinícius Júnior",
+      "club": "Real Madrid",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250121533
+    },
+    {
+      "round": 2,
+      "user": "Андрей",
+      "player_name": "Alexander Isak",
+      "club": "Liverpool",
+      "pos": "FWD",
+      "ts": null,
+      "playerId": 250089868
+    },
+    {
+      "round": 2,
+      "user": "Ксана",
+      "player_name": "Marcus Thuram",
+      "club": "Inter",
+      "pos": "FWD",
+      "ts": null,
+      "playerId": 250068805
+    },
+    {
+      "round": 3,
+      "user": "Ксана",
+      "player_name": "Arda Güler",
+      "club": "Real Madrid",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250161881
+    },
+    {
+      "round": 3,
+      "user": "Андрей",
+      "player_name": "Viktor Gyökeres",
+      "club": "Arsenal",
+      "pos": "FWD",
+      "ts": null,
+      "playerId": 250105927
+    },
+    {
+      "round": 3,
+      "user": "Саша",
+      "player_name": "Khvicha Kvaratskhelia",
+      "club": "Paris",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250101808
+    },
+    {
+      "round": 3,
+      "user": "Руслан",
+      "player_name": "Achraf Hakimi",
+      "club": "Paris",
+      "pos": "DEF",
+      "ts": null,
+      "playerId": 250088061
+    },
+    {
+      "round": 3,
+      "user": "Женя",
+      "player_name": "Ousmane Dembélé",
+      "club": "Paris",
+      "pos": "FWD",
+      "ts": null,
+      "playerId": 250066886
+    },
+    {
+      "round": 3,
+      "user": "Макс",
+      "player_name": "Serhou Guirassy",
+      "club": "B. Dortmund",
+      "pos": "FWD",
+      "ts": null,
+      "playerId": 250080553
+    },
+    {
+      "round": 3,
+      "user": "Серёга Б",
+      "player_name": "Ferran Torres",
+      "club": "Barcelona",
+      "pos": "FWD",
+      "ts": null,
+      "playerId": 250088320
+    },
+    {
+      "round": 4,
+      "user": "Серёга Б",
+      "player_name": "Hugo Ekitike",
+      "club": "Liverpool",
+      "pos": "FWD",
+      "ts": null,
+      "playerId": 250144643
+    },
+    {
+      "round": 4,
+      "user": "Макс",
+      "player_name": "Robert Lewandowski",
+      "club": "Barcelona",
+      "pos": "FWD",
+      "ts": null,
+      "playerId": 250002096
+    },
+    {
+      "round": 4,
+      "user": "Женя",
+      "player_name": "Julián Alvarez",
+      "club": "Atleti",
+      "pos": "FWD",
+      "ts": null,
+      "playerId": 250172668
+    },
+    {
+      "round": 4,
+      "user": "Руслан",
+      "player_name": "Denzel Dumfries",
+      "club": "Inter",
+      "pos": "DEF",
+      "ts": null,
+      "playerId": 250112690
+    },
+    {
+      "round": 4,
+      "user": "Саша",
+      "player_name": "João Pedro",
+      "club": "Chelsea",
+      "pos": "FWD",
+      "ts": null,
+      "playerId": 250188541
+    },
+    {
+      "round": 4,
+      "user": "Андрей",
+      "player_name": "Jude Bellingham",
+      "club": "Real Madrid",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250128377
+    },
+    {
+      "round": 4,
+      "user": "Ксана",
+      "player_name": "Kenan Yıldız",
+      "club": "Juventus",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250171055
+    },
+    {
+      "round": 5,
+      "user": "Ксана",
+      "player_name": "Florian Wirtz",
+      "club": "Liverpool",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250139445
+    },
+    {
+      "round": 5,
+      "user": "Андрей",
+      "player_name": "Mohammed Kudus",
+      "club": "Tottenham",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250121904
+    },
+    {
+      "round": 5,
+      "user": "Саша",
+      "player_name": "Cody Gakpo",
+      "club": "Liverpool",
+      "pos": "FWD",
+      "ts": null,
+      "playerId": 250096849
+    },
+    {
+      "round": 5,
+      "user": "Руслан",
+      "player_name": "Bukayo Saka",
+      "club": "Arsenal",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250106939
+    },
+    {
+      "round": 5,
+      "user": "Женя",
+      "player_name": "Kevin De Bruyne",
+      "club": "Napoli",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250008901
+    },
+    {
+      "round": 5,
+      "user": "Макс",
+      "player_name": "Alejandro Grimaldo",
+      "club": "Leverkusen",
+      "pos": "DEF",
+      "ts": null,
+      "playerId": 250042422
+    },
+    {
+      "round": 5,
+      "user": "Серёга Б",
+      "player_name": "Marc Cucurella",
+      "club": "Chelsea",
+      "pos": "DEF",
+      "ts": null,
+      "playerId": 250076168
+    },
+    {
+      "round": 6,
+      "user": "Серёга Б",
+      "player_name": "Khephren Thuram",
+      "club": "Juventus",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250106722
+    },
+    {
+      "round": 6,
+      "user": "Макс",
+      "player_name": "Victor Osimhen",
+      "club": "Galatasaray",
+      "pos": "FWD",
+      "ts": null,
+      "playerId": 250132987
+    },
+    {
+      "round": 6,
+      "user": "Женя",
+      "player_name": "Dušan Vlahović",
+      "club": "Juventus",
+      "pos": "FWD",
+      "ts": null,
+      "playerId": 250099180
+    },
+    {
+      "round": 6,
+      "user": "Руслан",
+      "player_name": "Vangelis Pavlidis",
+      "club": "Benfica",
+      "pos": "FWD",
+      "ts": null,
+      "playerId": 250078012
+    },
+    {
+      "round": 6,
+      "user": "Саша",
+      "player_name": "Hakan Çalhanoğlu",
+      "club": "Inter",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250022829
+    },
+    {
+      "round": 6,
+      "user": "Андрей",
+      "player_name": "Enzo Fernández",
+      "club": "Chelsea",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250174838
+    },
+    {
+      "round": 6,
+      "user": "Ксана",
+      "player_name": "Phil Foden",
+      "club": "Man City",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250101534
+    },
+    {
+      "round": 7,
+      "user": "Ксана",
+      "player_name": "Charles De Ketelaere",
+      "club": "Atalanta",
+      "pos": "FWD",
+      "ts": null,
+      "playerId": 250117705
+    },
+    {
+      "round": 7,
+      "user": "Андрей",
+      "player_name": "Dani Olmo",
+      "club": "Barcelona",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250081720
+    },
+    {
+      "round": 7,
+      "user": "Саша",
+      "player_name": "Xavi Simons",
+      "club": "Tottenham",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250128451
+    },
+    {
+      "round": 7,
+      "user": "Руслан",
+      "player_name": "Pedri",
+      "club": "Barcelona",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250143693
+    },
+    {
+      "round": 7,
+      "user": "Женя",
+      "player_name": "Martin Ødegaard",
+      "club": "Arsenal",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250081341
+    },
+    {
+      "round": 7,
+      "user": "Макс",
+      "player_name": "Eberechi Eze",
+      "club": "Arsenal",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250134376
+    },
+    {
+      "round": 7,
+      "user": "Серёга Б",
+      "player_name": "Noni Madueke",
+      "club": "Arsenal",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250113134
+    },
+    {
+      "round": 8,
+      "user": "Серёга Б",
+      "player_name": "Gianluigi Donnarumma",
+      "club": "Man City",
+      "pos": "GK",
+      "ts": null,
+      "playerId": 250078922
+    },
+    {
+      "round": 8,
+      "user": "Макс",
+      "player_name": "Yann Sommer",
+      "club": "Inter",
+      "pos": "GK",
+      "ts": null,
+      "playerId": 97746
+    },
+    {
+      "round": 8,
+      "user": "Женя",
+      "player_name": "Joshua Kimmich",
+      "club": "Bayern München",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250070417
+    },
+    {
+      "round": 8,
+      "user": "Руслан",
+      "player_name": "Luis Suárez",
+      "club": "Sporting CP",
+      "pos": "FWD",
+      "ts": null,
+      "playerId": 250147458
+    },
+    {
+      "round": 8,
+      "user": "Саша",
+      "player_name": "Nick Woltemade",
+      "club": "Newcastle",
+      "pos": "FWD",
+      "ts": null,
+      "playerId": 250127360
+    },
+    {
+      "round": 8,
+      "user": "Андрей",
+      "player_name": "Désiré Doué",
+      "club": "Paris",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250162177
+    },
+    {
+      "round": 8,
+      "user": "Ксана",
+      "player_name": "Vitinha",
+      "club": "Paris",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250101444
+    },
+    {
+      "round": 9,
+      "user": "Ксана",
+      "player_name": "Scott McTominay",
+      "club": "Napoli",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250088240
+    },
+    {
+      "round": 9,
+      "user": "Андрей",
+      "player_name": "Alessandro Bastoni",
+      "club": "Inter",
+      "pos": "DEF",
+      "ts": null,
+      "playerId": 250091199
+    },
+    {
+      "round": 9,
+      "user": "Саша",
+      "player_name": "Loïs Openda",
+      "club": "Juventus",
+      "pos": "FWD",
+      "ts": null,
+      "playerId": 250096954
+    },
+    {
+      "round": 9,
+      "user": "Руслан",
+      "player_name": "Rayan Aït-Nouri",
+      "club": "Man City",
+      "pos": "DEF",
+      "ts": null,
+      "playerId": 250127436
+    },
+    {
+      "round": 9,
+      "user": "Женя",
+      "player_name": "Federico Dimarco",
+      "club": "Inter",
+      "pos": "DEF",
+      "ts": null,
+      "playerId": 250056189
+    },
+    {
+      "round": 9,
+      "user": "Макс",
+      "player_name": "Dean Huijsen",
+      "club": "Real Madrid",
+      "pos": "DEF",
+      "ts": null,
+      "playerId": 250194474
+    },
+    {
+      "round": 9,
+      "user": "Серёга Б",
+      "player_name": "Giovanni Di Lorenzo",
+      "club": "Napoli",
+      "pos": "DEF",
+      "ts": null,
+      "playerId": 250064229
+    },
+    {
+      "round": 10,
+      "user": "Серёга Б",
+      "player_name": "João Neves",
+      "club": "Paris",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250164991
+    },
+    {
+      "round": 10,
+      "user": "Макс",
+      "player_name": "Virgil van Dijk",
+      "club": "Liverpool",
+      "pos": "DEF",
+      "ts": null,
+      "playerId": 50327420
+    },
+    {
+      "round": 10,
+      "user": "Женя",
+      "player_name": "Mauro Icardi",
+      "club": "Galatasaray",
+      "pos": "FWD",
+      "ts": null,
+      "playerId": 250074434
+    },
+    {
+      "round": 10,
+      "user": "Руслан",
+      "player_name": "Mason Greenwood",
+      "club": "Marseille",
+      "pos": "FWD",
+      "ts": null,
+      "playerId": 250116767
+    },
+    {
+      "round": 10,
+      "user": "Саша",
+      "player_name": "Karim Adeyemi",
+      "club": "B. Dortmund",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250127347
+    },
+    {
+      "round": 10,
+      "user": "Андрей",
+      "player_name": "Bremer",
+      "club": "Juventus",
+      "pos": "DEF",
+      "ts": null,
+      "playerId": 250132322
+    },
+    {
+      "round": 10,
+      "user": "Ксана",
+      "player_name": "Micky van de Ven",
+      "club": "Tottenham",
+      "pos": "DEF",
+      "ts": null,
+      "playerId": 50327427
+    },
+    {
+      "round": 11,
+      "user": "Ксана",
+      "player_name": "Jurriën Timber",
+      "club": "Arsenal",
+      "pos": "DEF",
+      "ts": null,
+      "playerId": 250101728
+    },
+    {
+      "round": 11,
+      "user": "Андрей",
+      "player_name": "Pedro Gonçalves",
+      "club": "Sporting CP",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250143328
+    },
+    {
+      "round": 11,
+      "user": "Саша",
+      "player_name": "Ruben van Bommel",
+      "club": "PSV",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250187458
+    },
+    {
+      "round": 11,
+      "user": "Руслан",
+      "player_name": "Can Uzun",
+      "club": "Frankfurt",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250166964
+    },
+    {
+      "round": 11,
+      "user": "Женя",
+      "player_name": "Wout Weghorst",
+      "club": "Ajax",
+      "pos": "FWD",
+      "ts": null,
+      "playerId": 250078682
+    },
+    {
+      "round": 11,
+      "user": "Макс",
+      "player_name": "Christos Tzolis",
+      "club": "Club Brugge",
+      "pos": "FWD",
+      "ts": null,
+      "playerId": 250124460
+    },
+    {
+      "round": 11,
+      "user": "Серёга Б",
+      "player_name": "Ademola Lookman",
+      "club": "Atalanta",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250099258
+    },
+    {
+      "round": 12,
+      "user": "Серёга Б",
+      "player_name": "Pedro Porro",
+      "club": "Tottenham",
+      "pos": "DEF",
+      "ts": null,
+      "playerId": 150562676
+    },
+    {
+      "round": 12,
+      "user": "Макс",
+      "player_name": "Nicolas Pépé",
+      "club": "Villarreal",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250106003
+    },
+    {
+      "round": 12,
+      "user": "Женя",
+      "player_name": "Tijjani Reijnders",
+      "club": "Man City",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250121294
+    },
+    {
+      "round": 12,
+      "user": "Руслан",
+      "player_name": "Leroy Sané",
+      "club": "Galatasaray",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250063984
+    },
+    {
+      "round": 12,
+      "user": "Саша",
+      "player_name": "Joško Gvardiol",
+      "club": "Man City",
+      "pos": "DEF",
+      "ts": null,
+      "playerId": 250127284
+    },
+    {
+      "round": 12,
+      "user": "Андрей",
+      "player_name": "Anthony Gordon",
+      "club": "Newcastle",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250117036
+    },
+    {
+      "round": 12,
+      "user": "Ксана",
+      "player_name": "Patrik Schick",
+      "club": "Leverkusen",
+      "pos": "FWD",
+      "ts": null,
+      "playerId": 250055110
+    },
+    {
+      "round": 13,
+      "user": "Ксана",
+      "player_name": "Maghnes Akliouche",
+      "club": "Monaco",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250160436
+    },
+    {
+      "round": 13,
+      "user": "Андрей",
+      "player_name": "Georges Mikautadze",
+      "club": "Villarreal",
+      "pos": "FWD",
+      "ts": null,
+      "playerId": 250155025
+    },
+    {
+      "round": 13,
+      "user": "Саша",
+      "player_name": "Gonçalo Inácio",
+      "club": "Sporting CP",
+      "pos": "DEF",
+      "ts": null,
+      "playerId": 250136464
+    },
+    {
+      "round": 13,
+      "user": "Руслан",
+      "player_name": "Tajon Buchanan",
+      "club": "Villarreal",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250173127
+    },
+    {
+      "round": 13,
+      "user": "Женя",
+      "player_name": "Davide Zappacosta",
+      "club": "Atalanta",
+      "pos": "DEF",
+      "ts": null,
+      "playerId": 250064232
+    },
+    {
+      "round": 13,
+      "user": "Макс",
+      "player_name": "Rodri",
+      "club": "Man City",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250082664
+    },
+    {
+      "round": 13,
+      "user": "Серёга Б",
+      "player_name": "Takumi Minamino",
+      "club": "Monaco",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250081223
+    },
+    {
+      "round": 14,
+      "user": "Серёга Б",
+      "player_name": "Fabian Schär",
+      "club": "Newcastle",
+      "pos": "DEF",
+      "ts": null,
+      "playerId": 250050401
+    },
+    {
+      "round": 14,
+      "user": "Макс",
+      "player_name": "André-Frank Zambo Anguissa",
+      "club": "Napoli",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250086987
+    },
+    {
+      "round": 14,
+      "user": "Женя",
+      "player_name": "Julian Brandt",
+      "club": "B. Dortmund",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250046522
+    },
+    {
+      "round": 14,
+      "user": "Руслан",
+      "player_name": "Manuel Neuer",
+      "club": "Bayern München",
+      "pos": "GK",
+      "ts": null,
+      "playerId": 97923
+    },
+    {
+      "round": 14,
+      "user": "Саша",
+      "player_name": "Iñaki Williams",
+      "club": "Athletic Club",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250074671
+    },
+    {
+      "round": 14,
+      "user": "Андрей",
+      "player_name": "Mika Biereth",
+      "club": "Monaco",
+      "pos": "FWD",
+      "ts": null,
+      "playerId": 250167111
+    },
+    {
+      "round": 14,
+      "user": "Ксана",
+      "player_name": "Maximilian Beier",
+      "club": "B. Dortmund",
+      "pos": "FWD",
+      "ts": null,
+      "playerId": 250124222
+    },
+    {
+      "round": 15,
+      "user": "Ксана",
+      "player_name": "Serge Gnabry",
+      "club": "Bayern München",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250041770
+    },
+    {
+      "round": 15,
+      "user": "Андрей",
+      "player_name": "Gregor Kobel",
+      "club": "B. Dortmund",
+      "pos": "GK",
+      "ts": null,
+      "playerId": 250069832
+    },
+    {
+      "round": 15,
+      "user": "Саша",
+      "player_name": "Matteo Politano",
+      "club": "Napoli",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250050381
+    },
+    {
+      "round": 15,
+      "user": "Руслан",
+      "player_name": "Raoul Bellanova",
+      "club": "Atalanta",
+      "pos": "DEF",
+      "ts": null,
+      "playerId": 250091828
+    },
+    {
+      "round": 15,
+      "user": "Женя",
+      "player_name": "Dominik Szoboszlai",
+      "club": "Liverpool",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250104066
+    },
+    {
+      "round": 15,
+      "user": "Макс",
+      "player_name": "Moises Caicedo",
+      "club": "Chelsea",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250181610
+    },
+    {
+      "round": 15,
+      "user": "Серёга Б",
+      "player_name": "Brahim Díaz",
+      "club": "Real Madrid",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250088039
+    },
+    {
+      "round": 16,
+      "user": "Серёга Б",
+      "player_name": "Sergiño Dest",
+      "club": "PSV",
+      "pos": "DEF",
+      "ts": null,
+      "playerId": 250112998
+    },
+    {
+      "round": 16,
+      "user": "Макс",
+      "player_name": "Andrea Cambiaso",
+      "club": "Juventus",
+      "pos": "DEF",
+      "ts": null,
+      "playerId": 250163623
+    },
+    {
+      "round": 16,
+      "user": "Женя",
+      "player_name": "Rodrygo",
+      "club": "Real Madrid",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250132829
+    },
+    {
+      "round": 16,
+      "user": "Руслан",
+      "player_name": "Joey Veerman",
+      "club": "PSV",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250105890
+    },
+    {
+      "round": 16,
+      "user": "Саша",
+      "player_name": "Jan Oblak",
+      "club": "Atleti",
+      "pos": "GK",
+      "ts": null,
+      "playerId": 250012069
+    },
+    {
+      "round": 16,
+      "user": "Андрей",
+      "player_name": "Unai Simón",
+      "club": "Athletic Club",
+      "pos": "GK",
+      "ts": null,
+      "playerId": 250076116
+    },
+    {
+      "round": 16,
+      "user": "Ксана",
+      "player_name": "Robert Sánchez",
+      "club": "Chelsea",
+      "pos": "GK",
+      "ts": null,
+      "playerId": 250154983
+    },
+    {
+      "round": 17,
+      "user": "Ксана",
+      "player_name": "Benjamin Pavard",
+      "club": "Marseille",
+      "pos": "DEF",
+      "ts": null,
+      "playerId": 250081921
+    },
+    {
+      "round": 17,
+      "user": "Андрей",
+      "player_name": "Francisco Ortega",
+      "club": "Olympiacos",
+      "pos": "DEF",
+      "ts": null,
+      "playerId": 250189214
+    },
+    {
+      "round": 17,
+      "user": "Саша",
+      "player_name": "İlkay Gündoğan",
+      "club": "Galatasaray",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250005335
+    },
+    {
+      "round": 17,
+      "user": "Руслан",
+      "player_name": "Guglielmo Vicario",
+      "club": "Tottenham",
+      "pos": "GK",
+      "ts": null,
+      "playerId": 250178594
+    },
+    {
+      "round": 17,
+      "user": "Женя",
+      "player_name": "Geny Catamo",
+      "club": "Sporting CP",
+      "pos": "DEF",
+      "ts": null,
+      "playerId": 250145845
+    },
+    {
+      "round": 17,
+      "user": "Макс",
+      "player_name": "Cristian Romero",
+      "club": "Tottenham",
+      "pos": "DEF",
+      "ts": null,
+      "playerId": 250144325
+    },
+    {
+      "round": 17,
+      "user": "Серёга Б",
+      "player_name": "Nico Williams",
+      "club": "Athletic Club",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250163185
+    },
+    {
+      "round": 18,
+      "user": "Серёга Б",
+      "player_name": "Michael Zetterer",
+      "club": "Frankfurt",
+      "pos": "GK",
+      "ts": null,
+      "playerId": 250211809
+    },
+    {
+      "round": 18,
+      "user": "Макс",
+      "player_name": "Francisco Trincão",
+      "club": "Sporting CP",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250112122
+    },
+    {
+      "round": 18,
+      "user": "Женя",
+      "player_name": "Nick Pope",
+      "club": "Newcastle",
+      "pos": "GK",
+      "ts": null,
+      "playerId": 250118266
+    },
+    {
+      "round": 18,
+      "user": "Руслан",
+      "player_name": "Pedro Neto",
+      "club": "Chelsea",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250106986
+    },
+    {
+      "round": 18,
+      "user": "Саша",
+      "player_name": "Lucas Vázquez",
+      "club": "Leverkusen",
+      "pos": "DEF",
+      "ts": null,
+      "playerId": 250040521
+    },
+    {
+      "round": 18,
+      "user": "Андрей",
+      "player_name": "Jamal Musiala",
+      "club": "Bayern München",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250124430
+    },
+    {
+      "round": 18,
+      "user": "Ксана",
+      "player_name": "Nicolás Otamendi",
+      "club": "Benfica",
+      "pos": "DEF",
+      "ts": null,
+      "playerId": 250017040
+    },
+    {
+      "round": 19,
+      "user": "Ксана",
+      "player_name": "Mehdi Taremi",
+      "club": "Olympiacos",
+      "pos": "FWD",
+      "ts": null,
+      "playerId": 250097909
+    },
+    {
+      "round": 19,
+      "user": "Андрей",
+      "player_name": "Igor Paixao",
+      "club": "Marseille",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250177886
+    },
+    {
+      "round": 19,
+      "user": "Саша",
+      "player_name": "António Silva",
+      "club": "Benfica",
+      "pos": "DEF",
+      "ts": null,
+      "playerId": 250128468
+    },
+    {
+      "round": 19,
+      "user": "Руслан",
+      "player_name": "Jarell Quansah",
+      "club": "Leverkusen",
+      "pos": "DEF",
+      "ts": null,
+      "playerId": 250128391
+    },
+    {
+      "round": 19,
+      "user": "Женя",
+      "player_name": "Rafa Marín",
+      "club": "Villarreal",
+      "pos": "DEF",
+      "ts": null,
+      "playerId": 250129412
+    },
+    {
+      "round": 19,
+      "user": "Макс",
+      "player_name": "Marco Carnesecchi",
+      "club": "Atalanta",
+      "pos": "GK",
+      "ts": null,
+      "playerId": 250105612
+    },
+    {
+      "round": 19,
+      "user": "Серёга Б",
+      "player_name": "Pablo Barrios",
+      "club": "Atleti",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250139036
+    },
+    {
+      "round": 20,
+      "user": "Серёга Б",
+      "player_name": "Julian Ryerson",
+      "club": "B. Dortmund",
+      "pos": "DEF",
+      "ts": null,
+      "playerId": 250092517
+    },
+    {
+      "round": 20,
+      "user": "Макс",
+      "player_name": "Marcos Llorente",
+      "club": "Atleti",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250079670
+    },
+    {
+      "round": 20,
+      "user": "Женя",
+      "player_name": "Brandon Mechele",
+      "club": "Club Brugge",
+      "pos": "DEF",
+      "ts": null,
+      "playerId": 250053044
+    },
+    {
+      "round": 20,
+      "user": "Руслан",
+      "player_name": "Ramy Bensebaini",
+      "club": "B. Dortmund",
+      "pos": "DEF",
+      "ts": null,
+      "playerId": 250119677
+    },
+    {
+      "round": 20,
+      "user": "Саша",
+      "player_name": "Giorgio Scalvini",
+      "club": "Atalanta",
+      "pos": "DEF",
+      "ts": null,
+      "playerId": 250129755
+    },
+    {
+      "round": 20,
+      "user": "Андрей",
+      "player_name": "Owen Wijndal",
+      "club": "Ajax",
+      "pos": "DEF",
+      "ts": null,
+      "playerId": 250097317
+    },
+    {
+      "round": 20,
+      "user": "Ксана",
+      "player_name": "Wilfried Singo",
+      "club": "Galatasaray",
+      "pos": "DEF",
+      "ts": null,
+      "playerId": 250132323
+    },
+    {
+      "round": 21,
+      "user": "Ксана",
+      "player_name": "Dávid Hancko",
+      "club": "Atleti",
+      "pos": "DEF",
+      "ts": null,
+      "playerId": 250092668
+    },
+    {
+      "round": 21,
+      "user": "Андрей",
+      "player_name": "Robin Le Normand",
+      "club": "Atleti",
+      "pos": "DEF",
+      "ts": null,
+      "playerId": 250112513
+    },
+    {
+      "round": 21,
+      "user": "Саша",
+      "player_name": "Vitězslav Jaroš",
+      "club": "Ajax",
+      "pos": "GK",
+      "ts": null,
+      "playerId": 250113263
+    },
+    {
+      "round": 21,
+      "user": "Руслан",
+      "player_name": "Aitor Paredes",
+      "club": "Athletic Club",
+      "pos": "DEF",
+      "ts": null,
+      "playerId": 250126271
+    },
+    {
+      "round": 21,
+      "user": "Женя",
+      "player_name": "Emerson",
+      "club": "Marseille",
+      "pos": "DEF",
+      "ts": null,
+      "playerId": 250100056
+    },
+    {
+      "round": 21,
+      "user": "Макс",
+      "player_name": "Ritsu Doan",
+      "club": "Frankfurt",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250134309
+    },
+    {
+      "round": 21,
+      "user": "Серёга Б",
+      "player_name": "Ayoub El Kaabi",
+      "club": "Olympiacos",
+      "pos": "FWD",
+      "ts": null,
+      "playerId": 250118298
+    },
+    {
+      "round": 22,
+      "user": "Серёга Б",
+      "player_name": "Anton Gaaei",
+      "club": "Ajax",
+      "pos": "DEF",
+      "ts": null,
+      "playerId": 250174052
+    },
+    {
+      "round": 22,
+      "user": "Макс",
+      "player_name": "Daniel Vivian",
+      "club": "Athletic Club",
+      "pos": "DEF",
+      "ts": null,
+      "playerId": 250194503
+    },
+    {
+      "round": 22,
+      "user": "Женя",
+      "player_name": "Eric Dier",
+      "club": "Monaco",
+      "pos": "DEF",
+      "ts": null,
+      "playerId": 250050416
+    },
+    {
+      "round": 22,
+      "user": "Руслан",
+      "player_name": "Rasmus Højlund",
+      "club": "Napoli",
+      "pos": "FWD",
+      "ts": null,
+      "playerId": 250130221
+    },
+    {
+      "round": 22,
+      "user": "Саша",
+      "player_name": "Nayef Aguerd",
+      "club": "Marseille",
+      "pos": "DEF",
+      "ts": null,
+      "playerId": 250101087
+    },
+    {
+      "round": 22,
+      "user": "Андрей",
+      "player_name": "Amir Rrahmani",
+      "club": "Napoli",
+      "pos": "DEF",
+      "ts": null,
+      "playerId": 250059233
+    },
+    {
+      "round": 22,
+      "user": "Ксана",
+      "player_name": "Yuri Berchiche",
+      "club": "Athletic Club",
+      "pos": "DEF",
+      "ts": null,
+      "playerId": 103823
+    },
+    {
+      "round": 23,
+      "user": "Ксана",
+      "player_name": "Kieran Trippier",
+      "club": "Newcastle",
+      "pos": "DEF",
+      "ts": null,
+      "playerId": 250000919
+    },
+    {
+      "round": 23,
+      "user": "Андрей",
+      "player_name": "Fredrik André Bjørkan",
+      "club": "Bodø/Glimt",
+      "pos": "DEF",
+      "ts": null,
+      "playerId": 250104207
+    },
+    {
+      "round": 23,
+      "user": "Саша",
+      "player_name": "Simon Mignolet",
+      "club": "Club Brugge",
+      "pos": "GK",
+      "ts": null,
+      "playerId": 98078
+    },
+    {
+      "round": 23,
+      "user": "Руслан",
+      "player_name": "Tino Livramento",
+      "club": "Newcastle",
+      "pos": "DEF",
+      "ts": null,
+      "playerId": 250117508
+    },
+    {
+      "round": 23,
+      "user": "Женя",
+      "player_name": "Rasmus Kristensen",
+      "club": "Frankfurt",
+      "pos": "DEF",
+      "ts": null,
+      "playerId": 250074850
+    },
+    {
+      "round": 23,
+      "user": "Макс",
+      "player_name": "Matěj Kovář",
+      "club": "PSV",
+      "pos": "GK",
+      "ts": null,
+      "playerId": 250117491
+    },
+    {
+      "round": 23,
+      "user": "Серёга Б",
+      "player_name": "Pierre-Emerick Aubameyang",
+      "club": "Marseille",
+      "pos": "FWD",
+      "ts": null,
+      "playerId": 250011037
+    },
+    {
+      "round": 24,
+      "user": "Серёга Б",
+      "player_name": "Luiz Júnior",
+      "club": "Villarreal",
+      "pos": "GK",
+      "ts": null,
+      "playerId": 250210287
+    },
+    {
+      "round": 24,
+      "user": "Макс",
+      "player_name": "Dan Burn",
+      "club": "Newcastle",
+      "pos": "DEF",
+      "ts": null,
+      "playerId": 250186141
+    },
+    {
+      "round": 24,
+      "user": "Женя",
+      "player_name": "Mark Flekken",
+      "club": "Leverkusen",
+      "pos": "GK",
+      "ts": null,
+      "playerId": 250167143
+    },
+    {
+      "round": 24,
+      "user": "Руслан",
+      "player_name": "Michele Di Gregorio",
+      "club": "Juventus",
+      "pos": "GK",
+      "ts": null,
+      "playerId": 250101201
+    },
+    {
+      "round": 24,
+      "user": "Саша",
+      "player_name": "Eric García",
+      "club": "Barcelona",
+      "pos": "DEF",
+      "ts": null,
+      "playerId": 250103561
+    },
+    {
+      "round": 24,
+      "user": "Андрей",
+      "player_name": "Uğurcan Çakır",
+      "club": "Galatasaray",
+      "pos": "GK",
+      "ts": null,
+      "playerId": 250078452
+    },
+    {
+      "round": 24,
+      "user": "Ксана",
+      "player_name": "Rui Silva",
+      "club": "Sporting CP",
+      "pos": "GK",
+      "ts": null,
+      "playerId": 250062141
+    },
+    {
+      "round": 25,
+      "user": "Ксана",
+      "player_name": "Kjell Scherpen",
+      "club": "Union SG",
+      "pos": "GK",
+      "ts": null,
+      "playerId": 250123304
+    },
+    {
+      "round": 25,
+      "user": "Андрей",
+      "player_name": "David Luiz",
+      "club": "Pafos",
+      "pos": "DEF",
+      "ts": null,
+      "playerId": 1900733
+    },
+    {
+      "round": 25,
+      "user": "Саша",
+      "player_name": "Gabriel",
+      "club": "Arsenal",
+      "pos": "DEF",
+      "ts": null,
+      "playerId": 250131901
+    },
+    {
+      "round": 25,
+      "user": "Руслан",
+      "player_name": "Giuliano Simeone",
+      "club": "Atleti",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250153634
+    },
+    {
+      "round": 25,
+      "user": "Женя",
+      "player_name": "Anatoliy Trubin",
+      "club": "Benfica",
+      "pos": "GK",
+      "ts": null,
+      "playerId": 250113444
+    },
+    {
+      "round": 25,
+      "user": "Макс",
+      "player_name": "Amar Dedić",
+      "club": "Benfica",
+      "pos": "DEF",
+      "ts": null,
+      "playerId": 250126449
+    },
+    {
+      "round": 25,
+      "user": "Серёга Б",
+      "player_name": "Loic Bade",
+      "club": "Leverkusen",
+      "pos": "DEF",
+      "ts": null,
+      "playerId": 250161164
+    },
+    {
+      "round": 22,
+      "user": "Сергей",
+      "player_name": "David Raya",
+      "club": "Arsenal",
+      "pos": "GK",
+      "ts": null,
+      "playerId": 250171278
+    },
+    {
+      "round": 23,
+      "user": "Сергей",
+      "player_name": "Ricardo Pepi",
+      "club": "PSV",
+      "pos": "FWD",
+      "ts": null,
+      "playerId": 250187620
+    },
+    {
+      "round": 23,
+      "user": "Сергей",
+      "player_name": "Omar Marmoush",
+      "club": "Man City",
+      "pos": "FWD",
+      "ts": null,
+      "playerId": 250139217
+    },
+    {
+      "round": 23,
+      "user": "Сергей",
+      "player_name": "Fermín López",
+      "club": "Barcelona",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250164780
+    },
+    {
+      "round": 23,
+      "user": "Сергей",
+      "player_name": "Thibaut Courtois",
+      "club": "Real Madrid",
+      "pos": "GK",
+      "ts": null,
+      "playerId": 250011668
+    },
+    {
+      "round": 23,
+      "user": "Сергей",
+      "player_name": "Jobe Bellingham",
+      "club": "B. Dortmund",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250167832
+    },
+    {
+      "round": 23,
+      "user": "Сергей",
+      "player_name": "Lloyd Kelly",
+      "club": "Juventus",
+      "pos": "DEF",
+      "ts": null,
+      "playerId": 250130510
+    },
+    {
+      "round": 23,
+      "user": "Сергей",
+      "player_name": "Samuel Dahl",
+      "club": "Benfica",
+      "pos": "DEF",
+      "ts": null,
+      "playerId": 250130428
+    },
+    {
+      "round": 23,
+      "user": "Сергей",
+      "player_name": "Randal Kolo Muani",
+      "club": "Tottenham",
+      "pos": "FWD",
+      "ts": null,
+      "playerId": 250146926
+    },
+    {
+      "round": 24,
+      "user": "Сергей",
+      "player_name": "Ayoze Pérez",
+      "club": "Villarreal",
+      "pos": "FWD",
+      "ts": null,
+      "playerId": 250075625
+    },
+    {
+      "round": 24,
+      "user": "Сергей",
+      "player_name": "Jeremie Frimpong",
+      "club": "Liverpool",
+      "pos": "DEF",
+      "ts": null,
+      "playerId": 250113276
+    },
+    {
+      "round": 24,
+      "user": "Сергей",
+      "player_name": "Josip Stanišić",
+      "club": "Bayern München",
+      "pos": "DEF",
+      "ts": null,
+      "playerId": 250112220
+    },
+    {
+      "round": 24,
+      "user": "Сергей",
+      "player_name": "Nicolò Barella",
+      "club": "Inter",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250066739
+    },
+    {
+      "round": 24,
+      "user": "Сергей",
+      "player_name": "Alessandro Buongiorno",
+      "club": "Napoli",
+      "pos": "DEF",
+      "ts": null,
+      "playerId": 250088491
+    },
+    {
+      "round": 24,
+      "user": "Сергей",
+      "player_name": "Anthony Elanga",
+      "club": "Newcastle",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250124269
+    },
+    {
+      "round": 24,
+      "user": "Сергей",
+      "player_name": "Jean-Matteo Bahoya",
+      "club": "Frankfurt",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250164528
+    },
+    {
+      "round": 24,
+      "user": "Сергей",
+      "player_name": "Davy Klaassen",
+      "club": "Ajax",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250013855
+    },
+    {
+      "round": 25,
+      "user": "Сергей",
+      "player_name": "Reece James",
+      "club": "Chelsea",
+      "pos": "DEF",
+      "ts": null,
+      "playerId": 250110362
+    },
+    {
+      "round": 25,
+      "user": "Сергей",
+      "player_name": "Gianluca Scamacca",
+      "club": "Atalanta",
+      "pos": "FWD",
+      "ts": null,
+      "playerId": 250076743
+    },
+    {
+      "round": 25,
+      "user": "Сергей",
+      "player_name": "Matteo Ruggeri",
+      "club": "Atleti",
+      "pos": "DEF",
+      "ts": null,
+      "playerId": 250127239
+    },
+    {
+      "round": 25,
+      "user": "Сергей",
+      "player_name": "Fabián Ruiz",
+      "club": "Paris",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250115436
+    },
+    {
+      "round": 25,
+      "user": "Сергей",
+      "player_name": "Malik Tillman",
+      "club": "Leverkusen",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250123677
+    },
+    {
+      "round": 25,
+      "user": "Сергей",
+      "player_name": "Barış Alper Yılmaz",
+      "club": "Galatasaray",
+      "pos": "MID",
+      "ts": null,
+      "playerId": 250158929
+    },
+    {
+      "round": 25,
+      "user": "Сергей",
+      "player_name": "Nikita Haikin",
+      "club": "Bodø/Glimt",
+      "pos": "GK",
+      "ts": null,
+      "playerId": 250141864
+    },
+    {
+      "round": 25,
+      "user": "Сергей",
+      "player_name": "Ricardo Mangas",
+      "club": "Sporting CP",
+      "pos": "DEF",
+      "ts": null,
+      "playerId": 250077643
+    }
+  ],
+  "skip_bank": {
+    "Ксана": 0,
+    "Андрей": 0,
+    "Саша": 0,
+    "Руслан": 0,
+    "Женя": 0,
+    "Макс": 0,
+    "Серёга Б": 0,
+    "Сергей": 0
+  },
+  "turn_user": null,
+  "turn_left": 0,
+  "draft_completed": true,
+  "finished_matchdays": [
+    1
+  ]
 }
