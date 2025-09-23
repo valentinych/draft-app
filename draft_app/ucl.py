@@ -213,6 +213,12 @@ def _players_from_ucl(raw: Any) -> List[Dict[str, Any]]:
     return out
 
 
+def _ensure_fp_current_from_uefa_feed(players: List[Dict[str, Any]]) -> None:
+    """Ensure all players have fp_current set from curGDPts (UEFA feed)"""
+    for player in players:
+        if isinstance(player, dict):
+            player["fp_current"] = int(player.get("curGDPts", 0) or 0)
+
 def _ucl_points_map(raw: Any) -> Dict[int, int]:
     """Extract mapping playerId -> total points from raw JSON."""
     mapping: Dict[int, int] = {}
@@ -686,9 +692,7 @@ def index():
         p["fp_last"] = points_map.get(pid, 0)
 
     # points from current season (2025/26) - use curGDPts from UEFA feed
-    for p in players:
-        # curGDPts is already available in the UEFA JSON feed data
-        p["fp_current"] = int(p.get("curGDPts", 0) or 0)
+    _ensure_fp_current_from_uefa_feed(players)
 
     # state
     state = _ucl_state_load()
@@ -1018,8 +1022,7 @@ def index():
             if current_user_name in rosters:
                 user_roster = rosters[current_user_name] or []
                 # Add fp_current from curGDPts for user roster players
-                for player in user_roster:
-                    player["fp_current"] = int(player.get("curGDPts", 0) or 0)
+                _ensure_fp_current_from_uefa_feed(user_roster)
                 
     except Exception as e:
         print(f"[UCL] Transfer window check error: {e}")
@@ -1621,6 +1624,8 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
         
         # Start with current roster
         current_roster = rosters.get(manager, [])
+        # Ensure all roster players have fp_current from curGDPts
+        _ensure_fp_current_from_uefa_feed(current_roster)
         for player in current_roster:
             player_id = player.get("playerId")
             if player_id:
