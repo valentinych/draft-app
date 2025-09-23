@@ -22,6 +22,9 @@
           <form method="post" action="{{ url_for('transfers.close_transfer_window', draft_type=draft_type) }}" style="display: inline;">
             <button type="submit" class="button is-small is-danger">Закрыть окно</button>
           </form>
+          <button class="button is-small is-warning" onclick="showFixStateModal()">
+            Исправить состояние
+          </button>
           {% endif %}
           <form method="post" action="{{ url_for('transfers.skip_transfer_turn', draft_type=draft_type) }}" style="display: inline;">
             <button type="submit" class="button is-small is-light">Пропустить ход</button>
@@ -75,48 +78,77 @@
 {% endif %}
 
 <!-- Current User Transfer Interface -->
-{% if is_window_active and current_user == current_manager and user_roster %}
-<div class="notification is-primary">
-  <h4 class="title is-5">⚽ Ваш ход - выберите игрока для transfer out</h4>
-  
-  <div class="columns">
-    {% set positions = ['GK', 'DEF', 'MID', 'FWD'] %}
-    {% for pos in positions %}
-      {% set players_in_pos = user_roster | selectattr('position', 'equalto', pos) | list %}
-      {% if players_in_pos %}
-      <div class="column">
-        <h6 class="subtitle is-6">{{ pos }}</h6>
-        <div class="buttons">
-          {% for player in players_in_pos %}
-          <button class="button is-small is-outlined" 
-                  onclick="selectPlayerForTransferOut({{ player.playerId or player.id }}, '{{ player.fullName or player.name }}', '{{ player.clubName or player.club }}', '{{ player.position }}')">
-            {{ player.fullName or player.name }}<br>
-            <small>{{ player.clubName or player.club }}</small>
-          </button>
-          {% endfor %}
+{% if is_window_active and current_user == current_manager %}
+  {% if current_phase == 'out' and user_roster %}
+  <div class="notification is-primary">
+    <h4 class="title is-5">⚽ Ваш ход - TRANSFER OUT: выберите игрока для отдачи</h4>
+    
+    <div class="columns">
+      {% set positions = ['GK', 'DEF', 'MID', 'FWD'] %}
+      {% for pos in positions %}
+        {% set players_in_pos = user_roster | selectattr('position', 'equalto', pos) | list %}
+        {% if players_in_pos %}
+        <div class="column">
+          <h6 class="subtitle is-6">{{ pos }}</h6>
+          <div class="buttons">
+            {% for player in players_in_pos %}
+            <button class="button is-small is-outlined" 
+                    onclick="selectPlayerForTransferOut({{ player.playerId or player.id }}, '{{ player.fullName or player.name }}', '{{ player.clubName or player.club }}', '{{ player.position }}')">
+              {{ player.fullName or player.name }}<br>
+              <small>{{ player.clubName or player.club }}</small>
+            </button>
+            {% endfor %}
+          </div>
         </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+    
+    <div class="content">
+      <h6 class="subtitle is-6">📝 Фаза TRANSFER OUT:</h6>
+      <ol>
+        <li><strong>Выберите игрока</strong> для отдачи из списка выше</li>
+        <li><strong>Подтвердите выбор</strong> - игрок будет отправлен в transfer out пул</li>
+        <li><strong>Следующий шаг:</strong> TRANSFER IN - выбор замены</li>
+      </ol>
+      <p class="has-text-info">
+        ℹ️ <strong>Этап 1 из 2:</strong> Сначала отдайте игрока, затем выберите замену
+      </p>
+    </div>
+  </div>
+  {% elif current_phase == 'in' %}
+  <div class="notification is-success">
+    <h4 class="title is-5">🎯 Ваш ход - TRANSFER IN: выберите игрока для получения</h4>
+    
+    <div class="content">
+      <h6 class="subtitle is-6">📝 Фаза TRANSFER IN:</h6>
+      <ol>
+        <li><strong>Игрок отдан</strong> ✅ - теперь выберите замену</li>
+        <li><strong>Нажмите кнопку ниже</strong> чтобы увидеть доступных игроков</li>
+        <li><strong>Выберите игрока</strong> из transfer out пула</li>
+        <li><strong>Подтвердите выбор</strong> - ход переходит к следующему менеджеру</li>
+      </ol>
+      <p class="has-text-info">
+        ℹ️ <strong>Этап 2 из 2:</strong> Выберите замену из доступных игроков
+      </p>
+      
+      <div class="buttons">
+        <button class="button is-success is-medium" onclick="showAvailableTransferPlayersForIn()">
+          🔄 Выбрать игрока для TRANSFER IN
+        </button>
       </div>
-      {% endif %}
-    {% endfor %}
+    </div>
   </div>
-  
-  <div class="content">
-    <h6 class="subtitle is-6">📝 Как делать трансфер:</h6>
-    <ol>
-      <li><strong>Выберите игрока</strong> для отдачи из списка выше</li>
-      <li><strong>Подтвердите выбор</strong> в появившемся окне</li>
-      <li><strong>Выберите замену</strong> из доступных игроков (transfer out пул)</li>
-      <li><strong>Подтвердите трансфер</strong> - ход переходит к следующему</li>
-    </ol>
-          <p class="has-text-info">
-            ℹ️ <strong>Лимиты:</strong> Соблюдаются ограничения по позициям и клубам. 
-            Доступны игроки из transfer out пула и все невыбранные игроки.
-          </p>
-  </div>
-</div>
+  {% endif %}
 {% elif is_window_active and current_manager %}
 <div class="notification is-info">
-  <p>🕒 <strong>Сейчас ход:</strong> {{ current_manager }}</p>
+  <p>🕒 <strong>Сейчас ход:</strong> {{ current_manager }} 
+    {% if current_phase %}
+      <span class="tag is-warning">
+        {{ 'TRANSFER OUT' if current_phase == 'out' else 'TRANSFER IN' }}
+      </span>
+    {% endif %}
+  </p>
   <p>Ожидайте своей очереди для выбора трансфера.</p>
 </div>
 {% endif %}
@@ -163,6 +195,10 @@
         <td>
           {% if record.action == 'pick_transfer_player' %}
             <span class="tag is-info">Подбор трансф. игрока</span>
+          {% elif record.action == 'transfer_out' %}
+            <span class="tag is-primary">Transfer Out</span>
+          {% elif record.action == 'transfer_in' %}
+            <span class="tag is-success">Transfer In</span>
           {% else %}
             <span class="tag is-warning">Трансфер</span>
           {% endif %}
@@ -312,6 +348,50 @@
     </div>
   </div>
 </div>
+
+<div id="fix-state-modal" class="modal" aria-hidden="true">
+  <div class="modal-backdrop" data-close-fix="1"></div>
+  <div class="modal-dialog" role="dialog" aria-modal="true">
+    <div class="modal-header">
+      <div class="modal-title">Исправить состояние трансфера</div>
+      <button type="button" class="modal-close" data-close-fix="1" aria-label="Закрыть">×</button>
+    </div>
+    <div class="modal-body">
+      <form method="post" action="{{ url_for('transfers.fix_transfer_state', draft_type=draft_type) }}">
+        <div class="field">
+          <label class="label">Менеджер</label>
+          <div class="control">
+            <div class="select">
+              <select name="manager" required>
+                <option value="">Выберите менеджера</option>
+                {% for user in users %}
+                <option value="{{ user }}">{{ user }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+        </div>
+        
+        <div class="field">
+          <label class="label">Фаза</label>
+          <div class="control">
+            <div class="select">
+              <select name="phase" required>
+                <option value="out">Transfer Out</option>
+                <option value="in">Transfer In</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        
+        <div class="buttons">
+          <button type="submit" class="button is-warning">Исправить</button>
+          <button type="button" class="button" data-close-fix="1">Отмена</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 {% endif %}
 
 <script>
@@ -342,11 +422,13 @@ async function loadTransferWindowStatus() {
       if (data.window_active) {
         const window_info = data.window_info;
         const current_manager = data.current_manager;
+        const current_phase = data.current_phase;
         
         statusElement.innerHTML = `
           <strong>Трансферное окно активно</strong> - GW${window_info.gw}, 
           раунд ${window_info.current_round}/${window_info.total_rounds}
           ${current_manager ? `<br><span class="tag is-warning">Ход: ${current_manager}</span>` : ''}
+          ${current_phase ? `<span class="tag ${current_phase === 'out' ? 'is-primary' : 'is-success'}">${current_phase === 'out' ? 'TRANSFER OUT' : 'TRANSFER IN'}</span>` : ''}
         `;
         containerElement.className = 'notification is-success';
       } else {
@@ -379,6 +461,18 @@ function hideStartWindowModal() {
   modal.style.display = 'none';
 }
 
+function showFixStateModal() {
+  const modal = document.getElementById('fix-state-modal');
+  modal.setAttribute('aria-hidden', 'false');
+  modal.style.display = 'flex';
+}
+
+function hideFixStateModal() {
+  const modal = document.getElementById('fix-state-modal');
+  modal.setAttribute('aria-hidden', 'true');
+  modal.style.display = 'none';
+}
+
 // Close modal handlers
 document.addEventListener('DOMContentLoaded', function() {
   loadTransferWindowStatus();
@@ -393,10 +487,17 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
   
+  document.querySelectorAll('[data-close-fix="1"]').forEach(el => {
+    el.addEventListener('click', () => {
+      hideFixStateModal();
+    });
+  });
+  
   // Close on backdrop click
   document.addEventListener('click', (e) => {
     if (e.target.classList.contains('modal-backdrop')) {
       hideStartWindowModal();
+      hideFixStateModal();
     }
   });
   
@@ -404,6 +505,7 @@ document.addEventListener('DOMContentLoaded', function() {
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       hideStartWindowModal();
+      hideFixStateModal();
     }
   });
 });
@@ -437,7 +539,8 @@ function selectPlayerForTransferOut(playerId, playerName, playerClub, playerPosi
       }
       
       if (data.success) {
-        showAvailableTransferPlayers(playerId);
+        // Reload page to show transfer in phase
+        window.location.reload();
       } else {
         alert('Ошибка при отправке игрока: ' + (data.error || 'Неизвестная ошибка'));
       }
@@ -569,6 +672,123 @@ function selectReplacementPlayer(outPlayerId, inPlayerId, inPlayerName, inPlayer
       console.error('Error executing transfer:', error);
       alert('Ошибка при выполнении трансфера: ' + error.message);
     });
+  }
+}
+
+// Transfer In Functions (for new two-phase system)
+function showAvailableTransferPlayersForIn() {
+  // Create modal for selecting transfer in player
+  const modal = document.createElement('div');
+  modal.id = 'transfer-in-modal';
+  modal.className = 'modal';
+  modal.style.display = 'flex';
+  modal.innerHTML = \`
+    <div class="modal-backdrop" onclick="closeTransferInModal()"></div>
+    <div class="modal-dialog" style="max-width: 800px;">
+      <div class="modal-header">
+        <div class="modal-title">TRANSFER IN: Выберите игрока для получения</div>
+        <button type="button" class="modal-close" onclick="closeTransferInModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div id="transfer-in-loading">
+          <p>⏳ Загрузка доступных игроков...</p>
+        </div>
+        <div id="transfer-in-list" style="display: none;">
+          <div id="transfer-in-content"></div>
+        </div>
+        <div id="transfer-in-empty" style="display: none;">
+          <p>😔 Нет доступных игроков в transfer out пуле</p>
+        </div>
+      </div>
+    </div>
+  \`;
+  
+  document.body.appendChild(modal);
+  
+  // Load available transfer players
+  fetch(\`/transfers/{{ draft_type|lower }}/available-players\`)
+    .then(response => response.json())
+    .then(data => {
+      document.getElementById('transfer-in-loading').style.display = 'none';
+      
+      if (data.success && data.players && data.players.length > 0) {
+        displayTransferInPlayers(data.players);
+        document.getElementById('transfer-in-list').style.display = 'block';
+      } else {
+        document.getElementById('transfer-in-empty').style.display = 'block';
+      }
+    })
+    .catch(error => {
+      console.error('Error loading available players:', error);
+      document.getElementById('transfer-in-loading').innerHTML = 
+        '<p class="has-text-danger">❌ Ошибка загрузки игроков</p>';
+    });
+}
+
+function displayTransferInPlayers(players) {
+  const container = document.getElementById('transfer-in-content');
+  
+  // Group players by position
+  const positions = {};
+  players.forEach(player => {
+    const pos = player.position || 'Unknown';
+    if (!positions[pos]) positions[pos] = [];
+    positions[pos].push(player);
+  });
+  
+  let html = '<div class="columns is-multiline">';
+  Object.keys(positions).forEach(pos => {
+    html += \`<div class="column is-half">
+      <h6 class="subtitle is-6">\${pos}</h6>
+      <div class="buttons">\`;
+    
+    positions[pos].forEach(player => {
+      html += \`<button class="button is-small is-success is-outlined" 
+                      onclick="selectTransferInPlayer(\${player.playerId || player.id}, '\${player.fullName}', '\${player.clubName}', '\${player.position}')">
+                 \${player.fullName}<br>
+                 <small>\${player.clubName}</small>
+               </button>\`;
+    });
+    
+    html += '</div></div>';
+  });
+  html += '</div>';
+  
+  container.innerHTML = html;
+}
+
+function selectTransferInPlayer(inPlayerId, inPlayerName, inPlayerClub, inPlayerPosition) {
+  if (confirm(\`Взять игрока \${inPlayerName} (\${inPlayerClub}, \${inPlayerPosition}) в команду?\`)) {
+    // Execute the transfer in
+    fetch(\`/transfers/{{ draft_type|lower }}/transfer-player-in\`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        'player_id': inPlayerId
+      })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        // Success - reload the page
+        window.location.reload();
+      } else {
+        alert('Ошибка при получении игрока: ' + (data.error || 'Неизвестная ошибка'));
+      }
+    })
+    .catch(error => {
+      console.error('Error executing transfer in:', error);
+      alert('Ошибка при получении игрока: ' + error.message);
+    });
+  }
+}
+
+function closeTransferInModal() {
+  const modal = document.getElementById('transfer-in-modal');
+  if (modal) {
+    modal.parentNode.removeChild(modal);
   }
 }
 

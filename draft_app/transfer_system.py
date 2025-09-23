@@ -143,6 +143,7 @@ class TransferSystem:
             "current_round": 1,
             "current_manager_index": 0,
             "managers_order": managers_order,
+            "transfer_phase": "out",  # "out" or "in"
             "started_at": datetime.utcnow().isoformat(timespec="seconds")
         }
         
@@ -166,13 +167,21 @@ class TransferSystem:
         # Check if using legacy window format
         legacy_window = state.get("transfer_window")
         if legacy_window and legacy_window.get("active"):
-            # Handle legacy window format
+            # Handle legacy window format with phases
             participant_order = legacy_window.get("participant_order", [])
             current_index = legacy_window.get("current_index", 0)
             transfers_per_manager = legacy_window.get("transfers_per_manager", 1)
             transfers_completed = legacy_window.get("transfers_completed", {})
+            current_phase = legacy_window.get("transfer_phase", "out")
             
-            # Find next manager who hasn't completed their transfers
+            # If currently in "out" phase, switch to "in" phase for same manager
+            if current_phase == "out":
+                legacy_window["transfer_phase"] = "in"
+                print(f"[TransferSystem] advance_transfer_turn - switching to 'in' phase for same manager (legacy)")
+                return True
+            
+            # If in "in" phase, move to next manager and reset to "out" phase
+            legacy_window["transfer_phase"] = "out"
             next_index = current_index + 1
             
             if next_index >= len(participant_order):
@@ -188,7 +197,7 @@ class TransferSystem:
                         if transfers_completed.get(manager, 0) < transfers_per_manager:
                             legacy_window["current_index"] = i
                             legacy_window["current_user"] = manager
-                            print(f"[TransferSystem] advance_transfer_turn - next turn: {manager} (index {i})")
+                            print(f"[TransferSystem] advance_transfer_turn - next turn: {manager} (index {i}) (legacy)")
                             return True
                 else:
                     # All transfers completed, close window
@@ -200,7 +209,7 @@ class TransferSystem:
                 next_manager = participant_order[next_index]
                 legacy_window["current_index"] = next_index
                 legacy_window["current_user"] = next_manager
-                print(f"[TransferSystem] advance_transfer_turn - next turn: {next_manager} (index {next_index})")
+                print(f"[TransferSystem] advance_transfer_turn - next turn: {next_manager} (index {next_index}) (legacy)")
                 return True
         else:
             # Handle standard active_window format
@@ -209,8 +218,16 @@ class TransferSystem:
             current_index = active_window.get("current_manager_index", 0)
             current_round = active_window.get("current_round", 1)
             total_rounds = active_window.get("total_rounds", 1)
+            current_phase = active_window.get("transfer_phase", "out")
             
-            # Move to next manager
+            # If currently in "out" phase, switch to "in" phase for same manager
+            if current_phase == "out":
+                active_window["transfer_phase"] = "in"
+                print(f"[TransferSystem] advance_transfer_turn - switching to 'in' phase for same manager")
+                return True
+            
+            # If in "in" phase, move to next manager and reset to "out" phase
+            active_window["transfer_phase"] = "out"
             next_index = current_index + 1
             
             if next_index >= len(managers_order):
@@ -223,8 +240,10 @@ class TransferSystem:
                     # Start next round
                     active_window["current_round"] = next_round
                     active_window["current_manager_index"] = 0
+                    print(f"[TransferSystem] advance_transfer_turn - starting round {next_round}")
             else:
                 active_window["current_manager_index"] = next_index
+                print(f"[TransferSystem] advance_transfer_turn - next manager (index {next_index})")
                 
             return True
     
@@ -278,6 +297,19 @@ class TransferSystem:
                 return manager
         
         print(f"[TransferSystem] no manager found, returning None")        
+        return None
+    
+    def get_current_transfer_phase(self, state: Dict[str, Any]) -> Optional[str]:
+        """Get current transfer phase ('out' or 'in')"""
+        active_window = self.get_active_transfer_window(state)
+        if active_window:
+            return active_window.get("transfer_phase", "out")
+        
+        # Legacy format - check if it has phase info
+        legacy_window = state.get("transfer_window")
+        if legacy_window and legacy_window.get("active"):
+            return legacy_window.get("transfer_phase", "out")
+        
         return None
     
     def normalize_player_data(self, player: Dict[str, Any], current_gw: int) -> Dict[str, Any]:
@@ -538,17 +570,107 @@ class TransferSystem:
         
         state["transfers"]["history"].append(transfer_record)
         
-        # Update transfers completed counter for legacy window
+        # Switch to transfer in phase for the same manager
+        active_window = state["transfers"].get("active_window")
+        legacy_window = state.get("transfer_window")
+        
+        if active_window:
+            active_window["transfer_phase"] = "in"
+            print(f"[TransferSystem] transfer_player_out - switched to 'in' phase for same manager (standard)")
+        elif legacy_window and legacy_window.get("active"):
+            legacy_window["transfer_phase"] = "in"
+            print(f"[TransferSystem] transfer_player_out - switched to 'in' phase for same manager (legacy)")
+            # Don't increment transfers_completed yet - wait for transfer_in
+            print(f"[TransferSystem] transfer_player_out - NOT advancing turn, waiting for transfer_in")
+        else:
+            # Old behavior for compatibility - advance turn
+            self.advance_transfer_turn(state)
+        
+        print(f"[TransferSystem] transfer_player_out - completed successfully")
+        return state
+    
+    def transfer_player_in(self,
+                          state: Dict[str, Any],
+                          manager: str,
+                          player_id: int,
+                          current_gw: int) -> Dict[str, Any]:
+        """Transfer a player in from available pool to manager's roster"""
+        state = self.ensure_transfer_structure(state)
+        
+        print(f"[TransferSystem] transfer_player_in - manager: {manager}, player_id: {player_id}")
+        
+        # Check if transfer window is active
+        if not self.is_transfer_window_active(state):
+            raise ValueError("Трансферное окно неактивно")
+        
+        # Check if it's manager's turn
+        current_manager = self.get_current_transfer_manager(state)
+        if current_manager != manager:
+            raise ValueError(f"Сейчас ход менеджера {current_manager}, а не {manager}")
+        
+        # Check if we're in the "in" phase
+        current_phase = self.get_current_transfer_phase(state)
+        if current_phase != "in":
+            raise ValueError("Сейчас фаза transfer out, а не transfer in")
+        
+        # Find and pick the player from available players
+        available_players = state["transfers"]["available_players"]
+        picked_player = None
+        remaining_players = []
+        
+        for player in available_players:
+            if int(player.get("playerId") or player.get("id", 0)) == player_id:
+                picked_player = player.copy()
+                print(f"[TransferSystem] transfer_player_in - found player: {player.get('fullName', player.get('name', 'Unknown'))}")
+            else:
+                remaining_players.append(player)
+        
+        if not picked_player:
+            print(f"[TransferSystem] transfer_player_in - player {player_id} not found in available_players")
+            raise ValueError(f"Player {player_id} not available for transfer in")
+        
+        # Update player status
+        picked_player["status"] = "active"
+        picked_player["transferred_in_gw"] = current_gw
+        # Extend gws_active from current GW
+        existing_gws = picked_player.get("gws_active", [])
+        picked_player["gws_active"] = existing_gws + list(range(current_gw, 39))
+        
+        # Add to manager's roster
+        rosters = state.setdefault("rosters", {})
+        roster = rosters.setdefault(manager, [])
+        roster.append(picked_player)
+        
+        # Remove from available players
+        state["transfers"]["available_players"] = remaining_players
+        
+        # Record in history as a transfer in event
+        transfer_record = {
+            "gw": current_gw,
+            "manager": manager,
+            "action": "transfer_in",
+            "in_player": picked_player,
+            "ts": datetime.utcnow().isoformat(timespec="seconds"),
+            "draft_type": self.draft_type
+        }
+        
+        state["transfers"]["history"].append(transfer_record)
+        
+        # Handle legacy window format - increment transfers_completed and advance turn
         legacy_window = state.get("transfer_window")
         if legacy_window and legacy_window.get("active"):
             transfers_completed = legacy_window.setdefault("transfers_completed", {})
             transfers_completed[manager] = transfers_completed.get(manager, 0) + 1
-            print(f"[TransferSystem] transfer_player_out - {manager} completed {transfers_completed[manager]} transfers")
+            print(f"[TransferSystem] transfer_player_in - {manager} completed {transfers_completed[manager]} transfers (legacy)")
+            
+            # Reset phase to "out" and advance to next manager
+            legacy_window["transfer_phase"] = "out"
+            self.advance_transfer_turn(state)
+        else:
+            # Standard format - advance turn (this will reset phase to "out" and move to next manager)
+            self.advance_transfer_turn(state)
         
-        # Advance to next manager's turn after successful transfer out
-        self.advance_transfer_turn(state)
-        
-        print(f"[TransferSystem] transfer_player_out - completed successfully")
+        print(f"[TransferSystem] transfer_player_in - completed successfully")
         return state
     
     def get_player_active_gws(self, player: Dict[str, Any]) -> List[int]:

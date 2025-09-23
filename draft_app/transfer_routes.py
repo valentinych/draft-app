@@ -159,7 +159,7 @@ def pick_transfer_player(draft_type: str):
         
         transfer_system.save_state(updated_state)
         
-        success_msg = "Игрок отправлен в transfer out пул!"
+        success_msg = "Игрок отправлен в transfer out пул! Теперь выберите игрока для transfer in."
         if request.headers.get('Content-Type') == 'application/x-www-form-urlencoded':
             return jsonify({"success": True, "message": success_msg})
         
@@ -168,6 +168,72 @@ def pick_transfer_player(draft_type: str):
         
     except Exception as e:
         error_msg = f"Ошибка при отправке игрока: {str(e)}"
+        if request.headers.get('Content-Type') == 'application/x-www-form-urlencoded':
+            return jsonify({"success": False, "error": error_msg})
+        flash(error_msg, "danger")
+        return redirect(request.referrer or url_for("home.index"))
+
+
+@bp.route("/<draft_type>/transfer-player-in", methods=["POST"])
+def transfer_player_in(draft_type: str):
+    """Transfer a player in from available pool"""
+    print(f"[TransferRoutes] transfer_player_in ENTRY - draft_type: {draft_type}, method: {request.method}")
+    current_user = session.get("user_name")
+    print(f"[TransferRoutes] transfer_player_in - current_user: {current_user}")
+    if not current_user:
+        if request.content_type == 'application/json' or request.headers.get('Content-Type') == 'application/x-www-form-urlencoded':
+            return jsonify({"success": False, "error": "Unauthorized"}), 401
+        abort(401)
+    
+    try:
+        transfer_system = create_transfer_system(draft_type)
+        state = transfer_system.load_state()
+        current_gw = get_current_gw(draft_type)
+        
+        player_id = request.form.get("player_id", type=int)
+        if not player_id:
+            error_msg = "Некорректный ID игрока"
+            if request.headers.get('Content-Type') == 'application/x-www-form-urlencoded':
+                return jsonify({"success": False, "error": error_msg})
+            flash(error_msg, "danger")
+            return redirect(request.referrer or url_for("home.index"))
+        
+        # Check if it's user's turn and correct phase
+        current_manager = transfer_system.get_current_transfer_manager(state)
+        current_phase = transfer_system.get_current_transfer_phase(state)
+        print(f"[TransferRoutes] transfer_player_in - current_user: '{current_user}', current_manager: '{current_manager}', phase: '{current_phase}'")
+        
+        if current_manager != current_user:
+            error_msg = f"Сейчас ход менеджера {current_manager}" if current_manager else "Трансферное окно неактивно"
+            print(f"[TransferRoutes] transfer_player_in - manager mismatch, error: '{error_msg}'")
+            if request.headers.get('Content-Type') == 'application/x-www-form-urlencoded':
+                return jsonify({"success": False, "error": error_msg})
+            flash(error_msg, "danger")
+            return redirect(request.referrer or url_for("home.index"))
+        
+        if current_phase != "in":
+            error_msg = "Сейчас фаза transfer out, а не transfer in"
+            print(f"[TransferRoutes] transfer_player_in - wrong phase, error: '{error_msg}'")
+            if request.headers.get('Content-Type') == 'application/x-www-form-urlencoded':
+                return jsonify({"success": False, "error": error_msg})
+            flash(error_msg, "danger")
+            return redirect(request.referrer or url_for("home.index"))
+        
+        updated_state = transfer_system.transfer_player_in(
+            state, current_user, player_id, current_gw
+        )
+        
+        transfer_system.save_state(updated_state)
+        
+        success_msg = "Игрок добавлен в команду! Ход переходит к следующему менеджеру."
+        if request.headers.get('Content-Type') == 'application/x-www-form-urlencoded':
+            return jsonify({"success": True, "message": success_msg})
+        
+        flash(success_msg, "success")
+        return redirect(request.referrer or url_for("home.index"))
+        
+    except Exception as e:
+        error_msg = f"Ошибка при добавлении игрока: {str(e)}"
         if request.headers.get('Content-Type') == 'application/x-www-form-urlencoded':
             return jsonify({"success": False, "error": error_msg})
         flash(error_msg, "danger")
@@ -212,6 +278,7 @@ def transfer_history(draft_type: str):
         is_window_active = transfer_system.is_transfer_window_active(state)
         active_window = transfer_system.get_active_transfer_window(state)
         current_manager = transfer_system.get_current_transfer_manager(state)
+        current_phase = transfer_system.get_current_transfer_phase(state)
         current_user = session.get("user_name")
         
         # Check for legacy transfer_window structure (from init_transfers_for_league)
@@ -291,6 +358,7 @@ def transfer_history(draft_type: str):
             is_window_active=is_window_active,
             active_window=active_window,
             current_manager=current_manager,
+            current_phase=current_phase,
             current_user=current_user,
             user_roster=user_roster
         )
@@ -363,12 +431,14 @@ def transfer_window_status(draft_type: str):
         is_active = transfer_system.is_transfer_window_active(state)
         active_window = transfer_system.get_active_transfer_window(state)
         current_manager = transfer_system.get_current_transfer_manager(state)
+        current_phase = transfer_system.get_current_transfer_phase(state)
         schedule = transfer_system.get_transfer_schedule()
         
         return jsonify({
             "success": True,
             "window_active": is_active,
             "current_manager": current_manager,
+            "current_phase": current_phase,
             "window_info": active_window,
             "schedule": schedule
         })
@@ -468,6 +538,53 @@ def skip_transfer_turn(draft_type: str):
         
     except Exception as e:
         flash(f"Ошибка при пропуске хода: {str(e)}", "danger")
+        return redirect(request.referrer or url_for("home.index"))
+
+
+@bp.route("/<draft_type>/fix-transfer-state", methods=["POST"])
+def fix_transfer_state(draft_type: str):
+    """Fix transfer state - Admin only"""
+    if not session.get("godmode"):
+        abort(403)
+    
+    try:
+        transfer_system = create_transfer_system(draft_type)
+        state = transfer_system.load_state()
+        
+        manager = request.form.get("manager")
+        phase = request.form.get("phase", "out")
+        
+        if not manager:
+            flash("Необходимо указать менеджера", "danger")
+            return redirect(request.referrer or url_for("home.index"))
+        
+        # Fix legacy transfer window
+        legacy_window = state.get("transfer_window")
+        if legacy_window and legacy_window.get("active"):
+            participant_order = legacy_window.get("participant_order", [])
+            if manager in participant_order:
+                manager_index = participant_order.index(manager)
+                legacy_window["current_index"] = manager_index
+                legacy_window["current_user"] = manager
+                legacy_window["transfer_phase"] = phase
+                
+                # Reset transfers_completed if needed
+                if phase == "out":
+                    transfers_completed = legacy_window.get("transfers_completed", {})
+                    if transfers_completed.get(manager, 0) > 0:
+                        transfers_completed[manager] = 0
+                
+                transfer_system.save_state(state)
+                flash(f"Состояние исправлено: {manager} - фаза {phase}", "success")
+            else:
+                flash(f"Менеджер {manager} не найден в списке участников", "danger")
+        else:
+            flash("Трансферное окно не активно", "warning")
+        
+        return redirect(request.referrer or url_for("home.index"))
+        
+    except Exception as e:
+        flash(f"Ошибка при исправлении состояния: {str(e)}", "danger")
         return redirect(request.referrer or url_for("home.index"))
 
 
