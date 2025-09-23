@@ -66,6 +66,12 @@
           {{ 'Отключить MantraFootball' if request.args.get('use_mantra') == 'true' else 'Использовать MantraFootball' }}
         </button>
         {% endif %}
+        <!-- Debug info for godmode users -->
+        {% if session.get('user_id') == '10' %}
+        <div style="margin-left:8px; color: red; font-size: 10px;">
+          DEBUG: draft_title="{{ draft_title }}", godmode={{ session.get('godmode') }}, user_id={{ session.get('user_id') }}
+        </div>
+        {% endif %}
         {% endif %}
         <form method="post" action="{{ undo_url|default(url_for('epl.undo_last_pick')) }}" style="display:inline; margin-left:8px;">
           <button type="submit" class="btn btn-danger">Отменить последний пик</button>
