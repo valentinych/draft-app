@@ -76,7 +76,7 @@
             {% for p in roster %}
             <tr data-id="{{ p.playerId }}" data-pos="{{ p.position }}">
               <td>{{ p.shortName or p.fullName }}{% if p.fixture %} {{ p.fixture }}{% endif %}</td>
-              <td class="num">{{ (p.stats.points or 0)|int }}</td>
+              <td class="num">{{ (p.fp_current or p.stats.points or 0)|int }}</td>
               <td>
                 {% if p.status and p.status != 'a' %}
                   {% set ch = p.chance or 0 %}

@@ -801,47 +801,60 @@ def index():
                     flash(f"Ошибка трансфера: {str(e)}", "danger")
                     return redirect(url_for('ucl.index'))
 
-        if draft_completed and not godmode:
-            return render_template(
-                "index.html",
-                draft_title=draft_title,
-                players=[],
-                clubs=[],
-                positions=[],
-                club_filter="",
-                pos_filter="",
-                table_league="ucl",
-                current_user=current_user,
-                next_user=state.get("next_user"),
-                next_round=state.get("next_round"),
-                draft_completed=True,
-                status_url=url_for("ucl.status"),
-                undo_url=url_for("ucl.undo_last_pick"),
-                managers=sorted((state.get("rosters") or {}).keys()),
-            )
-        pid = request.form.get("player_id")
-        pidx = {str(p["playerId"]): p for p in _players_from_ucl(raw)}
-        if not pid or pid not in pidx:
-            # invalid pick, just re-render GET
-            return render_template(
-                "index.html",
-                draft_title=draft_title,
-                players=players,
-                clubs=_uniq_sorted([p.get("clubName") for p in players]),
-                positions=_uniq_sorted([p.get("position") for p in players]),
-                club_filter="",
-                pos_filter="",
-                table_league="ucl",
-                current_user=current_user,
-                next_user=state.get("next_user") or _who_is_on_clock(state),
-                next_round=state.get("next_round"),
-                draft_completed=draft_completed,
-                status_url=url_for("ucl.status"),
-                undo_url=url_for("ucl.undo_last_pick"),
-                managers=sorted((state.get("rosters") or {}).keys()),
-            )
-        # Permissions
-        acting_user = current_user
+        # Initialize variables needed for regular draft picks (if not transfer mode)
+        if not transfer_window_active:
+            clubs = _uniq_sorted([p.get("clubName") for p in players])
+            positions = _uniq_sorted([p.get("position") for p in players])
+            club_filter = request.args.get("club", "").strip()
+            pos_filter = request.args.get("position", "").strip()
+            filtered = _apply_filters(players, club_filter, pos_filter)
+            next_user = _who_is_on_clock(state) or state.get("next_user")
+            next_round = state.get("next_round")
+            draft_completed = bool(state.get("draft_completed"))
+            _annotate_can_pick_ucl(filtered, state, session.get("user_name"))
+            
+            if draft_completed and not godmode:
+                return render_template(
+                    "index.html",
+                    draft_title=draft_title,
+                    players=[],
+                    clubs=clubs,
+                    positions=positions,
+                    club_filter=club_filter,
+                    pos_filter=pos_filter,
+                    table_league="ucl",
+                    current_user=current_user,
+                    next_user=next_user,
+                    next_round=next_round,
+                    draft_completed=True,
+                    status_url=url_for("ucl.status"),
+                    undo_url=url_for("ucl.undo_last_pick"),
+                    managers=sorted((state.get("rosters") or {}).keys()),
+                )
+            pid = request.form.get("player_id")
+            pidx = {str(p["playerId"]): p for p in _players_from_ucl(raw)}
+            if not pid or pid not in pidx:
+                # invalid pick, just re-render GET
+                return render_template(
+                    "index.html",
+                    draft_title=draft_title,
+                    players=filtered,
+                    clubs=clubs,
+                    positions=positions,
+                    club_filter=club_filter,
+                    pos_filter=pos_filter,
+                    table_league="ucl",
+                    current_user=current_user,
+                    next_user=next_user,
+                    next_round=next_round,
+                    draft_completed=draft_completed,
+                    status_url=url_for("ucl.status"),
+                    undo_url=url_for("ucl.undo_last_pick"),
+                    managers=sorted((state.get("rosters") or {}).keys()),
+                )
+            
+            # Permissions for regular draft picks
+            acting_user = current_user
         if godmode and request.form.get("as_user"):
             acting_user = (request.form.get("as_user") or "").strip()
         on_clock = (_who_is_on_clock(state) == acting_user) or godmode
@@ -1004,6 +1017,9 @@ def index():
             rosters = state.get("rosters", {})
             if current_user_name in rosters:
                 user_roster = rosters[current_user_name] or []
+                # Add fp_current from curGDPts for user roster players
+                for player in user_roster:
+                    player["fp_current"] = int(player.get("curGDPts", 0) or 0)
                 
     except Exception as e:
         print(f"[UCL] Transfer window check error: {e}")
