@@ -1705,14 +1705,14 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
                 if out_player:
                     out_id = str(out_player.get("playerId"))
                     if out_id in all_players:
-                        # Player was active until this transfer
-                        all_players[out_id]["active_mds"] = set(range(1, transfer_gw))
+                        # Player was active until this transfer (inclusive)
+                        all_players[out_id]["active_mds"] = set(range(1, transfer_gw + 1))
                         all_players[out_id]["transfer_status"] = "transfer_out"
                     else:
                         # Add player who was transferred out
                         all_players[out_id] = {
                             "player": out_player,
-                            "active_mds": set(range(1, transfer_gw)),
+                            "active_mds": set(range(1, transfer_gw + 1)),
                             "transfer_status": "transfer_out"
                         }
                 
@@ -1720,7 +1720,7 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
                     in_id = str(in_player.get("playerId"))
                     all_players[in_id] = {
                         "player": in_player,
-                        "active_mds": set(range(transfer_gw, 9)),
+                        "active_mds": set(range(transfer_gw + 1, 9)),
                         "transfer_status": "transfer_in"
                     }
             
@@ -1729,14 +1729,14 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
                 if out_player:
                     out_id = str(out_player.get("playerId"))
                     if out_id in all_players:
-                        # Player was active until this transfer
-                        all_players[out_id]["active_mds"] = set(range(1, transfer_gw))
+                        # Player was active until this transfer (inclusive)
+                        all_players[out_id]["active_mds"] = set(range(1, transfer_gw + 1))
                         all_players[out_id]["transfer_status"] = "transfer_out"
                     else:
                         # Add player who was transferred out
                         all_players[out_id] = {
                             "player": out_player,
-                            "active_mds": set(range(1, transfer_gw)),
+                            "active_mds": set(range(1, transfer_gw + 1)),
                             "transfer_status": "transfer_out"
                         }
             
@@ -1746,9 +1746,18 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
                     in_id = str(in_player.get("playerId"))
                     all_players[in_id] = {
                         "player": in_player,
-                        "active_mds": set(range(transfer_gw, 9)),
+                        "active_mds": set(range(transfer_gw + 1, 9)),
                         "transfer_status": "transfer_in"
                     }
+        
+        # Debug logging for Сергей
+        if manager == "Сергей":
+            print(f"[UCL Results] get_all_manager_players for {manager}:")
+            for player_id, player_data in all_players.items():
+                name = player_data["player"].get("fullName", "Unknown")
+                active_mds = sorted(list(player_data["active_mds"]))
+                status = player_data["transfer_status"]
+                print(f"  - {name} (ID: {player_id}): active_mds={active_mds}, status={status}")
         
         return all_players
     
