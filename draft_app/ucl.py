@@ -732,6 +732,38 @@ def index():
                 undo_url=url_for("ucl.undo_last_pick"),
                 managers=sorted((state.get("rosters") or {}).keys()),
             )
+        # Check if transfer window is active and handle transfers
+        from .transfer_system import create_transfer_system
+        transfer_system = create_transfer_system("ucl")
+        transfer_state = transfer_system.load_state()
+        transfer_window_active = transfer_system.is_transfer_window_active(transfer_state)
+        current_transfer_manager = transfer_system.get_current_transfer_manager(transfer_state)
+        current_transfer_phase = transfer_system.get_current_transfer_phase(transfer_state)
+        
+        if transfer_window_active and current_user == current_transfer_manager:
+            # Handle transfer actions
+            pid = request.form.get("player_id")
+            if pid:
+                try:
+                    pid = int(pid)
+                    if current_transfer_phase == "out":
+                        # Transfer player out
+                        transfer_system.transfer_player_out(transfer_state, current_user, pid, 1)
+                        transfer_system.save_state(transfer_state)
+                        flash("Игрок отправлен в transfer out пул! Теперь выберите замену.", "success")
+                    elif current_transfer_phase == "in":
+                        # Transfer player in
+                        transfer_system.transfer_player_in(transfer_state, current_user, pid, 1)
+                        transfer_system.save_state(transfer_state)
+                        flash("Игрок добавлен в команду! Ход переходит к следующему менеджеру.", "success")
+                    
+                    # Redirect to avoid resubmission
+                    return redirect(url_for('ucl.index'))
+                    
+                except Exception as e:
+                    flash(f"Ошибка трансфера: {str(e)}", "danger")
+                    return redirect(url_for('ucl.index'))
+
         if draft_completed and not godmode:
             return render_template(
                 "index.html",
@@ -943,21 +975,44 @@ def index():
         current_transfer_manager = None
         user_roster = []
 
-    # If transfer window is active and it's current user's turn, show only their players
-    if transfer_window_active and current_user_name == current_transfer_manager and user_roster:
-        # Convert user_roster to the same format as filtered players
-        # Add playerId, status, and canPick fields to match table expectations
-        transfer_players = []
-        for roster_player in user_roster:
-            # Create a copy with required fields
-            player_copy = roster_player.copy()
-            player_copy["status"] = "owned"  # Mark as owned by current user
-            player_copy["canPick"] = True    # Enable clicking
-            transfer_players.append(player_copy)
+    # If transfer window is active and it's current user's turn
+    if transfer_window_active and current_user_name == current_transfer_manager:
+        # Get current transfer phase
+        current_phase = transfer_system.get_current_transfer_phase(transfer_state)
+        print(f"[UCL] Transfer mode: phase={current_phase}, manager={current_transfer_manager}")
         
-        # Replace filtered players with user's roster for transfer mode
-        filtered = transfer_players
-        print(f"[UCL] Transfer mode: showing {len(filtered)} players from {current_user_name}'s roster")
+        if current_phase == "out" and user_roster:
+            # TRANSFER OUT phase: show user's players for transfer out
+            transfer_players = []
+            for roster_player in user_roster:
+                # Create a copy with required fields
+                player_copy = roster_player.copy()
+                player_copy["status"] = "owned"  # Mark as owned by current user
+                player_copy["canPick"] = True    # Enable clicking
+                transfer_players.append(player_copy)
+            
+            # Replace filtered players with user's roster for transfer mode
+            filtered = transfer_players
+            print(f"[UCL] Transfer OUT mode: showing {len(filtered)} players from {current_user_name}'s roster")
+            
+        elif current_phase == "in":
+            # TRANSFER IN phase: show available players from transfer out pool
+            available_players = transfer_system.get_available_transfer_players(transfer_state)
+            transfer_players = []
+            
+            for available_player in available_players:
+                # Create a copy with required fields for table display
+                player_copy = available_player.copy()
+                player_copy["status"] = "transfer_available"  # Mark as available for transfer in
+                player_copy["canPick"] = True    # Enable clicking
+                # Ensure we have the required fields
+                if "shortName" not in player_copy:
+                    player_copy["shortName"] = player_copy.get("fullName", "")
+                transfer_players.append(player_copy)
+            
+            # Replace filtered players with available transfer players
+            filtered = transfer_players
+            print(f"[UCL] Transfer IN mode: showing {len(filtered)} available players for transfer in")
 
     return render_template(
         "index.html",
@@ -979,6 +1034,7 @@ def index():
         # Transfer window info
         transfer_window_active=transfer_window_active,
         current_transfer_manager=current_transfer_manager,
+        current_transfer_phase=transfer_system.get_current_transfer_phase(transfer_state) if 'transfer_system' in locals() else None,
         user_roster=user_roster,
     )
 

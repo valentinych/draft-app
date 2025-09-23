@@ -159,19 +159,39 @@
   {% endif %}
 
 
-  {# Simple transfer interface for UCL when window is active #}
+  {# Transfer interface for UCL when window is active #}
   {% if table_league == 'ucl' and transfer_window_active and current_user == current_transfer_manager %}
-  <div class="card" style="margin:10px 0; border: 2px solid #ff6b35;">
-    <div class="card-title" style="background: #ff6b35; color: white;">
-      ⚽ Ваш ход в трансферном окне
+    {% if current_transfer_phase == 'out' %}
+    <div class="card" style="margin:10px 0; border: 2px solid #ff6b35;">
+      <div class="card-title" style="background: #ff6b35; color: white;">
+        ⚽ Ваш ход - TRANSFER OUT: выберите игрока для отдачи
+      </div>
+      <div class="card-body">
+        <p style="margin: 0; font-size: 16px;">
+          <strong>Кликните на любого игрока из вашего состава в таблице ниже</strong> для transfer out.
+          <br><small style="color: #666;">В таблице показаны только ваши игроки. После клика игрок будет отправлен в transfer out пул.</small>
+        </p>
+        <p style="margin-top: 10px; padding: 8px; background: #fff3cd; border-left: 4px solid #ffc107; font-size: 14px;">
+          <strong>📋 Этап 1 из 2:</strong> Сначала отдайте игрока, затем выберите замену
+        </p>
+      </div>
     </div>
-    <div class="card-body">
-      <p style="margin: 0; font-size: 16px;">
-        <strong>Кликните на любого игрока из вашего состава в таблице ниже</strong> для transfer out.
-        <br><small style="color: #666;">В таблице показаны только ваши игроки. После клика игрок будет отправлен в transfer out пул.</small>
-      </p>
+    {% elif current_transfer_phase == 'in' %}
+    <div class="card" style="margin:10px 0; border: 2px solid #28a745;">
+      <div class="card-title" style="background: #28a745; color: white;">
+        🎯 Ваш ход - TRANSFER IN: выберите игрока для получения
+      </div>
+      <div class="card-body">
+        <p style="margin: 0; font-size: 16px;">
+          <strong>Кликните на любого игрока из таблицы ниже</strong> для transfer in.
+          <br><small style="color: #666;">В таблице показаны игроки из transfer out пула. После клика игрок будет добавлен в вашу команду.</small>
+        </p>
+        <p style="margin-top: 10px; padding: 8px; background: #d4edda; border-left: 4px solid #28a745; font-size: 14px;">
+          <strong>✅ Этап 2 из 2:</strong> Игрок отдан, теперь выберите замену. После выбора ход переходит к следующему менеджеру.
+        </p>
+      </div>
     </div>
-  </div>
+    {% endif %}
   {% elif table_league == 'ucl' and transfer_window_active and current_transfer_manager %}
   <div class="card" style="margin:10px 0; border: 2px solid #74b9ff;">
     <div class="card-title" style="background: #74b9ff; color: white;">
