@@ -29,6 +29,7 @@ from .top4_services import (
     _s3_put_json,
     TOP4_CACHE_VERSION,
 )
+from .mantra_store import mantra_store
 from .top4_schedule import build_schedule
 from .player_map_store import load_player_map, save_player_map
 from .top4_score_store import load_top4_score, save_top4_score, SCORE_CACHE_TTL

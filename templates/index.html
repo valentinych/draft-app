@@ -56,6 +56,15 @@
           <input type="hidden" name="manager" value="Сергей">
           <button type="submit" class="btn btn-success">Вернуть Jobe Bellingham</button>
         </form>
+        {% elif draft_title and 'Top-4' in draft_title %}
+        <!-- MantraFootball Integration Controls -->
+        <button type="button" class="btn" onclick="syncMantraData('tournaments')" style="margin-left:8px;" id="sync-tournaments-btn">Синхронизировать турниры</button>
+        <button type="button" class="btn" onclick="syncMantraData('players')" style="margin-left:8px;" id="sync-players-btn">Синхронизировать игроков</button>
+        <button type="button" class="btn" onclick="syncMantraData('match-players')" style="margin-left:8px;" id="sync-matching-btn">Связать игроков</button>
+        <button type="button" class="btn" onclick="showSyncStatus()" style="margin-left:8px;">Статус синхронизации</button>
+        <button type="button" class="btn btn-info" onclick="toggleMantraMode()" style="margin-left:8px;" id="mantra-mode-btn">
+          {{ 'Отключить MantraFootball' if request.args.get('use_mantra') == 'true' else 'Использовать MantraFootball' }}
+        </button>
         {% endif %}
         {% endif %}
         <form method="post" action="{{ undo_url|default(url_for('epl.undo_last_pick')) }}" style="display:inline; margin-left:8px;">
@@ -615,6 +624,104 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 });
+
+// MantraFootball Integration Functions
+function syncMantraData(type) {
+  const btn = document.getElementById(`sync-${type.replace('-', '')}-btn`);
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = 'Синхронизация...';
+  }
+  
+  fetch(`/mantra/sync/${type}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({include_stats: type === 'players'})
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.error) {
+      alert('Ошибка: ' + data.error);
+    } else {
+      alert('Синхронизация запущена: ' + data.message);
+      // Start polling for status
+      pollSyncStatus();
+    }
+  })
+  .catch(error => {
+    alert('Ошибка синхронизации: ' + error);
+  })
+  .finally(() => {
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = btn.textContent.replace('Синхронизация...', btn.id.includes('tournaments') ? 'Синхронизировать турниры' : 
+                                                                     btn.id.includes('players') ? 'Синхронизировать игроков' : 'Связать игроков');
+    }
+  });
+}
+
+function showSyncStatus() {
+  fetch('/mantra/sync/status')
+  .then(response => response.json())
+  .then(data => {
+    let statusText = 'Статус синхронизации:\n\n';
+    
+    // Sync status
+    const syncStatus = data.sync_status;
+    statusText += 'Турниры: ' + (syncStatus.tournaments.running ? 'Выполняется... ' + syncStatus.tournaments.message : 'Готов - ' + syncStatus.tournaments.message) + '\n';
+    statusText += 'Игроки: ' + (syncStatus.players.running ? 'Выполняется... ' + syncStatus.players.message : 'Готов - ' + syncStatus.players.message) + '\n';
+    statusText += 'Связывание: ' + (syncStatus.matching.running ? 'Выполняется... ' + syncStatus.matching.message : 'Готов - ' + syncStatus.matching.message) + '\n\n';
+    
+    // Cache status
+    const cacheStatus = data.cache_status;
+    statusText += 'Кэш:\n';
+    for (const [key, status] of Object.entries(cacheStatus)) {
+      statusText += `${key}: ${status.exists ? 'Есть (' + (status.last_updated || 'неизвестно') + ')' : 'Нет'}\n`;
+    }
+    
+    alert(statusText);
+  })
+  .catch(error => {
+    alert('Ошибка получения статуса: ' + error);
+  });
+}
+
+function pollSyncStatus() {
+  setTimeout(() => {
+    fetch('/mantra/sync/status')
+    .then(response => response.json())
+    .then(data => {
+      const syncStatus = data.sync_status;
+      const anyRunning = syncStatus.tournaments.running || syncStatus.players.running || syncStatus.matching.running;
+      
+      if (anyRunning) {
+        // Continue polling
+        pollSyncStatus();
+      } else {
+        // All done, refresh buttons
+        location.reload();
+      }
+    })
+    .catch(() => {
+      // Stop polling on error
+    });
+  }, 2000);
+}
+
+function toggleMantraMode() {
+  const currentUrl = new URL(window.location);
+  const useMantra = currentUrl.searchParams.get('use_mantra') === 'true';
+  
+  if (useMantra) {
+    currentUrl.searchParams.delete('use_mantra');
+  } else {
+    currentUrl.searchParams.set('use_mantra', 'true');
+  }
+  
+  window.location.href = currentUrl.toString();
+}
 </script>
 {% endif %}
 

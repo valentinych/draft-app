@@ -11,6 +11,7 @@ from .top4_services import (
     wishlist_load, wishlist_save,
 )
 from .top4_schedule import build_schedule
+from .mantra_store import mantra_store
 
 # Blueprint for draft-related routes.  Renamed to avoid conflict with the
 # separate ``top4`` blueprint used for statistics and lineups.
@@ -19,12 +20,27 @@ bp = Blueprint("top4draft", __name__)
 @bp.route("/top4", methods=["GET", "POST"])
 def index():
     draft_title = "Top-4 Fantasy Draft"
-    players = load_players()
+    
+    # Check if we should use MantraFootball data
+    use_mantra = request.args.get('use_mantra', '').lower() == 'true'
+    current_user = session.get("user_name")
+    
+    if use_mantra:
+        # Load players from MantraFootball
+        mantra_players = mantra_store.get_players()
+        if mantra_players:
+            players = mantra_players
+        else:
+            # Fallback to original data if MantraFootball data not available
+            players = load_players()
+            flash("MantraFootball data not available. Using original data.", "info")
+    else:
+        players = load_players()
+    
     pidx = players_index(players)
     state = load_state()
     next_user = state.get("next_user") or who_is_on_clock(state)
     draft_completed = bool(state.get("draft_completed", False))
-    current_user = session.get("user_name")
 
     if request.method == "POST":
         if draft_completed:
