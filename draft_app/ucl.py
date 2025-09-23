@@ -1285,6 +1285,7 @@ def ucl_lineups_data():
     
     def get_roster_for_md(manager: str, target_md: int) -> List[Dict]:
         """Get manager's roster as it was for the specific MD"""
+        # Start with current roster (after all transfers) and work backwards
         current_roster = list(rosters.get(manager, []))
         print(f"[UCL Lineups] get_roster_for_md - manager: {manager}, target_md: {target_md}")
         print(f"[UCL Lineups] get_roster_for_md - initial roster size: {len(current_roster)}")
@@ -1325,13 +1326,11 @@ def ucl_lineups_data():
                         print(f"[UCL Lineups] Adding player: {in_name} (ID: {in_player_id}) for MD{target_md} (legacy)")
                         current_roster.append(in_player)
         
-        # Apply new format transfers (from new transfer system)
-        # New system creates separate transfer_out and transfer_in events
-        # Sort transfers by timestamp to apply them in correct order
-        # Only apply transfers that happened AFTER the target MD started
-        # For MD1: don't apply any transfers (they happen after MD1)
-        # For MD2: apply transfers with GW <= 2
-        relevant_transfers = []
+        # Rollback transfers that happened AFTER the target MD
+        # For MD1: rollback all transfers (gw >= 1) to get original roster
+        # For MD2: rollback transfers with gw >= 3 (keep transfers up to gw 2)
+        # Work backwards from current roster to target MD roster
+        rollback_transfers = []
         for transfer in new_transfer_history:
             transfer_gw = transfer.get("gw", 999)
             transfer_manager = transfer.get("manager")
@@ -1339,44 +1338,45 @@ def ucl_lineups_data():
             print(f"[UCL Lineups] Checking transfer: manager='{transfer_manager}' vs target='{manager}', gw={transfer_gw}, target_md={target_md}, action={transfer_action}")
             if transfer_manager == manager:
                 print(f"[UCL Lineups] Found transfer for {manager}: gw={transfer_gw}, target_md={target_md}, action={transfer_action}")
-                if transfer_gw < target_md:
-                    relevant_transfers.append(transfer)
-                    print(f"[UCL Lineups] Transfer will be applied (gw {transfer_gw} < target_md {target_md})")
+                if transfer_gw >= target_md:
+                    rollback_transfers.append(transfer)
+                    print(f"[UCL Lineups] Transfer will be ROLLED BACK (gw {transfer_gw} >= target_md {target_md})")
                 else:
-                    print(f"[UCL Lineups] Transfer will NOT be applied (gw {transfer_gw} >= target_md {target_md})")
+                    print(f"[UCL Lineups] Transfer will be KEPT (gw {transfer_gw} < target_md {target_md})")
             else:
                 print(f"[UCL Lineups] Transfer manager '{transfer_manager}' != target manager '{manager}', skipping")
-        relevant_transfers.sort(key=lambda x: x.get("ts", ""))
         
-        for transfer in relevant_transfers:
+        # Sort transfers in REVERSE chronological order for rollback
+        rollback_transfers.sort(key=lambda x: x.get("ts", ""), reverse=True)
+        
+        # Rollback transfers in reverse chronological order
+        for transfer in rollback_transfers:
             transfer_gw = transfer.get("gw", 999)
             transfer_manager = transfer.get("manager")
             transfer_action = transfer.get("action")
             
-            print(f"[UCL Lineups] Processing transfer: manager={transfer_manager}, gw={transfer_gw}, action={transfer_action}, target_md={target_md}")
+            print(f"[UCL Lineups] Rolling back transfer: manager={transfer_manager}, gw={transfer_gw}, action={transfer_action}, target_md={target_md}")
             
-            if True:  # Already filtered above
+            # Rollback transfer_in: remove the player that was added
+            if transfer_action == "transfer_in" and "in_player" in transfer:
+                in_player_id = transfer["in_player"].get("playerId")
+                in_name = transfer["in_player"].get("fullName", "Unknown")
+                print(f"[UCL Lineups] Rolling back transfer_in: removing {in_name} (ID: {in_player_id}) for MD{target_md}")
+                current_roster = [p for p in current_roster if p.get("playerId") != in_player_id]
+            
+            # Rollback transfer_out: add back the player that was removed
+            elif transfer_action == "transfer_out" and "out_player" in transfer:
+                out_player = transfer["out_player"]
+                out_name = out_player.get("fullName", "Unknown")
+                out_player_id = out_player.get("playerId")
                 
-                # Remove transferred out player
-                if transfer_action == "transfer_out" and "out_player" in transfer:
-                    out_id = transfer["out_player"].get("playerId")
-                    out_name = transfer["out_player"].get("fullName", "Unknown")
-                    print(f"[UCL Lineups] Removing player: {out_name} (ID: {out_id}) for MD{target_md}")
-                    current_roster = [p for p in current_roster if p.get("playerId") != out_id]
-                
-                # Add transferred in player  
-                elif transfer_action == "transfer_in" and "in_player" in transfer:
-                    in_player = transfer["in_player"]
-                    in_name = in_player.get("fullName", "Unknown")
-                    in_player_id = in_player.get("playerId")
-                    
-                    # Check if player is already in roster to avoid duplicates
-                    already_in_roster = any(p.get("playerId") == in_player_id for p in current_roster)
-                    if already_in_roster:
-                        print(f"[UCL Lineups] Player {in_name} (ID: {in_player_id}) already in roster, skipping add for MD{target_md}")
-                    else:
-                        print(f"[UCL Lineups] Adding player: {in_name} (ID: {in_player_id}) for MD{target_md}")
-                        current_roster.append(in_player)
+                # Check if player is already in roster to avoid duplicates
+                already_in_roster = any(p.get("playerId") == out_player_id for p in current_roster)
+                if already_in_roster:
+                    print(f"[UCL Lineups] Player {out_name} (ID: {out_player_id}) already in roster, skipping rollback add for MD{target_md}")
+                else:
+                    print(f"[UCL Lineups] Rolling back transfer_out: adding back {out_name} (ID: {out_player_id}) for MD{target_md}")
+                    current_roster.append(out_player)
         
         print(f"[UCL Lineups] Final roster for {manager} MD{target_md}: {len(current_roster)} players")
         for p in current_roster:
