@@ -162,30 +162,71 @@ class TransferSystem:
         """Advance to next manager in transfer window"""
         if not self.is_transfer_window_active(state):
             return False
+        
+        # Check if using legacy window format
+        legacy_window = state.get("transfer_window")
+        if legacy_window and legacy_window.get("active"):
+            # Handle legacy window format
+            participant_order = legacy_window.get("participant_order", [])
+            current_index = legacy_window.get("current_index", 0)
+            transfers_per_manager = legacy_window.get("transfers_per_manager", 1)
+            transfers_completed = legacy_window.get("transfers_completed", {})
             
-        active_window = state["transfers"]["active_window"]
-        managers_order = active_window.get("managers_order", [])
-        current_index = active_window.get("current_manager_index", 0)
-        current_round = active_window.get("current_round", 1)
-        total_rounds = active_window.get("total_rounds", 1)
-        
-        # Move to next manager
-        next_index = current_index + 1
-        
-        if next_index >= len(managers_order):
-            # End of round, start next round or close window
-            next_round = current_round + 1
-            if next_round > total_rounds:
-                # Close window
-                return self.close_transfer_window(state)
+            # Find next manager who hasn't completed their transfers
+            next_index = current_index + 1
+            
+            if next_index >= len(participant_order):
+                # Check if anyone still has transfers left
+                has_transfers_left = any(
+                    transfers_completed.get(manager, 0) < transfers_per_manager
+                    for manager in participant_order
+                )
+                
+                if has_transfers_left:
+                    # Start next round - find first manager with transfers left
+                    for i, manager in enumerate(participant_order):
+                        if transfers_completed.get(manager, 0) < transfers_per_manager:
+                            legacy_window["current_index"] = i
+                            legacy_window["current_user"] = manager
+                            print(f"[TransferSystem] advance_transfer_turn - next turn: {manager} (index {i})")
+                            return True
+                else:
+                    # All transfers completed, close window
+                    legacy_window["active"] = False
+                    print(f"[TransferSystem] advance_transfer_turn - closing legacy window")
+                    return False
             else:
-                # Start next round
-                active_window["current_round"] = next_round
-                active_window["current_manager_index"] = 0
+                # Move to next manager
+                next_manager = participant_order[next_index]
+                legacy_window["current_index"] = next_index
+                legacy_window["current_user"] = next_manager
+                print(f"[TransferSystem] advance_transfer_turn - next turn: {next_manager} (index {next_index})")
+                return True
         else:
-            active_window["current_manager_index"] = next_index
+            # Handle standard active_window format
+            active_window = state["transfers"]["active_window"]
+            managers_order = active_window.get("managers_order", [])
+            current_index = active_window.get("current_manager_index", 0)
+            current_round = active_window.get("current_round", 1)
+            total_rounds = active_window.get("total_rounds", 1)
             
-        return True
+            # Move to next manager
+            next_index = current_index + 1
+            
+            if next_index >= len(managers_order):
+                # End of round, start next round or close window
+                next_round = current_round + 1
+                if next_round > total_rounds:
+                    # Close window
+                    return self.close_transfer_window(state)
+                else:
+                    # Start next round
+                    active_window["current_round"] = next_round
+                    active_window["current_manager_index"] = 0
+            else:
+                active_window["current_manager_index"] = next_index
+                
+            return True
     
     def get_current_transfer_manager(self, state: Dict[str, Any]) -> Optional[str]:
         """Get manager who should make next transfer"""
@@ -496,6 +537,16 @@ class TransferSystem:
         }
         
         state["transfers"]["history"].append(transfer_record)
+        
+        # Update transfers completed counter for legacy window
+        legacy_window = state.get("transfer_window")
+        if legacy_window and legacy_window.get("active"):
+            transfers_completed = legacy_window.setdefault("transfers_completed", {})
+            transfers_completed[manager] = transfers_completed.get(manager, 0) + 1
+            print(f"[TransferSystem] transfer_player_out - {manager} completed {transfers_completed[manager]} transfers")
+        
+        # Advance to next manager's turn after successful transfer out
+        self.advance_transfer_turn(state)
         
         print(f"[TransferSystem] transfer_player_out - completed successfully")
         return state
