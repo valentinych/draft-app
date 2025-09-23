@@ -1325,13 +1325,17 @@ def ucl_lineups_data():
         for transfer in new_transfer_history:
             transfer_gw = transfer.get("gw", 999)
             transfer_manager = transfer.get("manager")
+            transfer_action = transfer.get("action")
+            print(f"[UCL Lineups] Checking transfer: manager='{transfer_manager}' vs target='{manager}', gw={transfer_gw}, target_md={target_md}, action={transfer_action}")
             if transfer_manager == manager:
-                print(f"[UCL Lineups] Found transfer for {manager}: gw={transfer_gw}, target_md={target_md}, action={transfer.get('action')}")
+                print(f"[UCL Lineups] Found transfer for {manager}: gw={transfer_gw}, target_md={target_md}, action={transfer_action}")
                 if transfer_gw < target_md:
                     relevant_transfers.append(transfer)
                     print(f"[UCL Lineups] Transfer will be applied (gw {transfer_gw} < target_md {target_md})")
                 else:
                     print(f"[UCL Lineups] Transfer will NOT be applied (gw {transfer_gw} >= target_md {target_md})")
+            else:
+                print(f"[UCL Lineups] Transfer manager '{transfer_manager}' != target manager '{manager}', skipping")
         relevant_transfers.sort(key=lambda x: x.get("ts", ""))
         
         for transfer in relevant_transfers:
