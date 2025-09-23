@@ -580,7 +580,7 @@ def create_transfer_system(draft_type: str) -> TransferSystem:
         return TransferSystem(
             "UCL", 
             BASE_DIR / "draft_state_ucl.json",
-            s3_key=os.getenv("UCL_STATE_S3_KEY", "draft_state_ucl.json")
+            s3_key=os.getenv("UCL_STATE_S3_KEY", "prod/draft_state_ucl.json")
         )
     elif draft_type.upper() == "EPL":
         return TransferSystem(
