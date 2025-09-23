@@ -322,7 +322,9 @@ class TransferSystem:
         legacy_window = state.get("transfer_window")
         if legacy_window and legacy_window.get("active"):
             phase = legacy_window.get("transfer_phase", "out")
-            print(f"[TransferSystem] get_current_transfer_phase - legacy_window phase: {phase}")
+            current_user = legacy_window.get("current_user", "Unknown")
+            current_index = legacy_window.get("current_index", 0)
+            print(f"[TransferSystem] get_current_transfer_phase - legacy_window phase: {phase}, current_user: {current_user}, index: {current_index}")
             return phase
         
         print(f"[TransferSystem] get_current_transfer_phase - no active window")
@@ -691,8 +693,15 @@ class TransferSystem:
             print(f"[TransferSystem] transfer_player_in - {manager} completed {transfers_completed[manager]} transfers (legacy)")
             
             # Reset phase to "out" and advance to next manager
+            old_phase = legacy_window.get("transfer_phase", "unknown")
             legacy_window["transfer_phase"] = "out"
+            print(f"[TransferSystem] transfer_player_in - reset phase from {old_phase} to 'out' before advance_transfer_turn")
             self.advance_transfer_turn(state)
+            
+            # Log final state after advance
+            final_user = legacy_window.get("current_user", "Unknown")
+            final_phase = legacy_window.get("transfer_phase", "unknown")
+            print(f"[TransferSystem] transfer_player_in - after advance_transfer_turn: user={final_user}, phase={final_phase}")
         else:
             # Standard format - advance turn (this will reset phase to "out" and move to next manager)
             self.advance_transfer_turn(state)
@@ -822,6 +831,7 @@ def init_transfers_for_league(
             "current_user": participants[0] if participants else None,
             "participant_order": participants,
             "current_index": 0,
+            "transfer_phase": "out",  # Always start with "out" phase
             "transfers_per_manager": transfers_per_manager,
             "transfers_completed": {user: 0 for user in participants},
             "position_limits": position_limits or {"GK": 2, "DEF": 5, "MID": 5, "FWD": 3},
