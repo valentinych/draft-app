@@ -255,7 +255,9 @@ class TransferSystem:
                 manager = valid_managers[current_index]
                 return manager
             elif len(valid_managers) == 0:
+                pass
             else:
+                pass
         
         # Fallback to legacy format (for UCL)
         legacy_window = state.get("transfer_window")
