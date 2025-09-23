@@ -613,20 +613,32 @@ class TransferSystem:
         if current_phase != "in":
             raise ValueError("Сейчас фаза transfer out, а не transfer in")
         
-        # Find and pick the player from available players
-        available_players = state["transfers"]["available_players"]
+        # Find and pick the player from all available transfer players (including undrafted for UCL)
+        all_available_players = self.get_available_transfer_players(state)
+        transfer_out_players = state["transfers"]["available_players"]
         picked_player = None
-        remaining_players = []
+        is_from_transfer_out_pool = False
         
-        for player in available_players:
+        # First check if player is in transfer out pool
+        for i, player in enumerate(transfer_out_players):
             if int(player.get("playerId") or player.get("id", 0)) == player_id:
                 picked_player = player.copy()
-                print(f"[TransferSystem] transfer_player_in - found player: {player.get('fullName', player.get('name', 'Unknown'))}")
-            else:
-                remaining_players.append(player)
+                is_from_transfer_out_pool = True
+                # Remove from transfer out pool
+                transfer_out_players.pop(i)
+                print(f"[TransferSystem] transfer_player_in - found player in transfer out pool: {player.get('fullName', player.get('name', 'Unknown'))}")
+                break
+        
+        # If not found in transfer out pool, check all available players (including undrafted)
+        if not picked_player:
+            for player in all_available_players:
+                if int(player.get("playerId") or player.get("id", 0)) == player_id:
+                    picked_player = player.copy()
+                    print(f"[TransferSystem] transfer_player_in - found undrafted player: {player.get('fullName', player.get('name', 'Unknown'))}")
+                    break
         
         if not picked_player:
-            print(f"[TransferSystem] transfer_player_in - player {player_id} not found in available_players")
+            print(f"[TransferSystem] transfer_player_in - player {player_id} not found in any available players")
             raise ValueError(f"Player {player_id} not available for transfer in")
         
         # Update player status
@@ -641,8 +653,7 @@ class TransferSystem:
         roster = rosters.setdefault(manager, [])
         roster.append(picked_player)
         
-        # Remove from available players
-        state["transfers"]["available_players"] = remaining_players
+        # Note: Player already removed from transfer_out_players if it was there
         
         # Record in history as a transfer in event
         transfer_record = {
