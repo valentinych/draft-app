@@ -943,6 +943,22 @@ def index():
         current_transfer_manager = None
         user_roster = []
 
+    # If transfer window is active and it's current user's turn, show only their players
+    if transfer_window_active and current_user_name == current_transfer_manager and user_roster:
+        # Convert user_roster to the same format as filtered players
+        # Add playerId, status, and canPick fields to match table expectations
+        transfer_players = []
+        for roster_player in user_roster:
+            # Create a copy with required fields
+            player_copy = roster_player.copy()
+            player_copy["status"] = "owned"  # Mark as owned by current user
+            player_copy["canPick"] = True    # Enable clicking
+            transfer_players.append(player_copy)
+        
+        # Replace filtered players with user's roster for transfer mode
+        filtered = transfer_players
+        print(f"[UCL] Transfer mode: showing {len(filtered)} players from {current_user_name}'s roster")
+
     return render_template(
         "index.html",
         draft_title=draft_title,

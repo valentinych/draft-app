@@ -154,47 +154,17 @@
   {% endif %}
 
 
-  {# Transfer interface for UCL when window is active #}
-  {% if table_league == 'ucl' and transfer_window_active and current_user == current_transfer_manager and user_roster %}
+  {# Simple transfer interface for UCL when window is active #}
+  {% if table_league == 'ucl' and transfer_window_active and current_user == current_transfer_manager %}
   <div class="card" style="margin:10px 0; border: 2px solid #ff6b35;">
     <div class="card-title" style="background: #ff6b35; color: white;">
-      ⚽ Ваш ход в трансферном окне - выберите игрока для transfer out
+      ⚽ Ваш ход в трансферном окне
     </div>
     <div class="card-body">
-      <div style="display: flex; flex-wrap: wrap; gap: 10px;">
-        {% set positions = ['GK', 'DEF', 'MID', 'FWD'] %}
-        {% for pos in positions %}
-          {% set players_in_pos = user_roster | selectattr('position', 'equalto', pos) | list %}
-          {% if players_in_pos %}
-          <div style="min-width: 200px;">
-            <h6 style="font-weight: bold; margin-bottom: 5px; color: #333;">{{ pos }}</h6>
-            <div style="display: flex; flex-direction: column; gap: 5px;">
-              {% for player in players_in_pos %}
-              <button class="btn btn-small" style="background: #ffeaa7; border: 1px solid #fdcb6e; text-align: left; padding: 8px;"
-                      onclick="selectPlayerForTransferOut({{ player.playerId or player.id }}, '{{ player.fullName or player.name }}', '{{ player.clubName or player.club }}', '{{ player.position }}')">
-                <strong>{{ player.fullName or player.name }}</strong><br>
-                <small style="color: #666;">{{ player.clubName or player.club }}</small>
-              </button>
-              {% endfor %}
-            </div>
-          </div>
-          {% endif %}
-        {% endfor %}
-      </div>
-      
-      <div style="margin-top: 15px; padding: 10px; background: #f8f9fa; border-radius: 5px;">
-        <h6 style="font-weight: bold; margin-bottom: 10px;">📝 Как делать трансфер:</h6>
-        <ol style="margin: 0; padding-left: 20px; line-height: 1.6;">
-          <li><strong>Выберите игрока</strong> для отдачи из списка выше</li>
-          <li><strong>Подтвердите выбор</strong> в появившемся окне</li>
-          <li><strong>Выберите замену</strong> из доступных игроков (transfer out пул)</li>
-          <li><strong>Подтвердите трансфер</strong> - ход переходит к следующему</li>
-        </ol>
-        <p style="margin: 10px 0 0 0; color: #6c757d; font-size: 14px;">
-          ℹ️ <strong>Лимиты:</strong> Соблюдаются ограничения по позициям и клубам. 
-          Доступны игроки из transfer out пула и все невыбранные игроки.
-        </p>
-      </div>
+      <p style="margin: 0; font-size: 16px;">
+        <strong>Кликните на любого игрока из вашего состава в таблице ниже</strong> для transfer out.
+        <br><small style="color: #666;">В таблице показаны только ваши игроки. После клика игрок будет отправлен в transfer out пул.</small>
+      </p>
     </div>
   </div>
   {% elif table_league == 'ucl' and transfer_window_active and current_transfer_manager %}
@@ -574,6 +544,39 @@ function closeTransferReplacementModal() {
     btn.style.opacity = '1';
   });
 }
+
+// Add click handlers to table rows for transfer out
+document.addEventListener('DOMContentLoaded', function() {
+  const table = document.getElementById('players');
+  if (table) {
+    // Add click handlers to player rows
+    table.addEventListener('click', function(e) {
+      const row = e.target.closest('tr[data-player-id]');
+      if (row && row.dataset.canPick === '1') {
+        const playerId = row.dataset.playerId;
+        const playerName = row.cells[2]?.textContent || 'Unknown';
+        const playerClub = row.cells[3]?.textContent || 'Unknown';
+        const playerPosition = row.cells[4]?.textContent || 'Unknown';
+        
+        // Call transfer out function
+        selectPlayerForTransferOut(playerId, playerName, playerClub, playerPosition);
+      }
+    });
+    
+    // Style clickable rows
+    const clickableRows = table.querySelectorAll('tr[data-can-pick="1"]');
+    clickableRows.forEach(row => {
+      row.style.cursor = 'pointer';
+      row.style.transition = 'background-color 0.2s';
+      row.addEventListener('mouseenter', () => {
+        row.style.backgroundColor = '#fff3cd';
+      });
+      row.addEventListener('mouseleave', () => {
+        row.style.backgroundColor = '';
+      });
+    });
+  }
+});
 </script>
 {% endif %}
 
