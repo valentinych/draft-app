@@ -57,21 +57,30 @@
           <button type="submit" class="btn btn-success">Вернуть Jobe Bellingham</button>
         </form>
         {% endif %}
-        
-        <!-- MantraFootball Integration Controls (separate from draft_completed check) -->
-        {% if draft_title and 'Top-4' in draft_title and session.get('godmode') %}
-        <button type="button" class="btn" onclick="syncMantraData('tournaments')" style="margin-left:8px;" id="sync-tournaments-btn">Синхронизировать турниры</button>
-        <button type="button" class="btn" onclick="syncMantraData('players')" style="margin-left:8px;" id="sync-players-btn">Синхронизировать игроков</button>
-        <button type="button" class="btn" onclick="syncMantraData('match-players')" style="margin-left:8px;" id="sync-matching-btn">Связать игроков</button>
-        <button type="button" class="btn" onclick="showSyncStatus()" style="margin-left:8px;">Статус синхронизации</button>
-        <button type="button" class="btn btn-info" onclick="toggleMantraMode()" style="margin-left:8px;" id="mantra-mode-btn">
-          {{ 'Отключить MantraFootball' if request.args.get('use_mantra') == 'true' else 'Использовать MantraFootball' }}
-        </button>
-        {% endif %}
         {% endif %}
         <form method="post" action="{{ undo_url|default(url_for('epl.undo_last_pick')) }}" style="display:inline; margin-left:8px;">
           <button type="submit" class="btn btn-danger">Отменить последний пик</button>
         </form>
+      {% endif %}
+      
+      <!-- MantraFootball Integration Controls - Always available for godmode users on TOP-4 -->
+      {% if draft_title and 'Top-4' in draft_title and session.get('godmode') %}
+      <div style="margin-top: 10px;">
+        <button type="button" class="btn" onclick="syncMantraData('tournaments')" style="margin-left:8px;" id="sync-tournaments-btn">🏆 Синхронизировать турниры</button>
+        <button type="button" class="btn" onclick="syncMantraData('players')" style="margin-left:8px;" id="sync-players-btn">👥 Синхронизировать игроков</button>
+        <button type="button" class="btn" onclick="syncMantraData('match-players')" style="margin-left:8px;" id="sync-matching-btn">🔗 Связать игроков</button>
+        <button type="button" class="btn" onclick="showSyncStatus()" style="margin-left:8px;">📊 Статус синхронизации</button>
+        <button type="button" class="btn btn-info" onclick="toggleMantraMode()" style="margin-left:8px;" id="mantra-mode-btn">
+          🔄 {{ 'Отключить MantraFootball' if request.args.get('use_mantra') == 'true' else 'Использовать MantraFootball' }}
+        </button>
+      </div>
+      {% endif %}
+      
+      <!-- Debug info for troubleshooting -->
+      {% if session.get('user_id') == '10' %}
+      <div style="margin-top: 5px; color: red; font-size: 12px;">
+        DEBUG: draft_title="{{ draft_title }}", godmode={{ session.get('godmode') }}, user_id={{ session.get('user_id') }}
+      </div>
       {% endif %}
     </div>
   </div>
