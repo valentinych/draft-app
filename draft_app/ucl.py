@@ -1539,10 +1539,13 @@ def populate_test_rosters():
     
     try:
         state = _ucl_state_load()
-        players = _players_from_ucl()
+        
+        # Load UCL players data
+        raw = _json_load(UCL_PLAYERS) or []
+        players = _players_from_ucl(raw)
         
         # Get available players (first 200 for testing)
-        available_players = list(players.values())[:200]
+        available_players = players[:200]
         
         # UCL participants
         participants = ["Сергей", "Андрей", "Серёга Б", "Женя", "Ксана", "Саша", "Руслан", "Макс"]
