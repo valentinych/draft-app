@@ -77,70 +77,8 @@
 </div>
 {% endif %}
 
-<!-- Current User Transfer Interface -->
-{% if is_window_active and current_user == current_manager %}
-  {% if current_phase == 'out' and user_roster %}
-  <div class="notification is-primary">
-    <h4 class="title is-5">⚽ Ваш ход - TRANSFER OUT: выберите игрока для отдачи</h4>
-    
-    <div class="columns">
-      {% set positions = ['GK', 'DEF', 'MID', 'FWD'] %}
-      {% for pos in positions %}
-        {% set players_in_pos = user_roster | selectattr('position', 'equalto', pos) | list %}
-        {% if players_in_pos %}
-        <div class="column">
-          <h6 class="subtitle is-6">{{ pos }}</h6>
-          <div class="buttons">
-            {% for player in players_in_pos %}
-            <button class="button is-small is-outlined" 
-                    onclick="selectPlayerForTransferOut({{ player.playerId or player.id }}, '{{ player.fullName or player.name }}', '{{ player.clubName or player.club }}', '{{ player.position }}')">
-              {{ player.fullName or player.name }}<br>
-              <small>{{ player.clubName or player.club }}</small>
-            </button>
-            {% endfor %}
-          </div>
-        </div>
-        {% endif %}
-      {% endfor %}
-    </div>
-    
-    <div class="content">
-      <h6 class="subtitle is-6">📝 Фаза TRANSFER OUT:</h6>
-      <ol>
-        <li><strong>Выберите игрока</strong> для отдачи из списка выше</li>
-        <li><strong>Подтвердите выбор</strong> - игрок будет отправлен в transfer out пул</li>
-        <li><strong>Следующий шаг:</strong> TRANSFER IN - выбор замены</li>
-      </ol>
-      <p class="has-text-info">
-        ℹ️ <strong>Этап 1 из 2:</strong> Сначала отдайте игрока, затем выберите замену
-      </p>
-    </div>
-  </div>
-  {% elif current_phase == 'in' %}
-  <div class="notification is-success">
-    <h4 class="title is-5">🎯 Ваш ход - TRANSFER IN: выберите игрока для получения</h4>
-    
-    <div class="content">
-      <h6 class="subtitle is-6">📝 Фаза TRANSFER IN:</h6>
-      <ol>
-        <li><strong>Игрок отдан</strong> ✅ - теперь выберите замену</li>
-        <li><strong>Нажмите кнопку ниже</strong> чтобы увидеть доступных игроков</li>
-        <li><strong>Выберите игрока</strong> из transfer out пула</li>
-        <li><strong>Подтвердите выбор</strong> - ход переходит к следующему менеджеру</li>
-      </ol>
-      <p class="has-text-info">
-        ℹ️ <strong>Этап 2 из 2:</strong> Выберите замену из доступных игроков
-      </p>
-      
-      <div class="buttons">
-        <button class="button is-success is-medium" onclick="showAvailableTransferPlayersForIn()">
-          🔄 Выбрать игрока для TRANSFER IN
-        </button>
-      </div>
-    </div>
-  </div>
-  {% endif %}
-{% elif is_window_active and current_manager %}
+<!-- Current User Transfer Interface - Removed since transfers are now done on main UCL page -->
+{% if is_window_active and current_manager %}
 <div class="notification is-info">
   <p>🕒 <strong>Сейчас ход:</strong> {{ current_manager }} 
     {% if current_phase %}
@@ -149,7 +87,8 @@
       </span>
     {% endif %}
   </p>
-  <p>Ожидайте своей очереди для выбора трансфера.</p>
+  <p><strong>Для выполнения трансферов перейдите на <a href="{{ url_for('ucl.index') }}" class="has-text-link">основную страницу UCL</a></strong></p>
+  <p><small>На странице истории можно только просматривать результаты трансферов.</small></p>
 </div>
 {% endif %}
 
