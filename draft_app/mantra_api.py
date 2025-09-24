@@ -7,6 +7,113 @@ from typing import Dict, List, Optional, Any
 from datetime import datetime
 import difflib
 import re
+import unicodedata
+
+
+# Transliteration mapping for Russian to English
+RUSSIAN_TO_ENGLISH = {
+    'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'e', 'ё': 'yo', 'ж': 'zh',
+    'з': 'z', 'и': 'i', 'й': 'y', 'к': 'k', 'л': 'l', 'м': 'm', 'н': 'n', 'о': 'o',
+    'п': 'p', 'р': 'r', 'с': 's', 'т': 't', 'у': 'u', 'ф': 'f', 'х': 'h', 'ц': 'ts',
+    'ч': 'ch', 'ш': 'sh', 'щ': 'sch', 'ъ': '', 'ы': 'y', 'ь': '', 'э': 'e', 'ю': 'yu', 'я': 'ya',
+    'А': 'A', 'Б': 'B', 'В': 'V', 'Г': 'G', 'Д': 'D', 'Е': 'E', 'Ё': 'Yo', 'Ж': 'Zh',
+    'З': 'Z', 'И': 'I', 'Й': 'Y', 'К': 'K', 'Л': 'L', 'М': 'M', 'Н': 'N', 'О': 'O',
+    'П': 'P', 'Р': 'R', 'С': 'S', 'Т': 'T', 'У': 'U', 'Ф': 'F', 'Х': 'H', 'Ц': 'Ts',
+    'Ч': 'Ch', 'Ш': 'Sh', 'Щ': 'Sch', 'Ъ': '', 'Ы': 'Y', 'Ь': '', 'Э': 'E', 'Ю': 'Yu', 'Я': 'Ya'
+}
+
+# Common club name translations
+CLUB_NAME_TRANSLATIONS = {
+    'Реал Мадрид': 'Real Madrid',
+    'Барселона': 'Barcelona',
+    'Атлетико': 'Atletico Madrid',
+    'Валенсия': 'Valencia',
+    'Севилья': 'Sevilla',
+    'Бетис': 'Real Betis',
+    'Райо Вальекано': 'Rayo Vallecano',
+    'Хетафе': 'Getafe',
+    'Эспаньол': 'Espanyol',
+    'Атлетик': 'Athletic Bilbao',
+    'Реал Сосьедад': 'Real Sociedad',
+    'Осасуна': 'Osasuna',
+    'Сельта': 'Celta Vigo',
+    'Вильярреал': 'Villarreal',
+    'Алавес': 'Alaves',
+    'Леванте': 'Levante',
+    'Эльче': 'Elche',
+    'Мальорка': 'Mallorca',
+    'Манчестер Сити': 'Manchester City',
+    'Манчестер Юнайтед': 'Manchester United',
+    'Ливерпуль': 'Liverpool',
+    'Челси': 'Chelsea',
+    'Арсенал': 'Arsenal',
+    'Тоттенхэм': 'Tottenham',
+    'Ньюкасл': 'Newcastle',
+    'Астон Вилла': 'Aston Villa',
+    'Вест Хэм': 'West Ham',
+    'Лидс': 'Leeds United',
+    'Эвертон': 'Everton',
+    'Лестер': 'Leicester City',
+    'Кристал Пэлас': 'Crystal Palace',
+    'Брайтон': 'Brighton',
+    'Бернли': 'Burnley',
+    'Саутгемптон': 'Southampton',
+    'Ноттингем Форест': 'Nottingham Forest',
+    'Фулхэм': 'Fulham',
+    'Борнмут': 'Bournemouth',
+    'Брентфорд': 'Brentford',
+    'Вулверхэмптон': 'Wolverhampton',
+    'Бавария': 'Bayern Munich',
+    'Боруссия Д': 'Borussia Dortmund',
+    'Боруссия М': 'Borussia Monchengladbach',
+    'РБ Лейпциг': 'RB Leipzig',
+    'Байер': 'Bayer Leverkusen',
+    'Вольфсбург': 'Wolfsburg',
+    'Айнтрахт Ф': 'Eintracht Frankfurt',
+    'Штутгарт': 'Stuttgart',
+    'Фрайбург': 'Freiburg',
+    'Хоффенхайм': 'Hoffenheim',
+    'Майнц': 'Mainz',
+    'Кельн': 'Cologne',
+    'Аугсбург': 'Augsburg',
+    'Унион Берлин': 'Union Berlin',
+    'Хайденхайм': '1. FC Heidenheim',
+    'Санкт-Паули': 'St. Pauli',
+    'Вердер': 'Werder Bremen',
+    'Гамбург': 'Hamburg',
+    'Ювентус': 'Juventus',
+    'Милан': 'AC Milan',
+    'Интер': 'Inter Milan',
+    'Наполи': 'Napoli',
+    'Рома': 'AS Roma',
+    'Лацио': 'Lazio',
+    'Аталанта': 'Atalanta',
+    'Фиорентина': 'Fiorentina',
+    'Торино': 'Torino',
+    'Болонья': 'Bologna',
+    'Сассуоло': 'Sassuolo',
+    'Удинезе': 'Udinese',
+    'Верона': 'Hellas Verona',
+    'Дженоа': 'Genoa',
+    'Лечче': 'Lecce',
+    'Парма': 'Parma',
+    'Кальяри': 'Cagliari',
+    'Венеция': 'Venezia',
+    'Комо': 'Como',
+    'Пиза': 'Pisa'
+}
+
+
+def transliterate_russian_to_english(text: str) -> str:
+    """Transliterate Russian text to English"""
+    if not text:
+        return ""
+    
+    result = ""
+    for char in text:
+        result += RUSSIAN_TO_ENGLISH.get(char, char)
+    
+    return result
 
 
 def _safe_int(value: Any, default: int = 0) -> int:
@@ -148,22 +255,26 @@ class PlayerMatcher:
     
     @staticmethod
     def normalize_name(name: str) -> str:
-        """Normalize player name for matching"""
+        """Normalize player name for matching (supports Russian and English)"""
         if not name:
             return ""
         
-        # Remove accents and special characters
+        # First transliterate Russian to English if needed
+        name = transliterate_russian_to_english(name)
+        
+        # Convert to lowercase and strip
         name = name.lower().strip()
         
-        # Common name replacements
+        # Common name replacements for various languages
         replacements = {
-            'á': 'a', 'à': 'a', 'ä': 'a', 'â': 'a', 'ã': 'a',
+            'á': 'a', 'à': 'a', 'ä': 'a', 'â': 'a', 'ã': 'a', 'å': 'a',
             'é': 'e', 'è': 'e', 'ë': 'e', 'ê': 'e',
             'í': 'i', 'ì': 'i', 'ï': 'i', 'î': 'i',
-            'ó': 'o', 'ò': 'o', 'ö': 'o', 'ô': 'o', 'õ': 'o',
+            'ó': 'o', 'ò': 'o', 'ö': 'o', 'ô': 'o', 'õ': 'o', 'ø': 'o',
             'ú': 'u', 'ù': 'u', 'ü': 'u', 'û': 'u',
-            'ñ': 'n', 'ç': 'c',
-            'ß': 'ss'
+            'ñ': 'n', 'ç': 'c', 'ß': 'ss',
+            'đ': 'd', 'ð': 'd', 'þ': 'th',
+            'æ': 'ae', 'œ': 'oe'
         }
         
         for old, new in replacements.items():
@@ -172,13 +283,23 @@ class PlayerMatcher:
         # Remove non-alphabetic characters except spaces and hyphens
         name = re.sub(r'[^a-z\s\-]', '', name)
         
+        # Remove extra spaces
+        name = re.sub(r'\s+', ' ', name).strip()
+        
         return name
     
     @staticmethod
     def normalize_club_name(club_name: str) -> str:
-        """Normalize club name for matching"""
+        """Normalize club name for matching (supports Russian and English)"""
         if not club_name:
             return ""
+        
+        # First check for direct translation
+        if club_name in CLUB_NAME_TRANSLATIONS:
+            club_name = CLUB_NAME_TRANSLATIONS[club_name]
+        
+        # Transliterate Russian to English if needed
+        club_name = transliterate_russian_to_english(club_name)
         
         club_name = club_name.lower().strip()
         
@@ -207,14 +328,59 @@ class PlayerMatcher:
     
     @staticmethod
     def calculate_name_similarity(name1: str, name2: str) -> float:
-        """Calculate similarity between two names"""
+        """Calculate similarity between two names with advanced matching"""
         norm1 = PlayerMatcher.normalize_name(name1)
         norm2 = PlayerMatcher.normalize_name(name2)
         
         if not norm1 or not norm2:
             return 0.0
         
-        return difflib.SequenceMatcher(None, norm1, norm2).ratio()
+        # Exact match
+        if norm1 == norm2:
+            return 1.0
+        
+        # Split names into parts
+        parts1 = norm1.split()
+        parts2 = norm2.split()
+        
+        # Try different matching strategies
+        scores = []
+        
+        # 1. Full string similarity
+        scores.append(difflib.SequenceMatcher(None, norm1, norm2).ratio())
+        
+        # 2. Word-by-word matching (for first name + last name)
+        if len(parts1) >= 2 and len(parts2) >= 2:
+            # Match first and last names
+            first_sim = difflib.SequenceMatcher(None, parts1[0], parts2[0]).ratio()
+            last_sim = difflib.SequenceMatcher(None, parts1[-1], parts2[-1]).ratio()
+            word_score = (first_sim + last_sim) / 2
+            scores.append(word_score)
+        
+        # 3. Substring matching (for partial names)
+        if len(parts1) >= 1 and len(parts2) >= 1:
+            # Check if any part of one name is contained in the other
+            substring_scores = []
+            for p1 in parts1:
+                for p2 in parts2:
+                    if len(p1) >= 3 and len(p2) >= 3:  # Only for meaningful parts
+                        if p1 in p2 or p2 in p1:
+                            substring_scores.append(0.8)  # High score for substring match
+                        else:
+                            substring_scores.append(difflib.SequenceMatcher(None, p1, p2).ratio())
+            
+            if substring_scores:
+                scores.append(max(substring_scores))
+        
+        # 4. Initials matching (for cases like "M. Salah" vs "Mohamed Salah")
+        if len(parts1) >= 2 and len(parts2) >= 2:
+            initials1 = ''.join(p[0] for p in parts1 if p)
+            initials2 = ''.join(p[0] for p in parts2 if p)
+            if initials1 == initials2:
+                scores.append(0.7)  # Good score for matching initials
+        
+        # Return the best score
+        return max(scores) if scores else 0.0
     
     @staticmethod
     def calculate_club_similarity(club1: str, club2: str) -> float:
@@ -249,7 +415,7 @@ class PlayerMatcher:
             # Combined score (name is more important than club)
             combined_score = (name_similarity * 0.7) + (club_similarity * 0.3)
             
-            if combined_score > best_score and combined_score > 0.6:  # Minimum threshold
+            if combined_score > best_score and combined_score > 0.4:  # Lowered threshold for more matches
                 best_score = combined_score
                 best_match = {
                     'mantra_player': mantra_player,
