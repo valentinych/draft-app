@@ -75,13 +75,6 @@
         </button>
       </div>
       {% endif %}
-      
-      <!-- Debug info for troubleshooting -->
-      {% if session.get('user_id') == '10' %}
-      <div style="margin-top: 5px; color: red; font-size: 12px;">
-        DEBUG: draft_title="{{ draft_title }}", godmode={{ session.get('godmode') }}, user_id={{ session.get('user_id') }}
-      </div>
-      {% endif %}
     </div>
   </div>
 
