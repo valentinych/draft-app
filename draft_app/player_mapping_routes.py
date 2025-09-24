@@ -26,7 +26,12 @@ def preview_mappings():
     try:
         # Load MantraFootball data
         mantra_store = MantraDataStore()
-        mantra_players = mantra_store.load_players()
+        mantra_players = mantra_store.get_players()
+        
+        if not mantra_players:
+            return jsonify({
+                'error': 'No MantraFootball players found. Please sync players first using "👥 Синхронизировать игроков" button.'
+            }), 400
         
         # Load draft state to get current players
         state = load_state()

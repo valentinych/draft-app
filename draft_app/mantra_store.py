@@ -304,6 +304,15 @@ class MantraDataStore:
                     print(f"Removed S3 cache: s3://{self.bucket_name}/{s3_key}")
                 except Exception as e:
                     print(f"Error removing S3 cache: {e}")
+    
+    def load_player_map(self) -> Dict[str, Any]:
+        """Load player mapping data"""
+        return self.load_data('player_map') or {}
+    
+    def save_player_map(self, mapping_data: Dict[str, Any]):
+        """Save player mapping data"""
+        self.save_data(mapping_data, 'player_map')
+        print(f"Saved player mapping: {len(mapping_data)} entries")
 
 
 # Global instance
