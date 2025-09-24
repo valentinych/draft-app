@@ -98,9 +98,30 @@ def preview_mappings():
                 continue
             
             # Safely extract player data
+            # In MantraFootball data: 'name' contains last name, 'first_name' contains first name
+            last_name = mantra_player.get('name', '') if isinstance(mantra_player.get('name'), str) else ''
             first_name = mantra_player.get('first_name', '') if isinstance(mantra_player.get('first_name'), str) else ''
-            last_name = mantra_player.get('last_name', '') if isinstance(mantra_player.get('last_name'), str) else ''
-            mantra_name = f"{first_name} {last_name}".strip()
+            
+            # Try different name combinations for better matching
+            mantra_name_variations = []
+            if first_name and last_name:
+                mantra_name_variations.extend([
+                    f"{first_name} {last_name}",  # "Emil Audero"
+                    f"{last_name} {first_name}",  # "Audero Emil" 
+                    f"{last_name}",               # "Audero"
+                    f"{first_name}",              # "Emil"
+                ])
+            elif last_name:
+                mantra_name_variations.append(last_name)
+            elif first_name:
+                mantra_name_variations.append(first_name)
+            
+            # Use the most complete name as primary
+            mantra_name = mantra_name_variations[0] if mantra_name_variations else ''
+            
+            # Debug: log first few players to see name variations
+            if i < 5:
+                print(f"[PlayerMapping] Player {i}: {mantra_name_variations} -> primary: '{mantra_name}'")
             
             # Safely extract club data
             club_data = mantra_player.get('club', {})
@@ -127,19 +148,24 @@ def preview_mappings():
                 draft_name = draft_player.get('name', '')
                 draft_club = draft_player.get('club', '')
                 
-                # Calculate similarities
-                name_similarity = PlayerMatcher.calculate_name_similarity(mantra_name, draft_name)
+                # Try all name variations to find the best match
+                best_name_similarity = 0.0
+                for name_variation in mantra_name_variations:
+                    name_sim = PlayerMatcher.calculate_name_similarity(name_variation, draft_name)
+                    best_name_similarity = max(best_name_similarity, name_sim)
+                
+                # Calculate club similarity
                 club_similarity = PlayerMatcher.calculate_club_similarity(mantra_club, draft_club)
                 
                 # Combined score (name is more important than club)
-                combined_score = (name_similarity * 0.7) + (club_similarity * 0.3)
+                combined_score = (best_name_similarity * 0.7) + (club_similarity * 0.3)
                 
                 if combined_score > best_score and combined_score > 0.4:  # Minimum threshold
                     best_score = combined_score
                     best_match = {
                         'mantra_player': draft_player,  # This is actually the matched draft player
                         'similarity_score': combined_score,
-                        'name_similarity': name_similarity,
+                        'name_similarity': best_name_similarity,
                         'club_similarity': club_similarity
                     }
             
