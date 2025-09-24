@@ -14,6 +14,7 @@ from draft_app.top4_routes import bp as top4draft_bp
 from .mantra_routes import bp as top4_bp
 from .transfer_routes import bp as transfer_bp
 from .mantra_sync_routes import bp as mantra_sync_bp
+from .player_mapping_routes import bp as player_mapping_bp
 
 def create_app():
     app = Flask(__name__, template_folder=os.path.join(BASE_DIR, "templates"))
@@ -38,5 +39,6 @@ def create_app():
     app.register_blueprint(top4_bp)
     app.register_blueprint(transfer_bp)
     app.register_blueprint(mantra_sync_bp)
+    app.register_blueprint(player_mapping_bp)
 
     return app

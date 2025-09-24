@@ -1,0 +1,376 @@
+{% extends "base.html" %}
+
+{% block title %}Player Mapping - TOP-4 Draft{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mb-4">🔗 Player Mapping - MantraFootball ↔ Draft</h1>
+            
+            <!-- Status Panel -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h3 id="total-mantra" class="text-primary">-</h3>
+                                <p class="mb-0">MantraFootball Players</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h3 id="total-draft" class="text-info">-</h3>
+                                <p class="mb-0">Draft Players</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h3 id="matched-count" class="text-success">-</h3>
+                                <p class="mb-0">Auto-Matched</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h3 id="match-rate" class="text-warning">-%</h3>
+                                <p class="mb-0">Match Rate</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <button id="load-preview-btn" class="btn btn-primary me-2">
+                                <i class="fas fa-search"></i> Load Mapping Preview
+                            </button>
+                            <button id="confirm-all-btn" class="btn btn-success me-2" disabled>
+                                <i class="fas fa-check"></i> Confirm All Auto-Matches
+                            </button>
+                            <button id="export-btn" class="btn btn-secondary" disabled>
+                                <i class="fas fa-download"></i> Export Results
+                            </button>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="show-unmatched" checked>
+                                <label class="form-check-label" for="show-unmatched">
+                                    Show Unmatched Players
+                                </label>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="show-low-confidence" checked>
+                                <label class="form-check-label" for="show-low-confidence">
+                                    Show Low Confidence (&lt; 0.6)
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loading Indicator -->
+            <div id="loading-indicator" class="text-center py-5" style="display: none;">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-2">Generating player mappings...</p>
+            </div>
+
+            <!-- Mapping Table -->
+            <div class="card" id="mapping-table-card" style="display: none;">
+                <div class="card-header">
+                    <h5 class="mb-0">Player Mappings</h5>
+                    <small class="text-muted">Review and confirm automatic matches, or manually link players</small>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover" id="mapping-table">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>MantraFootball Player</th>
+                                    <th>Club / League</th>
+                                    <th>Position</th>
+                                    <th>Draft Match</th>
+                                    <th>Confidence</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="mapping-table-body">
+                                <!-- Dynamic content will be inserted here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Mapping Modal -->
+<div class="modal fade" id="editMappingModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Player Mapping</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="edit-mapping-form">
+                    <input type="hidden" id="edit-mantra-id">
+                    <div class="mb-3">
+                        <label class="form-label">MantraFootball Player</label>
+                        <input type="text" class="form-control" id="edit-mantra-name" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Draft Player Name</label>
+                        <input type="text" class="form-control" id="edit-draft-name" placeholder="Enter draft player name">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Draft Player Club</label>
+                        <input type="text" class="form-control" id="edit-draft-club" placeholder="Enter club name">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="save-mapping-btn">Save Mapping</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentMappings = [];
+let filteredMappings = [];
+
+document.addEventListener('DOMContentLoaded', function() {
+    const loadPreviewBtn = document.getElementById('load-preview-btn');
+    const confirmAllBtn = document.getElementById('confirm-all-btn');
+    const exportBtn = document.getElementById('export-btn');
+    const showUnmatched = document.getElementById('show-unmatched');
+    const showLowConfidence = document.getElementById('show-low-confidence');
+
+    loadPreviewBtn.addEventListener('click', loadMappingPreview);
+    confirmAllBtn.addEventListener('click', confirmAllMappings);
+    exportBtn.addEventListener('click', exportResults);
+    showUnmatched.addEventListener('change', filterMappings);
+    showLowConfidence.addEventListener('change', filterMappings);
+
+    // Save mapping modal
+    document.getElementById('save-mapping-btn').addEventListener('click', saveMapping);
+});
+
+async function loadMappingPreview() {
+    const loadingIndicator = document.getElementById('loading-indicator');
+    const mappingTableCard = document.getElementById('mapping-table-card');
+    
+    loadingIndicator.style.display = 'block';
+    mappingTableCard.style.display = 'none';
+
+    try {
+        const response = await fetch('/top4/player-mapping/preview');
+        const data = await response.json();
+
+        if (data.success) {
+            currentMappings = data.mappings;
+            updateStatusPanel(data);
+            filterMappings();
+            
+            document.getElementById('confirm-all-btn').disabled = false;
+            document.getElementById('export-btn').disabled = false;
+            mappingTableCard.style.display = 'block';
+        } else {
+            alert('Error: ' + data.error);
+        }
+    } catch (error) {
+        alert('Failed to load mappings: ' + error.message);
+    } finally {
+        loadingIndicator.style.display = 'none';
+    }
+}
+
+function updateStatusPanel(data) {
+    document.getElementById('total-mantra').textContent = data.total_mantra_players;
+    document.getElementById('total-draft').textContent = data.total_draft_players;
+    document.getElementById('matched-count').textContent = data.matched_count;
+    document.getElementById('match-rate').textContent = data.match_rate.toFixed(1) + '%';
+}
+
+function filterMappings() {
+    const showUnmatched = document.getElementById('show-unmatched').checked;
+    const showLowConfidence = document.getElementById('show-low-confidence').checked;
+
+    filteredMappings = currentMappings.filter(mapping => {
+        if (!mapping.auto_matched && !showUnmatched) return false;
+        if (mapping.similarity_score < 0.6 && !showLowConfidence) return false;
+        return true;
+    });
+
+    renderMappingTable();
+}
+
+function renderMappingTable() {
+    const tbody = document.getElementById('mapping-table-body');
+    tbody.innerHTML = '';
+
+    filteredMappings.forEach((mapping, index) => {
+        const row = document.createElement('tr');
+        
+        const confidenceClass = mapping.similarity_score >= 0.8 ? 'text-success' : 
+                               mapping.similarity_score >= 0.6 ? 'text-warning' : 'text-danger';
+        
+        const statusBadge = mapping.auto_matched ? 
+            '<span class="badge bg-success">Auto-matched</span>' : 
+            '<span class="badge bg-secondary">No match</span>';
+
+        row.innerHTML = `
+            <td>
+                <strong>${mapping.mantra_name}</strong><br>
+                <small class="text-muted">ID: ${mapping.mantra_id}</small>
+            </td>
+            <td>
+                <div>${mapping.mantra_club}</div>
+                <small class="text-muted">${mapping.mantra_league}</small>
+            </td>
+            <td>
+                <span class="badge bg-info">${mapping.mantra_position}</span>
+            </td>
+            <td>
+                ${mapping.draft_match ? 
+                    `<strong>${mapping.draft_match.name}</strong><br><small class="text-muted">${mapping.draft_match.club}</small>` : 
+                    '<span class="text-muted">No match</span>'
+                }
+            </td>
+            <td class="${confidenceClass}">
+                ${mapping.similarity_score > 0 ? (mapping.similarity_score * 100).toFixed(1) + '%' : '-'}
+            </td>
+            <td>${statusBadge}</td>
+            <td>
+                <button class="btn btn-sm btn-outline-primary" onclick="editMapping(${index})">
+                    <i class="fas fa-edit"></i>
+                </button>
+                ${mapping.auto_matched ? 
+                    `<button class="btn btn-sm btn-outline-success ms-1" onclick="confirmMapping(${index})">
+                        <i class="fas fa-check"></i>
+                    </button>` : ''
+                }
+            </td>
+        `;
+
+        tbody.appendChild(row);
+    });
+}
+
+function editMapping(index) {
+    const mapping = filteredMappings[index];
+    
+    document.getElementById('edit-mantra-id').value = mapping.mantra_id;
+    document.getElementById('edit-mantra-name').value = mapping.mantra_name;
+    document.getElementById('edit-draft-name').value = mapping.draft_match ? mapping.draft_match.name : '';
+    document.getElementById('edit-draft-club').value = mapping.draft_match ? mapping.draft_match.club : '';
+    
+    new bootstrap.Modal(document.getElementById('editMappingModal')).show();
+}
+
+async function saveMapping() {
+    const mantraId = document.getElementById('edit-mantra-id').value;
+    const draftName = document.getElementById('edit-draft-name').value;
+    const draftClub = document.getElementById('edit-draft-club').value;
+
+    if (!draftName.trim()) {
+        alert('Please enter a draft player name');
+        return;
+    }
+
+    try {
+        const response = await fetch('/top4/player-mapping/update', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                mantra_id: mantraId,
+                draft_name: draftName.trim(),
+                draft_club: draftClub.trim(),
+                timestamp: new Date().toISOString()
+            })
+        });
+
+        const data = await response.json();
+        if (data.success) {
+            // Update local mapping
+            const mapping = currentMappings.find(m => m.mantra_id == mantraId);
+            if (mapping) {
+                mapping.draft_match = { name: draftName.trim(), club: draftClub.trim() };
+                mapping.similarity_score = 1.0;
+                mapping.auto_matched = true;
+            }
+            
+            filterMappings();
+            bootstrap.Modal.getInstance(document.getElementById('editMappingModal')).hide();
+            alert('Mapping updated successfully!');
+        } else {
+            alert('Error: ' + data.error);
+        }
+    } catch (error) {
+        alert('Failed to save mapping: ' + error.message);
+    }
+}
+
+async function confirmAllMappings() {
+    const confirmedMappings = currentMappings.filter(m => m.auto_matched).map(m => ({
+        ...m,
+        confirmed: true
+    }));
+
+    if (confirmedMappings.length === 0) {
+        alert('No auto-matched players to confirm');
+        return;
+    }
+
+    if (!confirm(`Confirm ${confirmedMappings.length} automatic mappings?`)) {
+        return;
+    }
+
+    try {
+        const response = await fetch('/top4/player-mapping/confirm', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                mappings: confirmedMappings,
+                timestamp: new Date().toISOString()
+            })
+        });
+
+        const data = await response.json();
+        if (data.success) {
+            alert(`Successfully confirmed ${data.confirmed_count} player mappings!`);
+        } else {
+            alert('Error: ' + data.error);
+        }
+    } catch (error) {
+        alert('Failed to confirm mappings: ' + error.message);
+    }
+}
+
+function exportResults() {
+    const csvContent = "data:text/csv;charset=utf-8," + 
+        "MantraFootball ID,MantraFootball Name,MantraFootball Club,Position,League,Draft Name,Draft Club,Confidence,Status\n" +
+        currentMappings.map(m => 
+            `${m.mantra_id},"${m.mantra_name}","${m.mantra_club}","${m.mantra_position}","${m.mantra_league}","${m.draft_match ? m.draft_match.name : ''}","${m.draft_match ? m.draft_match.club : ''}",${(m.similarity_score * 100).toFixed(1)}%,${m.auto_matched ? 'Auto-matched' : 'No match'}`
+        ).join("\n");
+
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", "player_mappings.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+</script>
+{% endblock %}

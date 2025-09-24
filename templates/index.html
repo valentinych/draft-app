@@ -69,6 +69,7 @@
         <button type="button" class="btn" onclick="syncMantraData('tournaments')" style="margin-left:8px;" id="sync-tournaments-btn">🏆 Синхронизировать турниры</button>
         <button type="button" class="btn" onclick="syncMantraData('players')" style="margin-left:8px;" id="sync-players-btn">👥 Синхронизировать игроков</button>
         <button type="button" class="btn" onclick="syncMantraData('match-players')" style="margin-left:8px;" id="sync-matching-btn">🔗 Связать игроков</button>
+        <button type="button" class="btn btn-primary" onclick="window.location.href='/top4/player-mapping'" style="margin-left:8px;">🎯 Просмотр сопоставлений</button>
         <button type="button" class="btn" onclick="showSyncStatus()" style="margin-left:8px;">📊 Статус синхронизации</button>
         <button type="button" class="btn btn-info" onclick="toggleMantraMode()" style="margin-left:8px;" id="mantra-mode-btn">
           🔄 {{ 'Отключить MantraFootball' if request.args.get('use_mantra') == 'true' else 'Использовать MantraFootball' }}
