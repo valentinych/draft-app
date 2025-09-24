@@ -73,12 +73,18 @@
                 </div>
             </div>
 
+            <!-- Cache Status -->
+            <div class="alert alert-info" id="cache-status-alert" style="display: none;">
+                <i class="fas fa-info-circle"></i> <strong>Cache Status:</strong>
+                <span id="cache-status-text">Loading...</span>
+            </div>
+
             <!-- Loading Indicator -->
             <div id="loading-indicator" class="text-center py-5" style="display: none;">
                 <div class="spinner-border text-primary" role="status">
                     <span class="visually-hidden">Loading...</span>
                 </div>
-                <p class="mt-2">Generating player mappings...</p>
+                <p class="mt-2">Loading player mappings from cache (S3 + local)...</p>
             </div>
 
             <!-- Mapping Table -->
@@ -182,10 +188,19 @@ async function loadMappingPreview() {
             updateStatusPanel(data);
             filterMappings();
             
+            // Show cache status if available
+            if (data.cache_status) {
+                showCacheStatus(data.cache_status);
+            }
+            
             document.getElementById('confirm-all-btn').disabled = false;
             document.getElementById('export-btn').disabled = false;
             mappingTableCard.style.display = 'block';
         } else {
+            // Show cache status in error case too
+            if (data.cache_status) {
+                showCacheStatus(data.cache_status);
+            }
             alert('Error: ' + data.error);
         }
     } catch (error) {
@@ -200,6 +215,22 @@ function updateStatusPanel(data) {
     document.getElementById('total-draft').textContent = data.total_draft_players;
     document.getElementById('matched-count').textContent = data.matched_count;
     document.getElementById('match-rate').textContent = data.match_rate.toFixed(1) + '%';
+}
+
+function showCacheStatus(cacheStatus) {
+    const alert = document.getElementById('cache-status-alert');
+    const text = document.getElementById('cache-status-text');
+    
+    let statusText = '';
+    if (cacheStatus.players) {
+        statusText += `Players: ${cacheStatus.players.local ? 'Local ✅' : 'Local ❌'} | ${cacheStatus.players.s3 ? 'S3 ✅' : 'S3 ❌'}`;
+    }
+    if (cacheStatus.tournaments) {
+        statusText += ` | Tournaments: ${cacheStatus.tournaments.local ? 'Local ✅' : 'Local ❌'} | ${cacheStatus.tournaments.s3 ? 'S3 ✅' : 'S3 ❌'}`;
+    }
+    
+    text.textContent = statusText || 'Cache status unknown';
+    alert.style.display = 'block';
 }
 
 function filterMappings() {

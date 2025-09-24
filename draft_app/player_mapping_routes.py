@@ -24,13 +24,29 @@ def preview_mappings():
         return jsonify({'error': 'Access denied'}), 403
     
     try:
-        # Load MantraFootball data
+        # Load MantraFootball data from cache (S3 + local)
         mantra_store = MantraDataStore()
+        
+        # Check cache status first
+        cache_status = mantra_store.get_cache_status()
+        print(f"[PlayerMapping] Cache status: {cache_status}")
+        
         mantra_players = mantra_store.get_players()
+        print(f"[PlayerMapping] Loaded {len(mantra_players) if mantra_players else 0} players from cache")
+        
+        # If no players in cache, try to force load from S3
+        if not mantra_players:
+            print("[PlayerMapping] No players in cache, trying to force load from S3...")
+            s3_data = mantra_store.load_from_s3('players')
+            if s3_data:
+                mantra_store.save_to_local_cache(s3_data, 'players')
+                mantra_players = s3_data.get('players', [])
+                print(f"[PlayerMapping] Force loaded {len(mantra_players)} players from S3")
         
         if not mantra_players:
             return jsonify({
-                'error': 'No MantraFootball players found. Please sync players first using "👥 Синхронизировать игроков" button.'
+                'error': 'No MantraFootball players found in cache or S3. Please sync players first using "👥 Синхронизировать игроков" button.',
+                'cache_status': cache_status
             }), 400
         
         # Load draft state to get current players
