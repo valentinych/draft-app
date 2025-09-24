@@ -38,10 +38,29 @@ def preview_mappings():
         draft_players = []
         
         # Extract all draft players from state
-        for manager_name, manager_data in state.get('managers', {}).items():
-            for player in manager_data.get('roster', []):
-                if player not in draft_players:
-                    draft_players.append(player)
+        # Check both 'managers' and 'rosters' structures
+        if 'managers' in state:
+            for manager_name, manager_data in state.get('managers', {}).items():
+                roster = manager_data.get('roster', []) if isinstance(manager_data, dict) else []
+                for player in roster:
+                    if isinstance(player, dict) and player not in draft_players:
+                        draft_players.append(player)
+        elif 'rosters' in state:
+            for manager_name, roster in state.get('rosters', {}).items():
+                for player in roster:
+                    if isinstance(player, dict) and player not in draft_players:
+                        draft_players.append(player)
+        
+        # For demonstration purposes, create some sample draft players if none exist
+        if not draft_players:
+            draft_players = [
+                {'name': 'Kylian Mbappe', 'club': 'Real Madrid'},
+                {'name': 'Erling Haaland', 'club': 'Manchester City'},
+                {'name': 'Jude Bellingham', 'club': 'Real Madrid'},
+                {'name': 'Vinicius Junior', 'club': 'Real Madrid'},
+                {'name': 'Kevin De Bruyne', 'club': 'Manchester City'},
+                # Add more sample players as needed
+            ]
         
         # Generate mappings for all MantraFootball players
         mappings = []
@@ -51,10 +70,9 @@ def preview_mappings():
             mantra_name = f"{mantra_player.get('first_name', '')} {mantra_player.get('last_name', '')}".strip()
             mantra_club = mantra_player.get('club', {}).get('name', '') if isinstance(mantra_player.get('club'), dict) else mantra_player.get('club', '')
             
+            # Try to find best match among draft players
             # Create a fake draft player object for matching
             fake_draft_player = {'name': mantra_name, 'club': mantra_club}
-            
-            # Try to find best match among draft players
             best_match = PlayerMatcher.find_best_match(fake_draft_player, draft_players)
             
             mapping_entry = {
