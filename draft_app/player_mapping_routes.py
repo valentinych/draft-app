@@ -43,6 +43,15 @@ def preview_mappings():
                 mantra_players = s3_data.get('players', [])
                 print(f"[PlayerMapping] Force loaded {len(mantra_players)} players from S3")
         
+        # Validate player data structure
+        if mantra_players:
+            print(f"[PlayerMapping] First player sample: {type(mantra_players[0])} = {str(mantra_players[0])[:200]}...")
+            # Filter out any non-dict players
+            valid_players = [p for p in mantra_players if isinstance(p, dict)]
+            if len(valid_players) != len(mantra_players):
+                print(f"[PlayerMapping] Filtered out {len(mantra_players) - len(valid_players)} invalid players")
+                mantra_players = valid_players
+        
         if not mantra_players:
             return jsonify({
                 'error': 'No MantraFootball players found in cache or S3. Please sync players first using "👥 Синхронизировать игроков" button.',
@@ -82,21 +91,48 @@ def preview_mappings():
         mappings = []
         matched_count = 0
         
-        for mantra_player in mantra_players:
-            mantra_name = f"{mantra_player.get('first_name', '')} {mantra_player.get('last_name', '')}".strip()
-            mantra_club = mantra_player.get('club', {}).get('name', '') if isinstance(mantra_player.get('club'), dict) else mantra_player.get('club', '')
+        for i, mantra_player in enumerate(mantra_players):
+            # Debug: check if mantra_player is a dict
+            if not isinstance(mantra_player, dict):
+                print(f"[PlayerMapping] WARNING: Player {i} is not a dict: {type(mantra_player)} = {mantra_player}")
+                continue
+            
+            # Safely extract player data
+            first_name = mantra_player.get('first_name', '') if isinstance(mantra_player.get('first_name'), str) else ''
+            last_name = mantra_player.get('last_name', '') if isinstance(mantra_player.get('last_name'), str) else ''
+            mantra_name = f"{first_name} {last_name}".strip()
+            
+            # Safely extract club data
+            club_data = mantra_player.get('club', {})
+            if isinstance(club_data, dict):
+                mantra_club = club_data.get('name', '')
+            elif isinstance(club_data, str):
+                mantra_club = club_data
+            else:
+                mantra_club = ''
             
             # Try to find best match among draft players
             # Create a fake draft player object for matching
             fake_draft_player = {'name': mantra_name, 'club': mantra_club}
             best_match = PlayerMatcher.find_best_match(fake_draft_player, draft_players)
             
+            # Safely extract additional data
+            mantra_id = mantra_player.get('id', '')
+            mantra_position = mantra_player.get('position', '')
+            
+            # Safely extract league info
+            mantra_league = ''
+            if isinstance(club_data, dict):
+                tournament_data = club_data.get('tournament', {})
+                if isinstance(tournament_data, dict):
+                    mantra_league = tournament_data.get('name', '')
+            
             mapping_entry = {
-                'mantra_id': mantra_player.get('id'),
+                'mantra_id': mantra_id,
                 'mantra_name': mantra_name,
                 'mantra_club': mantra_club,
-                'mantra_position': mantra_player.get('position', ''),
-                'mantra_league': mantra_player.get('club', {}).get('tournament', {}).get('name', '') if isinstance(mantra_player.get('club'), dict) else '',
+                'mantra_position': mantra_position,
+                'mantra_league': mantra_league,
                 'draft_match': None,
                 'similarity_score': 0.0,
                 'auto_matched': False
