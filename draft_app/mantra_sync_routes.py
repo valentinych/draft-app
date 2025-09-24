@@ -68,7 +68,7 @@ def run_player_matching():
         sync_status['matching']['message'] = 'Starting player matching...'
         
         # Load current TOP-4 draft players
-        state = load_state('top4')
+        state = load_state()
         draft_players = []
         
         # Extract all players from rosters
