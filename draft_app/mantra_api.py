@@ -400,11 +400,27 @@ class PlayerMatcher:
         best_score = 0.0
         
         draft_name = draft_player.get('name', '')
-        draft_club = draft_player.get('club', {}).get('name', '') if draft_player.get('club') else ''
+        
+        # Handle both string and dict club formats
+        draft_club_data = draft_player.get('club', '')
+        if isinstance(draft_club_data, dict):
+            draft_club = draft_club_data.get('name', '')
+        else:
+            draft_club = str(draft_club_data) if draft_club_data else ''
         
         for mantra_player in mantra_players:
+            # Safely extract mantra player data
+            if not isinstance(mantra_player, dict):
+                continue
+                
             mantra_name = mantra_player.get('name', '')
-            mantra_club = mantra_player.get('club', {}).get('name', '') if mantra_player.get('club') else ''
+            
+            # Handle both string and dict club formats for mantra players too
+            mantra_club_data = mantra_player.get('club', '')
+            if isinstance(mantra_club_data, dict):
+                mantra_club = mantra_club_data.get('name', '')
+            else:
+                mantra_club = str(mantra_club_data) if mantra_club_data else ''
             
             # Calculate name similarity
             name_similarity = PlayerMatcher.calculate_name_similarity(draft_name, mantra_name)

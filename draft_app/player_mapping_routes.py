@@ -112,9 +112,36 @@ def preview_mappings():
                 mantra_club = ''
             
             # Try to find best match among draft players
-            # Create a fake draft player object for matching
-            fake_draft_player = {'name': mantra_name, 'club': mantra_club}
-            best_match = PlayerMatcher.find_best_match(fake_draft_player, draft_players)
+            # We want to find which draft player best matches our current mantra player
+            # Create a fake mantra player object for the search
+            fake_mantra_player = {'name': mantra_name, 'club': mantra_club}
+            
+            # Find best matching draft player (search through draft_players)
+            best_match = None
+            best_score = 0.0
+            
+            for draft_player in draft_players:
+                if not isinstance(draft_player, dict):
+                    continue
+                
+                draft_name = draft_player.get('name', '')
+                draft_club = draft_player.get('club', '')
+                
+                # Calculate similarities
+                name_similarity = PlayerMatcher.calculate_name_similarity(mantra_name, draft_name)
+                club_similarity = PlayerMatcher.calculate_club_similarity(mantra_club, draft_club)
+                
+                # Combined score (name is more important than club)
+                combined_score = (name_similarity * 0.7) + (club_similarity * 0.3)
+                
+                if combined_score > best_score and combined_score > 0.4:  # Minimum threshold
+                    best_score = combined_score
+                    best_match = {
+                        'mantra_player': draft_player,  # This is actually the matched draft player
+                        'similarity_score': combined_score,
+                        'name_similarity': name_similarity,
+                        'club_similarity': club_similarity
+                    }
             
             # Safely extract additional data
             mantra_id = mantra_player.get('id', '')
