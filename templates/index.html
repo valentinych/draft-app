@@ -636,6 +636,12 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 });
 
+// Note: MantraFootball functions moved to global scope at end of template
+</script>
+{% endif %}
+
+{# MantraFootball JavaScript functions - available on all pages #}
+<script>
 // MantraFootball Integration Functions
 function syncMantraData(type) {
   const btn = document.getElementById(`sync-${type.replace('-', '')}-btn`);
@@ -667,8 +673,8 @@ function syncMantraData(type) {
   .finally(() => {
     if (btn) {
       btn.disabled = false;
-      btn.textContent = btn.textContent.replace('Синхронизация...', btn.id.includes('tournaments') ? 'Синхронизировать турниры' : 
-                                                                     btn.id.includes('players') ? 'Синхронизировать игроков' : 'Связать игроков');
+      btn.textContent = btn.textContent.replace('Синхронизация...', btn.id.includes('tournaments') ? '🏆 Синхронизировать турниры' : 
+                                                                     btn.id.includes('players') ? '👥 Синхронизировать игроков' : '🔗 Связать игроков');
     }
   });
 }
@@ -686,10 +692,12 @@ function showSyncStatus() {
     statusText += 'Связывание: ' + (syncStatus.matching.running ? 'Выполняется... ' + syncStatus.matching.message : 'Готов - ' + syncStatus.matching.message) + '\n\n';
     
     // Cache status
-    const cacheStatus = data.cache_status;
-    statusText += 'Кэш:\n';
-    for (const [key, status] of Object.entries(cacheStatus)) {
-      statusText += `${key}: ${status.exists ? 'Есть (' + (status.last_updated || 'неизвестно') + ')' : 'Нет'}\n`;
+    const cacheStatus = data.get_cache_status || data.cache_status;
+    if (cacheStatus) {
+      statusText += 'Кэш:\n';
+      for (const [key, status] of Object.entries(cacheStatus)) {
+        statusText += `${key}: ${status.exists ? 'Есть (' + (status.last_updated || 'неизвестно') + ')' : 'Нет'}\n`;
+      }
     }
     
     alert(statusText);
@@ -734,6 +742,5 @@ function toggleMantraMode() {
   window.location.href = currentUrl.toString();
 }
 </script>
-{% endif %}
 
 {% endblock %}
