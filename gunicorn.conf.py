@@ -8,7 +8,7 @@ backlog = 2048
 workers = int(os.environ.get('WEB_CONCURRENCY', 2))
 worker_class = 'sync'
 worker_connections = 1000
-timeout = int(os.environ.get('GUNICORN_TIMEOUT', 300))
+timeout = int(os.environ.get('GUNICORN_TIMEOUT', 3000))
 keepalive = 2
 
 # Restart workers after this many requests, to help prevent memory leaks

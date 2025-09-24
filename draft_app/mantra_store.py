@@ -7,6 +7,7 @@ import boto3
 from typing import Dict, List, Optional, Any
 from datetime import datetime
 from .mantra_api import MantraFootballAPI, PlayerMatcher, format_mantra_player_for_draft
+from .top4_player_info_store import save_player_info
 
 class MantraDataStore:
     def __init__(self):
@@ -137,11 +138,43 @@ class MantraDataStore:
             
             formatted_player = format_mantra_player_for_draft(player, stats)
             formatted_players.append(formatted_player)
+            
+            # Save individual player info file to top4_player_info/ and S3
+            player_id = formatted_player.get('playerId')
+            if player_id:
+                try:
+                    # Create player info structure compatible with existing system
+                    player_info = {
+                        'id': player_id,
+                        'name': formatted_player.get('fullName', ''),
+                        'club': formatted_player.get('clubName', ''),
+                        'position': formatted_player.get('position', ''),
+                        'league': formatted_player.get('league', 'TOP4'),
+                        'price': formatted_player.get('price', 0.0),
+                        'popularity': formatted_player.get('popularity', 0.0),
+                        'mantra_data': formatted_player.get('mantra_data', {}),
+                        'stats': stats if include_stats else None,
+                        'synced_at': datetime.utcnow().isoformat(),
+                        'source': 'MantraFootball'
+                    }
+                    save_player_info(int(player_id), player_info)
+                    
+                    if i % 100 == 0 and i > 0:
+                        print(f"Saved {i} player info files to top4_player_info/")
+                        
+                except Exception as e:
+                    print(f"Error saving player info for {player_id}: {e}")
+                    continue
+        
+        # Final summary
+        saved_count = len([p for p in formatted_players if p.get('playerId')])
+        print(f"Completed: Saved {saved_count} player info files to top4_player_info/ and S3")
         
         sync_data = {
             'players': formatted_players,
             'last_updated': datetime.utcnow().isoformat(),
             'total_players': len(formatted_players),
+            'saved_player_files': saved_count,
             'include_stats': include_stats
         }
         
