@@ -140,18 +140,18 @@ class MantraDataStore:
             formatted_players.append(formatted_player)
             
             # Save individual player info file to top4_player_info/ and S3
-            player_id = formatted_player.get('playerId')
+            player_id = formatted_player.get('mantra_id')  # Use mantra_id instead of playerId
             if player_id:
                 try:
                     # Create player info structure compatible with existing system
                     player_info = {
                         'id': player_id,
-                        'name': formatted_player.get('fullName', ''),
-                        'club': formatted_player.get('clubName', ''),
+                        'name': formatted_player.get('name', ''),
+                        'club': formatted_player.get('club', {}).get('name', ''),
                         'position': formatted_player.get('position', ''),
-                        'league': formatted_player.get('league', 'TOP4'),
+                        'league': 'TOP4',  # All MantraFootball players are TOP-4
                         'price': formatted_player.get('price', 0.0),
-                        'popularity': formatted_player.get('popularity', 0.0),
+                        'popularity': formatted_player.get('stats', {}).get('total_score', 0.0),
                         'mantra_data': formatted_player.get('mantra_data', {}),
                         'stats': stats if include_stats else None,
                         'synced_at': datetime.utcnow().isoformat(),
@@ -167,7 +167,7 @@ class MantraDataStore:
                     continue
         
         # Final summary
-        saved_count = len([p for p in formatted_players if p.get('playerId')])
+        saved_count = len([p for p in formatted_players if p.get('mantra_id')])
         print(f"Completed: Saved {saved_count} player info files to top4_player_info/ and S3")
         
         sync_data = {

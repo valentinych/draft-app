@@ -8,6 +8,26 @@ from datetime import datetime
 import difflib
 import re
 
+
+def _safe_int(value: Any, default: int = 0) -> int:
+    """Safely convert value to int, handling strings and None"""
+    if value is None:
+        return default
+    try:
+        return int(float(value))  # Convert via float to handle string floats like "5.0"
+    except (ValueError, TypeError):
+        return default
+
+
+def _safe_float(value: Any, default: float = 0.0) -> float:
+    """Safely convert value to float, handling strings and None"""
+    if value is None:
+        return default
+    try:
+        return float(value)
+    except (ValueError, TypeError):
+        return default
+
 class MantraFootballAPI:
     BASE_URL = "https://mantrafootball.org/api"
     
@@ -262,12 +282,19 @@ def format_mantra_player_for_draft(mantra_player: Dict[str, Any], stats: Optiona
     base_price = 5.0
     if stats and stats.get('current_season_stat'):
         current_stats = stats['current_season_stat']
-        total_score = current_stats.get('total_score', 0)
-        base_score = current_stats.get('base_score', 0)
-        appearances = current_stats.get('played_matches', 0)
+        
+        # Safely convert to numbers
+        try:
+            total_score = float(current_stats.get('total_score', 0) or 0)
+            base_score = float(current_stats.get('base_score', 0) or 0)
+            appearances = int(current_stats.get('played_matches', 0) or 0)
+        except (ValueError, TypeError):
+            total_score = 0.0
+            base_score = 0.0
+            appearances = 0
         
         # Simple price calculation based on performance
-        if total_score and appearances > 5:
+        if total_score > 0 and appearances > 5:
             base_price = min(max(total_score * 2, 1.0), 15.0)
     
     return {
@@ -286,11 +313,11 @@ def format_mantra_player_for_draft(mantra_player: Dict[str, Any], stats: Optiona
         'price': base_price,
         'avatar_path': mantra_player.get('avatar_path', ''),
         'stats': {
-            'appearances': mantra_player.get('appearances', 0),
-            'total_score': stats.get('current_season_stat', {}).get('total_score', 0) if stats else 0,
-            'base_score': stats.get('current_season_stat', {}).get('base_score', 0) if stats else 0,
-            'goals': stats.get('current_season_stat', {}).get('goals', 0) if stats else 0,
-            'assists': stats.get('current_season_stat', {}).get('assists', 0) if stats else 0,
+            'appearances': _safe_int(mantra_player.get('appearances', 0)),
+            'total_score': _safe_float(stats.get('current_season_stat', {}).get('total_score', 0) if stats else 0),
+            'base_score': _safe_float(stats.get('current_season_stat', {}).get('base_score', 0) if stats else 0),
+            'goals': _safe_int(stats.get('current_season_stat', {}).get('goals', 0) if stats else 0),
+            'assists': _safe_int(stats.get('current_season_stat', {}).get('assists', 0) if stats else 0),
         },
         'mantra_data': mantra_player,
         'last_updated': datetime.utcnow().isoformat()
