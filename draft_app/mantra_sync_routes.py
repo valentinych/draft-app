@@ -88,9 +88,19 @@ def run_player_matching():
         result = mantra_store.match_draft_players_with_mantra(draft_players)
         
         sync_status['matching']['progress'] = 100
-        sync_status['matching']['message'] = f"Matched {result['matched_count']}/{result['total_draft_players']} players ({result['match_rate']:.1f}%)"
+        
+        # Safe access to result data
+        matched_count = result.get('matched_count', 0)
+        total_players = result.get('total_draft_players', 0)
+        match_rate = result.get('match_rate', 0.0)
+        
+        sync_status['matching']['message'] = f"Matched {matched_count}/{total_players} players ({match_rate:.1f}%)"
         
     except Exception as e:
+        print(f"[MantraSync] Error in player matching: {str(e)}")
+        print(f"[MantraSync] Error type: {type(e).__name__}")
+        import traceback
+        traceback.print_exc()
         sync_status['matching']['message'] = f"Error: {str(e)}"
     finally:
         sync_status['matching']['running'] = False
