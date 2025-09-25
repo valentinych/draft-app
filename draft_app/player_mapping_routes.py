@@ -110,23 +110,42 @@ def preview_mappings():
                         print(f"[PlayerMapping] File not found: {path}")
                 
                 if top4_players_file:
-                    with open(top4_players_file, 'r', encoding='utf-8') as f:
-                        top4_data = json.load(f)
-                        # REPLACE existing draft_players with Russian names
-                        draft_players = [
-                            {
-                                'name': player.get('fullName', ''),
-                                'club': player.get('clubName', ''),
-                                'position': player.get('position', ''),
-                                'league': player.get('league', ''),
-                                'playerId': player.get('playerId', '')
-                            }
-                            for player in top4_data if isinstance(player, dict)
-                        ]
-                        print(f"[PlayerMapping] REPLACED with {len(draft_players)} TOP-4 players with Russian names")
-                        # Debug: show first few TOP-4 players
-                        for i, player in enumerate(draft_players[:5]):
-                            print(f"[PlayerMapping] Russian Player {i}: '{player.get('name')}' ({player.get('club')}) - {player.get('league')}")
+                    try:
+                        with open(top4_players_file, 'r', encoding='utf-8') as f:
+                            content = f.read()
+                            print(f"[PlayerMapping] File content preview (first 200 chars): {content[:200]}")
+                            
+                            # Check if it's actually JSON
+                            if content.strip().startswith('<!DOCTYPE') or content.strip().startswith('<html'):
+                                print(f"[PlayerMapping] ERROR: File contains HTML, not JSON!")
+                                raise ValueError("File contains HTML instead of JSON")
+                            
+                            # Parse JSON
+                            top4_data = json.loads(content)
+                            
+                            # REPLACE existing draft_players with Russian names
+                            draft_players = [
+                                {
+                                    'name': player.get('fullName', ''),
+                                    'club': player.get('clubName', ''),
+                                    'position': player.get('position', ''),
+                                    'league': player.get('league', ''),
+                                    'playerId': player.get('playerId', '')
+                                }
+                                for player in top4_data if isinstance(player, dict)
+                            ]
+                            print(f"[PlayerMapping] REPLACED with {len(draft_players)} TOP-4 players with Russian names")
+                            # Debug: show first few TOP-4 players
+                            for i, player in enumerate(draft_players[:5]):
+                                print(f"[PlayerMapping] Russian Player {i}: '{player.get('name')}' ({player.get('club')}) - {player.get('league')}")
+                    
+                    except json.JSONDecodeError as e:
+                        print(f"[PlayerMapping] JSON decode error: {e}")
+                        print(f"[PlayerMapping] File content (first 500 chars): {content[:500]}")
+                        raise
+                    except Exception as e:
+                        print(f"[PlayerMapping] Error reading file: {e}")
+                        raise
                 else:
                     print(f"[PlayerMapping] TOP-4 players file not found in any of the paths: {possible_paths}")
                     # List current directory contents for debugging
@@ -142,16 +161,29 @@ def preview_mappings():
                 import traceback
                 traceback.print_exc()
         
-        # Fallback to sample players if still empty
-        if not draft_players:
-            draft_players = [
-                {'name': 'Kylian Mbappe', 'club': 'Real Madrid'},
-                {'name': 'Erling Haaland', 'club': 'Manchester City'},
-                {'name': 'Jude Bellingham', 'club': 'Real Madrid'},
-                {'name': 'Vinicius Junior', 'club': 'Real Madrid'},
-                {'name': 'Kevin De Bruyne', 'club': 'Manchester City'},
+        # If loading failed, use Russian test players for matching
+        if len(draft_players) < 1000:  # If we don't have enough players, add Russian test names
+            print(f"[PlayerMapping] Adding Russian test players for matching...")
+            russian_test_players = [
+                {'name': 'Мбаппе', 'club': 'Реал Мадрид', 'league': 'La Liga'},
+                {'name': 'Холанд', 'club': 'Манчестер Сити', 'league': 'EPL'},
+                {'name': 'Беллингем', 'club': 'Реал Мадрид', 'league': 'La Liga'},
+                {'name': 'Винисиус Жуниор', 'club': 'Реал Мадрид', 'league': 'La Liga'},
+                {'name': 'Де Брёйне', 'club': 'Манчестер Сити', 'league': 'EPL'},
+                {'name': 'Левандовски', 'club': 'Барселона', 'league': 'La Liga'},
+                {'name': 'Салах', 'club': 'Ливерпуль', 'league': 'EPL'},
+                {'name': 'Кейн', 'club': 'Бавария', 'league': 'Bundesliga'},
+                {'name': 'Модрич', 'club': 'Реал Мадрид', 'league': 'La Liga'},
+                {'name': 'Бензема', 'club': 'Аль-Иттихад', 'league': 'Saudi'},
+                {'name': 'Роналду', 'club': 'Аль-Насср', 'league': 'Saudi'},
+                {'name': 'Месси', 'club': 'Интер Майами', 'league': 'MLS'},
             ]
-            print(f"[PlayerMapping] Using fallback sample players: {len(draft_players)}")
+            
+            # Replace or extend draft_players with Russian names
+            draft_players = russian_test_players
+            print(f"[PlayerMapping] Using {len(draft_players)} Russian test players:")
+            for i, player in enumerate(draft_players):
+                print(f"[PlayerMapping] Russian Test Player {i}: '{player.get('name')}' ({player.get('club')}) - {player.get('league')}")
         
         # Generate mappings for all MantraFootball players
         mappings = []
