@@ -452,6 +452,8 @@ function renderMappingTable() {
             statusBadge = '<span class="badge bg-danger">🚫 Незамаплен</span>';
         } else if (mapping.auto_matched) {
             statusBadge = '<span class="badge bg-success">Auto-matched</span>';
+        } else if (mapping.total_remaining_options) {
+            statusBadge = `<span class="badge bg-warning">⚠️ ${mapping.total_remaining_options} вариантов</span>`;
         } else {
             statusBadge = '<span class="badge bg-secondary">No match</span>';
         }
@@ -473,7 +475,9 @@ function renderMappingTable() {
                     '<span class="text-danger"><strong>🚫 Исключен из драфта</strong></span>' :
                     (mapping.draft_match ? 
                         `<strong>${mapping.draft_match.name}</strong><br><small class="text-muted">${mapping.draft_match.club}</small>` : 
-                        '<span class="text-muted">No match</span>')
+                        (mapping.total_remaining_options ? 
+                            `<span class="text-warning">⚠️ Нет автосовпадения</span><br><small class="text-muted">${mapping.total_remaining_options} вариантов из ${mapping.mantra_club}</small>` :
+                            '<span class="text-muted">No match</span>'))
                 }
             </td>
             <td class="${confidenceClass}">
@@ -552,52 +556,72 @@ async function populateDraftPlayerDropdown(mapping) {
     // Get the MantraFootball player's club to filter by
     const mantraClub = mapping.mantra_club;
     
-    // Get all available draft players
-    let allDraftPlayers = [];
+    let sameClubPlayers = [];
     
-    // First, extract from current mappings (these are confirmed available)
-    currentMappings.forEach(m => {
-        if (m.draft_match && m.draft_match.name && m.draft_match.club) {
-            allDraftPlayers.push({
-                name: m.draft_match.name,
-                club: m.draft_match.club,
-                source: 'mapping'
-            });
-        }
-    });
-    
-    // Try to get all draft players from backend
-    try {
-        const response = await fetch('/top4/player-mapping/all-draft-players');
-        if (response.ok) {
-            const data = await response.json();
-            if (data.success && data.players) {
-                data.players.forEach(player => {
-                    allDraftPlayers.push({
-                        name: player.name,
-                        club: player.club,
-                        source: 'backend'
-                    });
+    // First, check if this mapping has remaining club options (for unmatched players)
+    if (mapping.remaining_club_options && mapping.remaining_club_options.length > 0) {
+        // Use the specific remaining options provided by the backend
+        sameClubPlayers = mapping.remaining_club_options.map(option => ({
+            name: option.name,
+            club: option.club,
+            similarity_score: option.similarity_score,
+            source: 'remaining_options'
+        }));
+        
+        console.log(`Using ${sameClubPlayers.length} remaining club options for ${mapping.mantra_name}`);
+    } else {
+        // Fallback: get all available draft players and filter by club
+        let allDraftPlayers = [];
+        
+        // Extract from current mappings (these are confirmed available)
+        currentMappings.forEach(m => {
+            if (m.draft_match && m.draft_match.name && m.draft_match.club) {
+                allDraftPlayers.push({
+                    name: m.draft_match.name,
+                    club: m.draft_match.club,
+                    source: 'mapping'
                 });
             }
+        });
+        
+        // Try to get all draft players from backend
+        try {
+            const response = await fetch('/top4/player-mapping/all-draft-players');
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success && data.players) {
+                    data.players.forEach(player => {
+                        allDraftPlayers.push({
+                            name: player.name,
+                            club: player.club,
+                            source: 'backend'
+                        });
+                    });
+                }
+            }
+        } catch (error) {
+            console.warn('Could not load all draft players from backend:', error);
         }
-    } catch (error) {
-        console.warn('Could not load all draft players from backend:', error);
+        
+        // Remove duplicates
+        const uniquePlayers = allDraftPlayers.filter((player, index, self) => 
+            index === self.findIndex(p => p.name === player.name && p.club === player.club)
+        );
+        
+        // Filter players to only include those from the same club as MantraFootball player
+        sameClubPlayers = uniquePlayers.filter(player => {
+            // Use the club similarity function logic to determine if clubs match
+            return isClubMatch(mantraClub, player.club);
+        });
     }
     
-    // Remove duplicates
-    const uniquePlayers = allDraftPlayers.filter((player, index, self) => 
-        index === self.findIndex(p => p.name === player.name && p.club === player.club)
-    );
-    
-    // Filter players to only include those from the same club as MantraFootball player
-    const sameClubPlayers = uniquePlayers.filter(player => {
-        // Use the club similarity function logic to determine if clubs match
-        return isClubMatch(mantraClub, player.club);
+    // Sort by similarity score if available, otherwise by name
+    sameClubPlayers.sort((a, b) => {
+        if (a.similarity_score !== undefined && b.similarity_score !== undefined) {
+            return b.similarity_score - a.similarity_score; // Higher similarity first
+        }
+        return a.name.localeCompare(b.name);
     });
-    
-    // Sort by name only (since all are from the same club)
-    sameClubPlayers.sort((a, b) => a.name.localeCompare(b.name));
     
     // Always add the "Leave unmapped" option first
     const unmappedOption = document.createElement('option');
@@ -617,16 +641,41 @@ async function populateDraftPlayerDropdown(mapping) {
     if (sameClubPlayers.length > 0) {
         const header = document.createElement('option');
         header.disabled = true;
-        header.textContent = `--- ${mantraClub} (${sameClubPlayers.length} players) ---`;
+        
+        // Different header text based on source
+        if (mapping.remaining_club_options && mapping.remaining_club_options.length > 0) {
+            header.textContent = `--- ${mantraClub} (${sameClubPlayers.length} оставшихся вариантов) ---`;
+            header.style.color = '#ff8c00';  // Orange for remaining options
+        } else {
+            header.textContent = `--- ${mantraClub} (${sameClubPlayers.length} players) ---`;
+        }
+        
         header.style.fontWeight = 'bold';
         header.style.backgroundColor = '#f8f9fa';
         select.appendChild(header);
         
         // Add options to select
-        sameClubPlayers.forEach(player => {
+        sameClubPlayers.forEach((player, index) => {
             const option = document.createElement('option');
             option.value = `${player.name}|${player.club}`;
-            option.textContent = player.name;  // Just name since club is obvious
+            
+            // Show similarity score if available
+            if (player.similarity_score !== undefined) {
+                const scorePercent = (player.similarity_score * 100).toFixed(0);
+                option.textContent = `${player.name} (${scorePercent}% схожесть)`;
+                
+                // Color code by similarity
+                if (player.similarity_score >= 0.7) {
+                    option.style.color = '#28a745'; // Green for high similarity
+                } else if (player.similarity_score >= 0.4) {
+                    option.style.color = '#ffc107'; // Yellow for medium similarity
+                } else {
+                    option.style.color = '#6c757d'; // Gray for low similarity
+                }
+            } else {
+                option.textContent = player.name;  // Just name since club is obvious
+            }
+            
             select.appendChild(option);
         });
     } else {

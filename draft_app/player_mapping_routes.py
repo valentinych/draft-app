@@ -395,7 +395,46 @@ def run_mapping_task():
                     
                     print(f"[PlayerMapping] ✅ Matched: {mantra_name} -> {draft_player.get('name', '')} (score: {best_match['similarity_score']:.3f})")
                 else:
-                    print(f"[PlayerMapping] ❌ No match: {mantra_name} (best candidate already used or no good match)")
+                    # No automatic match - find all remaining players from same club for manual selection
+                    remaining_club_players = []
+                    for draft_player in candidate_draft_players:
+                        if not isinstance(draft_player, dict):
+                            continue
+                        
+                        draft_name = draft_player.get('name', '')
+                        draft_club = draft_player.get('club', '')
+                        draft_key = f"{draft_name}|{draft_club}"
+                        
+                        # Only include players from same club that are not yet used
+                        if draft_key not in used_draft_players:
+                            club_similarity = PlayerMatcher.calculate_club_similarity(mantra_club_name, draft_club)
+                            if club_similarity >= 0.4:  # Same threshold as before
+                                # Calculate name similarity for sorting
+                                best_name_similarity = 0
+                                for name_variation in mantra_name_variations:
+                                    name_similarity = matcher.calculate_name_similarity(name_variation, draft_name)
+                                    if name_similarity > best_name_similarity:
+                                        best_name_similarity = name_similarity
+                                
+                                remaining_club_players.append({
+                                    'name': draft_name,
+                                    'club': draft_club,
+                                    'similarity_score': best_name_similarity
+                                })
+                    
+                    # Sort remaining players by similarity (best first)
+                    remaining_club_players.sort(key=lambda x: x['similarity_score'], reverse=True)
+                    
+                    # Add to mapping with suggestions for manual review
+                    mapping_entry.update({
+                        'remaining_club_options': remaining_club_players[:5],  # Top 5 suggestions
+                        'total_remaining_options': len(remaining_club_players)
+                    })
+                    
+                    if remaining_club_players:
+                        print(f"[PlayerMapping] ⚠️ No auto-match for {mantra_name}, but {len(remaining_club_players)} options available from {mantra_club_name}")
+                    else:
+                        print(f"[PlayerMapping] ❌ No match: {mantra_name} (no remaining players in {mantra_club_name})")
                 
                 mappings.append(mapping_entry)
         
