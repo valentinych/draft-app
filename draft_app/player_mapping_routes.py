@@ -300,8 +300,9 @@ def run_mapping_task():
                     club_similarity = PlayerMatcher.calculate_club_similarity(mantra_club_name, draft_club)
                     
                     # Only proceed if clubs match well (strict threshold)
-                    if club_similarity < 0.7:
-                        continue  # Skip players from different clubs
+                    # Allow weaker club matches but be more strict with name matching
+                    if club_similarity < 0.4:
+                        continue  # Skip players from very different clubs
                     
                     # Calculate best name similarity across all variations
                     best_name_similarity = 0
@@ -311,9 +312,15 @@ def run_mapping_task():
                             best_name_similarity = name_similarity
                     
                     # For same-club matching, name similarity is the primary factor
+                    # But adjust threshold based on club similarity
+                    if club_similarity >= 0.7:
+                        name_threshold = 0.3  # Lower threshold for well-matched clubs
+                    else:
+                        name_threshold = 0.6  # Higher threshold for weakly-matched clubs
+                    
                     combined_score = best_name_similarity  # Club already verified above
                     
-                    if combined_score > best_score and combined_score > 0.3:  # Lower threshold since club is already matched
+                    if combined_score > best_score and combined_score > name_threshold:
                         best_score = combined_score
                         best_match = {
                             'mantra_player': draft_player,  # This is actually the matched draft player
@@ -589,3 +596,63 @@ def update_mapping():
             'error': f'Failed to update mapping: {str(e)}',
             'details': error_details
         }), 500
+
+@bp.route('/top4/player-mapping/all-draft-players')
+@require_auth
+def get_all_draft_players():
+    """Get all available draft players for dropdown"""
+    try:
+        # Check if user has godmode
+        if not session.get('godmode'):
+            return jsonify({'error': 'Access denied'}), 403
+        
+        # Load draft players from the same source as mapping
+        draft_players = []
+        
+        # Try to load from the actual file
+        possible_paths = [
+            'data/cache/top4_players.json',  # Primary path for production
+            './data/cache/top4_players.json',  # Relative path
+            '/app/data/cache/top4_players.json',  # Heroku path
+            '/Users/ruslan.aharodnik/Code/perpay/external/draft-app/data/cache/top4_players.json'  # Development path
+        ]
+        
+        top4_loaded = False
+        
+        for path in possible_paths:
+            if os.path.exists(path):
+                try:
+                    with open(path, 'r', encoding='utf-8') as f:
+                        top4_data = json.load(f)
+                        if isinstance(top4_data, list) and len(top4_data) > 0:
+                            # Convert to our format
+                            draft_players = []
+                            for player in top4_data:
+                                if isinstance(player, dict):
+                                    draft_players.append({
+                                        'name': player.get('fullName', ''),
+                                        'club': player.get('clubName', ''),
+                                        'position': player.get('position', ''),
+                                        'league': player.get('league', ''),
+                                        'playerId': player.get('playerId', '')
+                                    })
+                            
+                            print(f"[PlayerMapping] Loaded {len(draft_players)} draft players from {path}")
+                            top4_loaded = True
+                            break
+                except Exception as e:
+                    print(f"[PlayerMapping] Error loading {path}: {e}")
+                    continue
+        
+        if not top4_loaded:
+            return jsonify({'success': False, 'error': 'Could not load draft players'})
+        
+        return jsonify({
+            'success': True, 
+            'players': draft_players,
+            'total_players': len(draft_players)
+        })
+        
+    except Exception as e:
+        print(f"[PlayerMapping] Error in get_all_draft_players: {e}")
+        return jsonify({'success': False, 'error': str(e)})

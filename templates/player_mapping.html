@@ -156,12 +156,22 @@
                         <input type="text" class="form-control" id="edit-mantra-name" readonly>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Draft Player Name</label>
+                        <label class="form-label">Draft Player</label>
+                        <select class="form-select" id="edit-draft-player">
+                            <option value="">Select a draft player...</option>
+                        </select>
+                        <small class="form-text text-muted">Choose from available draft players</small>
+                    </div>
+                    <div class="mb-3" style="display: none;">
+                        <label class="form-label">Manual Entry (if not in list)</label>
                         <input type="text" class="form-control" id="edit-draft-name" placeholder="Enter draft player name">
+                        <input type="text" class="form-control mt-2" id="edit-draft-club" placeholder="Enter club name">
+                        <small class="form-text text-muted">Use this only if the player is not in the dropdown above</small>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Draft Player Club</label>
-                        <input type="text" class="form-control" id="edit-draft-club" placeholder="Enter club name">
+                        <button type="button" class="btn btn-sm btn-outline-secondary" id="toggle-manual-entry">
+                            Show Manual Entry
+                        </button>
                     </div>
                 </form>
             </div>
@@ -193,6 +203,23 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Save mapping modal
     document.getElementById('save-mapping-btn').addEventListener('click', saveMapping);
+    
+    // Toggle manual entry
+    document.getElementById('toggle-manual-entry').addEventListener('click', function() {
+        const manualDiv = this.parentElement.previousElementSibling;
+        const isHidden = manualDiv.style.display === 'none';
+        
+        if (isHidden) {
+            manualDiv.style.display = 'block';
+            this.textContent = 'Hide Manual Entry';
+        } else {
+            manualDiv.style.display = 'none';
+            this.textContent = 'Show Manual Entry';
+            // Clear manual inputs when hiding
+            document.getElementById('edit-draft-name').value = '';
+            document.getElementById('edit-draft-club').value = '';
+        }
+    });
 });
 
 async function loadMappingPreview() {
@@ -483,19 +510,118 @@ function editMapping(index) {
     
     document.getElementById('edit-mantra-id').value = mapping.mantra_id;
     document.getElementById('edit-mantra-name').value = mapping.mantra_name;
+    
+    // Populate draft player dropdown
+    populateDraftPlayerDropdown(mapping);
+    
+    // Set current values
     document.getElementById('edit-draft-name').value = mapping.draft_match ? mapping.draft_match.name : '';
     document.getElementById('edit-draft-club').value = mapping.draft_match ? mapping.draft_match.club : '';
+    
+    // Try to select current match in dropdown
+    const draftPlayerSelect = document.getElementById('edit-draft-player');
+    if (mapping.draft_match) {
+        const optionValue = `${mapping.draft_match.name}|${mapping.draft_match.club}`;
+        const option = Array.from(draftPlayerSelect.options).find(opt => opt.value === optionValue);
+        if (option) {
+            draftPlayerSelect.value = optionValue;
+        }
+    }
     
     new bootstrap.Modal(document.getElementById('editMappingModal')).show();
 }
 
+async function populateDraftPlayerDropdown(mapping) {
+    const select = document.getElementById('edit-draft-player');
+    
+    // Clear existing options except the first one
+    while (select.children.length > 1) {
+        select.removeChild(select.lastChild);
+    }
+    
+    // Get all available draft players
+    let allDraftPlayers = [];
+    
+    // First, extract from current mappings (these are confirmed available)
+    currentMappings.forEach(m => {
+        if (m.draft_match && m.draft_match.name && m.draft_match.club) {
+            allDraftPlayers.push({
+                name: m.draft_match.name,
+                club: m.draft_match.club,
+                source: 'mapping'
+            });
+        }
+    });
+    
+    // Try to get all draft players from backend
+    try {
+        const response = await fetch('/top4/player-mapping/all-draft-players');
+        if (response.ok) {
+            const data = await response.json();
+            if (data.success && data.players) {
+                data.players.forEach(player => {
+                    allDraftPlayers.push({
+                        name: player.name,
+                        club: player.club,
+                        source: 'backend'
+                    });
+                });
+            }
+        }
+    } catch (error) {
+        console.warn('Could not load all draft players from backend:', error);
+    }
+    
+    // Remove duplicates
+    const uniquePlayers = allDraftPlayers.filter((player, index, self) => 
+        index === self.findIndex(p => p.name === player.name && p.club === player.club)
+    );
+    
+    // Sort by club then name
+    uniquePlayers.sort((a, b) => {
+        if (a.club !== b.club) return a.club.localeCompare(b.club);
+        return a.name.localeCompare(b.name);
+    });
+    
+    // Add options to select
+    let currentClub = '';
+    uniquePlayers.forEach(player => {
+        if (player.club !== currentClub) {
+            // Add club separator
+            const separator = document.createElement('option');
+            separator.disabled = true;
+            separator.textContent = `--- ${player.club} ---`;
+            separator.style.fontWeight = 'bold';
+            select.appendChild(separator);
+            currentClub = player.club;
+        }
+        
+        const option = document.createElement('option');
+        option.value = `${player.name}|${player.club}`;
+        option.textContent = `${player.name} (${player.club})`;
+        select.appendChild(option);
+    });
+}
+
 async function saveMapping() {
     const mantraId = document.getElementById('edit-mantra-id').value;
-    const draftName = document.getElementById('edit-draft-name').value;
-    const draftClub = document.getElementById('edit-draft-club').value;
+    const draftPlayerSelect = document.getElementById('edit-draft-player');
+    
+    let draftName, draftClub;
+    
+    // Check if a player was selected from dropdown
+    if (draftPlayerSelect.value && draftPlayerSelect.value.includes('|')) {
+        const [name, club] = draftPlayerSelect.value.split('|');
+        draftName = name;
+        draftClub = club;
+    } else {
+        // Use manual entry
+        draftName = document.getElementById('edit-draft-name').value;
+        draftClub = document.getElementById('edit-draft-club').value;
+    }
 
     if (!draftName.trim()) {
-        alert('Please enter a draft player name');
+        alert('Please select a draft player from the dropdown or enter manually');
         return;
     }
 
