@@ -399,14 +399,39 @@ class PlayerMatcher:
     
     @staticmethod
     def calculate_club_similarity(club1: str, club2: str) -> float:
-        """Calculate similarity between two club names"""
+        """Calculate similarity between two club names with improved logic"""
+        if not club1 or not club2:
+            return 0.0
+        
+        # Check for exact translation match first
+        # This prevents Leeds-Lecce confusion
+        if club1 in CLUB_NAME_TRANSLATIONS and CLUB_NAME_TRANSLATIONS[club1].lower() == club2.lower():
+            return 1.0  # Perfect match through translation
+        if club2 in CLUB_NAME_TRANSLATIONS and CLUB_NAME_TRANSLATIONS[club2].lower() == club1.lower():
+            return 1.0  # Perfect match through translation
+        
+        # Check for exact match after normalization
         norm1 = PlayerMatcher.normalize_club_name(club1)
         norm2 = PlayerMatcher.normalize_club_name(club2)
         
         if not norm1 or not norm2:
             return 0.0
         
-        return difflib.SequenceMatcher(None, norm1, norm2).ratio()
+        # Exact match after normalization
+        if norm1 == norm2:
+            return 1.0
+        
+        # For similar but different clubs (like Leeds vs Lecce), be more strict
+        # Use multiple similarity checks
+        sequence_similarity = difflib.SequenceMatcher(None, norm1, norm2).ratio()
+        
+        # Additional check: if the clubs are very short and similar, be more careful
+        if len(norm1) <= 6 and len(norm2) <= 6 and abs(len(norm1) - len(norm2)) <= 1:
+            # For short club names, require higher similarity to avoid confusion
+            if sequence_similarity < 0.8:
+                return sequence_similarity * 0.5  # Reduce similarity for ambiguous short names
+        
+        return sequence_similarity
     
     @staticmethod
     def find_best_match(draft_player: Dict[str, Any], mantra_players: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
