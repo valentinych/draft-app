@@ -149,7 +149,7 @@ def preview_mappings():
             
             # Debug: log first few players to see name variations
             if i < 5:
-                print(f"[PlayerMapping] Player {i}: {mantra_name_variations} -> primary: '{mantra_name}'")
+                print(f"[PlayerMapping] MantraFootball Player {i}: {mantra_name_variations} -> primary: '{mantra_name}', club: '{mantra_club}'")
             
             # Safely extract club data
             club_data = mantra_player.get('club', {})
@@ -178,15 +178,22 @@ def preview_mappings():
                 
                 # Try all name variations to find the best match
                 best_name_similarity = 0.0
+                best_name_variation = ""
                 for name_variation in mantra_name_variations:
                     name_sim = PlayerMatcher.calculate_name_similarity(name_variation, draft_name)
-                    best_name_similarity = max(best_name_similarity, name_sim)
+                    if name_sim > best_name_similarity:
+                        best_name_similarity = name_sim
+                        best_name_variation = name_variation
                 
                 # Calculate club similarity
                 club_similarity = PlayerMatcher.calculate_club_similarity(mantra_club, draft_club)
                 
                 # Combined score (name is more important than club)
                 combined_score = (best_name_similarity * 0.7) + (club_similarity * 0.3)
+                
+                # Debug: log detailed matching for first few players
+                if i < 3 and combined_score > 0.1:  # Show any meaningful matches
+                    print(f"[PlayerMapping] Match attempt {i}: '{best_name_variation}' vs '{draft_name}' (name: {best_name_similarity:.3f}) | '{mantra_club}' vs '{draft_club}' (club: {club_similarity:.3f}) -> combined: {combined_score:.3f}")
                 
                 if combined_score > best_score and combined_score > 0.4:  # Minimum threshold
                     best_score = combined_score
