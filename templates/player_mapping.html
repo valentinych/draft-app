@@ -180,14 +180,7 @@ async function loadMappingPreview() {
     mappingTableCard.style.display = 'none';
 
     try {
-        const response = await fetch('/top4/player-mapping/preview', {
-            method: 'GET',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json'
-            },
-            signal: AbortSignal.timeout(120000) // 2 minutes timeout
-        });
+        const response = await fetch('/top4/player-mapping/preview');
         
         // Check if response is ok
         if (!response.ok) {
@@ -210,11 +203,11 @@ async function loadMappingPreview() {
         }
 
         if (data.success) {
+            // Process completed immediately
             currentMappings = data.mappings;
             updateStatusPanel(data);
             filterMappings();
             
-            // Show cache status if available
             if (data.cache_status) {
                 showCacheStatus(data.cache_status);
             }
@@ -222,23 +215,89 @@ async function loadMappingPreview() {
             document.getElementById('confirm-all-btn').disabled = false;
             document.getElementById('export-btn').disabled = false;
             mappingTableCard.style.display = 'block';
-        } else {
-            // Show cache status in error case too
-            if (data.cache_status) {
-                showCacheStatus(data.cache_status);
-            }
+            loadingIndicator.style.display = 'none';
+        } else if (data.in_progress) {
+            // Process started, poll for status
+            updateLoadingStatus(data.current_step, data.progress);
+            pollMappingStatus();
+        } else if (data.error) {
             console.error('Server returned error:', data.error);
-            if (data.details) {
-                console.error('Error details:', data.details);
-            }
-            alert('Error: ' + data.error + (data.details ? '\n\nDetails: ' + data.details.substring(0, 300) : ''));
+            alert('Error: ' + data.error);
+            loadingIndicator.style.display = 'none';
         }
     } catch (error) {
         console.error('Network or other error:', error);
         alert('Failed to load mappings: ' + error.message);
-    } finally {
         loadingIndicator.style.display = 'none';
     }
+}
+
+function updateLoadingStatus(step, progress) {
+    const loadingIndicator = document.getElementById('loading-indicator');
+    const existingText = loadingIndicator.querySelector('p');
+    if (existingText) {
+        existingText.textContent = `${step} (${progress}%)`;
+    } else {
+        const p = document.createElement('p');
+        p.textContent = `${step} (${progress}%)`;
+        p.style.marginTop = '10px';
+        loadingIndicator.appendChild(p);
+    }
+}
+
+async function pollMappingStatus() {
+    const maxPolls = 120; // 2 minutes max
+    let polls = 0;
+    
+    const pollInterval = setInterval(async () => {
+        polls++;
+        
+        try {
+            const response = await fetch('/top4/player-mapping/status');
+            const data = await response.json();
+            
+            if (data.in_progress) {
+                updateLoadingStatus(data.current_step, data.progress);
+                
+                if (polls >= maxPolls) {
+                    clearInterval(pollInterval);
+                    alert('Mapping process is taking longer than expected. Please try again later.');
+                    document.getElementById('loading-indicator').style.display = 'none';
+                }
+            } else {
+                clearInterval(pollInterval);
+                
+                if (data.has_result) {
+                    // Process completed, get the result
+                    const resultResponse = await fetch('/top4/player-mapping/preview');
+                    const resultData = await resultResponse.json();
+                    
+                    if (resultData.success) {
+                        currentMappings = resultData.mappings;
+                        updateStatusPanel(resultData);
+                        filterMappings();
+                        
+                        if (resultData.cache_status) {
+                            showCacheStatus(resultData.cache_status);
+                        }
+                        
+                        document.getElementById('confirm-all-btn').disabled = false;
+                        document.getElementById('export-btn').disabled = false;
+                        document.getElementById('mapping-table-card').style.display = 'block';
+                    }
+                } else if (data.has_error) {
+                    alert('Error: ' + data.error);
+                }
+                
+                document.getElementById('loading-indicator').style.display = 'none';
+            }
+        } catch (error) {
+            clearInterval(pollInterval);
+            console.error('Error polling status:', error);
+            alert('Error checking mapping status: ' + error.message);
+            document.getElementById('loading-indicator').style.display = 'none';
+        }
+    }, 1000); // Poll every second
 }
 
 function updateStatusPanel(data) {
