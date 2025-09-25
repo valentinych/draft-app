@@ -84,24 +84,66 @@ def run_mapping_task():
             'progress': 5
         })
         
-        # Add some hardcoded Russian test players for testing
-        print(f"[PlayerMapping] Using Russian test players for matching...")
+        # Load real TOP-4 players with Russian names
+        mapping_status['current_step'] = 'Loading TOP-4 players...'
+        mapping_status['progress'] = 7
         
-        russian_test_players = [
-            {"name": "Мбаппе", "club": "Реал Мадрид", "league": "Spain"},
-            {"name": "Холанд", "club": "Манчестер Сити", "league": "England"},
-            {"name": "Беллингем", "club": "Реал Мадрид", "league": "Spain"},
-            {"name": "Винисиус", "club": "Реал Мадрид", "league": "Spain"},
-            {"name": "Родриго", "club": "Манчестер Сити", "league": "England"},
-            {"name": "Де Брейне", "club": "Манчестер Сити", "league": "England"},
-            {"name": "Салах", "club": "Ливерпуль", "league": "England"},
-            {"name": "Левандовский", "club": "Барселона", "league": "Spain"},
-            {"name": "Мюллер", "club": "Бавария", "league": "Germany"},
-            {"name": "Нойер", "club": "Бавария", "league": "Germany"}
+        draft_players = []
+        
+        # Try to load from the actual file
+        possible_paths = [
+            '/app/data/cache/top4_players.json',
+            'data/cache/top4_players.json',
+            './data/cache/top4_players.json',
+            '/Users/ruslan.aharodnik/Code/perpay/external/draft-app/data/cache/top4_players.json'
         ]
         
-        draft_players = russian_test_players
-        print(f"[PlayerMapping] Using {len(draft_players)} Russian test players")
+        top4_loaded = False
+        
+        for path in possible_paths:
+            if os.path.exists(path):
+                try:
+                    with open(path, 'r', encoding='utf-8') as f:
+                        top4_data = json.load(f)
+                        if isinstance(top4_data, list) and len(top4_data) > 0:
+                            # Convert to our format
+                            draft_players = []
+                            for player in top4_data:
+                                if isinstance(player, dict):
+                                    draft_players.append({
+                                        'name': player.get('fullName', ''),
+                                        'club': player.get('clubName', ''),
+                                        'position': player.get('position', ''),
+                                        'league': player.get('league', ''),
+                                        'playerId': player.get('playerId', '')
+                                    })
+                            
+                            print(f"[PlayerMapping] Loaded {len(draft_players)} TOP-4 players from {path}")
+                            top4_loaded = True
+                            break
+                except Exception as e:
+                    print(f"[PlayerMapping] Error loading {path}: {e}")
+                    continue
+        
+        # Fallback to test players if file not found
+        if not top4_loaded or len(draft_players) == 0:
+            print(f"[PlayerMapping] Using Russian test players for matching...")
+            
+            draft_players = [
+                {"name": "Мбаппе", "club": "Реал Мадрид", "league": "Spain"},
+                {"name": "Холанд", "club": "Манчестер Сити", "league": "England"},
+                {"name": "Беллингем", "club": "Реал Мадрид", "league": "Spain"},
+                {"name": "Винисиус", "club": "Реал Мадрид", "league": "Spain"},
+                {"name": "Родриго", "club": "Манчестер Сити", "league": "England"},
+                {"name": "Де Брейне", "club": "Манчестер Сити", "league": "England"},
+                {"name": "Салах", "club": "Ливерпуль", "league": "England"},
+                {"name": "Левандовский", "club": "Барселона", "league": "Spain"},
+                {"name": "Мюллер", "club": "Бавария", "league": "Germany"},
+                {"name": "Нойер", "club": "Бавария", "league": "Germany"}
+            ]
+            print(f"[PlayerMapping] Using {len(draft_players)} fallback test players")
+        else:
+            print(f"[PlayerMapping] Successfully loaded {len(draft_players)} real TOP-4 players")
         
         mapping_status.update({
             'current_step': 'Starting player matching...',
@@ -109,7 +151,20 @@ def run_mapping_task():
             'total': len(mantra_players)
         })
         
-        # Generate mappings with progress tracking
+        # Group draft players by league for faster matching
+        mapping_status['current_step'] = 'Organizing players by league...'
+        mapping_status['progress'] = 12
+        
+        draft_players_by_league = {}
+        for player in draft_players:
+            league = player.get('league', 'Unknown')
+            if league not in draft_players_by_league:
+                draft_players_by_league[league] = []
+            draft_players_by_league[league].append(player)
+        
+        print(f"[PlayerMapping] Organized draft players by league: {dict((k, len(v)) for k, v in draft_players_by_league.items())}")
+        
+        # Generate mappings with progress tracking and league-based optimization
         mappings = []
         matched_count = 0
         matcher = PlayerMatcher()
@@ -117,7 +172,7 @@ def run_mapping_task():
         for i, mantra_player in enumerate(mantra_players):
             # Update progress every 50 players
             if i % 50 == 0:
-                progress_percent = 10 + int((i / len(mantra_players)) * 80)  # 10-90%
+                progress_percent = 15 + int((i / len(mantra_players)) * 75)  # 15-90%
                 mapping_status.update({
                     'current_step': f'Matching player {i+1}/{len(mantra_players)}...',
                     'progress': progress_percent
@@ -169,12 +224,28 @@ def run_mapping_task():
             else:
                 mantra_club = ''
             
-            # Find best match among draft players
+            # Find best match among draft players - optimize by checking same league first
             best_match = None
             best_score = 0
             
-            # Calculate similarity with each draft player
-            for draft_player in draft_players:
+            # Try same league first for better performance
+            potential_matches = []
+            
+            # First, try players from the same league
+            if mantra_league in draft_players_by_league:
+                potential_matches.extend(draft_players_by_league[mantra_league])
+            
+            # Then add players from other leagues
+            for league, players in draft_players_by_league.items():
+                if league != mantra_league:
+                    potential_matches.extend(players)
+            
+            # If no league grouping worked, fall back to all players
+            if not potential_matches:
+                potential_matches = draft_players
+            
+            # Calculate similarity with potential matches
+            for draft_player in potential_matches:
                 if not isinstance(draft_player, dict):
                     continue
                 
@@ -348,6 +419,31 @@ def mapping_status_endpoint():
         'has_result': mapping_status['result'] is not None,
         'has_error': mapping_status['error'] is not None,
         'error': mapping_status['error']
+    })
+
+@bp.route('/top4/player-mapping/reset', methods=['POST'])
+@require_auth
+def reset_mapping():
+    """Reset mapping status to allow new mapping process"""
+    global mapping_status
+    
+    if not session.get('godmode'):
+        return jsonify({'error': 'Access denied'}), 403
+    
+    mapping_status = {
+        'in_progress': False,
+        'progress': 0,
+        'total': 0,
+        'current_step': '',
+        'result': None,
+        'error': None,
+        'started_at': None,
+        'completed_at': None
+    }
+    
+    return jsonify({
+        'success': True,
+        'message': 'Mapping status reset successfully'
     })
 
 @bp.route('/top4/player-mapping/confirm', methods=['POST'])

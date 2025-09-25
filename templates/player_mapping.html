@@ -48,6 +48,9 @@
                             <button id="load-preview-btn" class="btn btn-primary me-2">
                                 <i class="fas fa-search"></i> Load Mapping Preview
                             </button>
+                            <button id="reset-mapping-btn" class="btn btn-warning me-2">
+                                <i class="fas fa-trash"></i> Reset
+                            </button>
                             <button id="confirm-all-btn" class="btn btn-success me-2" disabled>
                                 <i class="fas fa-check"></i> Confirm All Auto-Matches
                             </button>
@@ -163,6 +166,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const showLowConfidence = document.getElementById('show-low-confidence');
 
     loadPreviewBtn.addEventListener('click', loadMappingPreview);
+    document.getElementById('reset-mapping-btn').addEventListener('click', resetMapping);
     confirmAllBtn.addEventListener('click', confirmAllMappings);
     exportBtn.addEventListener('click', exportResults);
     showUnmatched.addEventListener('change', filterMappings);
@@ -298,6 +302,44 @@ async function pollMappingStatus() {
             document.getElementById('loading-indicator').style.display = 'none';
         }
     }, 1000); // Poll every second
+}
+
+async function resetMapping() {
+    if (!confirm('Are you sure you want to reset the mapping process? This will clear all current results.')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch('/top4/player-mapping/reset', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Clear the interface
+            currentMappings = [];
+            document.getElementById('mapping-table-card').style.display = 'none';
+            document.getElementById('confirm-all-btn').disabled = true;
+            document.getElementById('export-btn').disabled = true;
+            
+            // Update status panel
+            document.getElementById('total-mantra').textContent = '0';
+            document.getElementById('total-draft').textContent = '0';
+            document.getElementById('matched-count').textContent = '0';
+            document.getElementById('match-rate').textContent = '0.0%';
+            
+            alert('Mapping reset successfully!');
+        } else {
+            alert('Error resetting mapping: ' + data.error);
+        }
+    } catch (error) {
+        console.error('Error resetting mapping:', error);
+        alert('Failed to reset mapping: ' + error.message);
+    }
 }
 
 function updateStatusPanel(data) {
