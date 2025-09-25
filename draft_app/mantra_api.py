@@ -410,6 +410,20 @@ class PlayerMatcher:
         if club2 in CLUB_NAME_TRANSLATIONS and CLUB_NAME_TRANSLATIONS[club2].lower() == club1.lower():
             return 1.0  # Perfect match through translation
         
+        # Check for partial translation matches (e.g., "Верона" -> "Hellas Verona" should match "Verona")
+        if club1 in CLUB_NAME_TRANSLATIONS:
+            translated = CLUB_NAME_TRANSLATIONS[club1].lower()
+            if club2.lower() in translated or translated in club2.lower():
+                # Check if it's a meaningful partial match (not just random substring)
+                if len(club2) >= 4 and club2.lower() in translated:
+                    return 1.0  # "Verona" matches "Hellas Verona"
+        if club2 in CLUB_NAME_TRANSLATIONS:
+            translated = CLUB_NAME_TRANSLATIONS[club2].lower()
+            if club1.lower() in translated or translated in club1.lower():
+                # Check if it's a meaningful partial match
+                if len(club1) >= 4 and club1.lower() in translated:
+                    return 1.0  # "Verona" matches "Hellas Verona"
+        
         # Check for exact match after normalization
         norm1 = PlayerMatcher.normalize_club_name(club1)
         norm2 = PlayerMatcher.normalize_club_name(club2)
@@ -421,8 +435,23 @@ class PlayerMatcher:
         if norm1 == norm2:
             return 1.0
         
-        # For similar but different clubs (like Leeds vs Lecce), be more strict
-        # Use multiple similarity checks
+        # Special cases for known problematic pairs
+        problematic_pairs = [
+            ('everton', 'verona'),
+            ('everton', 'hellas verona'),
+            ('leeds', 'lecce'),
+        ]
+        
+        norm1_clean = norm1.replace(' ', '').lower()
+        norm2_clean = norm2.replace(' ', '').lower()
+        
+        for pair1, pair2 in problematic_pairs:
+            pair1_clean = pair1.replace(' ', '')
+            pair2_clean = pair2.replace(' ', '')
+            if (norm1_clean == pair1_clean and norm2_clean == pair2_clean) or (norm1_clean == pair2_clean and norm2_clean == pair1_clean):
+                return 0.3  # Force low similarity for known problematic pairs
+        
+        # For similar but different clubs, use multiple similarity checks
         sequence_similarity = difflib.SequenceMatcher(None, norm1, norm2).ratio()
         
         # Additional check: if the clubs are very short and similar, be more careful
