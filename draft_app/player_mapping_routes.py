@@ -77,12 +77,31 @@ def preview_mappings():
                         draft_players.append(player)
         
         # Load TOP-4 players with Russian names from cache
+        print(f"[PlayerMapping] Current draft_players count: {len(draft_players)}")
+        
         if not draft_players:
             try:
                 import json
                 import os
-                top4_players_file = os.path.join('data', 'cache', 'top4_players.json')
-                if os.path.exists(top4_players_file):
+                
+                # Try multiple possible paths for the TOP-4 players file
+                possible_paths = [
+                    os.path.join('data', 'cache', 'top4_players.json'),
+                    'top4_players.json',
+                    os.path.join('..', 'data', 'cache', 'top4_players.json'),
+                    '/app/data/cache/top4_players.json'  # Heroku absolute path
+                ]
+                
+                top4_players_file = None
+                for path in possible_paths:
+                    if os.path.exists(path):
+                        top4_players_file = path
+                        print(f"[PlayerMapping] Found TOP-4 players file at: {path}")
+                        break
+                    else:
+                        print(f"[PlayerMapping] File not found: {path}")
+                
+                if top4_players_file:
                     with open(top4_players_file, 'r', encoding='utf-8') as f:
                         top4_data = json.load(f)
                         draft_players = [
@@ -100,9 +119,19 @@ def preview_mappings():
                         for i, player in enumerate(draft_players[:3]):
                             print(f"[PlayerMapping] TOP-4 Player {i}: '{player.get('name')}' ({player.get('club')}) - {player.get('league')}")
                 else:
-                    print(f"[PlayerMapping] TOP-4 players file not found: {top4_players_file}")
+                    print(f"[PlayerMapping] TOP-4 players file not found in any of the paths: {possible_paths}")
+                    # List current directory contents for debugging
+                    print(f"[PlayerMapping] Current working directory: {os.getcwd()}")
+                    print(f"[PlayerMapping] Directory contents: {os.listdir('.')}")
+                    if os.path.exists('data'):
+                        print(f"[PlayerMapping] data/ contents: {os.listdir('data')}")
+                        if os.path.exists('data/cache'):
+                            print(f"[PlayerMapping] data/cache/ contents: {os.listdir('data/cache')}")
+                            
             except Exception as e:
                 print(f"[PlayerMapping] Error loading TOP-4 players: {e}")
+                import traceback
+                traceback.print_exc()
         
         # Fallback to sample players if still empty
         if not draft_players:
