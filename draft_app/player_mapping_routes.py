@@ -206,6 +206,9 @@ def run_mapping_task():
         
         print(f"[PlayerMapping] Starting club-by-club matching for {len(all_mantra_clubs)} MantraFootball clubs")
         
+        # Track used draft players to ensure 1-to-1 mapping
+        used_draft_players = set()
+        
         # Process each MantraFootball club
         for club_idx, (mantra_club, mantra_club_players) in enumerate(mantra_players_by_club.items()):
             # Update progress
@@ -239,7 +242,10 @@ def run_mapping_task():
                 processed_players += len(mantra_club_players)
                 continue
             
-            # Match players within this club
+            # IMPROVED: Two-pass matching for 1-to-1 mapping within each club
+            # First pass: collect all potential matches for players in this club
+            club_potential_matches = []
+            
             for mantra_player in mantra_club_players:
                 processed_players += 1
                 
@@ -284,8 +290,8 @@ def run_mapping_task():
                 mantra_club_name = mantra_club
                 
                 # Find best match among candidate draft players from this club
-                best_match = None
-                best_score = 0
+                best_match_for_this_player = None
+                best_score_for_this_player = 0
                 
                 # Calculate similarity with candidate draft players
                 # STRICT: Only match players from the SAME club
@@ -296,11 +302,17 @@ def run_mapping_task():
                     draft_name = draft_player.get('name', '')
                     draft_club = draft_player.get('club', '')
                     
+                    # Create unique key for this draft player
+                    draft_key = f"{draft_name}|{draft_club}"
+                    
+                    # Skip if this draft player is already used
+                    if draft_key in used_draft_players:
+                        continue
+                    
                     # STRICT CLUB MATCHING: Only consider players from the same club
                     club_similarity = PlayerMatcher.calculate_club_similarity(mantra_club_name, draft_club)
                     
                     # Only proceed if clubs match well (strict threshold)
-                    # Allow weaker club matches but be more strict with name matching
                     if club_similarity < 0.4:
                         continue  # Skip players from very different clubs
                     
@@ -320,14 +332,38 @@ def run_mapping_task():
                     
                     combined_score = best_name_similarity  # Club already verified above
                     
-                    if combined_score > best_score and combined_score > name_threshold:
-                        best_score = combined_score
-                        best_match = {
-                            'mantra_player': draft_player,  # This is actually the matched draft player
+                    if combined_score > best_score_for_this_player and combined_score > name_threshold:
+                        best_score_for_this_player = combined_score
+                        best_match_for_this_player = {
+                            'draft_player': draft_player,
+                            'draft_key': draft_key,
                             'similarity_score': combined_score,
                             'name_similarity': best_name_similarity,
                             'club_similarity': club_similarity
                         }
+                
+                # Store potential match for later resolution
+                club_potential_matches.append({
+                    'mantra_player': mantra_player,
+                    'mantra_id': mantra_id,
+                    'mantra_name': mantra_name,
+                    'mantra_club_name': mantra_club_name,
+                    'mantra_position': mantra_position,
+                    'mantra_league': mantra_league,
+                    'best_match': best_match_for_this_player,
+                    'best_score': best_score_for_this_player
+                })
+            
+            # Second pass: resolve conflicts and assign matches (best scores first)
+            club_potential_matches.sort(key=lambda x: x['best_score'], reverse=True)
+            
+            for potential_match in club_potential_matches:
+                mantra_id = potential_match['mantra_id']
+                mantra_name = potential_match['mantra_name']
+                mantra_club_name = potential_match['mantra_club_name']
+                mantra_position = potential_match['mantra_position']
+                mantra_league = potential_match['mantra_league']
+                best_match = potential_match['best_match']
                 
                 # Create mapping entry
                 mapping_entry = {
@@ -341,9 +377,13 @@ def run_mapping_task():
                     'auto_matched': False
                 }
                 
-                if best_match:
+                # Check if we can assign this match (draft player not already used)
+                if best_match and best_match['draft_key'] not in used_draft_players:
+                    # Assign this match
+                    used_draft_players.add(best_match['draft_key'])
                     matched_count += 1
-                    draft_player = best_match['mantra_player']  # This is actually the matched draft player
+                    
+                    draft_player = best_match['draft_player']
                     mapping_entry.update({
                         'draft_match': {
                             'name': draft_player.get('name', ''),
@@ -352,6 +392,10 @@ def run_mapping_task():
                         'similarity_score': best_match['similarity_score'],
                         'auto_matched': True
                     })
+                    
+                    print(f"[PlayerMapping] ✅ Matched: {mantra_name} -> {draft_player.get('name', '')} (score: {best_match['similarity_score']:.3f})")
+                else:
+                    print(f"[PlayerMapping] ❌ No match: {mantra_name} (best candidate already used or no good match)")
                 
                 mappings.append(mapping_entry)
         
