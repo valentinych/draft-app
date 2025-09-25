@@ -90,12 +90,12 @@ def run_mapping_task():
         
         draft_players = []
         
-        # Try to load from the actual file
+        # Try to load from the actual file - prioritize the updated file
         possible_paths = [
-            '/app/data/cache/top4_players.json',
-            'data/cache/top4_players.json',
-            './data/cache/top4_players.json',
-            '/Users/ruslan.aharodnik/Code/perpay/external/draft-app/data/cache/top4_players.json'
+            'data/cache/top4_players.json',  # Primary path for production
+            './data/cache/top4_players.json',  # Relative path
+            '/app/data/cache/top4_players.json',  # Heroku path
+            '/Users/ruslan.aharodnik/Code/perpay/external/draft-app/data/cache/top4_players.json'  # Development path
         ]
         
         top4_loaded = False
@@ -119,6 +119,15 @@ def run_mapping_task():
                                     })
                             
                             print(f"[PlayerMapping] Loaded {len(draft_players)} TOP-4 players from {path}")
+                            # Show some sample players for verification
+                            if len(draft_players) > 0:
+                                sample_players = draft_players[:3]
+                                print(f"[PlayerMapping] Sample players: {[p.get('name') + ' (' + p.get('club') + ')' for p in sample_players]}")
+                                # Check file modification time to ensure we're using the updated file
+                                import os
+                                file_stat = os.stat(path)
+                                mod_time = file_stat.st_mtime
+                                print(f"[PlayerMapping] File last modified: {mod_time} (using updated file: {mod_time > 1727200000})")  # Rough timestamp check
                             top4_loaded = True
                             break
                 except Exception as e:
@@ -176,7 +185,7 @@ def run_mapping_task():
         # Group draft players by club
         draft_players_by_club = {}
         for player in draft_players:
-            club_name = player.get('club', 'Unknown')
+            club_name = player.get('club', 'Unknown')  # 'club' is correct here from our conversion above
             if club_name not in draft_players_by_club:
                 draft_players_by_club[club_name] = []
             draft_players_by_club[club_name].append(player)
@@ -217,14 +226,19 @@ def run_mapping_task():
                     best_club_similarity = club_similarity
                     best_club_match = draft_club
             
-            # Get draft players from the best matching club (or all if no good match)
-            if best_club_match and best_club_similarity > 0.5:
+            # Get draft players from the best matching club (strict matching)
+            if best_club_match and best_club_similarity > 0.6:  # Stricter threshold
                 candidate_draft_players = draft_players_by_club[best_club_match]
                 print(f"[PlayerMapping] Matching {mantra_club} -> {best_club_match} (similarity: {best_club_similarity:.3f}, {len(candidate_draft_players)} players)")
+            elif best_club_match and best_club_similarity > 0.4:
+                # Medium similarity - still use club-specific matching but note it
+                candidate_draft_players = draft_players_by_club[best_club_match]
+                print(f"[PlayerMapping] Weak club match: {mantra_club} -> {best_club_match} (similarity: {best_club_similarity:.3f}, {len(candidate_draft_players)} players)")
             else:
-                # If no good club match, use all draft players
-                candidate_draft_players = draft_players
-                print(f"[PlayerMapping] No good club match for {mantra_club}, using all {len(candidate_draft_players)} draft players")
+                # Skip this club entirely if no reasonable match - this prevents bad mappings
+                print(f"[PlayerMapping] Skipping {mantra_club} - no reasonable club match found (best: {best_club_similarity:.3f})")
+                processed_players += len(mantra_club_players)
+                continue
             
             # Match players within this club
             for mantra_player in mantra_club_players:
