@@ -75,6 +75,7 @@ CLUB_NAME_TRANSLATIONS = {
     'Хоффенхайм': 'Hoffenheim',
     'Майнц': 'Mainz',
     'Кельн': 'Cologne',
+    'Кёльн': 'FC Koln',
     'Аугсбург': 'Augsburg',
     'Унион Берлин': 'Union Berlin',
     'Хайденхайм': '1. FC Heidenheim',
@@ -411,18 +412,38 @@ class PlayerMatcher:
             return 1.0  # Perfect match through translation
         
         # Check for partial translation matches (e.g., "Верона" -> "Hellas Verona" should match "Verona")
+        # BUT be very strict to avoid Milan-Inter confusion
         if club1 in CLUB_NAME_TRANSLATIONS:
             translated = CLUB_NAME_TRANSLATIONS[club1].lower()
-            if club2.lower() in translated or translated in club2.lower():
-                # Check if it's a meaningful partial match (not just random substring)
-                if len(club2) >= 4 and club2.lower() in translated:
-                    return 1.0  # "Verona" matches "Hellas Verona"
+            club2_lower = club2.lower()
+            
+            # Only allow partial matches for specific safe cases
+            safe_partial_matches = [
+                ('verona', 'hellas verona'),
+                ('koln', 'fc koln'),
+                ('cologne', 'fc koln'),
+            ]
+            
+            for short_name, full_name in safe_partial_matches:
+                if ((club2_lower == short_name and translated == full_name) or 
+                    (club2_lower == full_name and translated == short_name)):
+                    return 1.0
+                    
         if club2 in CLUB_NAME_TRANSLATIONS:
             translated = CLUB_NAME_TRANSLATIONS[club2].lower()
-            if club1.lower() in translated or translated in club1.lower():
-                # Check if it's a meaningful partial match
-                if len(club1) >= 4 and club1.lower() in translated:
-                    return 1.0  # "Verona" matches "Hellas Verona"
+            club1_lower = club1.lower()
+            
+            # Only allow partial matches for specific safe cases
+            safe_partial_matches = [
+                ('verona', 'hellas verona'),
+                ('koln', 'fc koln'),
+                ('cologne', 'fc koln'),
+            ]
+            
+            for short_name, full_name in safe_partial_matches:
+                if ((club1_lower == short_name and translated == full_name) or 
+                    (club1_lower == full_name and translated == short_name)):
+                    return 1.0
         
         # Check for exact match after normalization
         norm1 = PlayerMatcher.normalize_club_name(club1)
@@ -440,16 +461,28 @@ class PlayerMatcher:
             ('everton', 'verona'),
             ('everton', 'hellas verona'),
             ('leeds', 'lecce'),
+            ('ac milan', 'inter milan'),  # Prevent Milan-Inter confusion
+            ('milan', 'inter'),           # Prevent Milan-Inter confusion
+            ('koln', 'bologna'),          # Prevent Koln-Bologna confusion
+            ('fc koln', 'bologna'),       # Prevent Koln-Bologna confusion
         ]
         
         norm1_clean = norm1.replace(' ', '').lower()
         norm2_clean = norm2.replace(' ', '').lower()
         
         for pair1, pair2 in problematic_pairs:
-            pair1_clean = pair1.replace(' ', '')
-            pair2_clean = pair2.replace(' ', '')
+            pair1_clean = pair1.replace(' ', '').lower()
+            pair2_clean = pair2.replace(' ', '').lower()
             if (norm1_clean == pair1_clean and norm2_clean == pair2_clean) or (norm1_clean == pair2_clean and norm2_clean == pair1_clean):
                 return 0.3  # Force low similarity for known problematic pairs
+        
+        # Additional check: prevent any club containing "milan" from matching with any club containing "inter"
+        if ('milan' in norm1_clean and 'inter' in norm2_clean) or ('inter' in norm1_clean and 'milan' in norm2_clean):
+            return 0.3
+        
+        # Additional check: prevent Koln-Bologna confusion
+        if ('koln' in norm1_clean and 'bologna' in norm2_clean) or ('bologna' in norm1_clean and 'koln' in norm2_clean):
+            return 0.3
         
         # For similar but different clubs, use multiple similarity checks
         sequence_similarity = difflib.SequenceMatcher(None, norm1, norm2).ratio()
