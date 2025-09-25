@@ -76,10 +76,18 @@ def preview_mappings():
                     if isinstance(player, dict) and player not in draft_players:
                         draft_players.append(player)
         
-        # Load TOP-4 players with Russian names from cache
+        # Debug: show what draft players we have
         print(f"[PlayerMapping] Current draft_players count: {len(draft_players)}")
+        if draft_players:
+            print(f"[PlayerMapping] Sample draft players:")
+            for i, player in enumerate(draft_players[:3]):
+                print(f"  - {i}: {player}")
         
-        if not draft_players:
+        # FORCE load TOP-4 players with Russian names (ignore existing draft_players)
+        print(f"[PlayerMapping] Force loading TOP-4 players with Russian names...")
+        
+        # Always try to load Russian names, even if draft_players exist
+        if True:
             try:
                 import json
                 import os
@@ -104,6 +112,7 @@ def preview_mappings():
                 if top4_players_file:
                     with open(top4_players_file, 'r', encoding='utf-8') as f:
                         top4_data = json.load(f)
+                        # REPLACE existing draft_players with Russian names
                         draft_players = [
                             {
                                 'name': player.get('fullName', ''),
@@ -114,10 +123,10 @@ def preview_mappings():
                             }
                             for player in top4_data if isinstance(player, dict)
                         ]
-                        print(f"[PlayerMapping] Loaded {len(draft_players)} TOP-4 players with Russian names")
+                        print(f"[PlayerMapping] REPLACED with {len(draft_players)} TOP-4 players with Russian names")
                         # Debug: show first few TOP-4 players
-                        for i, player in enumerate(draft_players[:3]):
-                            print(f"[PlayerMapping] TOP-4 Player {i}: '{player.get('name')}' ({player.get('club')}) - {player.get('league')}")
+                        for i, player in enumerate(draft_players[:5]):
+                            print(f"[PlayerMapping] Russian Player {i}: '{player.get('name')}' ({player.get('club')}) - {player.get('league')}")
                 else:
                     print(f"[PlayerMapping] TOP-4 players file not found in any of the paths: {possible_paths}")
                     # List current directory contents for debugging
