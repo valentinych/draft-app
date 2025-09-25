@@ -558,7 +558,9 @@ def update_mapping():
     try:
         data = request.get_json()
         mantra_id = data.get('mantra_id')
-        draft_match = data.get('draft_match')
+        draft_name = data.get('draft_name', '').strip()
+        draft_club = data.get('draft_club', '').strip()
+        is_unmapped = data.get('is_unmapped', False)
         
         if not mantra_id:
             return jsonify({'error': 'mantra_id is required'}), 400
@@ -567,12 +569,22 @@ def update_mapping():
         mantra_store = MantraDataStore()
         player_map = mantra_store.load_player_map() or {}
         
-        if draft_match:
+        if is_unmapped:
+            # Mark as unmapped (exclude from draft)
+            player_map[str(mantra_id)] = {
+                'draft_name': '__UNMAPPED__',
+                'draft_club': '__UNMAPPED__',
+                'is_unmapped': True,
+                'similarity_score': 0,
+                'updated_at': datetime.now().isoformat()
+            }
+        elif draft_name and draft_club:
             # Update mapping
             player_map[str(mantra_id)] = {
-                'draft_name': draft_match['name'],
-                'draft_club': draft_match['club'],
-                'similarity_score': data.get('similarity_score', 0),
+                'draft_name': draft_name,
+                'draft_club': draft_club,
+                'is_unmapped': False,
+                'similarity_score': data.get('similarity_score', 1.0),
                 'updated_at': datetime.now().isoformat()
             }
         else:

@@ -447,9 +447,14 @@ function renderMappingTable() {
         const confidenceClass = mapping.similarity_score >= 0.8 ? 'text-success' : 
                                mapping.similarity_score >= 0.6 ? 'text-warning' : 'text-danger';
         
-        const statusBadge = mapping.auto_matched ? 
-            '<span class="badge bg-success">Auto-matched</span>' : 
-            '<span class="badge bg-secondary">No match</span>';
+        let statusBadge;
+        if (mapping.is_unmapped) {
+            statusBadge = '<span class="badge bg-danger">🚫 Незамаплен</span>';
+        } else if (mapping.auto_matched) {
+            statusBadge = '<span class="badge bg-success">Auto-matched</span>';
+        } else {
+            statusBadge = '<span class="badge bg-secondary">No match</span>';
+        }
 
         row.innerHTML = `
             <td>
@@ -464,13 +469,18 @@ function renderMappingTable() {
                 <span class="badge bg-info">${mapping.mantra_position}</span>
             </td>
             <td>
-                ${mapping.draft_match ? 
-                    `<strong>${mapping.draft_match.name}</strong><br><small class="text-muted">${mapping.draft_match.club}</small>` : 
-                    '<span class="text-muted">No match</span>'
+                ${mapping.is_unmapped ? 
+                    '<span class="text-danger"><strong>🚫 Исключен из драфта</strong></span>' :
+                    (mapping.draft_match ? 
+                        `<strong>${mapping.draft_match.name}</strong><br><small class="text-muted">${mapping.draft_match.club}</small>` : 
+                        '<span class="text-muted">No match</span>')
                 }
             </td>
             <td class="${confidenceClass}">
-                ${mapping.similarity_score > 0 ? (mapping.similarity_score * 100).toFixed(1) + '%' : '-'}
+                ${mapping.is_unmapped ? 
+                    '<span class="text-danger">N/A</span>' :
+                    (mapping.similarity_score > 0 ? (mapping.similarity_score * 100).toFixed(1) + '%' : '-')
+                }
             </td>
             <td>${statusBadge}</td>
             <td>
@@ -589,6 +599,20 @@ async function populateDraftPlayerDropdown(mapping) {
     // Sort by name only (since all are from the same club)
     sameClubPlayers.sort((a, b) => a.name.localeCompare(b.name));
     
+    // Always add the "Leave unmapped" option first
+    const unmappedOption = document.createElement('option');
+    unmappedOption.value = '__UNMAPPED__';
+    unmappedOption.textContent = '🚫 Оставить незамапленным (исключить из драфта)';
+    unmappedOption.style.fontStyle = 'italic';
+    unmappedOption.style.color = '#dc3545';
+    select.appendChild(unmappedOption);
+    
+    // Add separator
+    const separator = document.createElement('option');
+    separator.disabled = true;
+    separator.textContent = '─────────────────────────────';
+    select.appendChild(separator);
+    
     // Add club header
     if (sameClubPlayers.length > 0) {
         const header = document.createElement('option');
@@ -597,18 +621,16 @@ async function populateDraftPlayerDropdown(mapping) {
         header.style.fontWeight = 'bold';
         header.style.backgroundColor = '#f8f9fa';
         select.appendChild(header);
-    }
-    
-    // Add options to select
-    sameClubPlayers.forEach(player => {
-        const option = document.createElement('option');
-        option.value = `${player.name}|${player.club}`;
-        option.textContent = player.name;  // Just name since club is obvious
-        select.appendChild(option);
-    });
-    
-    // If no players found, add a message
-    if (sameClubPlayers.length === 0) {
+        
+        // Add options to select
+        sameClubPlayers.forEach(player => {
+            const option = document.createElement('option');
+            option.value = `${player.name}|${player.club}`;
+            option.textContent = player.name;  // Just name since club is obvious
+            select.appendChild(option);
+        });
+    } else {
+        // If no players found, add a message
         const noPlayersOption = document.createElement('option');
         noPlayersOption.disabled = true;
         noPlayersOption.textContent = `No players found for ${mantraClub}`;
@@ -627,8 +649,8 @@ function isClubMatch(mantraClub, draftClub) {
     // Common club name mappings for quick matching
     const clubMappings = {
         // Spanish clubs
-        'real madrid': ['реал мадрид', 'real madrid'],
-        'barcelona': ['барселона', 'barcelona'],
+        'real madrid': ['реал мадрид', 'real madrid', 'реал'],
+        'barcelona': ['барселона', 'barcelona', 'барса'],
         'atletico madrid': ['атлетико мадрид', 'атлетико', 'atletico madrid'],
         'valencia': ['валенсия', 'valencia'],
         'sevilla': ['севилья', 'sevilla'],
@@ -636,7 +658,14 @@ function isClubMatch(mantraClub, draftClub) {
         'real sociedad': ['реал сосьедад', 'real sociedad'],
         'real betis': ['бетис', 'real betis'],
         'athletic bilbao': ['атлетик бильбао', 'атлетик', 'athletic bilbao'],
-        'alaves': ['алавес', 'alaves'],
+        'deportivo alaves': ['алавес', 'alaves', 'deportivo alaves'],
+        'getafe': ['хетафе', 'getafe'],
+        'espanyol': ['эспаньол', 'espanyol'],
+        'celta vigo': ['сельта', 'celta vigo'],
+        'osasuna': ['осасуна', 'osasuna'],
+        'las palmas': ['лас пальмас', 'las palmas'],
+        'girona': ['жирона', 'girona'],
+        'rayo vallecano': ['райо вальекано', 'rayo vallecano'],
         
         // English clubs  
         'manchester city': ['манчестер сити', 'manchester city'],
@@ -662,21 +691,26 @@ function isClubMatch(mantraClub, draftClub) {
         'wolverhampton': ['вулверхэмптон', 'wolverhampton'],
         
         // German clubs
-        'bayern munich': ['бавария', 'bayern munich'],
-        'borussia dortmund': ['боруссия д', 'borussia dortmund'],
-        'borussia monchengladbach': ['боруссия м', 'borussia mbach', 'borussia monchengladbach'],
-        'rb leipzig': ['рб лейпциг', 'rb leipzig'],
-        'bayer leverkusen': ['байер', 'bayer leverkusen'],
+        'bayern munich': ['бавария', 'bayern munich', 'bayern'],
+        'borussia dortmund': ['боруссия д', 'borussia dortmund', 'боруссия дортмунд'],
+        'borussia monchengladbach': ['боруссия м', 'borussia mbach', 'borussia monchengladbach', 'боруссия мёнхенгладбах'],
+        'rb leipzig': ['рб лейпциг', 'rb leipzig', 'лейпциг'],
+        'bayer leverkusen': ['байер', 'bayer leverkusen', 'байер леверкузен'],
         'wolfsburg': ['вольфсбург', 'wolfsburg'],
-        'eintracht frankfurt': ['айнтрахт ф', 'eintracht frankfurt'],
+        'eintracht frankfurt': ['айнтрахт ф', 'eintracht frankfurt', 'айнтрахт', 'франкфурт'],
         'stuttgart': ['штутгарт', 'stuttgart'],
         'freiburg': ['фрайбург', 'freiburg'],
         'hoffenheim': ['хоффенхайм', 'hoffenheim'],
         'mainz': ['майнц', 'mainz'],
-        'fc koln': ['кёльн', 'fc koln', 'koln'],
-        'cologne': ['кельн', 'cologne'],
+        'fc koln': ['кёльн', 'fc koln', 'koln', 'cologne'],
+        'st pauli': ['санкт-паули', 'st pauli', 'санкт паули'],
+        'hamburger sv': ['гамбург', 'hamburger sv', 'hamburg'],
+        'werder bremen': ['вердер', 'werder bremen', 'бремен'],
+        'hertha berlin': ['герта', 'hertha berlin'],
         'augsburg': ['аугсбург', 'augsburg'],
         'union berlin': ['унион берлин', 'union berlin'],
+        'schalke 04': ['шальке', 'schalke 04', 'schalke'],
+        'fortuna dusseldorf': ['фортуна', 'fortuna dusseldorf'],
         
         // Italian clubs
         'juventus': ['ювентус', 'juventus'],
@@ -727,10 +761,16 @@ async function saveMapping() {
     const mantraId = document.getElementById('edit-mantra-id').value;
     const draftPlayerSelect = document.getElementById('edit-draft-player');
     
-    let draftName, draftClub;
+    let draftName, draftClub, isUnmapped = false;
     
+    // Check if "Leave unmapped" option was selected
+    if (draftPlayerSelect.value === '__UNMAPPED__') {
+        draftName = '__UNMAPPED__';
+        draftClub = '__UNMAPPED__';
+        isUnmapped = true;
+    }
     // Check if a player was selected from dropdown
-    if (draftPlayerSelect.value && draftPlayerSelect.value.includes('|')) {
+    else if (draftPlayerSelect.value && draftPlayerSelect.value.includes('|')) {
         const [name, club] = draftPlayerSelect.value.split('|');
         draftName = name;
         draftClub = club;
@@ -740,7 +780,7 @@ async function saveMapping() {
         draftClub = document.getElementById('edit-draft-club').value;
     }
 
-    if (!draftName.trim()) {
+    if (!draftName.trim() && !isUnmapped) {
         alert('Please select a draft player from the dropdown or enter manually');
         return;
     }
@@ -753,6 +793,7 @@ async function saveMapping() {
                 mantra_id: mantraId,
                 draft_name: draftName.trim(),
                 draft_club: draftClub.trim(),
+                is_unmapped: isUnmapped,
                 timestamp: new Date().toISOString()
             })
         });
@@ -762,9 +803,17 @@ async function saveMapping() {
             // Update local mapping
             const mapping = currentMappings.find(m => m.mantra_id == mantraId);
             if (mapping) {
-                mapping.draft_match = { name: draftName.trim(), club: draftClub.trim() };
-                mapping.similarity_score = 1.0;
-                mapping.auto_matched = true;
+                if (isUnmapped) {
+                    mapping.draft_match = null;
+                    mapping.similarity_score = 0;
+                    mapping.auto_matched = false;
+                    mapping.is_unmapped = true;
+                } else {
+                    mapping.draft_match = { name: draftName.trim(), club: draftClub.trim() };
+                    mapping.similarity_score = 1.0;
+                    mapping.auto_matched = true;
+                    mapping.is_unmapped = false;
+                }
             }
             
             filterMappings();
