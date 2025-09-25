@@ -206,8 +206,27 @@ def run_mapping_task():
         
         print(f"[PlayerMapping] Starting club-by-club matching for {len(all_mantra_clubs)} MantraFootball clubs")
         
+        # Load existing player mappings from S3 to exclude already mapped pairs
+        mapping_status['current_step'] = 'Loading existing mappings from S3...'
+        mantra_store = MantraDataStore()
+        existing_player_map = mantra_store.load_player_map() or {}
+        
+        print(f"[PlayerMapping] Loaded {len(existing_player_map)} existing mappings from S3")
+        
         # Track used draft players to ensure 1-to-1 mapping
         used_draft_players = set()
+        
+        # Pre-populate used_draft_players with existing mappings
+        for mantra_id, mapping_data in existing_player_map.items():
+            if isinstance(mapping_data, dict):
+                draft_name = mapping_data.get('draft_name')
+                draft_club = mapping_data.get('draft_club')
+                if draft_name and draft_club and draft_name != '__UNMAPPED__':
+                    draft_key = f"{draft_name}|{draft_club}"
+                    used_draft_players.add(draft_key)
+                    print(f"[PlayerMapping] Pre-excluding already mapped pair: MantraID {mantra_id} -> {draft_name} ({draft_club})")
+        
+        print(f"[PlayerMapping] Pre-excluded {len(used_draft_players)} already mapped draft players")
         
         # Process each MantraFootball club
         for club_idx, (mantra_club, mantra_club_players) in enumerate(mantra_players_by_club.items()):
@@ -255,6 +274,15 @@ def run_mapping_task():
                 
                 # Extract MantraFootball player info
                 mantra_id = mantra_player.get('mantra_id') or mantra_player.get('id')
+                
+                # Skip if this MantraFootball player is already mapped
+                if str(mantra_id) in existing_player_map:
+                    existing_mapping = existing_player_map[str(mantra_id)]
+                    if isinstance(existing_mapping, dict):
+                        draft_name = existing_mapping.get('draft_name')
+                        if draft_name and draft_name != '__UNMAPPED__':
+                            print(f"[PlayerMapping] Skipping already mapped MantraFootball player: {mantra_id} -> {draft_name}")
+                            continue
                 
                 # Handle name variations (last name, first name combinations)
                 last_name = mantra_player.get('name', '')
@@ -437,6 +465,71 @@ def run_mapping_task():
                         print(f"[PlayerMapping] ❌ No match: {mantra_name} (no remaining players in {mantra_club_name})")
                 
                 mappings.append(mapping_entry)
+        
+        # Add existing mappings to the result (so user can see what's already mapped)
+        mapping_status['current_step'] = 'Adding existing mappings to results...'
+        for mantra_id, existing_mapping in existing_player_map.items():
+            if isinstance(existing_mapping, dict):
+                draft_name = existing_mapping.get('draft_name')
+                draft_club = existing_mapping.get('draft_club')
+                
+                # Skip if this is an unmapped entry
+                if draft_name == '__UNMAPPED__':
+                    continue
+                
+                # Find the corresponding MantraFootball player data
+                mantra_player_data = None
+                for players_list in mantra_players_by_club.values():
+                    for player in players_list:
+                        if isinstance(player, dict):
+                            player_id = player.get('mantra_id') or player.get('id')
+                            if str(player_id) == str(mantra_id):
+                                mantra_player_data = player
+                                break
+                    if mantra_player_data:
+                        break
+                
+                if mantra_player_data:
+                    # Extract MantraFootball player info
+                    last_name = mantra_player_data.get('name', '')
+                    first_name = mantra_player_data.get('first_name', '')
+                    mantra_name = f"{first_name} {last_name}".strip() if first_name and last_name else (last_name or first_name or 'Unknown')
+                    
+                    mantra_position = mantra_player_data.get('position', '')
+                    
+                    # Extract league info
+                    tournament_data = mantra_player_data.get('tournament', {})
+                    if isinstance(tournament_data, dict):
+                        mantra_league = tournament_data.get('name', '')
+                    else:
+                        mantra_league = str(tournament_data) if tournament_data else ''
+                    
+                    # Extract club info
+                    club_data = mantra_player_data.get('club', {})
+                    if isinstance(club_data, dict):
+                        mantra_club_name = club_data.get('name', '')
+                    else:
+                        mantra_club_name = str(club_data) if club_data else ''
+                    
+                    # Add existing mapping to results
+                    existing_mapping_entry = {
+                        'mantra_id': int(mantra_id),
+                        'mantra_name': mantra_name,
+                        'mantra_club': mantra_club_name,
+                        'mantra_position': mantra_position,
+                        'mantra_league': mantra_league,
+                        'draft_match': {
+                            'name': draft_name,
+                            'club': draft_club
+                        },
+                        'similarity_score': existing_mapping.get('similarity_score', 1.0),
+                        'auto_matched': True,
+                        'is_saved_to_s3': True,
+                        'saved_at': existing_mapping.get('saved_at', ''),
+                        'is_high_confidence': existing_mapping.get('is_high_confidence', False)
+                    }
+                    
+                    mappings.append(existing_mapping_entry)
         
         # Sort by similarity score (best matches first)
         mappings.sort(key=lambda x: x['similarity_score'], reverse=True)
@@ -751,3 +844,70 @@ def get_all_draft_players():
     except Exception as e:
         print(f"[PlayerMapping] Error in get_all_draft_players: {e}")
         return jsonify({'success': False, 'error': str(e)})
+
+@bp.route('/top4/player-mapping/auto-map-high-confidence', methods=['POST'])
+@require_auth
+def auto_map_high_confidence():
+    """Automatically save high-confidence mappings (≥99.99%) to AWS S3"""
+    try:
+        if not session.get('godmode'):
+            return jsonify({'error': 'Access denied'}), 403
+        
+        data = request.get_json()
+        mappings = data.get('mappings', [])
+        
+        if not mappings:
+            return jsonify({'error': 'No mappings provided'}), 400
+        
+        # Filter to only include high-confidence mappings
+        high_confidence_mappings = [
+            m for m in mappings 
+            if m.get('similarity_score', 0) >= 0.9999 and m.get('auto_matched', False)
+        ]
+        
+        if not high_confidence_mappings:
+            return jsonify({'error': 'No high-confidence mappings found (≥99.99%)'}), 400
+        
+        # Load existing player mappings from S3
+        mantra_store = MantraDataStore()
+        existing_mappings = mantra_store.load_player_map() or {}
+        
+        saved_count = 0
+        
+        # Add high-confidence mappings to the player map
+        for mapping in high_confidence_mappings:
+            mantra_id = mapping.get('mantra_id')
+            draft_match = mapping.get('draft_match')
+            
+            if mantra_id and draft_match and draft_match.get('name') and draft_match.get('club'):
+                existing_mappings[str(mantra_id)] = {
+                    'draft_name': draft_match['name'],
+                    'draft_club': draft_match['club'],
+                    'similarity_score': mapping.get('similarity_score', 1.0),
+                    'is_high_confidence': True,
+                    'auto_saved': True,
+                    'saved_at': datetime.now().isoformat(),
+                    'updated_at': datetime.now().isoformat()
+                }
+                saved_count += 1
+        
+        # Save updated mappings back to S3
+        if saved_count > 0:
+            mantra_store.save_player_map(existing_mappings)
+            print(f"[PlayerMapping] Auto-saved {saved_count} high-confidence mappings to S3")
+        
+        return jsonify({
+            'success': True,
+            'saved_count': saved_count,
+            'message': f'Successfully saved {saved_count} high-confidence mappings to AWS S3'
+        })
+        
+    except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
+        print(f"[PlayerMapping] ERROR in auto_map_high_confidence: {str(e)}")
+        print(f"[PlayerMapping] Full traceback: {error_details}")
+        return jsonify({
+            'error': f'Failed to save high-confidence mappings: {str(e)}',
+            'details': error_details
+        }), 500

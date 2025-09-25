@@ -67,6 +67,9 @@
                             <button id="load-preview-btn" class="btn btn-primary me-2">
                                 <i class="fas fa-search"></i> Load Mapping Preview
                             </button>
+                            <button id="auto-map-high-confidence-btn" class="btn btn-info me-2" disabled>
+                                <i class="fas fa-magic"></i> Смапить всех ≥99.99%
+                            </button>
                             <button id="reset-mapping-btn" class="btn btn-warning me-2">
                                 <i class="fas fa-trash"></i> Reset
                             </button>
@@ -195,6 +198,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const showLowConfidence = document.getElementById('show-low-confidence');
 
     loadPreviewBtn.addEventListener('click', loadMappingPreview);
+    document.getElementById('auto-map-high-confidence-btn').addEventListener('click', autoMapHighConfidence);
     document.getElementById('reset-mapping-btn').addEventListener('click', resetMapping);
     confirmAllBtn.addEventListener('click', confirmAllMappings);
     exportBtn.addEventListener('click', exportResults);
@@ -262,6 +266,7 @@ async function loadMappingPreview() {
                 showCacheStatus(data.cache_status);
             }
             
+            document.getElementById('auto-map-high-confidence-btn').disabled = false;
             document.getElementById('confirm-all-btn').disabled = false;
             document.getElementById('export-btn').disabled = false;
             mappingTableCard.style.display = 'block';
@@ -450,6 +455,9 @@ function renderMappingTable() {
         let statusBadge;
         if (mapping.is_unmapped) {
             statusBadge = '<span class="badge bg-danger">🚫 Незамаплен</span>';
+        } else if (mapping.is_saved_to_s3) {
+            const highConfidenceText = mapping.is_high_confidence ? ' (≥99.99%)' : '';
+            statusBadge = `<span class="badge bg-primary">✅ Сохранено в S3${highConfidenceText}</span>`;
         } else if (mapping.auto_matched) {
             statusBadge = '<span class="badge bg-success">Auto-matched</span>';
         } else if (mapping.total_remaining_options) {
@@ -488,13 +496,16 @@ function renderMappingTable() {
             </td>
             <td>${statusBadge}</td>
             <td>
-                <button class="btn btn-sm btn-outline-primary" onclick="editMapping(${index})">
-                    <i class="fas fa-edit"></i>
-                </button>
-                ${mapping.auto_matched ? 
-                    `<button class="btn btn-sm btn-outline-success ms-1" onclick="confirmMapping(${index})">
-                        <i class="fas fa-check"></i>
-                    </button>` : ''
+                ${mapping.is_saved_to_s3 ? 
+                    '<span class="text-muted"><i class="fas fa-lock"></i> Locked</span>' :
+                    `<button class="btn btn-sm btn-outline-primary" onclick="editMapping(${index})">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    ${mapping.auto_matched ? 
+                        `<button class="btn btn-sm btn-outline-success ms-1" onclick="confirmMapping(${index})">
+                            <i class="fas fa-check"></i>
+                        </button>` : ''
+                    }`
                 }
             </td>
         `;
@@ -873,6 +884,60 @@ async function saveMapping() {
         }
     } catch (error) {
         alert('Failed to save mapping: ' + error.message);
+    }
+}
+
+async function autoMapHighConfidence() {
+    // Find all mappings with similarity >= 0.9999 (99.99%)
+    const highConfidenceMappings = currentMappings.filter(m => 
+        m.auto_matched && m.similarity_score >= 0.9999
+    );
+
+    if (highConfidenceMappings.length === 0) {
+        alert('Нет совпадений с точностью ≥99.99%');
+        return;
+    }
+
+    if (!confirm(`Автоматически сохранить ${highConfidenceMappings.length} высококачественных совпадений (≥99.99%) в AWS S3?\n\nЭто исключит их из следующих прогонов маппинга.`)) {
+        return;
+    }
+
+    try {
+        // Disable button during processing
+        const btn = document.getElementById('auto-map-high-confidence-btn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Сохранение...';
+
+        const response = await fetch('/top4/player-mapping/auto-map-high-confidence', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                mappings: highConfidenceMappings,
+                timestamp: new Date().toISOString()
+            })
+        });
+
+        const data = await response.json();
+        if (data.success) {
+            alert(`✅ Успешно сохранено ${data.saved_count} высококачественных совпадений в AWS S3!\n\nТеперь можно запустить маппинг заново - эти пары будут исключены.`);
+            
+            // Update local mappings to reflect saved status
+            highConfidenceMappings.forEach(mapping => {
+                mapping.is_saved_to_s3 = true;
+            });
+            
+            // Refresh the table
+            filterMappings();
+        } else {
+            alert('Ошибка: ' + data.error);
+        }
+    } catch (error) {
+        alert('Ошибка сохранения: ' + error.message);
+    } finally {
+        // Re-enable button
+        const btn = document.getElementById('auto-map-high-confidence-btn');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-magic"></i> Смапить всех ≥99.99%';
     }
 }
 
