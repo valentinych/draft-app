@@ -336,6 +336,7 @@ async function pollMappingStatus() {
                             showCacheStatus(resultData.cache_status);
                         }
                         
+                        document.getElementById('auto-map-high-confidence-btn').disabled = false;
                         document.getElementById('confirm-all-btn').disabled = false;
                         document.getElementById('export-btn').disabled = false;
                         document.getElementById('mapping-table-card').style.display = 'block';
@@ -374,6 +375,7 @@ async function resetMapping() {
             // Clear the interface
             currentMappings = [];
             document.getElementById('mapping-table-card').style.display = 'none';
+            document.getElementById('auto-map-high-confidence-btn').disabled = true;
             document.getElementById('confirm-all-btn').disabled = true;
             document.getElementById('export-btn').disabled = true;
             
@@ -888,13 +890,28 @@ async function saveMapping() {
 }
 
 async function autoMapHighConfidence() {
+    // Check if we have any mappings loaded
+    if (!currentMappings || currentMappings.length === 0) {
+        alert('Сначала загрузите маппинг с помощью "Load Mapping Preview"');
+        return;
+    }
+
     // Find all mappings with similarity >= 0.9999 (99.99%)
     const highConfidenceMappings = currentMappings.filter(m => 
-        m.auto_matched && m.similarity_score >= 0.9999
+        m.auto_matched && m.similarity_score >= 0.9999 && !m.is_saved_to_s3
     );
 
     if (highConfidenceMappings.length === 0) {
-        alert('Нет совпадений с точностью ≥99.99%');
+        // Check if there are any high confidence mappings already saved
+        const alreadySaved = currentMappings.filter(m => 
+            m.is_saved_to_s3 && m.similarity_score >= 0.9999
+        );
+        
+        if (alreadySaved.length > 0) {
+            alert(`Все высококачественные совпадения (${alreadySaved.length}) уже сохранены в S3.\n\nЗапустите маппинг заново для поиска новых совпадений.`);
+        } else {
+            alert('Нет новых совпадений с точностью ≥99.99%.\n\nВозможно, нужно снизить порог или все очевидные совпадения уже найдены.');
+        }
         return;
     }
 
