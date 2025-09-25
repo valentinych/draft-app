@@ -147,11 +147,7 @@ def preview_mappings():
             # Use the most complete name as primary
             mantra_name = mantra_name_variations[0] if mantra_name_variations else ''
             
-            # Debug: log first few players to see name variations
-            if i < 5:
-                print(f"[PlayerMapping] MantraFootball Player {i}: {mantra_name_variations} -> primary: '{mantra_name}', club: '{mantra_club}'")
-            
-            # Safely extract club data
+            # Safely extract club data BEFORE debug logging
             club_data = mantra_player.get('club', {})
             if isinstance(club_data, dict):
                 mantra_club = club_data.get('name', '')
@@ -159,6 +155,10 @@ def preview_mappings():
                 mantra_club = club_data
             else:
                 mantra_club = ''
+            
+            # Debug: log first few players to see name variations
+            if i < 5:
+                print(f"[PlayerMapping] MantraFootball Player {i}: {mantra_name_variations} -> primary: '{mantra_name}', club: '{mantra_club}'")
             
             # Try to find best match among draft players
             # We want to find which draft player best matches our current mantra player
