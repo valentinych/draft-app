@@ -156,11 +156,11 @@
                         <input type="text" class="form-control" id="edit-mantra-name" readonly>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Draft Player</label>
+                        <label class="form-label">Draft Player (from same club)</label>
                         <select class="form-select" id="edit-draft-player">
                             <option value="">Select a draft player...</option>
                         </select>
-                        <small class="form-text text-muted">Choose from available draft players</small>
+                        <small class="form-text text-muted">Only players from the same club are shown for accurate matching</small>
                     </div>
                     <div class="mb-3" style="display: none;">
                         <label class="form-label">Manual Entry (if not in list)</label>
@@ -539,6 +539,9 @@ async function populateDraftPlayerDropdown(mapping) {
         select.removeChild(select.lastChild);
     }
     
+    // Get the MantraFootball player's club to filter by
+    const mantraClub = mapping.mantra_club;
+    
     // Get all available draft players
     let allDraftPlayers = [];
     
@@ -577,30 +580,147 @@ async function populateDraftPlayerDropdown(mapping) {
         index === self.findIndex(p => p.name === player.name && p.club === player.club)
     );
     
-    // Sort by club then name
-    uniquePlayers.sort((a, b) => {
-        if (a.club !== b.club) return a.club.localeCompare(b.club);
-        return a.name.localeCompare(b.name);
+    // Filter players to only include those from the same club as MantraFootball player
+    const sameClubPlayers = uniquePlayers.filter(player => {
+        // Use the club similarity function logic to determine if clubs match
+        return isClubMatch(mantraClub, player.club);
     });
     
+    // Sort by name only (since all are from the same club)
+    sameClubPlayers.sort((a, b) => a.name.localeCompare(b.name));
+    
+    // Add club header
+    if (sameClubPlayers.length > 0) {
+        const header = document.createElement('option');
+        header.disabled = true;
+        header.textContent = `--- ${mantraClub} (${sameClubPlayers.length} players) ---`;
+        header.style.fontWeight = 'bold';
+        header.style.backgroundColor = '#f8f9fa';
+        select.appendChild(header);
+    }
+    
     // Add options to select
-    let currentClub = '';
-    uniquePlayers.forEach(player => {
-        if (player.club !== currentClub) {
-            // Add club separator
-            const separator = document.createElement('option');
-            separator.disabled = true;
-            separator.textContent = `--- ${player.club} ---`;
-            separator.style.fontWeight = 'bold';
-            select.appendChild(separator);
-            currentClub = player.club;
-        }
-        
+    sameClubPlayers.forEach(player => {
         const option = document.createElement('option');
         option.value = `${player.name}|${player.club}`;
-        option.textContent = `${player.name} (${player.club})`;
+        option.textContent = player.name;  // Just name since club is obvious
         select.appendChild(option);
     });
+    
+    // If no players found, add a message
+    if (sameClubPlayers.length === 0) {
+        const noPlayersOption = document.createElement('option');
+        noPlayersOption.disabled = true;
+        noPlayersOption.textContent = `No players found for ${mantraClub}`;
+        noPlayersOption.style.fontStyle = 'italic';
+        select.appendChild(noPlayersOption);
+    }
+}
+
+// Helper function to determine if clubs match (simplified version of backend logic)
+function isClubMatch(mantraClub, draftClub) {
+    if (!mantraClub || !draftClub) return false;
+    
+    // Exact match
+    if (mantraClub.toLowerCase() === draftClub.toLowerCase()) return true;
+    
+    // Common club name mappings for quick matching
+    const clubMappings = {
+        // Spanish clubs
+        'real madrid': ['реал мадрид', 'real madrid'],
+        'barcelona': ['барселона', 'barcelona'],
+        'atletico madrid': ['атлетико мадрид', 'атлетико', 'atletico madrid'],
+        'valencia': ['валенсия', 'valencia'],
+        'sevilla': ['севилья', 'sevilla'],
+        'villarreal': ['вильярреал', 'villarreal'],
+        'real sociedad': ['реал сосьедад', 'real sociedad'],
+        'real betis': ['бетис', 'real betis'],
+        'athletic bilbao': ['атлетик бильбао', 'атлетик', 'athletic bilbao'],
+        'alaves': ['алавес', 'alaves'],
+        
+        // English clubs  
+        'manchester city': ['манчестер сити', 'manchester city'],
+        'manchester united': ['манчестер юнайтед', 'manchester united'],
+        'liverpool': ['ливерпуль', 'liverpool'],
+        'chelsea': ['челси', 'chelsea'],
+        'arsenal': ['арсенал', 'arsenal'],
+        'tottenham': ['тоттенхэм', 'tottenham'],
+        'newcastle': ['ньюкасл', 'newcastle'],
+        'aston villa': ['астон вилла', 'aston villa'],
+        'west ham': ['вест хэм', 'west ham'],
+        'leeds united': ['лидс', 'leeds united', 'leeds'],
+        'everton': ['эвертон', 'everton'],
+        'leicester city': ['лестер', 'leicester city'],
+        'crystal palace': ['кристал пэлас', 'crystal palace'],
+        'brighton': ['брайтон', 'brighton'],
+        'burnley': ['бернли', 'burnley'],
+        'southampton': ['саутгемптон', 'southampton'],
+        'nottingham forest': ['ноттингем форест', 'nottingham forest'],
+        'fulham': ['фулхэм', 'fulham'],
+        'bournemouth': ['борнмут', 'bournemouth'],
+        'brentford': ['брентфорд', 'brentford'],
+        'wolverhampton': ['вулверхэмптон', 'wolverhampton'],
+        
+        // German clubs
+        'bayern munich': ['бавария', 'bayern munich'],
+        'borussia dortmund': ['боруссия д', 'borussia dortmund'],
+        'borussia monchengladbach': ['боруссия м', 'borussia mbach', 'borussia monchengladbach'],
+        'rb leipzig': ['рб лейпциг', 'rb leipzig'],
+        'bayer leverkusen': ['байер', 'bayer leverkusen'],
+        'wolfsburg': ['вольфсбург', 'wolfsburg'],
+        'eintracht frankfurt': ['айнтрахт ф', 'eintracht frankfurt'],
+        'stuttgart': ['штутгарт', 'stuttgart'],
+        'freiburg': ['фрайбург', 'freiburg'],
+        'hoffenheim': ['хоффенхайм', 'hoffenheim'],
+        'mainz': ['майнц', 'mainz'],
+        'fc koln': ['кёльн', 'fc koln', 'koln'],
+        'cologne': ['кельн', 'cologne'],
+        'augsburg': ['аугсбург', 'augsburg'],
+        'union berlin': ['унион берлин', 'union berlin'],
+        
+        // Italian clubs
+        'juventus': ['ювентус', 'juventus'],
+        'ac milan': ['милан', 'ac milan', 'milan'],
+        'inter milan': ['интер', 'inter milan', 'inter'],
+        'napoli': ['наполи', 'napoli'],
+        'as roma': ['рома', 'as roma', 'roma'],
+        'lazio': ['лацио', 'lazio'],
+        'atalanta': ['аталанта', 'atalanta'],
+        'fiorentina': ['фиорентина', 'fiorentina'],
+        'torino': ['торино', 'torino'],
+        'bologna': ['болонья', 'bologna'],
+        'sassuolo': ['сассуоло', 'sassuolo'],
+        'udinese': ['удинезе', 'udinese'],
+        'hellas verona': ['верона', 'hellas verona', 'verona'],
+        'genoa': ['дженоа', 'genoa'],
+        'lecce': ['лечче', 'lecce'],
+        'parma': ['парма', 'parma'],
+        'cagliari': ['кальяри', 'cagliari'],
+        'venezia': ['венеция', 'venezia'],
+        'como': ['комо', 'como']
+    };
+    
+    const mantraLower = mantraClub.toLowerCase();
+    const draftLower = draftClub.toLowerCase();
+    
+    // Check mappings
+    for (const [key, variants] of Object.entries(clubMappings)) {
+        if (variants.includes(mantraLower) && variants.includes(draftLower)) {
+            return true;
+        }
+    }
+    
+    // Basic similarity check (for cases not in mappings)
+    if (mantraLower.includes(draftLower) || draftLower.includes(mantraLower)) {
+        // But avoid false positives like milan-inter
+        if ((mantraLower.includes('milan') && draftLower.includes('inter')) ||
+            (mantraLower.includes('inter') && draftLower.includes('milan'))) {
+            return false;
+        }
+        return true;
+    }
+    
+    return false;
 }
 
 async function saveMapping() {
