@@ -357,7 +357,11 @@ function updateStatusPanel(data) {
     if (data.note) {
         const noteElement = document.getElementById('performance-note');
         if (noteElement) {
-            noteElement.textContent = data.note;
+            let noteText = data.note;
+            if (data.clubs_processed) {
+                noteText += ` • Clubs processed: ${data.clubs_processed}`;
+            }
+            noteElement.textContent = noteText;
             noteElement.style.display = 'block';
         }
     }

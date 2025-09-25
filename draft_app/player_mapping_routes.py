@@ -151,158 +151,184 @@ def run_mapping_task():
             'total': len(mantra_players)
         })
         
-        # Group draft players by league for faster matching
-        mapping_status['current_step'] = 'Organizing players by league...'
+        # Group players by club for more efficient matching
+        mapping_status['current_step'] = 'Organizing players by clubs...'
         mapping_status['progress'] = 12
         
-        draft_players_by_league = {}
+        # Group MantraFootball players by club
+        mantra_players_by_club = {}
+        for player in mantra_players:
+            if not isinstance(player, dict):
+                continue
+            
+            club_data = player.get('club', {})
+            if isinstance(club_data, dict):
+                club_name = club_data.get('name', 'Unknown')
+            elif isinstance(club_data, str):
+                club_name = club_data
+            else:
+                club_name = 'Unknown'
+            
+            if club_name not in mantra_players_by_club:
+                mantra_players_by_club[club_name] = []
+            mantra_players_by_club[club_name].append(player)
+        
+        # Group draft players by club
+        draft_players_by_club = {}
         for player in draft_players:
-            league = player.get('league', 'Unknown')
-            if league not in draft_players_by_league:
-                draft_players_by_league[league] = []
-            draft_players_by_league[league].append(player)
+            club_name = player.get('club', 'Unknown')
+            if club_name not in draft_players_by_club:
+                draft_players_by_club[club_name] = []
+            draft_players_by_club[club_name].append(player)
         
-        print(f"[PlayerMapping] Organized draft players by league: {dict((k, len(v)) for k, v in draft_players_by_league.items())}")
+        print(f"[PlayerMapping] MantraFootball clubs: {len(mantra_players_by_club)}")
+        print(f"[PlayerMapping] Draft clubs: {len(draft_players_by_club)}")
         
-        # Generate mappings with progress tracking and league-based optimization
+        # Generate mappings by processing each club
         mappings = []
         matched_count = 0
         matcher = PlayerMatcher()
         
-        # Limit processing to first 500 players for faster testing
-        limited_mantra_players = mantra_players[:500] if len(mantra_players) > 500 else mantra_players
-        print(f"[PlayerMapping] Processing {len(limited_mantra_players)} players (limited from {len(mantra_players)} for performance)")
+        # Get all unique club names from both sources
+        all_mantra_clubs = set(mantra_players_by_club.keys())
+        all_draft_clubs = set(draft_players_by_club.keys())
         
-        for i, mantra_player in enumerate(limited_mantra_players):
-            # Update progress every 10 players for more frequent updates
-            if i % 10 == 0:
-                progress_percent = 15 + int((i / len(limited_mantra_players)) * 75)  # 15-90%
-                mapping_status.update({
-                    'current_step': f'Matching player {i+1}/{len(limited_mantra_players)}...',
-                    'progress': progress_percent
-                })
+        processed_players = 0
+        total_mantra_players = sum(len(players) for players in mantra_players_by_club.values())
+        
+        print(f"[PlayerMapping] Starting club-by-club matching for {len(all_mantra_clubs)} MantraFootball clubs")
+        
+        # Process each MantraFootball club
+        for club_idx, (mantra_club, mantra_club_players) in enumerate(mantra_players_by_club.items()):
+            # Update progress
+            progress_percent = 15 + int((club_idx / len(mantra_players_by_club)) * 75)  # 15-90%
+            mapping_status.update({
+                'current_step': f'Processing club {club_idx+1}/{len(mantra_players_by_club)}: {mantra_club} ({len(mantra_club_players)} players)...',
+                'progress': progress_percent
+            })
             
-            # Validate mantra_player is a dictionary
-            if not isinstance(mantra_player, dict):
-                continue
+            # Find the best matching draft club
+            best_club_match = None
+            best_club_similarity = 0
             
-            # Extract MantraFootball player info
-            mantra_id = mantra_player.get('mantra_id') or mantra_player.get('id')
+            for draft_club in all_draft_clubs:
+                club_similarity = PlayerMatcher.calculate_club_similarity(mantra_club, draft_club)
+                if club_similarity > best_club_similarity:
+                    best_club_similarity = club_similarity
+                    best_club_match = draft_club
             
-            # Handle name variations (last name, first name combinations)
-            last_name = mantra_player.get('name', '')
-            first_name = mantra_player.get('first_name', '')
-            
-            # Generate all possible name combinations
-            mantra_name_variations = []
-            if last_name and first_name:
-                mantra_name_variations = [
-                    f"{first_name} {last_name}",  # "Emil Audero"
-                    f"{last_name} {first_name}",  # "Audero Emil"
-                    last_name,                    # "Audero"
-                    first_name                    # "Emil"
-                ]
-            elif last_name:
-                mantra_name_variations = [last_name]
-            elif first_name:
-                mantra_name_variations = [first_name]
-            
-            # Primary name for display
-            mantra_name = mantra_name_variations[0] if mantra_name_variations else 'Unknown'
-            
-            mantra_position = mantra_player.get('position', '')
-            
-            # Extract league info
-            tournament_data = mantra_player.get('tournament', {})
-            if isinstance(tournament_data, dict):
-                mantra_league = tournament_data.get('name', '')
+            # Get draft players from the best matching club (or all if no good match)
+            if best_club_match and best_club_similarity > 0.5:
+                candidate_draft_players = draft_players_by_club[best_club_match]
+                print(f"[PlayerMapping] Matching {mantra_club} -> {best_club_match} (similarity: {best_club_similarity:.3f}, {len(candidate_draft_players)} players)")
             else:
-                mantra_league = str(tournament_data) if tournament_data else ''
+                # If no good club match, use all draft players
+                candidate_draft_players = draft_players
+                print(f"[PlayerMapping] No good club match for {mantra_club}, using all {len(candidate_draft_players)} draft players")
             
-            # Extract club info safely
-            club_data = mantra_player.get('club', {})
-            if isinstance(club_data, dict):
-                mantra_club = club_data.get('name', '')
-            elif isinstance(club_data, str):
-                mantra_club = club_data
-            else:
-                mantra_club = ''
-            
-            # Find best match among draft players - optimize by checking same league first
-            best_match = None
-            best_score = 0
-            
-            # Try same league first for better performance
-            potential_matches = []
-            
-            # First, try players from the same league
-            if mantra_league in draft_players_by_league:
-                potential_matches.extend(draft_players_by_league[mantra_league])
-            
-            # Then add players from other leagues
-            for league, players in draft_players_by_league.items():
-                if league != mantra_league:
-                    potential_matches.extend(players)
-            
-            # If no league grouping worked, fall back to all players
-            if not potential_matches:
-                potential_matches = draft_players
-            
-            # Calculate similarity with potential matches
-            for draft_player in potential_matches:
-                if not isinstance(draft_player, dict):
+            # Match players within this club
+            for mantra_player in mantra_club_players:
+                processed_players += 1
+                
+                # Validate mantra_player is a dictionary
+                if not isinstance(mantra_player, dict):
                     continue
                 
-                draft_name = draft_player.get('name', '')
-                draft_club = draft_player.get('club', '')
+                # Extract MantraFootball player info
+                mantra_id = mantra_player.get('mantra_id') or mantra_player.get('id')
                 
-                # Calculate best name similarity across all variations
-                best_name_similarity = 0
-                for name_variation in mantra_name_variations:
-                    name_similarity = matcher.calculate_name_similarity(name_variation, draft_name)
-                    if name_similarity > best_name_similarity:
-                        best_name_similarity = name_similarity
+                # Handle name variations (last name, first name combinations)
+                last_name = mantra_player.get('name', '')
+                first_name = mantra_player.get('first_name', '')
                 
-                # Calculate club similarity
-                club_similarity = PlayerMatcher.calculate_club_similarity(mantra_club, draft_club)
+                # Generate all possible name combinations
+                mantra_name_variations = []
+                if last_name and first_name:
+                    mantra_name_variations = [
+                        f"{first_name} {last_name}",  # "Emil Audero"
+                        f"{last_name} {first_name}",  # "Audero Emil"
+                        last_name,                    # "Audero"
+                        first_name                    # "Emil"
+                    ]
+                elif last_name:
+                    mantra_name_variations = [last_name]
+                elif first_name:
+                    mantra_name_variations = [first_name]
                 
-                # Combined score (name is more important than club)
-                combined_score = (best_name_similarity * 0.7) + (club_similarity * 0.3)
+                # Primary name for display
+                mantra_name = mantra_name_variations[0] if mantra_name_variations else 'Unknown'
                 
-                if combined_score > best_score and combined_score > 0.4:  # Minimum threshold
-                    best_score = combined_score
-                    best_match = {
-                        'mantra_player': draft_player,  # This is actually the matched draft player
-                        'similarity_score': combined_score,
-                        'name_similarity': best_name_similarity,
-                        'club_similarity': club_similarity
-                    }
-            
-            # Create mapping entry
-            mapping_entry = {
-                'mantra_id': mantra_id,
-                'mantra_name': mantra_name,
-                'mantra_club': mantra_club,
-                'mantra_position': mantra_position,
-                'mantra_league': mantra_league,
-                'draft_match': None,
-                'similarity_score': 0.0,
-                'auto_matched': False
-            }
-            
-            if best_match:
-                matched_count += 1
-                draft_player = best_match['mantra_player']  # This is actually the matched draft player
-                mapping_entry.update({
-                    'draft_match': {
-                        'name': draft_player.get('name', ''),
-                        'club': draft_player.get('club', '')
-                    },
-                    'similarity_score': best_match['similarity_score'],
-                    'auto_matched': True
-                })
-            
-            mappings.append(mapping_entry)
+                mantra_position = mantra_player.get('position', '')
+                
+                # Extract league info
+                tournament_data = mantra_player.get('tournament', {})
+                if isinstance(tournament_data, dict):
+                    mantra_league = tournament_data.get('name', '')
+                else:
+                    mantra_league = str(tournament_data) if tournament_data else ''
+                
+                # Use the club we're currently processing
+                mantra_club_name = mantra_club
+                
+                # Find best match among candidate draft players from this club
+                best_match = None
+                best_score = 0
+                
+                # Calculate similarity with candidate draft players
+                for draft_player in candidate_draft_players:
+                    if not isinstance(draft_player, dict):
+                        continue
+                    
+                    draft_name = draft_player.get('name', '')
+                    draft_club = draft_player.get('club', '')
+                    
+                    # Calculate best name similarity across all variations
+                    best_name_similarity = 0
+                    for name_variation in mantra_name_variations:
+                        name_similarity = matcher.calculate_name_similarity(name_variation, draft_name)
+                        if name_similarity > best_name_similarity:
+                            best_name_similarity = name_similarity
+                    
+                    # Calculate club similarity
+                    club_similarity = PlayerMatcher.calculate_club_similarity(mantra_club_name, draft_club)
+                    
+                    # Combined score (name is more important than club)
+                    combined_score = (best_name_similarity * 0.7) + (club_similarity * 0.3)
+                    
+                    if combined_score > best_score and combined_score > 0.4:  # Minimum threshold
+                        best_score = combined_score
+                        best_match = {
+                            'mantra_player': draft_player,  # This is actually the matched draft player
+                            'similarity_score': combined_score,
+                            'name_similarity': best_name_similarity,
+                            'club_similarity': club_similarity
+                        }
+                
+                # Create mapping entry
+                mapping_entry = {
+                    'mantra_id': mantra_id,
+                    'mantra_name': mantra_name,
+                    'mantra_club': mantra_club_name,
+                    'mantra_position': mantra_position,
+                    'mantra_league': mantra_league,
+                    'draft_match': None,
+                    'similarity_score': 0.0,
+                    'auto_matched': False
+                }
+                
+                if best_match:
+                    matched_count += 1
+                    draft_player = best_match['mantra_player']  # This is actually the matched draft player
+                    mapping_entry.update({
+                        'draft_match': {
+                            'name': draft_player.get('name', ''),
+                            'club': draft_player.get('club', '')
+                        },
+                        'similarity_score': best_match['similarity_score'],
+                        'auto_matched': True
+                    })
+                
+                mappings.append(mapping_entry)
         
         # Sort by similarity score (best matches first)
         mappings.sort(key=lambda x: x['similarity_score'], reverse=True)
@@ -311,12 +337,13 @@ def run_mapping_task():
         result = {
             'success': True,
             'mappings': mappings,
-            'total_mantra_players': len(limited_mantra_players),
+            'total_mantra_players': processed_players,
             'total_draft_players': len(draft_players),
             'matched_count': matched_count,
-            'match_rate': (matched_count / len(limited_mantra_players)) * 100 if limited_mantra_players else 0,
+            'match_rate': (matched_count / processed_players) * 100 if processed_players > 0 else 0,
             'cache_status': cache_status,
-            'note': f'Processed {len(limited_mantra_players)} players (limited from {len(mantra_players)} total for performance)'
+            'note': f'Processed {processed_players} players from {len(mantra_players_by_club)} clubs using club-by-club matching',
+            'clubs_processed': len(mantra_players_by_club)
         }
         
         mapping_status.update({
@@ -327,7 +354,7 @@ def run_mapping_task():
             'completed_at': datetime.now().isoformat()
         })
         
-        print(f"[PlayerMapping] Async mapping completed: {matched_count}/{len(limited_mantra_players)} matches")
+        print(f"[PlayerMapping] Club-by-club mapping completed: {matched_count}/{processed_players} matches from {len(mantra_players_by_club)} clubs")
         
     except Exception as e:
         import traceback
