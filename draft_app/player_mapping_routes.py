@@ -124,7 +124,6 @@ def run_mapping_task():
                                 sample_players = draft_players[:3]
                                 print(f"[PlayerMapping] Sample players: {[p.get('name') + ' (' + p.get('club') + ')' for p in sample_players]}")
                                 # Check file modification time to ensure we're using the updated file
-                                import os
                                 file_stat = os.stat(path)
                                 mod_time = file_stat.st_mtime
                                 print(f"[PlayerMapping] File last modified: {mod_time} (using updated file: {mod_time > 1727200000})")  # Rough timestamp check
