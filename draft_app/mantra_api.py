@@ -268,9 +268,9 @@ class PlayerMatcher:
         # Convert to lowercase and strip
         name = name.lower().strip()
         
-        # Debug: show transliteration result for Russian names
-        if original_name != name and any(ord(c) > 127 for c in original_name):
-            print(f"[Transliteration] '{original_name}' -> '{name}'")
+        # Debug: show transliteration result for Russian names (commented out for performance)
+        # if original_name != name and any(ord(c) > 127 for c in original_name):
+        #     print(f"[Transliteration] '{original_name}' -> '{name}'")
         
         # Common name replacements for various languages
         replacements = {
@@ -307,14 +307,14 @@ class PlayerMatcher:
         # First check for direct translation
         if club_name in CLUB_NAME_TRANSLATIONS:
             club_name = CLUB_NAME_TRANSLATIONS[club_name]
-            print(f"[ClubTranslation] '{original_club}' -> '{club_name}' (direct)")
+            # print(f"[ClubTranslation] '{original_club}' -> '{club_name}' (direct)")  # Commented out for performance
         
         # Transliterate Russian to English if needed
         club_name = transliterate_russian_to_english(club_name)
         
-        # Debug: show transliteration result for Russian club names
-        if original_club != club_name and any(ord(c) > 127 for c in original_club) and original_club not in CLUB_NAME_TRANSLATIONS:
-            print(f"[ClubTransliteration] '{original_club}' -> '{club_name}'")
+        # Debug: show transliteration result for Russian club names (commented out for performance)
+        # if original_club != club_name and any(ord(c) > 127 for c in original_club) and original_club not in CLUB_NAME_TRANSLATIONS:
+        #     print(f"[ClubTransliteration] '{original_club}' -> '{club_name}'")
         
         club_name = club_name.lower().strip()
         

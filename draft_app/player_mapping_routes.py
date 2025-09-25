@@ -228,7 +228,8 @@ def preview_mappings():
             
             # Debug: log first few players to see name variations
             if i < 5:
-                print(f"[PlayerMapping] MantraFootball Player {i}: {mantra_name_variations} -> primary: '{mantra_name}', club: '{mantra_club}'")
+                # print(f"[PlayerMapping] MantraFootball Player {i}: {mantra_name_variations} -> primary: '{mantra_name}', club: '{mantra_club}'")  # Commented out for performance
+                pass
             
             # Try to find best match among draft players
             # We want to find which draft player best matches our current mantra player
@@ -263,7 +264,8 @@ def preview_mappings():
                 
                 # Debug: log detailed matching for first few players
                 if i < 3 and combined_score > 0.1:  # Show any meaningful matches
-                    print(f"[PlayerMapping] Match attempt {i}: '{best_name_variation}' vs '{draft_name}' (name: {best_name_similarity:.3f}) | '{mantra_club}' vs '{draft_club}' (club: {club_similarity:.3f}) -> combined: {combined_score:.3f}")
+                    # print(f"[PlayerMapping] Match attempt {i}: '{best_name_variation}' vs '{draft_name}' (name: {best_name_similarity:.3f}) | '{mantra_club}' vs '{draft_club}' (club: {club_similarity:.3f}) -> combined: {combined_score:.3f}")  # Commented out for performance
+                    pass
                 
                 if combined_score > best_score and combined_score > 0.4:  # Minimum threshold
                     best_score = combined_score
