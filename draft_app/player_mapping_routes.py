@@ -169,12 +169,16 @@ def run_mapping_task():
         matched_count = 0
         matcher = PlayerMatcher()
         
-        for i, mantra_player in enumerate(mantra_players):
-            # Update progress every 50 players
-            if i % 50 == 0:
-                progress_percent = 15 + int((i / len(mantra_players)) * 75)  # 15-90%
+        # Limit processing to first 500 players for faster testing
+        limited_mantra_players = mantra_players[:500] if len(mantra_players) > 500 else mantra_players
+        print(f"[PlayerMapping] Processing {len(limited_mantra_players)} players (limited from {len(mantra_players)} for performance)")
+        
+        for i, mantra_player in enumerate(limited_mantra_players):
+            # Update progress every 10 players for more frequent updates
+            if i % 10 == 0:
+                progress_percent = 15 + int((i / len(limited_mantra_players)) * 75)  # 15-90%
                 mapping_status.update({
-                    'current_step': f'Matching player {i+1}/{len(mantra_players)}...',
+                    'current_step': f'Matching player {i+1}/{len(limited_mantra_players)}...',
                     'progress': progress_percent
                 })
             
@@ -307,11 +311,12 @@ def run_mapping_task():
         result = {
             'success': True,
             'mappings': mappings,
-            'total_mantra_players': len(mantra_players),
+            'total_mantra_players': len(limited_mantra_players),
             'total_draft_players': len(draft_players),
             'matched_count': matched_count,
-            'match_rate': (matched_count / len(mantra_players)) * 100 if mantra_players else 0,
-            'cache_status': cache_status
+            'match_rate': (matched_count / len(limited_mantra_players)) * 100 if limited_mantra_players else 0,
+            'cache_status': cache_status,
+            'note': f'Processed {len(limited_mantra_players)} players (limited from {len(mantra_players)} total for performance)'
         }
         
         mapping_status.update({
@@ -322,7 +327,7 @@ def run_mapping_task():
             'completed_at': datetime.now().isoformat()
         })
         
-        print(f"[PlayerMapping] Async mapping completed: {matched_count}/{len(mantra_players)} matches")
+        print(f"[PlayerMapping] Async mapping completed: {matched_count}/{len(limited_mantra_players)} matches")
         
     except Exception as e:
         import traceback
