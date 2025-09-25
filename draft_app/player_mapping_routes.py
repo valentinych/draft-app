@@ -76,7 +76,35 @@ def preview_mappings():
                     if isinstance(player, dict) and player not in draft_players:
                         draft_players.append(player)
         
-        # For demonstration purposes, create some sample draft players if none exist
+        # Load TOP-4 players with Russian names from cache
+        if not draft_players:
+            try:
+                import json
+                import os
+                top4_players_file = os.path.join('data', 'cache', 'top4_players.json')
+                if os.path.exists(top4_players_file):
+                    with open(top4_players_file, 'r', encoding='utf-8') as f:
+                        top4_data = json.load(f)
+                        draft_players = [
+                            {
+                                'name': player.get('fullName', ''),
+                                'club': player.get('clubName', ''),
+                                'position': player.get('position', ''),
+                                'league': player.get('league', ''),
+                                'playerId': player.get('playerId', '')
+                            }
+                            for player in top4_data if isinstance(player, dict)
+                        ]
+                        print(f"[PlayerMapping] Loaded {len(draft_players)} TOP-4 players with Russian names")
+                        # Debug: show first few TOP-4 players
+                        for i, player in enumerate(draft_players[:3]):
+                            print(f"[PlayerMapping] TOP-4 Player {i}: '{player.get('name')}' ({player.get('club')}) - {player.get('league')}")
+                else:
+                    print(f"[PlayerMapping] TOP-4 players file not found: {top4_players_file}")
+            except Exception as e:
+                print(f"[PlayerMapping] Error loading TOP-4 players: {e}")
+        
+        # Fallback to sample players if still empty
         if not draft_players:
             draft_players = [
                 {'name': 'Kylian Mbappe', 'club': 'Real Madrid'},
@@ -84,8 +112,8 @@ def preview_mappings():
                 {'name': 'Jude Bellingham', 'club': 'Real Madrid'},
                 {'name': 'Vinicius Junior', 'club': 'Real Madrid'},
                 {'name': 'Kevin De Bruyne', 'club': 'Manchester City'},
-                # Add more sample players as needed
             ]
+            print(f"[PlayerMapping] Using fallback sample players: {len(draft_players)}")
         
         # Generate mappings for all MantraFootball players
         mappings = []
