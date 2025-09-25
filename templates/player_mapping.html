@@ -180,8 +180,34 @@ async function loadMappingPreview() {
     mappingTableCard.style.display = 'none';
 
     try {
-        const response = await fetch('/top4/player-mapping/preview');
-        const data = await response.json();
+        const response = await fetch('/top4/player-mapping/preview', {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            signal: AbortSignal.timeout(120000) // 2 minutes timeout
+        });
+        
+        // Check if response is ok
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Response not ok:', response.status, errorText);
+            alert(`Server error (${response.status}): ${errorText.substring(0, 200)}...`);
+            return;
+        }
+        
+        // Try to parse as JSON
+        let data;
+        try {
+            data = await response.json();
+        } catch (jsonError) {
+            const responseText = await response.text();
+            console.error('JSON parse error:', jsonError);
+            console.error('Response text:', responseText.substring(0, 500));
+            alert(`Failed to parse JSON response. Response: ${responseText.substring(0, 200)}...`);
+            return;
+        }
 
         if (data.success) {
             currentMappings = data.mappings;
@@ -201,9 +227,14 @@ async function loadMappingPreview() {
             if (data.cache_status) {
                 showCacheStatus(data.cache_status);
             }
-            alert('Error: ' + data.error);
+            console.error('Server returned error:', data.error);
+            if (data.details) {
+                console.error('Error details:', data.details);
+            }
+            alert('Error: ' + data.error + (data.details ? '\n\nDetails: ' + data.details.substring(0, 300) : ''));
         }
     } catch (error) {
+        console.error('Network or other error:', error);
         alert('Failed to load mappings: ' + error.message);
     } finally {
         loadingIndicator.style.display = 'none';

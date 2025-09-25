@@ -20,10 +20,9 @@ def player_mapping_page():
 @require_auth
 def preview_mappings():
     """Generate and return preview of all player mappings"""
-    if not session.get('godmode'):
-        return jsonify({'error': 'Access denied'}), 403
-    
     try:
+        if not session.get('godmode'):
+            return jsonify({'error': 'Access denied'}), 403
         # Load MantraFootball data from cache (S3 + local)
         mantra_store = MantraDataStore()
         
@@ -325,7 +324,14 @@ def preview_mappings():
         })
         
     except Exception as e:
-        return jsonify({'error': f'Failed to generate mappings: {str(e)}'}), 500
+        import traceback
+        error_details = traceback.format_exc()
+        print(f"[PlayerMapping] ERROR in preview_mappings: {str(e)}")
+        print(f"[PlayerMapping] Full traceback: {error_details}")
+        return jsonify({
+            'error': f'Failed to generate mappings: {str(e)}',
+            'details': error_details
+        }), 500
 
 @bp.route('/top4/player-mapping/confirm', methods=['POST'])
 @require_auth
