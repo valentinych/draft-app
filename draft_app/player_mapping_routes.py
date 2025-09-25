@@ -288,12 +288,20 @@ def run_mapping_task():
                 best_score = 0
                 
                 # Calculate similarity with candidate draft players
+                # STRICT: Only match players from the SAME club
                 for draft_player in candidate_draft_players:
                     if not isinstance(draft_player, dict):
                         continue
                     
                     draft_name = draft_player.get('name', '')
                     draft_club = draft_player.get('club', '')
+                    
+                    # STRICT CLUB MATCHING: Only consider players from the same club
+                    club_similarity = PlayerMatcher.calculate_club_similarity(mantra_club_name, draft_club)
+                    
+                    # Only proceed if clubs match well (strict threshold)
+                    if club_similarity < 0.7:
+                        continue  # Skip players from different clubs
                     
                     # Calculate best name similarity across all variations
                     best_name_similarity = 0
@@ -302,13 +310,10 @@ def run_mapping_task():
                         if name_similarity > best_name_similarity:
                             best_name_similarity = name_similarity
                     
-                    # Calculate club similarity
-                    club_similarity = PlayerMatcher.calculate_club_similarity(mantra_club_name, draft_club)
+                    # For same-club matching, name similarity is the primary factor
+                    combined_score = best_name_similarity  # Club already verified above
                     
-                    # Combined score (name is more important than club)
-                    combined_score = (best_name_similarity * 0.7) + (club_similarity * 0.3)
-                    
-                    if combined_score > best_score and combined_score > 0.4:  # Minimum threshold
+                    if combined_score > best_score and combined_score > 0.3:  # Lower threshold since club is already matched
                         best_score = combined_score
                         best_match = {
                             'mantra_player': draft_player,  # This is actually the matched draft player

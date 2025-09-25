@@ -344,7 +344,7 @@ class PlayerMatcher:
     
     @staticmethod
     def calculate_name_similarity(name1: str, name2: str) -> float:
-        """Calculate similarity between two names with advanced matching"""
+        """Calculate similarity between two names with advanced matching for Russian-English names"""
         norm1 = PlayerMatcher.normalize_name(name1)
         norm2 = PlayerMatcher.normalize_name(name2)
         
@@ -365,7 +365,16 @@ class PlayerMatcher:
         # 1. Full string similarity
         scores.append(difflib.SequenceMatcher(None, norm1, norm2).ratio())
         
-        # 2. Word-by-word matching (for first name + last name)
+        # 2. Handle single name matches (very common for Russian names like "Райтц" -> "Reitz")
+        if len(parts1) == 1 and len(parts2) == 1:
+            single_name_similarity = difflib.SequenceMatcher(None, parts1[0], parts2[0]).ratio()
+            scores.append(single_name_similarity)
+            
+            # Special boost for short names that are very similar (like "Райтц" vs "Reitz")
+            if len(parts1[0]) <= 8 and len(parts2[0]) <= 8 and single_name_similarity > 0.4:
+                scores.append(single_name_similarity * 1.2)  # Boost similar short names
+        
+        # 3. Word-by-word matching (for first name + last name)
         if len(parts1) >= 2 and len(parts2) >= 2:
             # Match first and last names
             first_sim = difflib.SequenceMatcher(None, parts1[0], parts2[0]).ratio()
@@ -422,6 +431,8 @@ class PlayerMatcher:
                 ('verona', 'hellas verona'),
                 ('koln', 'fc koln'),
                 ('cologne', 'fc koln'),
+                ('inter', 'inter milan'),  # Allow Inter to match Inter Milan
+                ('milan', 'ac milan'),     # Allow Milan to match AC Milan
             ]
             
             for short_name, full_name in safe_partial_matches:
@@ -438,6 +449,8 @@ class PlayerMatcher:
                 ('verona', 'hellas verona'),
                 ('koln', 'fc koln'),
                 ('cologne', 'fc koln'),
+                ('inter', 'inter milan'),  # Allow Inter to match Inter Milan
+                ('milan', 'ac milan'),     # Allow Milan to match AC Milan
             ]
             
             for short_name, full_name in safe_partial_matches:
@@ -477,8 +490,23 @@ class PlayerMatcher:
                 return 0.3  # Force low similarity for known problematic pairs
         
         # Additional check: prevent any club containing "milan" from matching with any club containing "inter"
+        # BUT allow exact translations like "Интер" -> "Inter Milan" vs "Inter"
         if ('milan' in norm1_clean and 'inter' in norm2_clean) or ('inter' in norm1_clean and 'milan' in norm2_clean):
-            return 0.3
+            # Check if this is a valid translation case
+            is_valid_translation = False
+            
+            # Case 1: "Интер" -> "Inter Milan" should match "Inter" 
+            if ((club1 in CLUB_NAME_TRANSLATIONS and 'inter milan' in CLUB_NAME_TRANSLATIONS[club1].lower() and 'inter' == club2.lower()) or
+                (club2 in CLUB_NAME_TRANSLATIONS and 'inter milan' in CLUB_NAME_TRANSLATIONS[club2].lower() and 'inter' == club1.lower())):
+                is_valid_translation = True
+            
+            # Case 2: "Милан" -> "AC Milan" should match "Milan"
+            if ((club1 in CLUB_NAME_TRANSLATIONS and 'ac milan' in CLUB_NAME_TRANSLATIONS[club1].lower() and 'milan' == club2.lower()) or
+                (club2 in CLUB_NAME_TRANSLATIONS and 'ac milan' in CLUB_NAME_TRANSLATIONS[club2].lower() and 'milan' == club1.lower())):
+                is_valid_translation = True
+            
+            if not is_valid_translation:
+                return 0.3
         
         # Additional check: prevent Koln-Bologna confusion
         if ('koln' in norm1_clean and 'bologna' in norm2_clean) or ('bologna' in norm1_clean and 'koln' in norm2_clean):
