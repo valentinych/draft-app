@@ -606,8 +606,10 @@ def _build_lineups(round_no: int, current_round: int, state: dict) -> dict:
             club_info = info.get('club')
             if isinstance(club_info, dict):
                 logo = club_info.get('logo_path')
+                print(f"[lineups] {display_name}: loaded club info, logo={logo}")
             else:
                 logo = None
+                print(f"[lineups] {display_name}: no club info found, info keys={list(info.keys()) if info else 'empty'}")
             debug.append(f"{manager}: {display_name} ({pos}) -> {int(pts)}")
             lineup.append(
                 {
