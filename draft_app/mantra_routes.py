@@ -723,6 +723,9 @@ def _build_results(state: dict) -> dict:
             breakdown: list[dict] = []
             if mid:
                 player = _load_player(mid, debug=None, round_no=None, force_refresh=False)
+                if not isinstance(player, dict):
+                    print(f"[results] Warning: _load_player({mid}) returned {type(player)}: {player}")
+                    player = {}
                 round_stats = player.get("round_stats") or []
                 for stat in round_stats:
                     rnd = _to_int(stat.get("tournament_round_number"))
@@ -735,6 +738,9 @@ def _build_results(state: dict) -> dict:
                     else:
                         extra += score
             info = load_player_info(mid) if mid else {}
+            if not isinstance(info, dict):
+                print(f"[results] Warning: load_player_info({mid}) returned {type(info)}: {info}")
+                info = {}
             first = (info.get("first_name") or "").strip()
             last = (info.get("name") or "").strip()
             display_name = (
