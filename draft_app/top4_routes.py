@@ -129,11 +129,30 @@ def index():
             # Filter players based on transfer phase
             if current_user == current_transfer_manager:
                 if current_transfer_phase == "out":
-                    # Show only current user's roster for transfer out
-                    user_roster = transfer_state.get("rosters", {}).get(current_user, [])
+                    # Get user's roster from PRODUCTION DATA
+                    user_roster = []
+                    try:
+                        import requests
+                        response = requests.get('https://val-draft-app-b4a5eee9bd9a.herokuapp.com/top4/results/data', timeout=10)
+                        if response.status_code == 200:
+                            prod_data = response.json()
+                            lineups = prod_data.get('lineups', {})
+                            user_data = lineups.get(current_user, {})
+                            user_roster = user_data.get('players', [])
+                            print(f"✅ Got {len(user_roster)} players for {current_user} from production")
+                    except Exception as e:
+                        print(f"❌ Error getting production roster for {current_user}: {e}")
+                    
                     if user_roster:
-                        user_player_ids = {str(p.get("playerId")) for p in user_roster}
+                        # Filter players to show only user's roster
+                        user_player_ids = set()
+                        for p in user_roster:
+                            pid = p.get("playerId") or p.get("id")
+                            if pid:
+                                user_player_ids.add(str(pid))
+                        
                         players = [p for p in players if str(p["playerId"]) in user_player_ids]
+                        print(f"✅ Filtered to {len(players)} players for transfer out")
                     else:
                         # FALLBACK: If no roster found, show first 20 players for transfer out
                         print(f"WARNING: No roster found for {current_user}, showing first 20 players")

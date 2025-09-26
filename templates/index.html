@@ -180,19 +180,6 @@
 
 
   {# Transfer interface for TOP4 when window is active #}
-  {% if table_league == 'top4' %}
-  <!-- DEBUG: Transfer variables -->
-  <div style="background: #f0f0f0; padding: 10px; margin: 10px 0; border: 1px solid #ccc;">
-    <strong>DEBUG Transfer Variables:</strong><br>
-    table_league: "{{ table_league }}"<br>
-    transfer_window_active: {{ transfer_window_active }}<br>
-    current_user: "{{ current_user }}"<br>
-    current_transfer_manager: "{{ current_transfer_manager }}"<br>
-    current_transfer_phase: "{{ current_transfer_phase }}"<br>
-    user == manager: {{ current_user == current_transfer_manager }}<br>
-  </div>
-  {% endif %}
-  
   {% if table_league == 'top4' and transfer_window_active and current_user == current_transfer_manager %}
     {% if current_transfer_phase == 'out' %}
     <div class="card" style="margin:10px 0; border: 2px solid #ff6b35;">
