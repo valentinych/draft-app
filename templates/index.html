@@ -947,7 +947,7 @@ document.addEventListener('DOMContentLoaded', function() {
   
   const isTransferOut = {{ 'true' if current_transfer_phase == 'out' else 'false' }};
   const isTransferIn = {{ 'true' if current_transfer_phase == 'in' else 'false' }};
-  const isCurrentManager = {{ 'true' if current_user == current_transfer_manager else 'false' }};
+  const isCurrentManager = {{ 'true' if is_current_manager else 'false' }};
   
   if (!isCurrentManager) return;
   

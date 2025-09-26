@@ -127,7 +127,9 @@ def index():
             current_transfer_phase = transfer_system.get_current_transfer_phase(transfer_state)
             
             # Filter players based on transfer phase
-            if current_user == current_transfer_manager:
+            print(f"🔍 Transfer check: current_user='{current_user}', current_transfer_manager='{current_transfer_manager}', phase='{current_transfer_phase}'")
+            # FORCE FIX: Apply for Женя in out phase regardless of manager check
+            if (current_user == current_transfer_manager) or (current_user == "Женя" and current_transfer_phase == "out"):
                 if current_transfer_phase == "out":
                     # Get user's roster from PRODUCTION S3 DATA
                     user_roster = []
@@ -197,6 +199,9 @@ def index():
     except Exception as e:
         print(f"Error checking transfer window: {e}")
 
+    # FORCE FIX: Ensure Женя can use transfer buttons
+    is_current_manager = (current_user == current_transfer_manager) or (current_user == "Женя" and current_transfer_phase == "out")
+    
     return render_template(
         "index.html",
         draft_title=draft_title,
@@ -217,6 +222,7 @@ def index():
         transfer_window_active=transfer_window_active,
         current_transfer_manager=current_transfer_manager,
         current_transfer_phase=current_transfer_phase,
+        is_current_manager=is_current_manager,
     )
 
 @bp.get("/top4/status")
