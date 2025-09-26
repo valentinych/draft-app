@@ -63,7 +63,7 @@ LINEUPS_CACHE_TTL = timedelta(minutes=30)
 
 # Bump this constant when logic that affects cached Top-4 lineups/scores needs
 # to be invalidated (e.g. league overrides for transferred players).
-LINEUPS_OVERRIDE_VERSION = "2025-09-override-v2-club-logos"
+LINEUPS_OVERRIDE_VERSION = "2025-09-override-v3-real-mantra-logos"
 
 # Some players changed leagues after the Top-4 scrape.  Their fantasy points
 # should follow the new league schedule even if the upstream API still tags

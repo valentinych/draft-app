@@ -57,46 +57,55 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const posOrder = { GKP:0, GK:0, G:0, DEF:1, D:1, MID:2, M:2, FWD:3, F:3 };
 
-  // Club logo mapping for Top-4 leagues
+  // Club logo mapping using real MantraFootball S3 URLs
   const getClubLogo = (clubName) => {
     if (!clubName) return null;
     
-    // MantraFootball logo URL pattern (if we can construct it)
-    const mantrafootballLogo = `https://mantrafootball.org/assets/images/clubs/${encodeURIComponent(clubName.toLowerCase().replace(/\s+/g, '_'))}.png`;
-    
-    // Club name to logo mapping (fallback to common logos)
+    // Real MantraFootball club logo mapping
     const clubLogos = {
       // Bundesliga
-      'Бавария': 'https://logos-world.net/wp-content/uploads/2020/06/Bayern-Munich-Logo.png',
-      'Боруссия Д': 'https://logos-world.net/wp-content/uploads/2020/06/Borussia-Dortmund-Logo.png',
-      'РБ Лейпциг': 'https://logos-world.net/wp-content/uploads/2020/06/RB-Leipzig-Logo.png',
-      'Байер 04': 'https://logos-world.net/wp-content/uploads/2020/06/Bayer-Leverkusen-Logo.png',
-      'Айнтрахт Ф': 'https://logos-world.net/wp-content/uploads/2020/06/Eintracht-Frankfurt-Logo.png',
-      'Хоффенхайм': 'https://logos-world.net/wp-content/uploads/2020/06/TSG-Hoffenheim-Logo.png',
-      'Санкт-Паули': 'https://logos-world.net/wp-content/uploads/2020/06/FC-St-Pauli-Logo.png',
-      'Унион Берлин': 'https://logos-world.net/wp-content/uploads/2020/06/Union-Berlin-Logo.png',
+      'Бавария': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/bayern_munich.png',
+      'Боруссия Д': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/borussia_dortmund.png',
+      'РБ Лейпциг': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/rb_leipzig.png',
+      'Байер 04': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/bayer_leverkusen.png',
+      'Айнтрахт Ф': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/eintracht_frankfurt.png',
+      'Хоффенхайм': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/hoffenheim.png',
+      'Санкт-Паули': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/st_pauli.png',
+      'Унион Берлин': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/union_berlin.png',
+      'Вольфсбург': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/wolfsburg.png',
+      'Фрайбург': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/freiburg.png',
       
-      // EPL
-      'Манчестер Сити': 'https://logos-world.net/wp-content/uploads/2020/06/Manchester-City-Logo.png',
-      'Арсенал': 'https://logos-world.net/wp-content/uploads/2020/06/Arsenal-Logo.png',
-      'Ливерпуль': 'https://logos-world.net/wp-content/uploads/2020/06/Liverpool-Logo.png',
-      'Челси': 'https://logos-world.net/wp-content/uploads/2020/06/Chelsea-Logo.png',
-      'Манчестер Юнайтед': 'https://logos-world.net/wp-content/uploads/2020/06/Manchester-United-Logo.png',
-      'Тоттенхэм': 'https://logos-world.net/wp-content/uploads/2020/06/Tottenham-Logo.png',
+      // EPL  
+      'Манчестер Сити': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/manchester_city.png',
+      'Арсенал': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/arsenal.png',
+      'Ливерпуль': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/liverpool.png',
+      'Челси': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/chelsea.png',
+      'Манчестер Юнайтед': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/manchester_united.png',
+      'Тоттенхэм': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/tottenham.png',
+      'Ноттингем Форест': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/nottingham_forest.png',
+      'Кристал Пэлас': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/crystal_palace.png',
+      'Вест Хэм': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/west_ham.png',
+      'Ньюкасл': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/newcastle.png',
       
       // La Liga
-      'Реал Мадрид': 'https://logos-world.net/wp-content/uploads/2020/06/Real-Madrid-Logo.png',
-      'Барселона': 'https://logos-world.net/wp-content/uploads/2020/06/Barcelona-Logo.png',
-      'Атлетико': 'https://logos-world.net/wp-content/uploads/2020/06/Atletico-Madrid-Logo.png',
-      'Севилья': 'https://logos-world.net/wp-content/uploads/2020/06/Sevilla-Logo.png',
+      'Реал Мадрид': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/real_madrid.png',
+      'Барселона': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/barcelona.png',
+      'Атлетико': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/atletico_madrid.png',
+      'Атлетик': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/athletic_bilbao.png',
+      'Севилья': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/sevilla.png',
+      'Бетис': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/real_betis.png',
+      'Вильярреал': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/villarreal.png',
+      'Валенсия': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/valencia.png',
       
       // Serie A
-      'Интер': 'https://logos-world.net/wp-content/uploads/2020/06/Inter-Milan-Logo.png',
-      'Милан': 'https://logos-world.net/wp-content/uploads/2020/06/AC-Milan-Logo.png',
-      'Ювентус': 'https://logos-world.net/wp-content/uploads/2020/06/Juventus-Logo.png',
-      'Наполи': 'https://logos-world.net/wp-content/uploads/2020/06/Napoli-Logo.png',
-      'Рома': 'https://logos-world.net/wp-content/uploads/2020/06/AS-Roma-Logo.png',
-      'Лацио': 'https://logos-world.net/wp-content/uploads/2020/06/Lazio-Logo.png'
+      'Интер': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/inter.png',
+      'Милан': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/milan.png',
+      'Ювентус': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/juventus.png',
+      'Наполи': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/napoli.png',
+      'Рома': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/roma.png',
+      'Лацио': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/lazio.png',
+      'Аталанта': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/atalanta.png',
+      'Фиорентина': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/fiorentina.png'
     };
     
     // Try exact match first
@@ -104,8 +113,11 @@ document.addEventListener('DOMContentLoaded', () => {
       return clubLogos[clubName];
     }
     
-    // Try MantraFootball logo as fallback
-    return mantrafootballLogo;
+    // Try to construct MantraFootball URL from club name
+    const normalizedName = clubName.toLowerCase()
+      .replace(/\s+/g, '_')
+      .replace(/[^a-z0-9_]/g, '');
+    return `https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/${normalizedName}.png`;
   };
 
   const showPopup = p => {
