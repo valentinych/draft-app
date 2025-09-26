@@ -611,7 +611,7 @@ def _build_lineups(round_no: int, current_round: int, state: dict) -> dict:
                 print(f"[lineups] skip fid {fid} name {name}: mid={mid} league_round={league_round}")
             # Read player metadata from cache only.  Any missing entries will be
             # fetched asynchronously after the lineups JSON has been generated.
-            info = _load_player_info_with_fetch(mid) if mid else {}
+            info = load_player_info(mid) if mid else {}
             first = (info.get('first_name') or "").strip()
             last = (info.get('name') or "").strip()
             display_name = (
@@ -719,7 +719,7 @@ def _build_results(state: dict) -> dict:
                         pts += score
                     else:
                         extra += score
-            info = _load_player_info_with_fetch(mid) if mid else {}
+            info = load_player_info(mid) if mid else {}
             first = (info.get("first_name") or "").strip()
             last = (info.get("name") or "").strip()
             display_name = (
