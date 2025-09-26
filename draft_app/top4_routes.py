@@ -154,35 +154,27 @@ def index():
                         print(f"❌ Error getting production roster for {current_user}: {e}")
                     
                     if user_roster:
-                        # Filter players to show only user's roster based on playerId
-                        user_player_ids = set()
+                        # TEMP FIX: Use S3 roster directly as players list
+                        print(f"🔧 TEMP FIX: Using S3 roster directly ({len(user_roster)} players)")
+                        
+                        # Convert S3 roster to match expected format
+                        players = []
                         for p in user_roster:
-                            pid = p.get("playerId") or p.get("id")
-                            if pid:
-                                user_player_ids.add(str(pid))
+                            # Ensure all required fields are present
+                            player_data = {
+                                "playerId": p.get("playerId") or p.get("id"),
+                                "fullName": p.get("fullName") or p.get("name", "Unknown"),
+                                "clubName": p.get("clubName") or p.get("club", "Unknown"),
+                                "position": p.get("position", "Unknown"),
+                                "league": p.get("league", "Mixed"),
+                                "price": p.get("price", 0),
+                                "points": p.get("points", 0)
+                            }
+                            players.append(player_data)
                         
-                        print(f"🔍 DEBUG: Found {len(user_player_ids)} player IDs from S3 roster")
-                        print(f"🔍 DEBUG: Sample IDs: {list(user_player_ids)[:5]}")
-                        
-                        if user_player_ids:
-                            original_count = len(players)
-                            
-                            # Debug: Check if any players have matching IDs
-                            matching_ids = []
-                            for p in players[:100]:  # Check first 100 players
-                                if str(p["playerId"]) in user_player_ids:
-                                    matching_ids.append(f"{p.get('fullName')}:{p.get('playerId')}")
-                            print(f"🔍 DEBUG: Found {len(matching_ids)} matches in first 100 players: {matching_ids[:3]}")
-                            
-                            players = [p for p in players if str(p["playerId"]) in user_player_ids]
-                            print(f"✅ Filtered from {original_count} to {len(players)} players for transfer out by playerId")
-                            
-                            # Debug: Show first few filtered players
-                            for i, p in enumerate(players[:3]):
-                                print(f"  {i+1}. {p.get('fullName')} (ID: {p.get('playerId')})")
-                        else:
-                            print("⚠️ No player IDs found, showing first 20 players as fallback")
-                            players = players[:20]
+                        print(f"✅ Converted {len(players)} S3 players for display")
+                        for i, p in enumerate(players[:3]):
+                            print(f"  {i+1}. {p.get('fullName')} (ID: {p.get('playerId')}) - {p.get('clubName')}")
                     else:
                         # FALLBACK: If no roster found, show first 20 players for transfer out
                         print(f"WARNING: No roster found for {current_user}, showing first 20 players")
