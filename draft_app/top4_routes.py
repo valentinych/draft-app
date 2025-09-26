@@ -160,15 +160,20 @@ def index():
                         # Convert S3 roster to match expected format
                         players = []
                         for p in user_roster:
-                            # Ensure all required fields are present
+                            # Ensure all required fields are present for template
                             player_data = {
                                 "playerId": p.get("playerId") or p.get("id"),
                                 "fullName": p.get("fullName") or p.get("name", "Unknown"),
                                 "clubName": p.get("clubName") or p.get("club", "Unknown"),
                                 "position": p.get("position", "Unknown"),
                                 "league": p.get("league", "Mixed"),
-                                "price": p.get("price", 0),
-                                "points": p.get("points", 0)
+                                "price": p.get("price", 10.0),  # Default price
+                                "points": p.get("points", 0),
+                                "popularity": 0.5,  # Default popularity
+                                "logo": None,  # Default logo
+                                "picked": False,  # Not picked in transfer context
+                                "can_pick": True,  # Can pick for transfer
+                                "wishlist": False  # Default wishlist status
                             }
                             players.append(player_data)
                         
