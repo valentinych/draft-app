@@ -419,6 +419,19 @@ def open_transfer_window():
         state = load_state()
         create_backup(state, "before_transfer_window")
         
+        # FORCE FRESH START: Clear any existing transfer data
+        if "transfer_window" in state:
+            del state["transfer_window"]
+        if "transfers" in state:
+            state["transfers"] = {
+                "active_window": None,
+                "legacy_windows": [],
+                "available_players": [],
+                "history": []
+            }
+        save_state(state)
+        print("🔄 Cleared old transfer data for fresh start")
+        
         # Get transfer order based on current results
         transfer_order = get_transfer_order_from_results()
         
