@@ -122,18 +122,9 @@ def index():
         transfer_state = transfer_system.load_state()
         transfer_window_active = transfer_system.is_transfer_window_active(transfer_state)
         
-        # DEBUG: Print state info
-        print(f"DEBUG: transfer_window_active = {transfer_window_active}")
-        print(f"DEBUG: transfer_state keys = {list(transfer_state.keys())}")
-        if 'transfer_window' in transfer_state:
-            print(f"DEBUG: transfer_window = {transfer_state['transfer_window']}")
-        
         if transfer_window_active:
             current_transfer_manager = transfer_system.get_current_transfer_manager(transfer_state)
             current_transfer_phase = transfer_system.get_current_transfer_phase(transfer_state)
-            
-            print(f"DEBUG: current_transfer_manager = {current_transfer_manager}")
-            print(f"DEBUG: current_transfer_phase = {current_transfer_phase}")
             
             # Filter players based on transfer phase
             if current_user == current_transfer_manager:
