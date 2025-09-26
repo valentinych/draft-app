@@ -700,8 +700,7 @@ class TransferSystem:
         if legacy_window and legacy_window.get("active"):
             transfers_completed = legacy_window.setdefault("transfers_completed", {})
             transfers_completed[manager] = transfers_completed.get(manager, 0) + 1
-            # Reset phase to "out" and advance to next manager
-            legacy_window["transfer_phase"] = "out"
+            # Advance to next manager (this will handle phase transition)
             self.advance_transfer_turn(state)
         else:
             # Standard format - advance turn (this will reset phase to "out" and move to next manager)
