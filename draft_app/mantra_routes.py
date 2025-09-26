@@ -748,9 +748,16 @@ def _build_results(state: dict) -> dict:
                 or f"{first} {last}".strip()
                 or name
             )
-            logo = (info.get("club") or {}).get("logo_path")
-            # Get club name from either MantraFootball info or original player data
-            club_name = (info.get("club") or {}).get("name")
+            # Get logo and club info - handle both dict and string cases
+            club_info = info.get("club")
+            if isinstance(club_info, dict):
+                logo = club_info.get("logo_path")
+                club_name = club_info.get("name")
+            else:
+                logo = None
+                club_name = None
+            
+            # Fallback to original player data for club name
             if not club_name:
                 club_name = meta.get("clubName")
             breakdown.sort(key=lambda b: b["label"])
