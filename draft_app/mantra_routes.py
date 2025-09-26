@@ -700,8 +700,16 @@ def _build_results(state: dict) -> dict:
         lineup = []
         total = 0
         for item in roster or []:
-            pl = item.get("player") if isinstance(item, dict) and item.get("player") else item
-            fid = str(pl.get("playerId") or pl.get("id"))
+            if isinstance(item, dict):
+                pl = item.get("player", item)
+                if isinstance(pl, dict):
+                    fid = str(pl.get("playerId") or pl.get("id", ""))
+                else:
+                    fid = str(pl) if pl else ""
+                    pl = {"playerId": fid}
+            else:
+                fid = str(item) if item else ""
+                pl = {"playerId": fid}
             meta = pidx.get(fid, {})
             pos = pl.get("position") or meta.get("position")
             name = (
