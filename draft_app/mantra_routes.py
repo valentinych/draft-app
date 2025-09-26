@@ -225,6 +225,23 @@ def _load_lineups_json(rnd: int) -> dict | None:
     return None
 
 
+def _load_player_info_with_fetch(pid: int) -> dict:
+    """Load player metadata, fetching from API if necessary."""
+    data = load_player_info(pid)
+    if data:
+        return data
+    try:
+        resp = requests.get(f"https://mantrafootball.org/api/players/{pid}", timeout=10)
+        resp.raise_for_status()
+        data = resp.json().get("data", {})
+        print(f"[lineups] Fetched player info for pid={pid}: {data.get('first_name', '')} {data.get('name', '')}")
+    except Exception as exc:
+        print(f"[MANTRA] info fetch failed pid={pid}: {exc}")
+        data = {}
+    save_player_info(pid, data)
+    return data
+
+
 def _fetch_player(pid: int) -> dict:
     try:
         print(f"[MANTRA] request pid={pid}")
@@ -594,7 +611,7 @@ def _build_lineups(round_no: int, current_round: int, state: dict) -> dict:
                 print(f"[lineups] skip fid {fid} name {name}: mid={mid} league_round={league_round}")
             # Read player metadata from cache only.  Any missing entries will be
             # fetched asynchronously after the lineups JSON has been generated.
-            info = load_player_info(mid) if mid else {}
+            info = _load_player_info_with_fetch(mid) if mid else {}
             first = (info.get('first_name') or "").strip()
             last = (info.get('name') or "").strip()
             display_name = (
@@ -602,14 +619,13 @@ def _build_lineups(round_no: int, current_round: int, state: dict) -> dict:
                 or f"{first} {last}".strip()
                 or name
             )
-            # Safely get logo_path from club info
+            # Get logo_path from club info
             club_info = info.get('club')
+            logo = None
             if isinstance(club_info, dict):
                 logo = club_info.get('logo_path')
-                print(f"[lineups] {display_name}: loaded club info, logo={logo}")
-            else:
-                logo = None
-                print(f"[lineups] {display_name}: no club info found, info keys={list(info.keys()) if info else 'empty'}")
+                
+            print(f"[lineups] {display_name} ({club}): logo={logo}")
             debug.append(f"{manager}: {display_name} ({pos}) -> {int(pts)}")
             lineup.append(
                 {
@@ -703,7 +719,7 @@ def _build_results(state: dict) -> dict:
                         pts += score
                     else:
                         extra += score
-            info = load_player_info(mid) if mid else {}
+            info = _load_player_info_with_fetch(mid) if mid else {}
             first = (info.get("first_name") or "").strip()
             last = (info.get("name") or "").strip()
             display_name = (
