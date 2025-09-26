@@ -625,7 +625,7 @@ def _build_lineups(round_no: int, current_round: int, state: dict) -> dict:
             if isinstance(club_info, dict):
                 logo = club_info.get('logo_path')
                 
-            print(f"[lineups] {display_name} ({club}): logo={logo}")
+            print(f"[lineups] {display_name}: logo={logo}")
             debug.append(f"{manager}: {display_name} ({pos}) -> {int(pts)}")
             lineup.append(
                 {
