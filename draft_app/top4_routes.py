@@ -117,17 +117,20 @@ def index():
     try:
         from .transfer_system import create_transfer_system
         transfer_system = create_transfer_system("top4")
-        transfer_window_active = transfer_system.is_transfer_window_active(state)
+        
+        # CRITICAL FIX: Use the same state loading method as API routes
+        transfer_state = transfer_system.load_state()
+        transfer_window_active = transfer_system.is_transfer_window_active(transfer_state)
         
         # DEBUG: Print state info
         print(f"DEBUG: transfer_window_active = {transfer_window_active}")
-        print(f"DEBUG: state keys = {list(state.keys())}")
-        if 'transfer_window' in state:
-            print(f"DEBUG: transfer_window = {state['transfer_window']}")
+        print(f"DEBUG: transfer_state keys = {list(transfer_state.keys())}")
+        if 'transfer_window' in transfer_state:
+            print(f"DEBUG: transfer_window = {transfer_state['transfer_window']}")
         
         if transfer_window_active:
-            current_transfer_manager = transfer_system.get_current_transfer_manager(state)
-            current_transfer_phase = transfer_system.get_current_transfer_phase(state)
+            current_transfer_manager = transfer_system.get_current_transfer_manager(transfer_state)
+            current_transfer_phase = transfer_system.get_current_transfer_phase(transfer_state)
             
             print(f"DEBUG: current_transfer_manager = {current_transfer_manager}")
             print(f"DEBUG: current_transfer_phase = {current_transfer_phase}")
@@ -136,12 +139,12 @@ def index():
             if current_user == current_transfer_manager:
                 if current_transfer_phase == "out":
                     # Show only current user's roster for transfer out
-                    user_roster = state.get("rosters", {}).get(current_user, [])
+                    user_roster = transfer_state.get("rosters", {}).get(current_user, [])
                     user_player_ids = {str(p.get("playerId")) for p in user_roster}
                     players = [p for p in players if str(p["playerId"]) in user_player_ids]
                 elif current_transfer_phase == "in":
                     # Show available transfer players for transfer in
-                    available_players = transfer_system.get_available_transfer_players(state)
+                    available_players = transfer_system.get_available_transfer_players(transfer_state)
                     available_player_ids = {str(p.get("playerId")) for p in available_players}
                     players = [p for p in players if str(p["playerId"]) in available_player_ids]
     except Exception as e:
