@@ -808,6 +808,9 @@ function toggleMantraMode() {
 
 {# Transfer functionality for TOP4 #}
 <!-- DEBUG: table_league='{{ table_league }}', transfer_window_active='{{ transfer_window_active }}', is_current_manager='{{ is_current_manager }}' -->
+<div style="display:none;" 
+     data-transfer-window-active="{{ 'true' if transfer_window_active else 'false' }}"
+     data-is-current-manager="{{ 'true' if is_current_manager else 'false' }}"></div>
 {% if table_league == 'top4' and transfer_window_active %}
 <script>
 // Transfer functions for TOP4 main page

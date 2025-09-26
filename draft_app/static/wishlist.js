@@ -87,7 +87,18 @@
         const inWishlist = tr.classList.contains('is-wishlist');
         const canPick = tr.getAttribute('data-can-pick') === '1';
         const pickBtn = qs('form button[type="submit"]', tr);
-        if (pickBtn) pickBtn.disabled = !canPick;
+        if (pickBtn) {
+          // For TOP4 transfers, always enable buttons for current manager
+          const isTop4Transfer = window.location.pathname.includes('/top4') && 
+                                document.querySelector('[data-transfer-window-active="true"]');
+          const isCurrentManager = document.querySelector('[data-is-current-manager="true"]');
+          
+          if (isTop4Transfer && isCurrentManager) {
+            pickBtn.disabled = false;
+          } else {
+            pickBtn.disabled = !canPick;
+          }
+        }
         const status = tr.getAttribute('data-status') || '';
         const chance = Number(tr.getAttribute('data-chance') || '0');
         const news = (tr.getAttribute('data-news') || '').toLowerCase();
