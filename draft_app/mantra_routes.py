@@ -700,14 +700,12 @@ def _build_results(state: dict) -> dict:
         lineup = []
         total = 0
         for item in roster or []:
+            # Production data structure: each item is a dict with playerId, fullName, etc.
             if isinstance(item, dict):
-                pl = item.get("player", item)
-                if isinstance(pl, dict):
-                    fid = str(pl.get("playerId") or pl.get("id", ""))
-                else:
-                    fid = str(pl) if pl else ""
-                    pl = {"playerId": fid}
+                pl = item  # The item IS the player data
+                fid = str(pl.get("playerId", ""))
             else:
+                # Fallback for unexpected data
                 fid = str(item) if item else ""
                 pl = {"playerId": fid}
             meta = pidx.get(fid, {})
@@ -827,6 +825,8 @@ def lineups():
 def results_data():
     try:
         state = load_top4_state()
+        rosters = state.get("rosters", {})
+        print(f"[results] State rosters: {rosters}")
         data = _build_results(state)
         return jsonify(data)
     except Exception as exc:
