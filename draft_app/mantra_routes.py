@@ -624,13 +624,22 @@ def _build_lineups(round_no: int, current_round: int, state: dict) -> dict:
             logo = None
             if isinstance(club_info, dict):
                 logo = club_info.get('logo_path')
+            
+            # Get club name from either MantraFootball info or original player data
+            club_name = None
+            if isinstance(club_info, dict):
+                club_name = club_info.get('name')
+            if not club_name:
+                # Fallback to original player data
+                club_name = meta.get("clubName")
                 
-            print(f"[lineups] {display_name}: logo={logo}")
+            print(f"[lineups] {display_name}: logo={logo}, club={club_name}")
             debug.append(f"{manager}: {display_name} ({pos}) -> {int(pts)}")
             lineup.append(
                 {
                     "name": display_name,
                     "logo": logo,
+                    "club": club_name,
                     "pos": pos,
                     "points": int(pts),
                     "breakdown": breakdown,
@@ -728,10 +737,15 @@ def _build_results(state: dict) -> dict:
                 or name
             )
             logo = (info.get("club") or {}).get("logo_path")
+            # Get club name from either MantraFootball info or original player data
+            club_name = (info.get("club") or {}).get("name")
+            if not club_name:
+                club_name = meta.get("clubName")
             breakdown.sort(key=lambda b: b["label"])
             entry = {
                 "name": display_name,
                 "logo": logo,
+                "club": club_name,
                 "pos": pos,
                 "points": int(pts),
                 "breakdown": breakdown,

@@ -47,6 +47,57 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const posOrder = { GKP:0, GK:0, G:0, DEF:1, D:1, MID:2, M:2, FWD:3, F:3 };
 
+  // Club logo mapping for Top-4 leagues
+  const getClubLogo = (clubName) => {
+    if (!clubName) return null;
+    
+    // MantraFootball logo URL pattern (if we can construct it)
+    const mantrafootballLogo = `https://mantrafootball.org/assets/images/clubs/${encodeURIComponent(clubName.toLowerCase().replace(/\s+/g, '_'))}.png`;
+    
+    // Club name to logo mapping (fallback to common logos)
+    const clubLogos = {
+      // Bundesliga
+      'Бавария': 'https://logos-world.net/wp-content/uploads/2020/06/Bayern-Munich-Logo.png',
+      'Боруссия Д': 'https://logos-world.net/wp-content/uploads/2020/06/Borussia-Dortmund-Logo.png',
+      'РБ Лейпциг': 'https://logos-world.net/wp-content/uploads/2020/06/RB-Leipzig-Logo.png',
+      'Байер 04': 'https://logos-world.net/wp-content/uploads/2020/06/Bayer-Leverkusen-Logo.png',
+      'Айнтрахт Ф': 'https://logos-world.net/wp-content/uploads/2020/06/Eintracht-Frankfurt-Logo.png',
+      'Хоффенхайм': 'https://logos-world.net/wp-content/uploads/2020/06/TSG-Hoffenheim-Logo.png',
+      'Санкт-Паули': 'https://logos-world.net/wp-content/uploads/2020/06/FC-St-Pauli-Logo.png',
+      'Унион Берлин': 'https://logos-world.net/wp-content/uploads/2020/06/Union-Berlin-Logo.png',
+      
+      // EPL
+      'Манчестер Сити': 'https://logos-world.net/wp-content/uploads/2020/06/Manchester-City-Logo.png',
+      'Арсенал': 'https://logos-world.net/wp-content/uploads/2020/06/Arsenal-Logo.png',
+      'Ливерпуль': 'https://logos-world.net/wp-content/uploads/2020/06/Liverpool-Logo.png',
+      'Челси': 'https://logos-world.net/wp-content/uploads/2020/06/Chelsea-Logo.png',
+      'Манчестер Юнайтед': 'https://logos-world.net/wp-content/uploads/2020/06/Manchester-United-Logo.png',
+      'Тоттенхэм': 'https://logos-world.net/wp-content/uploads/2020/06/Tottenham-Logo.png',
+      
+      // La Liga
+      'Реал Мадрид': 'https://logos-world.net/wp-content/uploads/2020/06/Real-Madrid-Logo.png',
+      'Барселона': 'https://logos-world.net/wp-content/uploads/2020/06/Barcelona-Logo.png',
+      'Атлетико': 'https://logos-world.net/wp-content/uploads/2020/06/Atletico-Madrid-Logo.png',
+      'Севилья': 'https://logos-world.net/wp-content/uploads/2020/06/Sevilla-Logo.png',
+      
+      // Serie A
+      'Интер': 'https://logos-world.net/wp-content/uploads/2020/06/Inter-Milan-Logo.png',
+      'Милан': 'https://logos-world.net/wp-content/uploads/2020/06/AC-Milan-Logo.png',
+      'Ювентус': 'https://logos-world.net/wp-content/uploads/2020/06/Juventus-Logo.png',
+      'Наполи': 'https://logos-world.net/wp-content/uploads/2020/06/Napoli-Logo.png',
+      'Рома': 'https://logos-world.net/wp-content/uploads/2020/06/AS-Roma-Logo.png',
+      'Лацио': 'https://logos-world.net/wp-content/uploads/2020/06/Lazio-Logo.png'
+    };
+    
+    // Try exact match first
+    if (clubLogos[clubName]) {
+      return clubLogos[clubName];
+    }
+    
+    // Try MantraFootball logo as fallback
+    return mantrafootballLogo;
+  };
+
   // Godmode functionality
   {% if session.get('godmode') %}
   const refreshBtn = document.getElementById('refresh-stats-btn');
@@ -218,14 +269,44 @@ document.addEventListener('DOMContentLoaded', () => {
         row.style.backgroundColor = j % 2 === 0 ? c1 : c2;
         const spanName = document.createElement('span');
         spanName.className = 'player-name';
+        
+        // Try to show club logo
+        let logoShown = false;
         if (p.logo) {
+          // Use MantraFootball logo if available
           const img = document.createElement('img');
           img.src = p.logo;
           img.alt = '';
           img.style.height = '1em';
           img.style.marginRight = '4px';
+          img.onerror = () => {
+            // If MantraFootball logo fails, try club-based logo
+            const fallbackLogo = getClubLogo(p.club);
+            if (fallbackLogo) {
+              img.src = fallbackLogo;
+            } else {
+              img.style.display = 'none';
+            }
+          };
           spanName.appendChild(img);
+          logoShown = true;
+        } else if (p.club) {
+          // Use club-based logo as fallback
+          const fallbackLogo = getClubLogo(p.club);
+          if (fallbackLogo) {
+            const img = document.createElement('img');
+            img.src = fallbackLogo;
+            img.alt = p.club;
+            img.style.height = '1em';
+            img.style.marginRight = '4px';
+            img.onerror = () => {
+              img.style.display = 'none';
+            };
+            spanName.appendChild(img);
+            logoShown = true;
+          }
         }
+        
         spanName.appendChild(document.createTextNode(p.name));
         const spanPts = document.createElement('span');
         spanPts.className = 'points-box';
