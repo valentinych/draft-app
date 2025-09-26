@@ -6,6 +6,8 @@ from .home import bp as home_bp
 from .ucl import bp as ucl_bp
 from .epl import bp as epl_bp
 from .stats import bp as stats_bp
+from .top4_routes import bp as top4draft_bp
+from .transfer_routes import bp as transfers_bp
 from .state import init_ucl, init_epl
 
 def create_app():
@@ -25,5 +27,7 @@ def create_app():
     app.register_blueprint(ucl_bp)
     app.register_blueprint(epl_bp)
     app.register_blueprint(stats_bp)
+    app.register_blueprint(top4draft_bp)
+    app.register_blueprint(transfers_bp)
 
     return app
