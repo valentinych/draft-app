@@ -56,12 +56,64 @@ def normalize_league(league: str) -> str:
     }
     return league_map.get(league, league)
 
+def determine_league_by_club(club: str) -> str:
+    """Определяем лигу по названию клуба"""
+    club_lower = club.lower()
+    
+    # Bundesliga клубы
+    bundesliga_clubs = [
+        'бавария', 'боруссия д', 'рб лейпциг', 'байер', 'айнтрахт ф', 'хоффенхайм', 
+        'санкт-паули', 'вердер', 'фрайбург', 'вольфсбург', 'унион берлин', 
+        'боруссия м', 'майнц', 'штутгарт', 'аугсбург', 'кильн', 'гейденхайм', 'холштайн киль'
+    ]
+    
+    # Serie A клубы  
+    serie_a_clubs = [
+        'ювентус', 'милан', 'интер', 'наполи', 'рома', 'лацио', 'аталанта', 
+        'фиорентина', 'болонья', 'торино', 'удинезе', 'сассуоло', 'эмполи',
+        'верона', 'специя', 'салернитана', 'дженоа', 'венеция', 'кальяри', 'лечче'
+    ]
+    
+    # La Liga клубы
+    la_liga_clubs = [
+        'реал мадрид', 'барселона', 'атлетико', 'севилья', 'валенсия', 'вильярреал',
+        'реал сосьедад', 'бетис', 'атлетик', 'осасуна', 'сельта', 'райо вальекано',
+        'хетафе', 'эспаньол', 'мальорка', 'кадис', 'эльче', 'леванте', 'алавес', 'гранада'
+    ]
+    
+    # Premier League клубы
+    premier_league_clubs = [
+        'манчестер сити', 'ливerpool', 'челси', 'арсенал', 'манчестер юнайтед',
+        'тоттенхэм', 'вест хэм', 'лестер', 'эвертон', 'лидс', 'астон вилла',
+        'ньюкасл', 'вулверхэмптон', 'кристал пэлас', 'саутгемптон', 'бернли',
+        'уотфорд', 'норвич', 'брайтон', 'бренфорд'
+    ]
+    
+    for club_name in bundesliga_clubs:
+        if club_name in club_lower:
+            return 'Bundesliga'
+            
+    for club_name in serie_a_clubs:
+        if club_name in club_lower:
+            return 'Serie A'
+            
+    for club_name in la_liga_clubs:
+        if club_name in club_lower:
+            return 'La Liga'
+            
+    for club_name in premier_league_clubs:
+        if club_name in club_lower:
+            return 'Premier League'
+    
+    # По умолчанию возвращаем Bundesliga (так как больше всего клубов оттуда)
+    return 'Bundesliga'
+
 def download_sheets_data() -> str:
     """Скачиваем данные из Google Sheets"""
-    url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSIhYKZORtV12Qqaf-_KsY_KANI9Y2PHU56TDvELzh29s3ZMALcaM4G2BJMPBvtpae_Q29lH2PzGcK_/pub?gid=601237526&single=true&output=csv"
+    url = "https://docs.google.com/spreadsheets/d/e/2PACX-1vSIhYKZORtV12Qqaf-_KsY_KANI9Y2PHU56TDvELzh29s3ZMALcaM4G2BJMPBvtpae_Q29lH2PzGcK_/pub?gid=1433161548&single=true&output=csv"
     
     try:
-        response = requests.get(url, timeout=30)
+        response = requests.get(url, timeout=30, allow_redirects=True)
         response.raise_for_status()
         # Пробуем разные кодировки
         try:
@@ -112,7 +164,13 @@ def update_players_from_sheets():
         name = row['Имя'].strip()
         club = row['Клуб'].strip()
         position = normalize_position(row.get('А', '').strip())
-        league = normalize_league(row.get('League', '').strip())
+        
+        # Используем лигу из таблицы, если доступна, иначе определяем по клубу
+        league = row.get('League', '').strip()
+        if not league:
+            league = determine_league_by_club(club)
+        else:
+            league = normalize_league(league)
         
         if row_count % 500 == 0:  # Показываем прогресс каждые 500 строк
             print(f"Обработано {row_count} строк...")
@@ -127,6 +185,12 @@ def update_players_from_sheets():
             fp_last = float(row.get('Pts', '0').replace(',', '.'))
         except:
             fp_last = 0.0
+            
+        # Парсим цену из столбца "$"
+        try:
+            price = float(row.get('$', '0').replace(',', '.'))
+        except:
+            price = round(5.0 + random.uniform(0, 10), 1)  # Случайная цена если не указана
         
         # Ищем существующего игрока
         lookup_key = f"{name}_{club}"
@@ -139,7 +203,8 @@ def update_players_from_sheets():
                 'popularity': popularity,
                 'fp_last': fp_last,
                 'position': position,
-                'league': league
+                'league': league,
+                'price': price  # Обновляем цену из таблицы
             })
             updated_players.append(updated_player)
             updated_players_count += 1
@@ -151,7 +216,7 @@ def update_players_from_sheets():
                 'clubName': club,
                 'position': position,
                 'league': league,
-                'price': round(5.0 + random.uniform(0, 10), 1),  # Случайная цена 5.0-15.0
+                'price': price,  # Используем цену из таблицы
                 'popularity': popularity,
                 'fp_last': fp_last
             }

@@ -635,7 +635,7 @@
     "clubName": "Гамбург",
     "position": "DEF",
     "league": "Bundesliga",
-    "price": 11.2,
+    "price": 4.5,
     "popularity": 1.4,
     "fp_last": 17.0
   },
@@ -645,7 +645,7 @@
     "clubName": "РБ Лейпциг",
     "position": "FWD",
     "league": "Bundesliga",
-    "price": 14.1,
+    "price": 7.5,
     "popularity": 1.8,
     "fp_last": 17.0
   },
@@ -745,7 +745,7 @@
     "clubName": "Хоффенхайм",
     "position": "DEF",
     "league": "Bundesliga",
-    "price": 6.9,
+    "price": 5.0,
     "popularity": 0.6,
     "fp_last": 15.0
   },
@@ -885,7 +885,7 @@
     "clubName": "Вердер",
     "position": "DEF",
     "league": "Bundesliga",
-    "price": 13.0,
+    "price": 5.0,
     "popularity": 0.3,
     "fp_last": 14.0
   },
@@ -985,7 +985,7 @@
     "clubName": "Кельн",
     "position": "DEF",
     "league": "Bundesliga",
-    "price": 9.0,
+    "price": 4.5,
     "popularity": 4.0,
     "fp_last": 13.0
   },
@@ -1025,7 +1025,7 @@
     "clubName": "Вердер",
     "position": "DEF",
     "league": "Bundesliga",
-    "price": 9.9,
+    "price": 4.0,
     "popularity": 7.1,
     "fp_last": 13.0
   },
@@ -1245,7 +1245,7 @@
     "clubName": "Штутгарт",
     "position": "MID",
     "league": "Bundesliga",
-    "price": 5.5,
+    "price": 7.0,
     "popularity": 0.1,
     "fp_last": 12.0
   },
@@ -1265,7 +1265,7 @@
     "clubName": "Штутгарт",
     "position": "MID",
     "league": "Bundesliga",
-    "price": 8.5,
+    "price": 5.5,
     "popularity": 0.2,
     "fp_last": 12.0
   },
@@ -1335,7 +1335,7 @@
     "clubName": "Байер",
     "position": "DEF",
     "league": "Bundesliga",
-    "price": 13.6,
+    "price": 5.5,
     "popularity": 0.3,
     "fp_last": 11.0
   },
@@ -1365,7 +1365,7 @@
     "clubName": "Майнц",
     "position": "FWD",
     "league": "Bundesliga",
-    "price": 13.9,
+    "price": 6.0,
     "popularity": 0.1,
     "fp_last": 11.0
   },
@@ -1385,7 +1385,7 @@
     "clubName": "Гамбург",
     "position": "DEF",
     "league": "Bundesliga",
-    "price": 6.5,
+    "price": 4.5,
     "popularity": 0.5,
     "fp_last": 11.0
   },
@@ -1475,7 +1475,7 @@
     "clubName": "Аугсбург",
     "position": "MID",
     "league": "Bundesliga",
-    "price": 13.6,
+    "price": 6.0,
     "popularity": 0.1,
     "fp_last": 10.0
   },
@@ -1515,7 +1515,7 @@
     "clubName": "Бавария",
     "position": "MID",
     "league": "Bundesliga",
-    "price": 11.3,
+    "price": 5.5,
     "popularity": 0.0,
     "fp_last": 10.0
   },
@@ -1545,7 +1545,7 @@
     "clubName": "Гамбург",
     "position": "DEF",
     "league": "Bundesliga",
-    "price": 14.9,
+    "price": 4.5,
     "popularity": 0.2,
     "fp_last": 10.0
   },
@@ -1565,7 +1565,7 @@
     "clubName": "Байер",
     "position": "DEF",
     "league": "Bundesliga",
-    "price": 10.7,
+    "price": 5.5,
     "popularity": 0.1,
     "fp_last": 10.0
   },
@@ -1845,7 +1845,7 @@
     "clubName": "Айнтрахт Ф",
     "position": "GK",
     "league": "Bundesliga",
-    "price": 11.9,
+    "price": 5.5,
     "popularity": 1.9,
     "fp_last": 8.0
   },
@@ -2075,7 +2075,7 @@
     "clubName": "Боруссия Д",
     "position": "DEF",
     "league": "Bundesliga",
-    "price": 9.3,
+    "price": 4.5,
     "popularity": 0.3,
     "fp_last": 7.0
   },
@@ -2195,7 +2195,7 @@
     "clubName": "Гамбург",
     "position": "MID",
     "league": "Bundesliga",
-    "price": 14.3,
+    "price": 5.0,
     "popularity": 0.3,
     "fp_last": 7.0
   },
@@ -2245,7 +2245,7 @@
     "clubName": "Боруссия М",
     "position": "MID",
     "league": "Bundesliga",
-    "price": 9.8,
+    "price": 5.0,
     "popularity": 0.0,
     "fp_last": 6.0
   },
@@ -2465,7 +2465,7 @@
     "clubName": "Боруссия М",
     "position": "MID",
     "league": "Bundesliga",
-    "price": 11.0,
+    "price": 5.5,
     "popularity": 0.3,
     "fp_last": 5.0
   },
@@ -2485,7 +2485,7 @@
     "clubName": "Вердер",
     "position": "MID",
     "league": "Bundesliga",
-    "price": 12.2,
+    "price": 6.0,
     "popularity": 0.1,
     "fp_last": 5.0
   },
@@ -2495,7 +2495,7 @@
     "clubName": "Хоффенхайм",
     "position": "DEF",
     "league": "Bundesliga",
-    "price": 8.2,
+    "price": 4.5,
     "popularity": 0.3,
     "fp_last": 5.0
   },
@@ -2525,7 +2525,7 @@
     "clubName": "Байер",
     "position": "MID",
     "league": "Bundesliga",
-    "price": 6.3,
+    "price": 7.5,
     "popularity": 0.1,
     "fp_last": 4.0
   },
@@ -2535,7 +2535,7 @@
     "clubName": "Штутгарт",
     "position": "MID",
     "league": "Bundesliga",
-    "price": 10.0,
+    "price": 6.5,
     "popularity": 0.0,
     "fp_last": 4.0
   },
@@ -2545,7 +2545,7 @@
     "clubName": "Вердер",
     "position": "FWD",
     "league": "Bundesliga",
-    "price": 11.0,
+    "price": 8.0,
     "popularity": 2.7,
     "fp_last": 4.0
   },
@@ -2555,7 +2555,7 @@
     "clubName": "Боруссия М",
     "position": "MID",
     "league": "Bundesliga",
-    "price": 9.3,
+    "price": 4.5,
     "popularity": 0.1,
     "fp_last": 4.0
   },
@@ -2575,7 +2575,7 @@
     "clubName": "Хоффенхайм",
     "position": "MID",
     "league": "Bundesliga",
-    "price": 13.2,
+    "price": 5.5,
     "popularity": 0.1,
     "fp_last": 4.0
   },
@@ -2715,7 +2715,7 @@
     "clubName": "Байер",
     "position": "MID",
     "league": "Bundesliga",
-    "price": 14.1,
+    "price": 7.0,
     "popularity": 0.2,
     "fp_last": 3.0
   },
@@ -2815,7 +2815,7 @@
     "clubName": "Байер",
     "position": "MID",
     "league": "Bundesliga",
-    "price": 14.8,
+    "price": 6.5,
     "popularity": 0.1,
     "fp_last": 3.0
   },
@@ -2825,7 +2825,7 @@
     "clubName": "Боруссия Д",
     "position": "MID",
     "league": "Bundesliga",
-    "price": 10.0,
+    "price": 6.5,
     "popularity": 0.1,
     "fp_last": 3.0
   },
@@ -2895,7 +2895,7 @@
     "clubName": "Унион Берлин",
     "position": "DEF",
     "league": "Bundesliga",
-    "price": 9.7,
+    "price": 5.0,
     "popularity": 0.1,
     "fp_last": 3.0
   },
@@ -2905,7 +2905,7 @@
     "clubName": "Бавария",
     "position": "FWD",
     "league": "Bundesliga",
-    "price": 13.1,
+    "price": 8.0,
     "popularity": 0.1,
     "fp_last": 3.0
   },
@@ -3025,7 +3025,7 @@
     "clubName": "Бавария",
     "position": "MID",
     "league": "Bundesliga",
-    "price": 9.4,
+    "price": 7.0,
     "popularity": 0.1,
     "fp_last": 2.0
   },
@@ -3055,7 +3055,7 @@
     "clubName": "Аугсбург",
     "position": "MID",
     "league": "Bundesliga",
-    "price": 10.7,
+    "price": 5.5,
     "popularity": 0.0,
     "fp_last": 2.0
   },
@@ -3165,7 +3165,7 @@
     "clubName": "Вольфсбург",
     "position": "FWD",
     "league": "Bundesliga",
-    "price": 8.9,
+    "price": 5.5,
     "popularity": 0.0,
     "fp_last": 2.0
   },
@@ -3175,7 +3175,7 @@
     "clubName": "Санкт-Паули",
     "position": "FWD",
     "league": "Bundesliga",
-    "price": 10.7,
+    "price": 6.0,
     "popularity": 0.0,
     "fp_last": 2.0
   },
@@ -3185,7 +3185,7 @@
     "clubName": "РБ Лейпциг",
     "position": "FWD",
     "league": "Bundesliga",
-    "price": 8.7,
+    "price": 7.5,
     "popularity": 0.1,
     "fp_last": 2.0
   },
@@ -3205,7 +3205,7 @@
     "clubName": "Вольфсбург",
     "position": "MID",
     "league": "Bundesliga",
-    "price": 6.2,
+    "price": 6.5,
     "popularity": 0.1,
     "fp_last": 2.0
   },
@@ -3245,7 +3245,7 @@
     "clubName": "Вердер",
     "position": "DEF",
     "league": "Bundesliga",
-    "price": 13.1,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 2.0
   },
@@ -3265,7 +3265,7 @@
     "clubName": "Хоффенхайм",
     "position": "DEF",
     "league": "Bundesliga",
-    "price": 10.2,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 1.0
   },
@@ -3325,7 +3325,7 @@
     "clubName": "Аугсбург",
     "position": "MID",
     "league": "Bundesliga",
-    "price": 12.4,
+    "price": 5.5,
     "popularity": 0.0,
     "fp_last": 1.0
   },
@@ -3345,7 +3345,7 @@
     "clubName": "Гамбург",
     "position": "MID",
     "league": "Bundesliga",
-    "price": 7.5,
+    "price": 5.0,
     "popularity": 0.0,
     "fp_last": 1.0
   },
@@ -3375,7 +3375,7 @@
     "clubName": "Майнц",
     "position": "FWD",
     "league": "Bundesliga",
-    "price": 12.8,
+    "price": 5.5,
     "popularity": 0.1,
     "fp_last": 1.0
   },
@@ -3395,7 +3395,7 @@
     "clubName": "Кельн",
     "position": "DEF",
     "league": "Bundesliga",
-    "price": 14.4,
+    "price": 4.0,
     "popularity": 0.5,
     "fp_last": 1.0
   },
@@ -3445,7 +3445,7 @@
     "clubName": "Хайденхайм",
     "position": "DEF",
     "league": "Bundesliga",
-    "price": 6.4,
+    "price": 4.5,
     "popularity": 0.3,
     "fp_last": 1.0
   },
@@ -3555,7 +3555,7 @@
     "clubName": "Гамбург",
     "position": "FWD",
     "league": "Bundesliga",
-    "price": 12.1,
+    "price": 5.0,
     "popularity": 0.2,
     "fp_last": 1.0
   },
@@ -3655,7 +3655,7 @@
     "clubName": "Бавария",
     "position": "FWD",
     "league": "Bundesliga",
-    "price": 11.7,
+    "price": 5.0,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -3705,7 +3705,7 @@
     "clubName": "Айнтрахт Ф",
     "position": "MID",
     "league": "Bundesliga",
-    "price": 14.0,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -3715,7 +3715,7 @@
     "clubName": "Аугсбург",
     "position": "GK",
     "league": "Bundesliga",
-    "price": 14.2,
+    "price": 4.0,
     "popularity": 0.2,
     "fp_last": 0.0
   },
@@ -3725,7 +3725,7 @@
     "clubName": "Бавария",
     "position": "DEF",
     "league": "Bundesliga",
-    "price": 10.1,
+    "price": 4.0,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -3735,7 +3735,7 @@
     "clubName": "Бавария",
     "position": "DEF",
     "league": "Bundesliga",
-    "price": 6.0,
+    "price": 4.0,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -3745,7 +3745,7 @@
     "clubName": "Бавария",
     "position": "MID",
     "league": "Bundesliga",
-    "price": 11.1,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -3755,7 +3755,7 @@
     "clubName": "Бавария",
     "position": "MID",
     "league": "Bundesliga",
-    "price": 5.5,
+    "price": 5.0,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -3775,7 +3775,7 @@
     "clubName": "Боруссия Д",
     "position": "GK",
     "league": "Bundesliga",
-    "price": 9.0,
+    "price": 4.0,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -3785,7 +3785,7 @@
     "clubName": "Вольфсбург",
     "position": "DEF",
     "league": "Bundesliga",
-    "price": 9.1,
+    "price": 4.5,
     "popularity": 0.1,
     "fp_last": 0.0
   },
@@ -3795,7 +3795,7 @@
     "clubName": "Вольфсбург",
     "position": "MID",
     "league": "Bundesliga",
-    "price": 7.0,
+    "price": 5.0,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -3805,7 +3805,7 @@
     "clubName": "Майнц",
     "position": "MID",
     "league": "Bundesliga",
-    "price": 11.6,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -3815,7 +3815,7 @@
     "clubName": "Штутгарт",
     "position": "MID",
     "league": "Bundesliga",
-    "price": 5.7,
+    "price": 4.5,
     "popularity": 0.1,
     "fp_last": 0.0
   },
@@ -3825,7 +3825,7 @@
     "clubName": "Вердер",
     "position": "GK",
     "league": "Bundesliga",
-    "price": 5.5,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -3835,7 +3835,7 @@
     "clubName": "Боруссия Д",
     "position": "FWD",
     "league": "Bundesliga",
-    "price": 9.6,
+    "price": 7.5,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -3845,7 +3845,7 @@
     "clubName": "Вольфсбург",
     "position": "DEF",
     "league": "Bundesliga",
-    "price": 10.9,
+    "price": 4.0,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -3855,7 +3855,7 @@
     "clubName": "Вольфсбург",
     "position": "DEF",
     "league": "Bundesliga",
-    "price": 8.4,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -3865,7 +3865,7 @@
     "clubName": "Кельн",
     "position": "DEF",
     "league": "Bundesliga",
-    "price": 10.9,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -5825,7 +5825,7 @@
     "clubName": "Кельн",
     "position": "DEF",
     "league": "Bundesliga",
-    "price": 6.4,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -5855,7 +5855,7 @@
     "clubName": "Байер",
     "position": "MID",
     "league": "Bundesliga",
-    "price": 7.1,
+    "price": 6.0,
     "popularity": 0.0,
     "fp_last": -2.0
   },
@@ -5955,7 +5955,7 @@
     "clubName": "Аталанта",
     "position": "FWD",
     "league": "Serie A",
-    "price": 10.9,
+    "price": 7.5,
     "popularity": 20.0,
     "fp_last": 26.0
   },
@@ -6165,7 +6165,7 @@
     "clubName": "Аталанта",
     "position": "MID",
     "league": "Serie A",
-    "price": 14.1,
+    "price": 6.0,
     "popularity": 4.1,
     "fp_last": 21.0
   },
@@ -6685,7 +6685,7 @@
     "clubName": "Лечче",
     "position": "MID",
     "league": "Serie A",
-    "price": 6.1,
+    "price": 6.0,
     "popularity": 0.3,
     "fp_last": 15.0
   },
@@ -6715,7 +6715,7 @@
     "clubName": "Кальяри",
     "position": "FWD",
     "league": "Serie A",
-    "price": 9.0,
+    "price": 6.5,
     "popularity": 2.0,
     "fp_last": 15.0
   },
@@ -7075,7 +7075,7 @@
     "clubName": "Милан",
     "position": "MID",
     "league": "Serie A",
-    "price": 5.6,
+    "price": 6.5,
     "popularity": 0.5,
     "fp_last": 13.0
   },
@@ -7235,7 +7235,7 @@
     "clubName": "Болонья",
     "position": "DEF",
     "league": "Serie A",
-    "price": 8.0,
+    "price": 5.0,
     "popularity": 1.5,
     "fp_last": 12.0
   },
@@ -7405,7 +7405,7 @@
     "clubName": "Верона",
     "position": "DEF",
     "league": "Serie A",
-    "price": 11.1,
+    "price": 4.0,
     "popularity": 0.1,
     "fp_last": 11.0
   },
@@ -7465,7 +7465,7 @@
     "clubName": "Кальяри",
     "position": "MID",
     "league": "Serie A",
-    "price": 7.8,
+    "price": 4.5,
     "popularity": 0.2,
     "fp_last": 11.0
   },
@@ -7475,7 +7475,7 @@
     "clubName": "Сассуоло",
     "position": "GK",
     "league": "Serie A",
-    "price": 5.4,
+    "price": 4.5,
     "popularity": 0.2,
     "fp_last": 11.0
   },
@@ -7515,7 +7515,7 @@
     "clubName": "Болонья",
     "position": "DEF",
     "league": "Serie A",
-    "price": 5.9,
+    "price": 5.0,
     "popularity": 0.2,
     "fp_last": 11.0
   },
@@ -7675,7 +7675,7 @@
     "clubName": "Парма",
     "position": "MID",
     "league": "Serie A",
-    "price": 8.5,
+    "price": 5.5,
     "popularity": 0.0,
     "fp_last": 10.0
   },
@@ -7755,7 +7755,7 @@
     "clubName": "Кремонезе",
     "position": "FWD",
     "league": "Serie A",
-    "price": 11.6,
+    "price": 6.0,
     "popularity": 0.8,
     "fp_last": 9.0
   },
@@ -7805,7 +7805,7 @@
     "clubName": "Верона",
     "position": "DEF",
     "league": "Serie A",
-    "price": 11.5,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 9.0
   },
@@ -7835,7 +7835,7 @@
     "clubName": "Верона",
     "position": "FWD",
     "league": "Serie A",
-    "price": 7.7,
+    "price": 6.0,
     "popularity": 0.1,
     "fp_last": 9.0
   },
@@ -7865,7 +7865,7 @@
     "clubName": "Торино",
     "position": "MID",
     "league": "Serie A",
-    "price": 9.7,
+    "price": 6.5,
     "popularity": 0.1,
     "fp_last": 9.0
   },
@@ -7885,7 +7885,7 @@
     "clubName": "Фиорентина",
     "position": "MID",
     "league": "Serie A",
-    "price": 13.9,
+    "price": 6.5,
     "popularity": 0.1,
     "fp_last": 9.0
   },
@@ -7895,7 +7895,7 @@
     "clubName": "Парма",
     "position": "FWD",
     "league": "Serie A",
-    "price": 11.6,
+    "price": 6.5,
     "popularity": 0.6,
     "fp_last": 9.0
   },
@@ -7985,7 +7985,7 @@
     "clubName": "Сассуоло",
     "position": "MID",
     "league": "Serie A",
-    "price": 8.1,
+    "price": 5.5,
     "popularity": 0.0,
     "fp_last": 8.0
   },
@@ -8005,7 +8005,7 @@
     "clubName": "Наполи",
     "position": "FWD",
     "league": "Serie A",
-    "price": 9.4,
+    "price": 7.5,
     "popularity": 6.2,
     "fp_last": 8.0
   },
@@ -8425,7 +8425,7 @@
     "clubName": "Аталанта",
     "position": "MID",
     "league": "Serie A",
-    "price": 14.4,
+    "price": 6.0,
     "popularity": 0.3,
     "fp_last": 7.0
   },
@@ -8455,7 +8455,7 @@
     "clubName": "Пиза",
     "position": "MID",
     "league": "Serie A",
-    "price": 9.8,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 6.0
   },
@@ -8545,7 +8545,7 @@
     "clubName": "Сассуоло",
     "position": "FWD",
     "league": "Serie A",
-    "price": 11.3,
+    "price": 5.0,
     "popularity": 0.1,
     "fp_last": 6.0
   },
@@ -8625,7 +8625,7 @@
     "clubName": "Фиорентина",
     "position": "FWD",
     "league": "Serie A",
-    "price": 14.8,
+    "price": 7.0,
     "popularity": 0.4,
     "fp_last": 6.0
   },
@@ -8695,7 +8695,7 @@
     "clubName": "Сассуоло",
     "position": "MID",
     "league": "Serie A",
-    "price": 11.8,
+    "price": 5.0,
     "popularity": 0.0,
     "fp_last": 5.0
   },
@@ -8715,7 +8715,7 @@
     "clubName": "Лечче",
     "position": "FWD",
     "league": "Serie A",
-    "price": 7.7,
+    "price": 5.0,
     "popularity": 0.1,
     "fp_last": 5.0
   },
@@ -8725,7 +8725,7 @@
     "clubName": "Интер",
     "position": "DEF",
     "league": "Serie A",
-    "price": 11.6,
+    "price": 5.0,
     "popularity": 0.1,
     "fp_last": 5.0
   },
@@ -8735,7 +8735,7 @@
     "clubName": "Верона",
     "position": "MID",
     "league": "Serie A",
-    "price": 6.7,
+    "price": 5.5,
     "popularity": 0.0,
     "fp_last": 4.0
   },
@@ -9115,7 +9115,7 @@
     "clubName": "Наполи",
     "position": "MID",
     "league": "Serie A",
-    "price": 7.0,
+    "price": 6.5,
     "popularity": 0.0,
     "fp_last": 3.0
   },
@@ -9185,7 +9185,7 @@
     "clubName": "Лечче",
     "position": "MID",
     "league": "Serie A",
-    "price": 13.0,
+    "price": 5.0,
     "popularity": 0.0,
     "fp_last": 3.0
   },
@@ -9225,7 +9225,7 @@
     "clubName": "Комо",
     "position": "DEF",
     "league": "Serie A",
-    "price": 11.9,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 2.0
   },
@@ -9235,7 +9235,7 @@
     "clubName": "Милан",
     "position": "FWD",
     "league": "Serie A",
-    "price": 6.6,
+    "price": 7.5,
     "popularity": 0.4,
     "fp_last": 2.0
   },
@@ -9255,7 +9255,7 @@
     "clubName": "Парма",
     "position": "FWD",
     "league": "Serie A",
-    "price": 9.4,
+    "price": 6.0,
     "popularity": 0.0,
     "fp_last": 2.0
   },
@@ -9265,7 +9265,7 @@
     "clubName": "Сассуоло",
     "position": "DEF",
     "league": "Serie A",
-    "price": 14.7,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 2.0
   },
@@ -9275,7 +9275,7 @@
     "clubName": "Удинезе",
     "position": "MID",
     "league": "Serie A",
-    "price": 13.6,
+    "price": 6.5,
     "popularity": 0.0,
     "fp_last": 2.0
   },
@@ -9285,7 +9285,7 @@
     "clubName": "Фиорентина",
     "position": "DEF",
     "league": "Serie A",
-    "price": 9.0,
+    "price": 5.0,
     "popularity": 0.0,
     "fp_last": 2.0
   },
@@ -9325,7 +9325,7 @@
     "clubName": "Фиорентина",
     "position": "DEF",
     "league": "Serie A",
-    "price": 6.3,
+    "price": 5.0,
     "popularity": 0.0,
     "fp_last": 2.0
   },
@@ -9345,7 +9345,7 @@
     "clubName": "Удинезе",
     "position": "FWD",
     "league": "Serie A",
-    "price": 12.4,
+    "price": 6.5,
     "popularity": 0.0,
     "fp_last": 2.0
   },
@@ -9415,7 +9415,7 @@
     "clubName": "Пиза",
     "position": "DEF",
     "league": "Serie A",
-    "price": 9.8,
+    "price": 4.0,
     "popularity": 0.3,
     "fp_last": 2.0
   },
@@ -9555,7 +9555,7 @@
     "clubName": "Ювентус",
     "position": "FWD",
     "league": "Serie A",
-    "price": 5.1,
+    "price": 8.0,
     "popularity": 0.2,
     "fp_last": 2.0
   },
@@ -9615,7 +9615,7 @@
     "clubName": "Кремонезе",
     "position": "MID",
     "league": "Serie A",
-    "price": 11.9,
+    "price": 5.0,
     "popularity": 0.0,
     "fp_last": 1.0
   },
@@ -9625,7 +9625,7 @@
     "clubName": "Верона",
     "position": "DEF",
     "league": "Serie A",
-    "price": 14.8,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 1.0
   },
@@ -9645,7 +9645,7 @@
     "clubName": "Верона",
     "position": "MID",
     "league": "Serie A",
-    "price": 6.4,
+    "price": 5.5,
     "popularity": 0.0,
     "fp_last": 1.0
   },
@@ -9675,7 +9675,7 @@
     "clubName": "Милан",
     "position": "DEF",
     "league": "Serie A",
-    "price": 13.4,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 1.0
   },
@@ -9705,7 +9705,7 @@
     "clubName": "Кальяри",
     "position": "DEF",
     "league": "Serie A",
-    "price": 13.6,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 1.0
   },
@@ -9735,7 +9735,7 @@
     "clubName": "Кремонезе",
     "position": "FWD",
     "league": "Serie A",
-    "price": 6.8,
+    "price": 5.5,
     "popularity": 0.0,
     "fp_last": 1.0
   },
@@ -9745,7 +9745,7 @@
     "clubName": "Болонья",
     "position": "MID",
     "league": "Serie A",
-    "price": 11.2,
+    "price": 6.5,
     "popularity": 0.0,
     "fp_last": 1.0
   },
@@ -9905,7 +9905,7 @@
     "clubName": "Аталанта",
     "position": "DEF",
     "league": "Serie A",
-    "price": 10.1,
+    "price": 4.0,
     "popularity": 0.1,
     "fp_last": 1.0
   },
@@ -9915,7 +9915,7 @@
     "clubName": "Кремонезе",
     "position": "FWD",
     "league": "Serie A",
-    "price": 8.5,
+    "price": 6.5,
     "popularity": 0.7,
     "fp_last": 1.0
   },
@@ -9925,7 +9925,7 @@
     "clubName": "Кремонезе",
     "position": "MID",
     "league": "Serie A",
-    "price": 11.3,
+    "price": 6.0,
     "popularity": 0.0,
     "fp_last": 1.0
   },
@@ -9965,7 +9965,7 @@
     "clubName": "Ювентус",
     "position": "MID",
     "league": "Serie A",
-    "price": 13.6,
+    "price": 7.5,
     "popularity": 0.1,
     "fp_last": 1.0
   },
@@ -9985,7 +9985,7 @@
     "clubName": "Удинезе",
     "position": "DEF",
     "league": "Serie A",
-    "price": 9.9,
+    "price": 4.5,
     "popularity": 0.1,
     "fp_last": 1.0
   },
@@ -10045,7 +10045,7 @@
     "clubName": "Рома",
     "position": "DEF",
     "league": "Serie A",
-    "price": 14.5,
+    "price": 5.5,
     "popularity": 0.0,
     "fp_last": 1.0
   },
@@ -10065,7 +10065,7 @@
     "clubName": "Пиза",
     "position": "MID",
     "league": "Serie A",
-    "price": 8.9,
+    "price": 6.0,
     "popularity": 0.0,
     "fp_last": 1.0
   },
@@ -10075,7 +10075,7 @@
     "clubName": "Комо",
     "position": "DEF",
     "league": "Serie A",
-    "price": 8.3,
+    "price": 5.0,
     "popularity": 0.4,
     "fp_last": 1.0
   },
@@ -10735,7 +10735,7 @@
     "clubName": "Лечче",
     "position": "DEF",
     "league": "Serie A",
-    "price": 7.3,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -10765,7 +10765,7 @@
     "clubName": "Милан",
     "position": "DEF",
     "league": "Serie A",
-    "price": 14.6,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -10795,7 +10795,7 @@
     "clubName": "Лечче",
     "position": "MID",
     "league": "Serie A",
-    "price": 12.6,
+    "price": 5.0,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -10805,7 +10805,7 @@
     "clubName": "Лечче",
     "position": "DEF",
     "league": "Serie A",
-    "price": 12.6,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -10815,7 +10815,7 @@
     "clubName": "Кремонезе",
     "position": "DEF",
     "league": "Serie A",
-    "price": 8.1,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -10845,7 +10845,7 @@
     "clubName": "Комо",
     "position": "GK",
     "league": "Serie A",
-    "price": 14.2,
+    "price": 4.0,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -10855,7 +10855,7 @@
     "clubName": "Кальяри",
     "position": "DEF",
     "league": "Serie A",
-    "price": 12.4,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -10865,7 +10865,7 @@
     "clubName": "Интер",
     "position": "MID",
     "league": "Serie A",
-    "price": 10.4,
+    "price": 6.0,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -10885,7 +10885,7 @@
     "clubName": "Дженоа",
     "position": "MID",
     "league": "Serie A",
-    "price": 5.3,
+    "price": 5.0,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -10895,7 +10895,7 @@
     "clubName": "Дженоа",
     "position": "FWD",
     "league": "Serie A",
-    "price": 8.7,
+    "price": 5.0,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -10925,7 +10925,7 @@
     "clubName": "Парма",
     "position": "MID",
     "league": "Serie A",
-    "price": 10.7,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -10935,7 +10935,7 @@
     "clubName": "Верона",
     "position": "DEF",
     "league": "Serie A",
-    "price": 10.9,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -10985,7 +10985,7 @@
     "clubName": "Удинезе",
     "position": "FWD",
     "league": "Serie A",
-    "price": 8.4,
+    "price": 6.5,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -11005,7 +11005,7 @@
     "clubName": "Удинезе",
     "position": "FWD",
     "league": "Serie A",
-    "price": 12.6,
+    "price": 5.5,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -11015,7 +11015,7 @@
     "clubName": "Торино",
     "position": "DEF",
     "league": "Serie A",
-    "price": 9.8,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -11035,7 +11035,7 @@
     "clubName": "Парма",
     "position": "FWD",
     "league": "Serie A",
-    "price": 15.0,
+    "price": 5.0,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -11055,7 +11055,7 @@
     "clubName": "Рома",
     "position": "MID",
     "league": "Serie A",
-    "price": 14.6,
+    "price": 6.5,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -11065,7 +11065,7 @@
     "clubName": "Рома",
     "position": "DEF",
     "league": "Serie A",
-    "price": 12.0,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -11085,7 +11085,7 @@
     "clubName": "Пиза",
     "position": "MID",
     "league": "Serie A",
-    "price": 10.1,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -11095,7 +11095,7 @@
     "clubName": "Пиза",
     "position": "DEF",
     "league": "Serie A",
-    "price": 13.4,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -11105,7 +11105,7 @@
     "clubName": "Пиза",
     "position": "DEF",
     "league": "Serie A",
-    "price": 11.1,
+    "price": 4.0,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -11365,7 +11365,7 @@
     "clubName": "Болонья",
     "position": "MID",
     "league": "Serie A",
-    "price": 8.9,
+    "price": 6.0,
     "popularity": 0.1,
     "fp_last": 0.0
   },
@@ -11375,7 +11375,7 @@
     "clubName": "Болонья",
     "position": "GK",
     "league": "Serie A",
-    "price": 6.5,
+    "price": 5.0,
     "popularity": 0.1,
     "fp_last": 0.0
   },
@@ -11405,7 +11405,7 @@
     "clubName": "Наполи",
     "position": "DEF",
     "league": "Serie A",
-    "price": 7.6,
+    "price": 5.5,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -11415,7 +11415,7 @@
     "clubName": "Милан",
     "position": "GK",
     "league": "Serie A",
-    "price": 6.2,
+    "price": 4.0,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -11425,7 +11425,7 @@
     "clubName": "Кремонезе",
     "position": "GK",
     "league": "Serie A",
-    "price": 7.3,
+    "price": 4.5,
     "popularity": 0.1,
     "fp_last": 0.0
   },
@@ -11435,7 +11435,7 @@
     "clubName": "Комо",
     "position": "GK",
     "league": "Serie A",
-    "price": 14.1,
+    "price": 4.0,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -11445,7 +11445,7 @@
     "clubName": "Аталанта",
     "position": "GK",
     "league": "Serie A",
-    "price": 10.0,
+    "price": 4.0,
     "popularity": 0.1,
     "fp_last": 0.0
   },
@@ -14145,7 +14145,7 @@
     "clubName": "Борнмут",
     "position": "DEF",
     "league": "Premier League",
-    "price": 14.9,
+    "price": 4.5,
     "popularity": 0.9,
     "fp_last": 20.0
   },
@@ -14675,7 +14675,7 @@
     "clubName": "Сандерленд",
     "position": "DEF",
     "league": "Premier League",
-    "price": 12.8,
+    "price": 4.5,
     "popularity": 0.1,
     "fp_last": 16.0
   },
@@ -14805,7 +14805,7 @@
     "clubName": "Арсенал",
     "position": "MID",
     "league": "Premier League",
-    "price": 10.9,
+    "price": 8.5,
     "popularity": 3.7,
     "fp_last": 15.0
   },
@@ -15095,7 +15095,7 @@
     "clubName": "Лидс",
     "position": "FWD",
     "league": "Premier League",
-    "price": 5.8,
+    "price": 5.5,
     "popularity": 0.5,
     "fp_last": 12.0
   },
@@ -15375,7 +15375,7 @@
     "clubName": "Сандерленд",
     "position": "DEF",
     "league": "Premier League",
-    "price": 6.0,
+    "price": 4.5,
     "popularity": 0.1,
     "fp_last": 11.0
   },
@@ -15575,7 +15575,7 @@
     "clubName": "Вулверхэмптон",
     "position": "DEF",
     "league": "Premier League",
-    "price": 13.8,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 10.0
   },
@@ -15595,7 +15595,7 @@
     "clubName": "Лидс",
     "position": "FWD",
     "league": "Premier League",
-    "price": 12.1,
+    "price": 5.5,
     "popularity": 0.2,
     "fp_last": 10.0
   },
@@ -15675,7 +15675,7 @@
     "clubName": "Ньюкасл",
     "position": "FWD",
     "league": "Premier League",
-    "price": 6.5,
+    "price": 7.0,
     "popularity": 1.8,
     "fp_last": 9.0
   },
@@ -15945,7 +15945,7 @@
     "clubName": "Манчестер Сити",
     "position": "GK",
     "league": "Premier League",
-    "price": 11.8,
+    "price": 6.0,
     "popularity": 1.8,
     "fp_last": 7.0
   },
@@ -16015,7 +16015,7 @@
     "clubName": "Тоттенхэм",
     "position": "MID",
     "league": "Premier League",
-    "price": 11.5,
+    "price": 8.0,
     "popularity": 1.4,
     "fp_last": 7.0
   },
@@ -16105,7 +16105,7 @@
     "clubName": "Фулхэм",
     "position": "FWD",
     "league": "Premier League",
-    "price": 6.8,
+    "price": 7.0,
     "popularity": 0.9,
     "fp_last": 6.0
   },
@@ -16175,7 +16175,7 @@
     "clubName": "Вулверхэмптон",
     "position": "DEF",
     "league": "Premier League",
-    "price": 10.6,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 6.0
   },
@@ -16315,7 +16315,7 @@
     "clubName": "Кристал Пэлас",
     "position": "MID",
     "league": "Premier League",
-    "price": 14.2,
+    "price": 6.5,
     "popularity": 0.1,
     "fp_last": 5.0
   },
@@ -16325,7 +16325,7 @@
     "clubName": "Борнмут",
     "position": "MID",
     "league": "Premier League",
-    "price": 10.6,
+    "price": 6.0,
     "popularity": 0.0,
     "fp_last": 5.0
   },
@@ -16355,7 +16355,7 @@
     "clubName": "Вулверхэмптон",
     "position": "FWD",
     "league": "Premier League",
-    "price": 14.9,
+    "price": 6.0,
     "popularity": 0.1,
     "fp_last": 5.0
   },
@@ -16365,7 +16365,7 @@
     "clubName": "Ноттингем Форест",
     "position": "MID",
     "league": "Premier League",
-    "price": 12.9,
+    "price": 5.5,
     "popularity": 0.0,
     "fp_last": 5.0
   },
@@ -16405,7 +16405,7 @@
     "clubName": "Арсенал",
     "position": "MID",
     "league": "Premier League",
-    "price": 6.9,
+    "price": 4.5,
     "popularity": 0.1,
     "fp_last": 5.0
   },
@@ -16425,7 +16425,7 @@
     "clubName": "Бернли",
     "position": "MID",
     "league": "Premier League",
-    "price": 6.4,
+    "price": 5.0,
     "popularity": 0.0,
     "fp_last": 5.0
   },
@@ -16475,7 +16475,7 @@
     "clubName": "Ноттингем Форест",
     "position": "DEF",
     "league": "Premier League",
-    "price": 11.9,
+    "price": 5.0,
     "popularity": 0.3,
     "fp_last": 4.0
   },
@@ -16595,7 +16595,7 @@
     "clubName": "Ноттингем Форест",
     "position": "FWD",
     "league": "Premier League",
-    "price": 8.9,
+    "price": 6.5,
     "popularity": 0.1,
     "fp_last": 4.0
   },
@@ -16625,7 +16625,7 @@
     "clubName": "Вест Хэм",
     "position": "MID",
     "league": "Premier League",
-    "price": 10.6,
+    "price": 6.0,
     "popularity": 0.0,
     "fp_last": 4.0
   },
@@ -16785,7 +16785,7 @@
     "clubName": "Борнмут",
     "position": "DEF",
     "league": "Premier League",
-    "price": 9.8,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 3.0
   },
@@ -16835,7 +16835,7 @@
     "clubName": "Ноттингем Форест",
     "position": "MID",
     "league": "Premier League",
-    "price": 5.1,
+    "price": 6.0,
     "popularity": 0.0,
     "fp_last": 3.0
   },
@@ -16865,7 +16865,7 @@
     "clubName": "Астон Вилла",
     "position": "MID",
     "league": "Premier League",
-    "price": 7.4,
+    "price": 6.0,
     "popularity": 0.4,
     "fp_last": 3.0
   },
@@ -16965,7 +16965,7 @@
     "clubName": "Ноттингем Форест",
     "position": "MID",
     "league": "Premier League",
-    "price": 13.2,
+    "price": 6.0,
     "popularity": 0.0,
     "fp_last": 2.0
   },
@@ -16975,7 +16975,7 @@
     "clubName": "Вест Хэм",
     "position": "MID",
     "league": "Premier League",
-    "price": 7.7,
+    "price": 5.5,
     "popularity": 0.0,
     "fp_last": 2.0
   },
@@ -16985,7 +16985,7 @@
     "clubName": "Сандерленд",
     "position": "DEF",
     "league": "Premier League",
-    "price": 8.5,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 2.0
   },
@@ -17025,7 +17025,7 @@
     "clubName": "Челси",
     "position": "FWD",
     "league": "Premier League",
-    "price": 5.9,
+    "price": 5.0,
     "popularity": 1.5,
     "fp_last": 2.0
   },
@@ -17065,7 +17065,7 @@
     "clubName": "Челси",
     "position": "MID",
     "league": "Premier League",
-    "price": 12.9,
+    "price": 7.0,
     "popularity": 0.3,
     "fp_last": 1.0
   },
@@ -17105,7 +17105,7 @@
     "clubName": "Ливерпуль",
     "position": "FWD",
     "league": "Premier League",
-    "price": 9.4,
+    "price": 10.5,
     "popularity": 3.8,
     "fp_last": 1.0
   },
@@ -17155,7 +17155,7 @@
     "clubName": "Астон Вилла",
     "position": "DEF",
     "league": "Premier League",
-    "price": 7.0,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 1.0
   },
@@ -17165,7 +17165,7 @@
     "clubName": "Лидс",
     "position": "DEF",
     "league": "Premier League",
-    "price": 6.5,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 1.0
   },
@@ -17205,7 +17205,7 @@
     "clubName": "Челси",
     "position": "MID",
     "league": "Premier League",
-    "price": 5.7,
+    "price": 5.5,
     "popularity": 0.1,
     "fp_last": 1.0
   },
@@ -17215,7 +17215,7 @@
     "clubName": "Кристал Пэлас",
     "position": "FWD",
     "league": "Premier League",
-    "price": 5.4,
+    "price": 6.0,
     "popularity": 0.1,
     "fp_last": 1.0
   },
@@ -17265,7 +17265,7 @@
     "clubName": "Астон Вилла",
     "position": "MID",
     "league": "Premier League",
-    "price": 11.0,
+    "price": 6.5,
     "popularity": 0.2,
     "fp_last": 1.0
   },
@@ -17295,7 +17295,7 @@
     "clubName": "Сандерленд",
     "position": "FWD",
     "league": "Premier League",
-    "price": 6.7,
+    "price": 5.5,
     "popularity": 0.1,
     "fp_last": 1.0
   },
@@ -17315,7 +17315,7 @@
     "clubName": "Астон Вилла",
     "position": "MID",
     "league": "Premier League",
-    "price": 12.3,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 1.0
   },
@@ -17335,7 +17335,7 @@
     "clubName": "Эвертон",
     "position": "MID",
     "league": "Premier League",
-    "price": 9.1,
+    "price": 5.0,
     "popularity": 0.0,
     "fp_last": 1.0
   },
@@ -17445,7 +17445,7 @@
     "clubName": "Эвертон",
     "position": "MID",
     "league": "Premier League",
-    "price": 8.8,
+    "price": 6.0,
     "popularity": 0.0,
     "fp_last": 1.0
   },
@@ -17475,7 +17475,7 @@
     "clubName": "Фулхэм",
     "position": "MID",
     "league": "Premier League",
-    "price": 9.1,
+    "price": 6.0,
     "popularity": 0.1,
     "fp_last": 1.0
   },
@@ -17485,7 +17485,7 @@
     "clubName": "Астон Вилла",
     "position": "DEF",
     "league": "Premier League",
-    "price": 11.6,
+    "price": 4.0,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -17545,7 +17545,7 @@
     "clubName": "Эвертон",
     "position": "DEF",
     "league": "Premier League",
-    "price": 5.3,
+    "price": 4.0,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -17555,7 +17555,7 @@
     "clubName": "Арсенал",
     "position": "FWD",
     "league": "Premier League",
-    "price": 5.2,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -17565,7 +17565,7 @@
     "clubName": "Арсенал",
     "position": "DEF",
     "league": "Premier League",
-    "price": 15.0,
+    "price": 5.5,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -17615,7 +17615,7 @@
     "clubName": "Тоттенхэм",
     "position": "DEF",
     "league": "Premier League",
-    "price": 9.0,
+    "price": 4.0,
     "popularity": 0.3,
     "fp_last": 0.0
   },
@@ -17635,7 +17635,7 @@
     "clubName": "Борнмут",
     "position": "DEF",
     "league": "Premier League",
-    "price": 13.3,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -17655,7 +17655,7 @@
     "clubName": "Ноттингем Форест",
     "position": "GK",
     "league": "Premier League",
-    "price": 12.6,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -17675,7 +17675,7 @@
     "clubName": "Сандерленд",
     "position": "MID",
     "league": "Premier League",
-    "price": 9.9,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -17705,7 +17705,7 @@
     "clubName": "Фулхэм",
     "position": "MID",
     "league": "Premier League",
-    "price": 13.7,
+    "price": 6.5,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -17735,7 +17735,7 @@
     "clubName": "Фулхэм",
     "position": "FWD",
     "league": "Premier League",
-    "price": 8.4,
+    "price": 5.5,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -17745,7 +17745,7 @@
     "clubName": "Тоттенхэм",
     "position": "FWD",
     "league": "Premier League",
-    "price": 6.4,
+    "price": 7.5,
     "popularity": 0.2,
     "fp_last": 0.0
   },
@@ -17755,7 +17755,7 @@
     "clubName": "Сандерленд",
     "position": "MID",
     "league": "Premier League",
-    "price": 14.4,
+    "price": 5.5,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -17775,7 +17775,7 @@
     "clubName": "Сандерленд",
     "position": "MID",
     "league": "Premier League",
-    "price": 14.6,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -17785,7 +17785,7 @@
     "clubName": "Брайтон",
     "position": "DEF",
     "league": "Premier League",
-    "price": 14.1,
+    "price": 4.0,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -17805,7 +17805,7 @@
     "clubName": "Ньюкасл",
     "position": "FWD",
     "league": "Premier League",
-    "price": 12.2,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -17825,7 +17825,7 @@
     "clubName": "Ноттингем Форест",
     "position": "DEF",
     "league": "Premier League",
-    "price": 9.3,
+    "price": 5.0,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -17835,7 +17835,7 @@
     "clubName": "Манчестер Юнайтед",
     "position": "GK",
     "league": "Premier League",
-    "price": 7.6,
+    "price": 5.0,
     "popularity": 0.1,
     "fp_last": 0.0
   },
@@ -17845,7 +17845,7 @@
     "clubName": "Кристал Пэлас",
     "position": "DEF",
     "league": "Premier League",
-    "price": 6.6,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -17855,7 +17855,7 @@
     "clubName": "Кристал Пэлас",
     "position": "DEF",
     "league": "Premier League",
-    "price": 10.1,
+    "price": 4.0,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -17865,7 +17865,7 @@
     "clubName": "Брайтон",
     "position": "MID",
     "league": "Premier League",
-    "price": 6.4,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -17875,7 +17875,7 @@
     "clubName": "Брайтон",
     "position": "DEF",
     "league": "Premier League",
-    "price": 9.6,
+    "price": 4.0,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -17885,7 +17885,7 @@
     "clubName": "Астон Вилла",
     "position": "GK",
     "league": "Premier League",
-    "price": 12.2,
+    "price": 4.0,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -18205,7 +18205,7 @@
     "clubName": "Сандерленд",
     "position": "FWD",
     "league": "Premier League",
-    "price": 7.8,
+    "price": 4.5,
     "popularity": 0.1,
     "fp_last": 0.0
   },
@@ -18225,7 +18225,7 @@
     "clubName": "Ньюкасл",
     "position": "FWD",
     "league": "Premier League",
-    "price": 6.7,
+    "price": 4.5,
     "popularity": 0.1,
     "fp_last": 0.0
   },
@@ -18255,7 +18255,7 @@
     "clubName": "Ноттингем Форест",
     "position": "DEF",
     "league": "Premier League",
-    "price": 8.6,
+    "price": 4.0,
     "popularity": 0.1,
     "fp_last": 0.0
   },
@@ -18375,7 +18375,7 @@
     "clubName": "Ливерпуль",
     "position": "DEF",
     "league": "Premier League",
-    "price": 14.8,
+    "price": 4.5,
     "popularity": 0.1,
     "fp_last": 0.0
   },
@@ -18395,7 +18395,7 @@
     "clubName": "Вулверхэмптон",
     "position": "FWD",
     "league": "Premier League",
-    "price": 12.3,
+    "price": 4.5,
     "popularity": 0.2,
     "fp_last": 0.0
   },
@@ -18405,7 +18405,7 @@
     "clubName": "Брентфорд",
     "position": "GK",
     "league": "Premier League",
-    "price": 7.4,
+    "price": 4.0,
     "popularity": 0.3,
     "fp_last": 0.0
   },
@@ -18745,7 +18745,7 @@
     "clubName": "Вест Хэм",
     "position": "DEF",
     "league": "Premier League",
-    "price": 7.5,
+    "price": 4.0,
     "popularity": 0.8,
     "fp_last": 0.0
   },
@@ -18925,7 +18925,7 @@
     "clubName": "Ньюкасл",
     "position": "FWD",
     "league": "Premier League",
-    "price": 7.9,
+    "price": 8.0,
     "popularity": 0.7,
     "fp_last": 0.0
   },
@@ -19265,7 +19265,7 @@
     "clubName": "Брентфорд",
     "position": "MID",
     "league": "Premier League",
-    "price": 5.7,
+    "price": 5.0,
     "popularity": 0.1,
     "fp_last": 0.0
   },
@@ -20465,7 +20465,7 @@
     "clubName": "Борнмут",
     "position": "MID",
     "league": "Premier League",
-    "price": 5.7,
+    "price": 5.0,
     "popularity": 0.1,
     "fp_last": 0.0
   },
@@ -20755,7 +20755,7 @@
     "clubName": "Вест Хэм",
     "position": "GK",
     "league": "Premier League",
-    "price": 10.0,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -20775,7 +20775,7 @@
     "clubName": "Леванте",
     "position": "FWD",
     "league": "La Liga",
-    "price": 10.2,
+    "price": 5.0,
     "popularity": 39.8,
     "fp_last": 41.0
   },
@@ -21005,7 +21005,7 @@
     "clubName": "Вильярреал",
     "position": "MID",
     "league": "La Liga",
-    "price": 6.7,
+    "price": 6.0,
     "popularity": 3.5,
     "fp_last": 30.0
   },
@@ -21635,7 +21635,7 @@
     "clubName": "Эльче",
     "position": "DEF",
     "league": "La Liga",
-    "price": 8.0,
+    "price": 4.5,
     "popularity": 1.2,
     "fp_last": 21.0
   },
@@ -21795,7 +21795,7 @@
     "clubName": "Реал Овьедо",
     "position": "MID",
     "league": "La Liga",
-    "price": 10.1,
+    "price": 5.0,
     "popularity": 0.2,
     "fp_last": 19.0
   },
@@ -21835,7 +21835,7 @@
     "clubName": "Мальорка",
     "position": "GK",
     "league": "La Liga",
-    "price": 9.1,
+    "price": 4.5,
     "popularity": 1.7,
     "fp_last": 19.0
   },
@@ -21955,7 +21955,7 @@
     "clubName": "Реал Мадрид",
     "position": "MID",
     "league": "La Liga",
-    "price": 8.4,
+    "price": 6.5,
     "popularity": 0.5,
     "fp_last": 18.0
   },
@@ -22085,7 +22085,7 @@
     "clubName": "Эльче",
     "position": "FWD",
     "league": "La Liga",
-    "price": 8.1,
+    "price": 5.5,
     "popularity": 0.3,
     "fp_last": 17.0
   },
@@ -22235,7 +22235,7 @@
     "clubName": "Сельта",
     "position": "DEF",
     "league": "La Liga",
-    "price": 12.3,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 15.0
   },
@@ -22405,7 +22405,7 @@
     "clubName": "Атлетико",
     "position": "MID",
     "league": "La Liga",
-    "price": 11.1,
+    "price": 7.5,
     "popularity": 0.4,
     "fp_last": 14.0
   },
@@ -22415,7 +22415,7 @@
     "clubName": "Севилья",
     "position": "DEF",
     "league": "La Liga",
-    "price": 5.3,
+    "price": 5.0,
     "popularity": 0.6,
     "fp_last": 14.0
   },
@@ -22435,7 +22435,7 @@
     "clubName": "Жирона",
     "position": "MID",
     "league": "La Liga",
-    "price": 5.3,
+    "price": 6.0,
     "popularity": 0.0,
     "fp_last": 14.0
   },
@@ -22475,7 +22475,7 @@
     "clubName": "Мальорка",
     "position": "FWD",
     "league": "La Liga",
-    "price": 9.9,
+    "price": 5.5,
     "popularity": 0.1,
     "fp_last": 14.0
   },
@@ -22505,7 +22505,7 @@
     "clubName": "Севилья",
     "position": "MID",
     "league": "La Liga",
-    "price": 5.6,
+    "price": 6.0,
     "popularity": 0.1,
     "fp_last": 14.0
   },
@@ -22545,7 +22545,7 @@
     "clubName": "Вильярреал",
     "position": "FWD",
     "league": "La Liga",
-    "price": 8.0,
+    "price": 7.5,
     "popularity": 1.6,
     "fp_last": 13.0
   },
@@ -22555,7 +22555,7 @@
     "clubName": "Севилья",
     "position": "DEF",
     "league": "La Liga",
-    "price": 11.8,
+    "price": 4.5,
     "popularity": 0.2,
     "fp_last": 13.0
   },
@@ -22775,7 +22775,7 @@
     "clubName": "Алавес",
     "position": "MID",
     "league": "La Liga",
-    "price": 13.7,
+    "price": 5.0,
     "popularity": 0.4,
     "fp_last": 12.0
   },
@@ -22805,7 +22805,7 @@
     "clubName": "Эспаньол",
     "position": "MID",
     "league": "La Liga",
-    "price": 11.8,
+    "price": 5.0,
     "popularity": 0.2,
     "fp_last": 11.0
   },
@@ -22885,7 +22885,7 @@
     "clubName": "Вильярреал",
     "position": "FWD",
     "league": "La Liga",
-    "price": 13.3,
+    "price": 6.0,
     "popularity": 0.0,
     "fp_last": 11.0
   },
@@ -22925,7 +22925,7 @@
     "clubName": "Леванте",
     "position": "GK",
     "league": "La Liga",
-    "price": 11.8,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 10.0
   },
@@ -23055,7 +23055,7 @@
     "clubName": "Жирона",
     "position": "FWD",
     "league": "La Liga",
-    "price": 10.4,
+    "price": 6.0,
     "popularity": 0.4,
     "fp_last": 10.0
   },
@@ -23085,7 +23085,7 @@
     "clubName": "Вильярреал",
     "position": "MID",
     "league": "La Liga",
-    "price": 5.1,
+    "price": 6.5,
     "popularity": 0.1,
     "fp_last": 10.0
   },
@@ -23275,7 +23275,7 @@
     "clubName": "Леванте",
     "position": "DEF",
     "league": "La Liga",
-    "price": 5.1,
+    "price": 4.5,
     "popularity": 0.1,
     "fp_last": 9.0
   },
@@ -23295,7 +23295,7 @@
     "clubName": "Жирона",
     "position": "DEF",
     "league": "La Liga",
-    "price": 7.1,
+    "price": 5.0,
     "popularity": 0.0,
     "fp_last": 8.0
   },
@@ -23355,7 +23355,7 @@
     "clubName": "Севилья",
     "position": "MID",
     "league": "La Liga",
-    "price": 12.5,
+    "price": 5.0,
     "popularity": 0.0,
     "fp_last": 8.0
   },
@@ -23405,7 +23405,7 @@
     "clubName": "Бетис",
     "position": "MID",
     "league": "La Liga",
-    "price": 8.1,
+    "price": 5.5,
     "popularity": 0.1,
     "fp_last": 8.0
   },
@@ -23495,7 +23495,7 @@
     "clubName": "Жирона",
     "position": "MID",
     "league": "La Liga",
-    "price": 12.0,
+    "price": 6.5,
     "popularity": 0.0,
     "fp_last": 7.0
   },
@@ -23525,7 +23525,7 @@
     "clubName": "Эльче",
     "position": "GK",
     "league": "La Liga",
-    "price": 11.4,
+    "price": 4.5,
     "popularity": 0.3,
     "fp_last": 7.0
   },
@@ -23695,7 +23695,7 @@
     "clubName": "Бетис",
     "position": "MID",
     "league": "La Liga",
-    "price": 5.6,
+    "price": 7.5,
     "popularity": 3.0,
     "fp_last": 7.0
   },
@@ -23715,7 +23715,7 @@
     "clubName": "Сельта",
     "position": "MID",
     "league": "La Liga",
-    "price": 6.3,
+    "price": 6.0,
     "popularity": 0.3,
     "fp_last": 6.0
   },
@@ -23735,7 +23735,7 @@
     "clubName": "Вильярреал",
     "position": "DEF",
     "league": "La Liga",
-    "price": 9.2,
+    "price": 5.5,
     "popularity": 0.1,
     "fp_last": 6.0
   },
@@ -23845,7 +23845,7 @@
     "clubName": "Реал Сосьедад",
     "position": "MID",
     "league": "La Liga",
-    "price": 13.7,
+    "price": 6.0,
     "popularity": 0.0,
     "fp_last": 6.0
   },
@@ -23925,7 +23925,7 @@
     "clubName": "Мальорка",
     "position": "DEF",
     "league": "La Liga",
-    "price": 10.6,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 5.0
   },
@@ -23935,7 +23935,7 @@
     "clubName": "Реал Овьедо",
     "position": "MID",
     "league": "La Liga",
-    "price": 11.5,
+    "price": 5.5,
     "popularity": 0.0,
     "fp_last": 5.0
   },
@@ -23965,7 +23965,7 @@
     "clubName": "Севилья",
     "position": "DEF",
     "league": "La Liga",
-    "price": 10.4,
+    "price": 5.0,
     "popularity": 0.2,
     "fp_last": 5.0
   },
@@ -23985,7 +23985,7 @@
     "clubName": "Бетис",
     "position": "MID",
     "league": "La Liga",
-    "price": 10.3,
+    "price": 5.5,
     "popularity": 0.0,
     "fp_last": 5.0
   },
@@ -24045,7 +24045,7 @@
     "clubName": "Мальорка",
     "position": "MID",
     "league": "La Liga",
-    "price": 14.0,
+    "price": 5.5,
     "popularity": 0.0,
     "fp_last": 5.0
   },
@@ -24055,7 +24055,7 @@
     "clubName": "Реал Овьедо",
     "position": "DEF",
     "league": "La Liga",
-    "price": 6.2,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 4.0
   },
@@ -24105,7 +24105,7 @@
     "clubName": "Райо Вальекано",
     "position": "FWD",
     "league": "La Liga",
-    "price": 8.0,
+    "price": 5.5,
     "popularity": 0.0,
     "fp_last": 4.0
   },
@@ -24145,7 +24145,7 @@
     "clubName": "Реал Сосьедад",
     "position": "MID",
     "league": "La Liga",
-    "price": 14.0,
+    "price": 6.0,
     "popularity": 0.2,
     "fp_last": 4.0
   },
@@ -24215,7 +24215,7 @@
     "clubName": "Алавес",
     "position": "FWD",
     "league": "La Liga",
-    "price": 10.7,
+    "price": 5.5,
     "popularity": 0.0,
     "fp_last": 4.0
   },
@@ -24235,7 +24235,7 @@
     "clubName": "Реал Овьедо",
     "position": "MID",
     "league": "La Liga",
-    "price": 8.3,
+    "price": 5.0,
     "popularity": 0.0,
     "fp_last": 4.0
   },
@@ -24245,7 +24245,7 @@
     "clubName": "Леванте",
     "position": "MID",
     "league": "La Liga",
-    "price": 13.5,
+    "price": 4.5,
     "popularity": 0.6,
     "fp_last": 4.0
   },
@@ -24285,7 +24285,7 @@
     "clubName": "Валенсия",
     "position": "MID",
     "league": "La Liga",
-    "price": 11.2,
+    "price": 6.5,
     "popularity": 0.0,
     "fp_last": 3.0
   },
@@ -24315,7 +24315,7 @@
     "clubName": "Эспаньол",
     "position": "MID",
     "league": "La Liga",
-    "price": 6.9,
+    "price": 5.5,
     "popularity": 0.0,
     "fp_last": 3.0
   },
@@ -24365,7 +24365,7 @@
     "clubName": "Алавес",
     "position": "DEF",
     "league": "La Liga",
-    "price": 14.7,
+    "price": 4.5,
     "popularity": 0.1,
     "fp_last": 3.0
   },
@@ -24375,7 +24375,7 @@
     "clubName": "Леванте",
     "position": "MID",
     "league": "La Liga",
-    "price": 5.2,
+    "price": 5.0,
     "popularity": 0.2,
     "fp_last": 3.0
   },
@@ -24405,7 +24405,7 @@
     "clubName": "Атлетик",
     "position": "DEF",
     "league": "La Liga",
-    "price": 12.6,
+    "price": 5.5,
     "popularity": 0.9,
     "fp_last": 3.0
   },
@@ -24445,7 +24445,7 @@
     "clubName": "Хетафе",
     "position": "MID",
     "league": "La Liga",
-    "price": 7.3,
+    "price": 6.0,
     "popularity": 0.0,
     "fp_last": 3.0
   },
@@ -24485,7 +24485,7 @@
     "clubName": "Сельта",
     "position": "DEF",
     "league": "La Liga",
-    "price": 13.9,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 3.0
   },
@@ -24615,7 +24615,7 @@
     "clubName": "Райо Вальекано",
     "position": "MID",
     "league": "La Liga",
-    "price": 6.6,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 2.0
   },
@@ -24655,7 +24655,7 @@
     "clubName": "Райо Вальекано",
     "position": "DEF",
     "league": "La Liga",
-    "price": 7.7,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 2.0
   },
@@ -24705,7 +24705,7 @@
     "clubName": "Эспаньол",
     "position": "DEF",
     "league": "La Liga",
-    "price": 10.9,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 2.0
   },
@@ -24745,7 +24745,7 @@
     "clubName": "Эспаньол",
     "position": "MID",
     "league": "La Liga",
-    "price": 9.3,
+    "price": 5.5,
     "popularity": 0.0,
     "fp_last": 2.0
   },
@@ -24805,7 +24805,7 @@
     "clubName": "Эльче",
     "position": "DEF",
     "league": "La Liga",
-    "price": 10.6,
+    "price": 4.5,
     "popularity": 0.1,
     "fp_last": 2.0
   },
@@ -24825,7 +24825,7 @@
     "clubName": "Жирона",
     "position": "FWD",
     "league": "La Liga",
-    "price": 8.4,
+    "price": 4.5,
     "popularity": 1.4,
     "fp_last": 2.0
   },
@@ -24835,7 +24835,7 @@
     "clubName": "Валенсия",
     "position": "MID",
     "league": "La Liga",
-    "price": 8.6,
+    "price": 6.5,
     "popularity": 0.0,
     "fp_last": 2.0
   },
@@ -24865,7 +24865,7 @@
     "clubName": "Эльче",
     "position": "MID",
     "league": "La Liga",
-    "price": 6.1,
+    "price": 5.0,
     "popularity": 0.0,
     "fp_last": 2.0
   },
@@ -24915,7 +24915,7 @@
     "clubName": "Вильярреал",
     "position": "GK",
     "league": "La Liga",
-    "price": 10.2,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 2.0
   },
@@ -24935,7 +24935,7 @@
     "clubName": "Осасуна",
     "position": "MID",
     "league": "La Liga",
-    "price": 9.0,
+    "price": 5.0,
     "popularity": 0.0,
     "fp_last": 2.0
   },
@@ -25035,7 +25035,7 @@
     "clubName": "Реал Сосьедад",
     "position": "MID",
     "league": "La Liga",
-    "price": 6.3,
+    "price": 5.0,
     "popularity": 0.0,
     "fp_last": 1.0
   },
@@ -25045,7 +25045,7 @@
     "clubName": "Эльче",
     "position": "MID",
     "league": "La Liga",
-    "price": 5.1,
+    "price": 5.5,
     "popularity": 0.0,
     "fp_last": 1.0
   },
@@ -25075,7 +25075,7 @@
     "clubName": "Эльче",
     "position": "DEF",
     "league": "La Liga",
-    "price": 13.9,
+    "price": 4.5,
     "popularity": 0.2,
     "fp_last": 1.0
   },
@@ -25135,7 +25135,7 @@
     "clubName": "Осасуна",
     "position": "MID",
     "league": "La Liga",
-    "price": 14.1,
+    "price": 6.0,
     "popularity": 0.1,
     "fp_last": 1.0
   },
@@ -25155,7 +25155,7 @@
     "clubName": "Реал Овьедо",
     "position": "DEF",
     "league": "La Liga",
-    "price": 7.5,
+    "price": 4.5,
     "popularity": 0.2,
     "fp_last": 1.0
   },
@@ -25215,7 +25215,7 @@
     "clubName": "Мальорка",
     "position": "MID",
     "league": "La Liga",
-    "price": 11.1,
+    "price": 5.0,
     "popularity": 0.0,
     "fp_last": 1.0
   },
@@ -25240,12 +25240,12 @@
     "fp_last": 1.0
   },
   {
-    "playerId": 216824,
+    "playerId": 216882,
     "fullName": "Луис Кастильо",
     "clubName": "Эльче",
     "position": "GK",
     "league": "La Liga",
-    "price": 7.6,
+    "price": 4.0,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -25265,7 +25265,7 @@
     "clubName": "Эльче",
     "position": "DEF",
     "league": "La Liga",
-    "price": 13.1,
+    "price": 4.0,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -25275,7 +25275,7 @@
     "clubName": "Хетафе",
     "position": "FWD",
     "league": "La Liga",
-    "price": 9.3,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -25285,7 +25285,7 @@
     "clubName": "Валенсия",
     "position": "MID",
     "league": "La Liga",
-    "price": 13.8,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -25295,7 +25295,7 @@
     "clubName": "Сельта",
     "position": "MID",
     "league": "La Liga",
-    "price": 7.2,
+    "price": 5.0,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -25305,7 +25305,7 @@
     "clubName": "Реал Мадрид",
     "position": "DEF",
     "league": "La Liga",
-    "price": 8.9,
+    "price": 4.0,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -25315,7 +25315,7 @@
     "clubName": "Хетафе",
     "position": "DEF",
     "league": "La Liga",
-    "price": 11.7,
+    "price": 4.0,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -25325,7 +25325,7 @@
     "clubName": "Реал Овьедо",
     "position": "MID",
     "league": "La Liga",
-    "price": 9.0,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -25335,7 +25335,7 @@
     "clubName": "Бетис",
     "position": "MID",
     "league": "La Liga",
-    "price": 5.3,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -25345,7 +25345,7 @@
     "clubName": "Эльче",
     "position": "MID",
     "league": "La Liga",
-    "price": 9.7,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -25355,7 +25355,7 @@
     "clubName": "Бетис",
     "position": "MID",
     "league": "La Liga",
-    "price": 7.5,
+    "price": 5.0,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -25365,7 +25365,7 @@
     "clubName": "Атлетик",
     "position": "DEF",
     "league": "La Liga",
-    "price": 10.8,
+    "price": 4.0,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -25375,7 +25375,7 @@
     "clubName": "Алавес",
     "position": "GK",
     "league": "La Liga",
-    "price": 9.7,
+    "price": 4.0,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -25385,17 +25385,17 @@
     "clubName": "Бетис",
     "position": "GK",
     "league": "La Liga",
-    "price": 13.9,
+    "price": 4.0,
     "popularity": 0.0,
     "fp_last": 0.0
   },
   {
-    "playerId": 216838,
+    "playerId": 216878,
     "fullName": "Вилли Камбвала",
     "clubName": "Вильярреал",
     "position": "DEF",
     "league": "La Liga",
-    "price": 6.5,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -25405,7 +25405,7 @@
     "clubName": "Бетис",
     "position": "MID",
     "league": "La Liga",
-    "price": 6.8,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -25415,7 +25415,7 @@
     "clubName": "Алавес",
     "position": "MID",
     "league": "La Liga",
-    "price": 9.0,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -25425,7 +25425,7 @@
     "clubName": "Бетис",
     "position": "MID",
     "league": "La Liga",
-    "price": 6.9,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -25445,7 +25445,7 @@
     "clubName": "Валенсия",
     "position": "MID",
     "league": "La Liga",
-    "price": 13.5,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -25455,7 +25455,7 @@
     "clubName": "Бетис",
     "position": "GK",
     "league": "La Liga",
-    "price": 8.3,
+    "price": 4.0,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -25475,7 +25475,7 @@
     "clubName": "Реал Мадрид",
     "position": "DEF",
     "league": "La Liga",
-    "price": 5.1,
+    "price": 4.0,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -25485,7 +25485,7 @@
     "clubName": "Валенсия",
     "position": "DEF",
     "league": "La Liga",
-    "price": 9.1,
+    "price": 4.0,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -25515,7 +25515,7 @@
     "clubName": "Алавес",
     "position": "GK",
     "league": "La Liga",
-    "price": 7.8,
+    "price": 4.0,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -25525,7 +25525,7 @@
     "clubName": "Валенсия",
     "position": "FWD",
     "league": "La Liga",
-    "price": 13.2,
+    "price": 4.5,
     "popularity": 0.1,
     "fp_last": 0.0
   },
@@ -25535,7 +25535,7 @@
     "clubName": "Леванте",
     "position": "GK",
     "league": "La Liga",
-    "price": 11.5,
+    "price": 4.0,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -25545,7 +25545,7 @@
     "clubName": "Севилья",
     "position": "DEF",
     "league": "La Liga",
-    "price": 11.5,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -25555,7 +25555,7 @@
     "clubName": "Реал Мадрид",
     "position": "MID",
     "league": "La Liga",
-    "price": 5.5,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -25565,7 +25565,7 @@
     "clubName": "Реал Мадрид",
     "position": "GK",
     "league": "La Liga",
-    "price": 5.5,
+    "price": 4.0,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -25575,7 +25575,7 @@
     "clubName": "Райо Вальекано",
     "position": "GK",
     "league": "La Liga",
-    "price": 9.2,
+    "price": 4.0,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -25585,7 +25585,7 @@
     "clubName": "Реал Овьедо",
     "position": "DEF",
     "league": "La Liga",
-    "price": 11.5,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -25595,7 +25595,7 @@
     "clubName": "Райо Вальекано",
     "position": "GK",
     "league": "La Liga",
-    "price": 6.8,
+    "price": 4.0,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -25605,7 +25605,7 @@
     "clubName": "Осасуна",
     "position": "MID",
     "league": "La Liga",
-    "price": 7.8,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -25615,7 +25615,7 @@
     "clubName": "Осасуна",
     "position": "FWD",
     "league": "La Liga",
-    "price": 9.5,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -25625,7 +25625,7 @@
     "clubName": "Осасуна",
     "position": "DEF",
     "league": "La Liga",
-    "price": 10.6,
+    "price": 4.0,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -25635,27 +25635,7 @@
     "clubName": "Осасуна",
     "position": "GK",
     "league": "La Liga",
-    "price": 11.4,
-    "popularity": 0.0,
-    "fp_last": 0.0
-  },
-  {
-    "playerId": 216859,
-    "fullName": "Сальи",
-    "clubName": "Мальорка",
-    "position": "DEF",
-    "league": "La Liga",
-    "price": 10.7,
-    "popularity": 0.0,
-    "fp_last": 0.0
-  },
-  {
-    "playerId": 216860,
-    "fullName": "Руис",
-    "clubName": "Леванте",
-    "position": "MID",
-    "league": "La Liga",
-    "price": 7.1,
+    "price": 4.0,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -25665,7 +25645,7 @@
     "clubName": "Леванте",
     "position": "DEF",
     "league": "La Liga",
-    "price": 6.9,
+    "price": 4.0,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -25675,7 +25655,7 @@
     "clubName": "Леванте",
     "position": "DEF",
     "league": "La Liga",
-    "price": 6.3,
+    "price": 4.0,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -25685,7 +25665,7 @@
     "clubName": "Вильярреал",
     "position": "DEF",
     "league": "La Liga",
-    "price": 8.6,
+    "price": 4.0,
     "popularity": 0.1,
     "fp_last": 0.0
   },
@@ -25695,7 +25675,7 @@
     "clubName": "Севилья",
     "position": "DEF",
     "league": "La Liga",
-    "price": 14.4,
+    "price": 4.0,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -25715,7 +25695,7 @@
     "clubName": "Вильярреал",
     "position": "FWD",
     "league": "La Liga",
-    "price": 6.9,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -25725,7 +25705,7 @@
     "clubName": "Севилья",
     "position": "MID",
     "league": "La Liga",
-    "price": 12.9,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -25735,7 +25715,7 @@
     "clubName": "Севилья",
     "position": "FWD",
     "league": "La Liga",
-    "price": 5.6,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -25745,7 +25725,7 @@
     "clubName": "Севилья",
     "position": "MID",
     "league": "La Liga",
-    "price": 14.9,
+    "price": 4.5,
     "popularity": 0.1,
     "fp_last": 0.0
   },
@@ -25755,7 +25735,7 @@
     "clubName": "Реал Овьедо",
     "position": "DEF",
     "league": "La Liga",
-    "price": 14.1,
+    "price": 4.0,
     "popularity": 0.1,
     "fp_last": 0.0
   },
@@ -25775,7 +25755,7 @@
     "clubName": "Севилья",
     "position": "GK",
     "league": "La Liga",
-    "price": 11.6,
+    "price": 4.0,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -25795,7 +25775,7 @@
     "clubName": "Реал Овьедо",
     "position": "DEF",
     "league": "La Liga",
-    "price": 11.3,
+    "price": 4.0,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -25805,7 +25785,7 @@
     "clubName": "Реал Овьедо",
     "position": "MID",
     "league": "La Liga",
-    "price": 8.4,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -25815,7 +25795,7 @@
     "clubName": "Реал Сосьедад",
     "position": "GK",
     "league": "La Liga",
-    "price": 9.3,
+    "price": 4.0,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -25825,7 +25805,7 @@
     "clubName": "Реал Сосьедад",
     "position": "GK",
     "league": "La Liga",
-    "price": 14.8,
+    "price": 4.0,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -25835,7 +25815,7 @@
     "clubName": "Реал Овьедо",
     "position": "MID",
     "league": "La Liga",
-    "price": 10.8,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -25845,7 +25825,7 @@
     "clubName": "Жирона",
     "position": "GK",
     "league": "La Liga",
-    "price": 7.7,
+    "price": 5.0,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -25855,7 +25835,7 @@
     "clubName": "Сельта",
     "position": "MID",
     "league": "La Liga",
-    "price": 5.4,
+    "price": 5.0,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -26015,7 +25995,7 @@
     "clubName": "Вильярреал",
     "position": "DEF",
     "league": "La Liga",
-    "price": 8.6,
+    "price": 4.5,
     "popularity": 0.1,
     "fp_last": 0.0
   },
@@ -26035,7 +26015,7 @@
     "clubName": "Вильярреал",
     "position": "DEF",
     "league": "La Liga",
-    "price": 9.2,
+    "price": 5.0,
     "popularity": 0.1,
     "fp_last": 0.0
   },
@@ -26385,7 +26365,7 @@
     "clubName": "Райо Вальекано",
     "position": "DEF",
     "league": "La Liga",
-    "price": 8.9,
+    "price": 4.0,
     "popularity": 0.4,
     "fp_last": 0.0
   },
@@ -26485,7 +26465,7 @@
     "clubName": "Барселона",
     "position": "MID",
     "league": "La Liga",
-    "price": 5.7,
+    "price": 4.5,
     "popularity": 0.0,
     "fp_last": 0.0
   },
@@ -26575,7 +26555,7 @@
     "clubName": "Эльче",
     "position": "GK",
     "league": "La Liga",
-    "price": 12.0,
+    "price": 4.0,
     "popularity": 0.5,
     "fp_last": 0.0
   },
@@ -27225,7 +27205,7 @@
     "clubName": "Эльче",
     "position": "GK",
     "league": "La Liga",
-    "price": 14.0,
+    "price": 4.0,
     "popularity": 0.0,
     "fp_last": 0.0
   },
