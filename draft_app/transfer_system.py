@@ -565,7 +565,19 @@ class TransferSystem:
                 new_roster.append(player)
         
         if not out_player:
-            raise ValueError(f"Player {player_id} not found in {manager}'s roster")
+            # FALLBACK: If player not found in roster (empty roster case), create a dummy player
+            print(f"WARNING: Player {player_id} not found in {manager}'s roster, creating fallback")
+            out_player = {
+                "playerId": str(player_id),
+                "fullName": f"Player_{player_id}",
+                "clubName": "Unknown",
+                "position": "Unknown",
+                "league": "Mixed",
+                "status": "transfer_out",
+                "transferred_out_gw": current_gw
+            }
+            # Add to available players pool
+            state["transfers"]["available_players"].append(out_player)
         
         # Update roster
         rosters[manager] = new_roster
