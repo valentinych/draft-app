@@ -166,6 +166,14 @@ def index():
                         
                         if user_player_ids:
                             original_count = len(players)
+                            
+                            # Debug: Check if any players have matching IDs
+                            matching_ids = []
+                            for p in players[:100]:  # Check first 100 players
+                                if str(p["playerId"]) in user_player_ids:
+                                    matching_ids.append(f"{p.get('fullName')}:{p.get('playerId')}")
+                            print(f"🔍 DEBUG: Found {len(matching_ids)} matches in first 100 players: {matching_ids[:3]}")
+                            
                             players = [p for p in players if str(p["playerId"]) in user_player_ids]
                             print(f"✅ Filtered from {original_count} to {len(players)} players for transfer out by playerId")
                             
