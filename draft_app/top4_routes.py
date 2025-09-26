@@ -257,6 +257,36 @@ def undo_last_pick():
 def get_transfer_order_from_results() -> list[str]:
     """Get transfer order based on current Top-4 results (lowest total first)"""
     try:
+        # First try to get results from production server
+        import requests
+        try:
+            response = requests.get("https://val-draft-app-b4a5eee9bd9a.herokuapp.com/top4/results/data", timeout=10)
+            if response.status_code == 200:
+                production_data = response.json()
+                lineups = production_data.get("lineups", {})
+                
+                # Calculate total points for each manager from production data
+                manager_scores = []
+                for manager, data in lineups.items():
+                    if isinstance(data, dict):
+                        total = data.get("total", 0)
+                    else:
+                        total = 0
+                    manager_scores.append((manager, total))
+                    print(f"Manager {manager}: {total} points (from production)")
+                
+                if manager_scores:
+                    # Sort by total points ascending (worst first for transfer priority)
+                    manager_scores.sort(key=lambda x: x[1])
+                    transfer_order = [manager for manager, _ in manager_scores]
+                    
+                    print(f"Transfer order (worst to best): {transfer_order}")
+                    return transfer_order
+        except Exception as e:
+            print(f"Could not fetch production data: {e}")
+        
+        # Fallback to local results calculation
+        print("Falling back to local results calculation...")
         from .mantra_routes import _build_results
         state = load_state()
         results = _build_results(state)
@@ -272,7 +302,7 @@ def get_transfer_order_from_results() -> list[str]:
             else:
                 total = 0
             manager_scores.append((manager, total))
-            print(f"Manager {manager}: {total} points")
+            print(f"Manager {manager}: {total} points (from local)")
         
         if not manager_scores:
             print("No manager scores found, using default order")

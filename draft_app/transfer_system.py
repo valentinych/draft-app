@@ -351,8 +351,19 @@ class TransferSystem:
         out_player = None
         new_roster = []
         for player in roster:
-            player_id = int(player.get("playerId") or player.get("id", 0))
-            if player_id == out_player_id:
+            current_player_id = player.get("playerId") or player.get("id")
+            # Compare both as strings and as ints if possible
+            match = False
+            if str(current_player_id) == str(out_player_id):
+                match = True
+            else:
+                try:
+                    if int(current_player_id) == int(out_player_id):
+                        match = True
+                except (ValueError, TypeError):
+                    pass
+            
+            if match:
                 out_player = player.copy()
                 # Mark as transferred out
                 out_player["status"] = "transfer_out"
@@ -455,7 +466,19 @@ class TransferSystem:
         remaining_players = []
         
         for player in available_players:
-            if int(player.get("playerId") or player.get("id", 0)) == player_id:
+            current_player_id = player.get("playerId") or player.get("id")
+            # Compare both as strings and as ints if possible
+            match = False
+            if str(current_player_id) == str(player_id):
+                match = True
+            else:
+                try:
+                    if int(current_player_id) == int(player_id):
+                        match = True
+                except (ValueError, TypeError):
+                    pass
+            
+            if match:
                 picked_player = player.copy()
             else:
                 remaining_players.append(player)
@@ -519,8 +542,19 @@ class TransferSystem:
         out_player = None
         new_roster = []
         for player in roster:
-            current_player_id = int(player.get("playerId") or player.get("id", 0))
-            if current_player_id == player_id:
+            current_player_id = player.get("playerId") or player.get("id")
+            # Compare both as strings and as ints if possible
+            match = False
+            if str(current_player_id) == str(player_id):
+                match = True
+            else:
+                try:
+                    if int(current_player_id) == int(player_id):
+                        match = True
+                except (ValueError, TypeError):
+                    pass
+            
+            if match:
                 out_player = player.copy()
                 # Mark as transferred out
                 out_player["status"] = "transfer_out"
@@ -594,7 +628,19 @@ class TransferSystem:
         
         # First check if player is in transfer out pool
         for i, player in enumerate(transfer_out_players):
-            if int(player.get("playerId") or player.get("id", 0)) == player_id:
+            current_player_id = player.get("playerId") or player.get("id")
+            # Compare both as strings and as ints if possible
+            match = False
+            if str(current_player_id) == str(player_id):
+                match = True
+            else:
+                try:
+                    if int(current_player_id) == int(player_id):
+                        match = True
+                except (ValueError, TypeError):
+                    pass
+            
+            if match:
                 picked_player = player.copy()
                 is_from_transfer_out_pool = True
                 # Remove from transfer out pool
@@ -604,7 +650,19 @@ class TransferSystem:
         # If not found in transfer out pool, check all available players (including undrafted)
         if not picked_player:
             for player in all_available_players:
-                if int(player.get("playerId") or player.get("id", 0)) == player_id:
+                current_player_id = player.get("playerId") or player.get("id")
+                # Compare both as strings and as ints if possible
+                match = False
+                if str(current_player_id) == str(player_id):
+                    match = True
+                else:
+                    try:
+                        if int(current_player_id) == int(player_id):
+                            match = True
+                    except (ValueError, TypeError):
+                        pass
+                
+                if match:
                     picked_player = player.copy()
                     break
         

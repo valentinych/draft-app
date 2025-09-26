@@ -135,7 +135,12 @@ def pick_transfer_player(draft_type: str):
         state = transfer_system.load_state()
         current_gw = get_current_gw(draft_type)
         
-        player_id = request.form.get("player_id", type=int)
+        player_id = request.form.get("player_id")
+        # Try to convert to int if possible, otherwise keep as string
+        try:
+            player_id = int(player_id)
+        except (ValueError, TypeError):
+            pass  # Keep as string
         if not player_id:
             error_msg = "Некорректный ID игрока"
             if request.headers.get('Content-Type') == 'application/x-www-form-urlencoded':
@@ -191,7 +196,12 @@ def transfer_player_in(draft_type: str):
         state = transfer_system.load_state()
         current_gw = get_current_gw(draft_type)
         
-        player_id = request.form.get("player_id", type=int)
+        player_id = request.form.get("player_id")
+        # Try to convert to int if possible, otherwise keep as string
+        try:
+            player_id = int(player_id)
+        except (ValueError, TypeError):
+            pass  # Keep as string
         if not player_id:
             error_msg = "Некорректный ID игрока"
             if request.headers.get('Content-Type') == 'application/x-www-form-urlencoded':
