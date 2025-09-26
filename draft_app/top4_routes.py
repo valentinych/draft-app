@@ -118,9 +118,19 @@ def index():
         from .transfer_system import create_transfer_system
         transfer_system = create_transfer_system("top4")
         transfer_window_active = transfer_system.is_transfer_window_active(state)
+        
+        # DEBUG: Print state info
+        print(f"DEBUG: transfer_window_active = {transfer_window_active}")
+        print(f"DEBUG: state keys = {list(state.keys())}")
+        if 'transfer_window' in state:
+            print(f"DEBUG: transfer_window = {state['transfer_window']}")
+        
         if transfer_window_active:
             current_transfer_manager = transfer_system.get_current_transfer_manager(state)
             current_transfer_phase = transfer_system.get_current_transfer_phase(state)
+            
+            print(f"DEBUG: current_transfer_manager = {current_transfer_manager}")
+            print(f"DEBUG: current_transfer_phase = {current_transfer_phase}")
             
             # Filter players based on transfer phase
             if current_user == current_transfer_manager:
