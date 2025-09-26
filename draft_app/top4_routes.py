@@ -104,6 +104,8 @@ def index():
         players.sort(key=lambda p: (p.get("price") is None, p.get("price")), reverse=reverse)
     elif sort_field == "popularity":
         players.sort(key=lambda p: (p.get("popularity") is None, p.get("popularity")), reverse=reverse)
+    elif sort_field == "pts":
+        players.sort(key=lambda p: (p.get("fp_last") is None, p.get("fp_last")), reverse=reverse)
 
     annotate_can_pick(players, state, current_user)
 
