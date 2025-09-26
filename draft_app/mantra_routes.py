@@ -63,7 +63,7 @@ LINEUPS_CACHE_TTL = timedelta(minutes=30)
 
 # Bump this constant when logic that affects cached Top-4 lineups/scores needs
 # to be invalidated (e.g. league overrides for transferred players).
-LINEUPS_OVERRIDE_VERSION = "2025-09-override-v3-real-mantra-logos"
+LINEUPS_OVERRIDE_VERSION = "2025-09-override-v4-complete-logos-fix-results"
 
 # Some players changed leagues after the Top-4 scrape.  Their fantasy points
 # should follow the new league schedule even if the upstream API still tags
@@ -716,7 +716,7 @@ def _build_results(state: dict) -> dict:
             extra = 0
             breakdown: list[dict] = []
             if mid:
-                player = _load_player(mid)
+                player = _load_player(mid, debug=None, round_no=None, force_refresh=False)
                 round_stats = player.get("round_stats") or []
                 for stat in round_stats:
                     rnd = _to_int(stat.get("tournament_round_number"))
@@ -817,9 +817,15 @@ def lineups():
 
 @bp.route("/results/data")
 def results_data():
-    state = load_top4_state()
-    data = _build_results(state)
-    return jsonify(data)
+    try:
+        state = load_top4_state()
+        data = _build_results(state)
+        return jsonify(data)
+    except Exception as exc:
+        print(f"[results] Error building results: {exc}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(exc), "status": "error"}), 500
 
 
 @bp.route("/results")

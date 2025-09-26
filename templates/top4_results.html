@@ -51,19 +51,19 @@ document.addEventListener('DOMContentLoaded', () => {
   const getClubLogo = (clubName) => {
     if (!clubName) return null;
     
-    // Real MantraFootball club logo mapping
+    // Real MantraFootball club logo mapping - COMPLETE
     const clubLogos = {
       // Bundesliga
       'Бавария': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/bayern_munich.png',
       'Боруссия Д': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/borussia_dortmund.png',
+      'Боруссия М': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/borussia_monchengladbach.png',
       'РБ Лейпциг': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/rb_leipzig.png',
-      'Байер 04': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/bayer_leverkusen.png',
+      'Байер': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/bayer_leverkusen.png',
       'Айнтрахт Ф': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/eintracht_frankfurt.png',
       'Хоффенхайм': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/hoffenheim.png',
-      'Санкт-Паули': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/st_pauli.png',
-      'Унион Берлин': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/union_berlin.png',
-      'Вольфсбург': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/wolfsburg.png',
       'Фрайбург': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/freiburg.png',
+      'Штутгарт': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/stuttgart.png',
+      'Майнц': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/mainz.png',
       
       // EPL  
       'Манчестер Сити': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/manchester_city.png',
@@ -76,16 +76,21 @@ document.addEventListener('DOMContentLoaded', () => {
       'Кристал Пэлас': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/crystal_palace.png',
       'Вест Хэм': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/west_ham.png',
       'Ньюкасл': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/newcastle.png',
+      'Астон Вилла': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/aston_villa.png',
+      'Борнмут': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/bournemouth.png',
       
       // La Liga
       'Реал Мадрид': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/real_madrid.png',
       'Барселона': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/barcelona.png',
       'Атлетико': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/atletico_madrid.png',
       'Атлетик': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/athletic_bilbao.png',
-      'Севилья': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/sevilla.png',
       'Бетис': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/real_betis.png',
       'Вильярреал': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/villarreal.png',
-      'Валенсия': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/valencia.png',
+      'Реал Сосьедад': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/real_sociedad.png',
+      'Жирона': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/girona.png',
+      'Осасуна': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/osasuna.png',
+      'Хетафе': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/getafe.png',
+      'Сельта': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/celta_vigo.png',
       
       // Serie A
       'Интер': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/inter.png',
@@ -93,9 +98,11 @@ document.addEventListener('DOMContentLoaded', () => {
       'Ювентус': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/juventus.png',
       'Наполи': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/napoli.png',
       'Рома': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/roma.png',
-      'Лацио': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/lazio.png',
       'Аталанта': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/atalanta.png',
-      'Фиорентина': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/fiorentina.png'
+      'Фиорентина': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/fiorentina.png',
+      'Болонья': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/bologna.png',
+      'Дженоа': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/genoa.png',
+      'Комо': 'https://mantrafootball.s3-eu-west-1.amazonaws.com/club_logo/como.png'
     };
     
     // Try exact match first
