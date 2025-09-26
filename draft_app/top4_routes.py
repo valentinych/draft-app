@@ -109,6 +109,34 @@ def index():
 
     annotate_can_pick(players, state, current_user)
 
+    # Check for transfer window status
+    transfer_window_active = False
+    current_transfer_manager = None
+    current_transfer_phase = None
+    
+    try:
+        from .transfer_system import create_transfer_system
+        transfer_system = create_transfer_system("top4")
+        transfer_window_active = transfer_system.is_transfer_window_active(state)
+        if transfer_window_active:
+            current_transfer_manager = transfer_system.get_current_transfer_manager(state)
+            current_transfer_phase = transfer_system.get_current_transfer_phase(state)
+            
+            # Filter players based on transfer phase
+            if current_user == current_transfer_manager:
+                if current_transfer_phase == "out":
+                    # Show only current user's roster for transfer out
+                    user_roster = state.get("rosters", {}).get(current_user, [])
+                    user_player_ids = {str(p.get("playerId")) for p in user_roster}
+                    players = [p for p in players if str(p["playerId"]) in user_player_ids]
+                elif current_transfer_phase == "in":
+                    # Show available transfer players for transfer in
+                    available_players = transfer_system.get_available_transfer_players(state)
+                    available_player_ids = {str(p.get("playerId")) for p in available_players}
+                    players = [p for p in players if str(p["playerId"]) in available_player_ids]
+    except Exception as e:
+        print(f"Error checking transfer window: {e}")
+
     return render_template(
         "index.html",
         draft_title=draft_title,
@@ -126,6 +154,9 @@ def index():
         draft_completed=draft_completed,
         status_url=url_for("top4draft.status"),
         undo_url=url_for("top4draft.undo_last_pick"),
+        transfer_window_active=transfer_window_active,
+        current_transfer_manager=current_transfer_manager,
+        current_transfer_phase=current_transfer_phase,
     )
 
 @bp.get("/top4/status")
@@ -137,8 +168,56 @@ def status():
 
 @bp.get("/top4/schedule")
 def schedule_view():
+    """Show Top-4 schedule with transfer windows"""
     data = build_schedule()
-    return render_template("schedule.html", schedule=data)
+    
+    # Check for transfer window status
+    try:
+        from .transfer_system import create_transfer_system
+        state = load_state()
+        transfer_system = create_transfer_system("top4")
+        
+        transfer_info = {
+            'window_active': transfer_system.is_transfer_window_active(state),
+            'current_manager': transfer_system.get_current_transfer_manager(state),
+            'current_phase': transfer_system.get_current_transfer_phase(state),
+            'active_window': transfer_system.get_active_transfer_window(state)
+        }
+        
+        # Get transfer history
+        history = transfer_system.get_transfer_history(state)
+        
+        # Group history by rounds
+        rounds_completed = 0
+        current_round_transfers = 0
+        
+        if transfer_info['active_window']:
+            current_round = transfer_info['active_window'].get('current_round', 1)
+            total_rounds = transfer_info['active_window'].get('total_rounds', 3)
+            managers_order = transfer_info['active_window'].get('managers_order', [])
+            current_manager_index = transfer_info['active_window'].get('current_manager_index', 0)
+            
+            # Count completed transfers in current round
+            transfers_in_current_round = [t for t in history if t.get('action') == 'transfer_in']
+            completed_in_current_round = len([t for t in transfers_in_current_round if t.get('gw') == 1])
+            
+            rounds_completed = current_round - 1
+            current_round_transfers = completed_in_current_round % len(managers_order) if managers_order else 0
+            
+            transfer_info.update({
+                'current_round': current_round,
+                'total_rounds': total_rounds,
+                'managers_order': managers_order,
+                'current_manager_index': current_manager_index,
+                'rounds_completed': rounds_completed,
+                'current_round_transfers': current_round_transfers
+            })
+        
+    except Exception as e:
+        print(f"Error getting transfer info: {e}")
+        transfer_info = {'window_active': False}
+    
+    return render_template("schedule.html", schedule=data, transfer_info=transfer_info)
 
 
 @bp.post("/top4/undo")
@@ -175,6 +254,47 @@ def undo_last_pick():
     return redirect(url_for("top4draft.index"))
 
 # ---- Wishlist API ----
+def get_transfer_order_from_results() -> list[str]:
+    """Get transfer order based on current Top-4 results (lowest total first)"""
+    try:
+        from .mantra_routes import _build_results
+        state = load_state()
+        results = _build_results(state)
+        
+        # results structure: {"lineups": {manager: {"players": [...], "total": int}}, "managers": [...]}
+        lineups = results.get("lineups", {})
+        
+        # Calculate total points for each manager
+        manager_scores = []
+        for manager, data in lineups.items():
+            if isinstance(data, dict):
+                total = data.get("total", 0)
+            else:
+                total = 0
+            manager_scores.append((manager, total))
+            print(f"Manager {manager}: {total} points")
+        
+        if not manager_scores:
+            print("No manager scores found, using default order")
+            from .config import TOP4_USERS
+            return TOP4_USERS
+        
+        # Sort by total points ascending (worst first for transfer priority)
+        manager_scores.sort(key=lambda x: x[1])
+        transfer_order = [manager for manager, _ in manager_scores]
+        
+        print(f"Transfer order (worst to best): {transfer_order}")
+        return transfer_order
+        
+    except Exception as e:
+        print(f"Error getting transfer order from results: {e}")
+        import traceback
+        traceback.print_exc()
+        # Fallback to default order
+        from .config import TOP4_USERS
+        return TOP4_USERS
+
+
 @bp.route("/top4/api/wishlist", methods=["GET", "PATCH", "POST"])
 def wishlist_api():
     user = session.get("user_name")
@@ -207,3 +327,75 @@ def wishlist_api():
         except Exception as e:
             return jsonify({"error": "cannot save", "details": str(e)}), 400
     return jsonify({"error": "method not allowed"}), 405
+
+
+def create_backup(state, reason="manual"):
+    """Create a backup of the current state"""
+    try:
+        from datetime import datetime
+        import json
+        
+        # Create backup with timestamp
+        timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+        backup_key = f"backups/top4/draft_state_top4_{timestamp}_{reason}.json"
+        
+        from .top4_services import _s3_enabled, _s3_bucket, _s3_put_json
+        
+        if _s3_enabled():
+            bucket = _s3_bucket()
+            if bucket and _s3_put_json(bucket, backup_key, state):
+                print(f"Created backup: s3://{bucket}/{backup_key}")
+                return True
+        
+        # Local backup as fallback
+        from pathlib import Path
+        backup_dir = Path(__file__).resolve().parent.parent / "data" / "backups" / "top4"
+        backup_dir.mkdir(parents=True, exist_ok=True)
+        
+        backup_file = backup_dir / f"draft_state_top4_{timestamp}_{reason}.json"
+        backup_file.write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8")
+        print(f"Created local backup: {backup_file}")
+        return True
+        
+    except Exception as e:
+        print(f"Failed to create backup: {e}")
+        return False
+
+
+@bp.route("/top4/open_transfer_window", methods=["POST"])
+def open_transfer_window():
+    """Open Top-4 transfer window - godmode only"""
+    if not session.get("godmode"):
+        abort(403)
+    
+    try:
+        from .transfer_system import init_transfers_for_league
+        
+        # Create backup before opening transfer window
+        state = load_state()
+        create_backup(state, "before_transfer_window")
+        
+        # Get transfer order based on current results
+        transfer_order = get_transfer_order_from_results()
+        
+        print(f"Opening Top-4 transfer window with order: {transfer_order}")
+        
+        # Initialize transfer window with 3 rounds (not snake)
+        success = init_transfers_for_league(
+            draft_type="top4",
+            participants=transfer_order,
+            transfers_per_manager=3,  # 3 rounds of transfers
+            position_limits={"GK": 2, "DEF": 5, "MID": 5, "FWD": 3},
+            max_from_club=1
+        )
+        
+        if success:
+            flash("Трансферное окно Top-4 открыто! Очередность: " + " → ".join(transfer_order), "success")
+        else:
+            flash("Ошибка при открытии трансферного окна", "error")
+            
+    except Exception as e:
+        print(f"Error opening Top-4 transfer window: {e}")
+        flash(f"Ошибка при открытии трансферного окна: {str(e)}", "error")
+    
+    return redirect(request.referrer or url_for("top4draft.index"))

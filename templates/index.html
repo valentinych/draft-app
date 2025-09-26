@@ -57,6 +57,12 @@
           <button type="submit" class="btn btn-success">Вернуть Jobe Bellingham</button>
         </form>
         {% endif %}
+        {% elif table_league == 'top4' %}
+        {% if draft_completed %}
+        <form method="post" action="{{ url_for('top4draft.open_transfer_window') }}" style="display:inline; margin-left:8px;">
+          <button type="submit" class="btn btn-info">Открыть трансферное окно</button>
+        </form>
+        {% endif %}
         {% endif %}
         <form method="post" action="{{ undo_url|default(url_for('epl.undo_last_pick')) }}" style="display:inline; margin-left:8px;">
           <button type="submit" class="btn btn-danger">Отменить последний пик</button>
@@ -172,6 +178,52 @@
   </div>
   {% endif %}
 
+
+  {# Transfer interface for TOP4 when window is active #}
+  {% if table_league == 'top4' and transfer_window_active and current_user == current_transfer_manager %}
+    {% if current_transfer_phase == 'out' %}
+    <div class="card" style="margin:10px 0; border: 2px solid #ff6b35;">
+      <div class="card-title" style="background: #ff6b35; color: white;">
+        ⚽ Ваш ход - TRANSFER OUT: выберите игрока для отдачи
+      </div>
+      <div class="card-body">
+        <p style="margin: 0; font-size: 16px;">
+          <strong>Кликните на любого игрока из вашего состава в таблице ниже</strong> для transfer out.
+          <br><small style="color: #666;">В таблице показаны только ваши игроки. После клика игрок будет отправлен в transfer out пул.</small>
+        </p>
+        <p style="margin-top: 10px; padding: 8px; background: #fff3cd; border-left: 4px solid #ffc107; font-size: 14px;">
+          <strong>📋 Этап 1 из 2:</strong> Сначала отдайте игрока, затем выберите замену
+        </p>
+      </div>
+    </div>
+    {% elif current_transfer_phase == 'in' %}
+    <div class="card" style="margin:10px 0; border: 2px solid #28a745;">
+      <div class="card-title" style="background: #28a745; color: white;">
+        🎯 Ваш ход - TRANSFER IN: выберите игрока для получения
+      </div>
+      <div class="card-body">
+        <p style="margin: 0; font-size: 16px;">
+          <strong>Кликните на любого игрока из таблицы ниже</strong> для transfer in.
+          <br><small style="color: #666;">В таблице показаны доступные игроки. После клика игрок будет добавлен в вашу команду.</small>
+        </p>
+        <p style="margin-top: 10px; padding: 8px; background: #d4edda; border-left: 4px solid #28a745; font-size: 14px;">
+          <strong>✅ Этап 2 из 2:</strong> Игрок отдан, теперь выберите замену. После выбора ход переходит к следующему менеджеру.
+        </p>
+      </div>
+    </div>
+    {% endif %}
+  {% elif table_league == 'top4' and transfer_window_active and current_transfer_manager %}
+  <div class="card" style="margin:10px 0; border: 2px solid #74b9ff;">
+    <div class="card-title" style="background: #74b9ff; color: white;">
+      🕒 Трансферное окно активно
+    </div>
+    <div class="card-body">
+      <p><strong>Сейчас ход:</strong> {{ current_transfer_manager }}</p>
+      <p>Ожидайте своей очереди для выбора трансфера.</p>
+      <p><small><a href="{{ url_for('transfers.transfer_history', draft_type='top4') }}">Перейти на страницу трансферов →</a></small></p>
+    </div>
+  </div>
+  {% endif %}
 
   {# Transfer interface for UCL when window is active #}
   {% if table_league == 'ucl' and transfer_window_active and current_user == current_transfer_manager %}
@@ -753,5 +805,179 @@ function toggleMantraMode() {
   window.location.href = currentUrl.toString();
 }
 </script>
+
+{# Transfer functionality for TOP4 #}
+{% if table_league == 'top4' and transfer_window_active %}
+<script>
+// Transfer functions for TOP4 main page
+function selectPlayerForTransferOut(playerId, playerName, playerClub, playerPosition) {
+  if (confirm(`Отдать игрока ${playerName} (${playerClub}, ${playerPosition}) в transfer out пул?`)) {
+    // Show loading state
+    const buttons = document.querySelectorAll('button[onclick*="selectPlayerForTransferOut"]');
+    buttons.forEach(btn => {
+      btn.disabled = true;
+      btn.style.opacity = '0.6';
+    });
+    
+    // Send transfer out request
+    fetch('/transfers/top4/pick-transfer-player', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: `player_id=${playerId}`
+    })
+    .then(response => {
+      // Check if response is ok
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      // Try to parse as JSON, if fails then it's probably a redirect/HTML
+      return response.text().then(text => {
+        try {
+          return JSON.parse(text);
+        } catch (e) {
+          // If not JSON, assume success and reload page
+          console.log('Non-JSON response, reloading page');
+          window.location.reload();
+          return null;
+        }
+      });
+    })
+    .then(data => {
+      if (data === null) {
+        // Page will reload, no need to do anything
+        return;
+      }
+      
+      if (data.success) {
+        console.log('Transfer out successful:', data.message);
+        // Reload the page to show updated state
+        window.location.reload();
+      } else {
+        alert('Ошибка: ' + data.error);
+        // Re-enable buttons
+        buttons.forEach(btn => {
+          btn.disabled = false;
+          btn.style.opacity = '1';
+        });
+      }
+    })
+    .catch(error => {
+      console.error('Transfer out error:', error);
+      alert('Произошла ошибка при отправке трансфера');
+      // Re-enable buttons
+      buttons.forEach(btn => {
+        btn.disabled = false;
+        btn.style.opacity = '1';
+      });
+    });
+  }
+}
+
+function selectPlayerForTransferIn(playerId, playerName, playerClub, playerPosition) {
+  if (confirm(`Получить игрока ${playerName} (${playerClub}, ${playerPosition}) в свою команду?`)) {
+    // Show loading state
+    const buttons = document.querySelectorAll('button[onclick*="selectPlayerForTransferIn"]');
+    buttons.forEach(btn => {
+      btn.disabled = true;
+      btn.style.opacity = '0.6';
+    });
+    
+    // Send transfer in request
+    fetch('/transfers/top4/transfer-player-in', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: `player_id=${playerId}`
+    })
+    .then(response => {
+      // Check if response is ok
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      // Try to parse as JSON, if fails then it's probably a redirect/HTML
+      return response.text().then(text => {
+        try {
+          return JSON.parse(text);
+        } catch (e) {
+          // If not JSON, assume success and reload page
+          console.log('Non-JSON response, reloading page');
+          window.location.reload();
+          return null;
+        }
+      });
+    })
+    .then(data => {
+      if (data === null) {
+        // Page will reload, no need to do anything
+        return;
+      }
+      
+      if (data.success) {
+        console.log('Transfer in successful:', data.message);
+        // Reload the page to show updated state
+        window.location.reload();
+      } else {
+        alert('Ошибка: ' + data.error);
+        // Re-enable buttons
+        buttons.forEach(btn => {
+          btn.disabled = false;
+          btn.style.opacity = '1';
+        });
+      }
+    })
+    .catch(error => {
+      console.error('Transfer in error:', error);
+      alert('Произошла ошибка при получении трансфера');
+      // Re-enable buttons
+      buttons.forEach(btn => {
+        btn.disabled = false;
+        btn.style.opacity = '1';
+      });
+    });
+  }
+}
+
+// Override button clicks for transfer functionality
+document.addEventListener('DOMContentLoaded', function() {
+  const playerTable = document.getElementById('players');
+  if (!playerTable) return;
+  
+  const isTransferOut = {{ 'true' if current_transfer_phase == 'out' else 'false' }};
+  const isTransferIn = {{ 'true' if current_transfer_phase == 'in' else 'false' }};
+  const isCurrentManager = {{ 'true' if current_user == current_transfer_manager else 'false' }};
+  
+  if (!isCurrentManager) return;
+  
+  // Override form submissions for transfer functionality
+  const forms = playerTable.querySelectorAll('form');
+  forms.forEach(form => {
+    const button = form.querySelector('button[type="submit"]');
+    const playerIdInput = form.querySelector('input[name="player_id"]');
+    
+    if (!button || !playerIdInput) return;
+    
+    const playerId = playerIdInput.value;
+    const row = form.closest('tr');
+    const playerName = row?.cells[2]?.textContent?.trim() || 'Unknown';
+    const playerClub = row?.cells[3]?.textContent?.trim() || 'Unknown';
+    const playerPosition = row?.cells[4]?.textContent?.trim() || 'Unknown';
+    
+    // Replace the button click handler
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      if (isTransferOut) {
+        selectPlayerForTransferOut(playerId, playerName, playerClub, playerPosition);
+      } else if (isTransferIn) {
+        selectPlayerForTransferIn(playerId, playerName, playerClub, playerPosition);
+      }
+    });
+  });
+});
+</script>
+{% endif %}
 
 {% endblock %}

@@ -3,6 +3,59 @@
 {% block content %}
 <h1 class="title">Расписание лиг</h1>
 
+{# Transfer window status #}
+{% if transfer_info and transfer_info.window_active %}
+<div class="card" style="margin-bottom: 20px; border: 2px solid #28a745;">
+  <div class="card-title" style="background: #28a745; color: white;">
+    🔄 Трансферное окно активно
+  </div>
+  <div class="card-body">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <div>
+        <p><strong>Текущий ход:</strong> {{ transfer_info.current_manager }} ({{ transfer_info.current_phase }})</p>
+        <p><strong>Раунд:</strong> {{ transfer_info.current_round }}/{{ transfer_info.total_rounds }}</p>
+        {% if transfer_info.managers_order %}
+        <p><strong>Очередность:</strong> {{ transfer_info.managers_order|join(' → ') }}</p>
+        {% endif %}
+      </div>
+      <div>
+        <a href="{{ url_for('transfers.transfer_history', draft_type='top4') }}" class="btn btn-primary">
+          📋 История трансферов
+        </a>
+      </div>
+    </div>
+    
+    {# Progress bar for current round #}
+    {% if transfer_info.managers_order %}
+    {% set total_in_round = transfer_info.managers_order|length %}
+    {% set completed_in_round = transfer_info.current_manager_index %}
+    {% set progress_percent = (completed_in_round / total_in_round * 100) if total_in_round > 0 else 0 %}
+    <div style="margin-top: 15px;">
+      <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+        <span><strong>Прогресс раунда {{ transfer_info.current_round }}:</strong></span>
+        <span>{{ completed_in_round }}/{{ total_in_round }}</span>
+      </div>
+      <div style="background: #e9ecef; height: 10px; border-radius: 5px; overflow: hidden;">
+        <div style="background: #28a745; height: 100%; width: {{ progress_percent }}%; transition: width 0.3s;"></div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% elif transfer_info %}
+<div class="card" style="margin-bottom: 20px; border: 2px solid #6c757d;">
+  <div class="card-title" style="background: #6c757d; color: white;">
+    ⏸️ Трансферное окно неактивно
+  </div>
+  <div class="card-body">
+    <p>Трансферное окно в данный момент закрыто. Ожидайте объявления о следующем трансферном периоде.</p>
+    <a href="{{ url_for('transfers.transfer_history', draft_type='top4') }}" class="btn">
+      📋 История трансферов
+    </a>
+  </div>
+</div>
+{% endif %}
+
 <style>
 .transfer-window {
   background-color: #fef0e7 !important;

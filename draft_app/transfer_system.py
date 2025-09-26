@@ -39,8 +39,7 @@ TRANSFER_SCHEDULES = {
         8: 1,   # After MD8, 1 round of transfers (knockout phase)
     },
     "TOP4": {
-        # Will be defined later
-        # Example: 3: 1, 6: 1, 9: 1
+        1: 3,   # После первых туров, 3 круга трансферов (не змейкой)
     }
 }
 
