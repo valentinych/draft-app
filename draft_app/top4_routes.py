@@ -131,13 +131,23 @@ def index():
                 if current_transfer_phase == "out":
                     # Show only current user's roster for transfer out
                     user_roster = transfer_state.get("rosters", {}).get(current_user, [])
-                    user_player_ids = {str(p.get("playerId")) for p in user_roster}
-                    players = [p for p in players if str(p["playerId"]) in user_player_ids]
+                    if user_roster:
+                        user_player_ids = {str(p.get("playerId")) for p in user_roster}
+                        players = [p for p in players if str(p["playerId"]) in user_player_ids]
+                    else:
+                        # FALLBACK: If no roster found, show first 20 players for transfer out
+                        print(f"WARNING: No roster found for {current_user}, showing first 20 players")
+                        players = players[:20]
                 elif current_transfer_phase == "in":
                     # Show available transfer players for transfer in
                     available_players = transfer_system.get_available_transfer_players(transfer_state)
-                    available_player_ids = {str(p.get("playerId")) for p in available_players}
-                    players = [p for p in players if str(p["playerId"]) in available_player_ids]
+                    if available_players:
+                        available_player_ids = {str(p.get("playerId")) for p in available_players}
+                        players = [p for p in players if str(p["playerId"]) in available_player_ids]
+                    else:
+                        # FALLBACK: If no available players, show first 20 players for transfer in
+                        print(f"WARNING: No available players found, showing first 20 players")
+                        players = players[:20]
     except Exception as e:
         print(f"Error checking transfer window: {e}")
 
