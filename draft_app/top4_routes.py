@@ -161,9 +161,17 @@ def index():
                             if pid:
                                 user_player_ids.add(str(pid))
                         
+                        print(f"🔍 DEBUG: Found {len(user_player_ids)} player IDs from S3 roster")
+                        print(f"🔍 DEBUG: Sample IDs: {list(user_player_ids)[:5]}")
+                        
                         if user_player_ids:
+                            original_count = len(players)
                             players = [p for p in players if str(p["playerId"]) in user_player_ids]
-                            print(f"✅ Filtered to {len(players)} players for transfer out by playerId")
+                            print(f"✅ Filtered from {original_count} to {len(players)} players for transfer out by playerId")
+                            
+                            # Debug: Show first few filtered players
+                            for i, p in enumerate(players[:3]):
+                                print(f"  {i+1}. {p.get('fullName')} (ID: {p.get('playerId')})")
                         else:
                             print("⚠️ No player IDs found, showing first 20 players as fallback")
                             players = players[:20]
