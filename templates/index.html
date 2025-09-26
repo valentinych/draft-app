@@ -811,6 +811,22 @@ function toggleMantraMode() {
 {% if table_league == 'top4' and transfer_window_active %}
 <script>
 // Transfer functions for TOP4 main page
+
+// FORCE ENABLE buttons for current manager
+document.addEventListener('DOMContentLoaded', function() {
+  const isCurrentManager = {{ 'true' if is_current_manager else 'false' }};
+  
+  if (isCurrentManager) {
+    console.log('🔧 FORCE ENABLING buttons for current manager');
+    const buttons = document.querySelectorAll('button[type="submit"]');
+    buttons.forEach(btn => {
+      btn.disabled = false;
+      btn.removeAttribute('disabled');
+      console.log('✅ Enabled button:', btn);
+    });
+  }
+});
+
 function selectPlayerForTransferOut(playerId, playerName, playerClub, playerPosition) {
   if (confirm(`Отдать игрока ${playerName} (${playerClub}, ${playerPosition}) в transfer out пул?`)) {
     // Show loading state
