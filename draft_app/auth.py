@@ -9,7 +9,13 @@ bp = Blueprint("auth", __name__)
 def load_auth_users():
     s3_key = os.getenv("DRAFT_S3_AUTH_KEY", os.path.basename(AUTH_FILE))
     data = load_json(AUTH_FILE, default={'users': []}, s3_key=s3_key)
-    return {str(u['id']): u for u in data.get('users', [])}
+    users = {}
+    for u in data.get('users', []):
+        if 'id' in u and u['id'] is not None:
+            users[str(u['id'])] = u
+        else:
+            print(f"Warning: Skipping user with missing or null 'id': {u}")
+    return users
 
 def require_auth(f):
     """Decorator to require authentication for routes"""
