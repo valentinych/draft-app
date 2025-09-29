@@ -242,8 +242,15 @@ class TransferSystem:
         
         if not self.is_transfer_window_active(state):
             return False
-            
+
         state["transfers"]["active_window"] = None
+
+        legacy_window = state.get("transfer_window")
+        if isinstance(legacy_window, dict):
+            legacy_window["active"] = False
+            legacy_window["current_user"] = None
+            legacy_window["transfer_phase"] = "out"
+
         return True
     
     def advance_transfer_turn(self, state: Dict[str, Any]) -> bool:
@@ -693,6 +700,8 @@ class TransferSystem:
         
         if active_window:
             active_window["transfer_phase"] = "in"
+            if legacy_window and legacy_window.get("active"):
+                legacy_window["transfer_phase"] = "in"
         elif legacy_window and legacy_window.get("active"):
             legacy_window["transfer_phase"] = "in"
             # Don't increment transfers_completed yet - wait for transfer_in
@@ -935,31 +944,102 @@ def init_transfers_for_league(
     participants: List[str],
     transfers_per_manager: int = 1,
     position_limits: Dict[str, int] = None,
-    max_from_club: int = 1
+    max_from_club: int = 1,
+    gw: Optional[int] = None,
+    total_rounds: Optional[int] = None,
 ) -> bool:
     """Initialize transfer window for a league"""
     try:
         ts = create_transfer_system(draft_type)
         state = ts.load_state()
-        
-        # Set up transfer window
+        state = ts.ensure_transfer_structure(state)
+
+        cleaned_participants = [
+            str(participant).strip()
+            for participant in participants
+            if participant and str(participant).strip()
+        ]
+
+        if not cleaned_participants:
+            return False
+
+        def _to_int(value: Optional[Any]) -> Optional[int]:
+            if value is None:
+                return None
+            try:
+                return int(value)
+            except (TypeError, ValueError):
+                try:
+                    return int(float(value))
+                except (TypeError, ValueError):
+                    return None
+
+        effective_gw = _to_int(gw)
+        if effective_gw is None:
+            for key in ("current_matchday", "current_gw", "next_round", "current_round"):
+                effective_gw = _to_int(state.get(key))
+                if effective_gw is not None:
+                    break
+
+        if effective_gw is None:
+            finished = state.get("finished_matchdays")
+            if isinstance(finished, list):
+                normalized = [_to_int(item) for item in finished]
+                normalized = [item for item in normalized if item is not None]
+                if normalized:
+                    effective_gw = max(normalized)
+
+        if effective_gw is None:
+            effective_gw = 1
+
+        schedule_rounds = ts.get_transfer_schedule().get(effective_gw, 0)
+        effective_rounds = _to_int(total_rounds) or schedule_rounds or transfers_per_manager or 1
+
+        transfers_section = state.setdefault("transfers", {})
+        transfers_section.setdefault("history", [])
+        transfers_section.setdefault("available_players", [])
+        transfers_section.setdefault("legacy_windows", [])
+
+        normalized_limits = dict(position_limits) if position_limits else {"GK": 2, "DEF": 5, "MID": 5, "FWD": 3}
+
+        # Set up legacy transfer window structure (used by UCL main page)
         transfer_state = {
             "active": True,
-            "current_user": participants[0] if participants else None,
-            "participant_order": participants,
+            "current_user": cleaned_participants[0],
+            "participant_order": cleaned_participants,
             "current_index": 0,
             "transfer_phase": "out",  # Always start with "out" phase
             "transfers_per_manager": transfers_per_manager,
-            "transfers_completed": {user: 0 for user in participants},
-            "position_limits": position_limits or {"GK": 2, "DEF": 5, "MID": 5, "FWD": 3},
+            "transfers_completed": {user: 0 for user in cleaned_participants},
+            "position_limits": normalized_limits,
             "max_from_club": max_from_club,
             "started_at": datetime.utcnow().isoformat(),
+            "gw": effective_gw,
+            "total_rounds": effective_rounds,
         }
-        
+
         state["transfer_window"] = transfer_state
+
+        # Mirror data to the modern transfer window format used by the unified UI
+        transfers_section["active_window"] = {
+            "gw": effective_gw,
+            "total_rounds": effective_rounds,
+            "current_round": 1,
+            "current_manager_index": 0,
+            "managers_order": cleaned_participants,
+            "transfer_phase": "out",
+            "started_at": datetime.utcnow().isoformat(timespec="seconds"),
+            "metadata": {
+                "transfers_per_manager": transfers_per_manager,
+                "position_limits": normalized_limits,
+                "max_from_club": max_from_club,
+                "source": "init_transfers_for_league",
+            },
+        }
+
         ts.save_state(state)
         return True
-        
+
     except Exception as e:
         print(f"Error initializing transfers for {draft_type}: {e}")
         return False

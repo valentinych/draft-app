@@ -2149,16 +2149,25 @@ def open_transfer_window():
             transfer_order = ["Сергей", "Андрей", "Серёга Б", "Женя", "Ксана", "Саша", "Руслан", "Макс"]
         
         # Initialize transfer window
+        current_matchday = _ucl_default_matchday(state)
+
         success = init_transfers_for_league(
             draft_type="ucl",
             participants=transfer_order,
             transfers_per_manager=1,  # 1 transfer after MD 1-7
             position_limits={"GK": 3, "DEF": 8, "MID": 9, "FWD": 5},
-            max_from_club=1
+            max_from_club=1,
+            gw=current_matchday,
+            total_rounds=1,
         )
-        
+
         if success:
-            flash("Трансферное окно UCL открыто! Очередность: " + " → ".join(transfer_order), "success")
+            flash(
+                "Трансферное окно UCL открыто! Очередность: "
+                + " → ".join(transfer_order)
+                + f" (MD{current_matchday})",
+                "success",
+            )
         else:
             flash("Ошибка при открытии трансферного окна", "error")
             

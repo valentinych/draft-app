@@ -107,6 +107,10 @@ def test_top4_transfer_flow_and_admin_revert(isolated_top4_state):
 
     state_on_disk = json.loads(data["top4_state_path"].read_text(encoding="utf-8"))
     assert state_on_disk.get("transfer_window", {}).get("active"), state_on_disk.get("transfer_window")
+    active_window = state_on_disk.get("transfers", {}).get("active_window")
+    assert active_window, state_on_disk.get("transfers")
+    assert active_window.get("managers_order") == participants
+    assert active_window.get("transfer_phase") == "out"
 
     create_transfer_system = data["create_transfer_system"]
     transfer_system = create_transfer_system("top4")
