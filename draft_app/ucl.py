@@ -1820,72 +1820,111 @@ def ucl_results_data():
 
 @bp.route("/ucl/return_transfer_out_player", methods=["POST"])
 def return_transfer_out_player():
-    """Return a transfer out player back to their original roster - GODMODE ONLY"""
+    """Return the most recent transfer-out player back to their roster (godmode only)."""
     current_user = session.get("user_name")
     if not current_user or not session.get("godmode"):
         abort(403)
-    
+
     try:
-        player_id = request.form.get("player_id", type=int)
-        manager = request.form.get("manager", "").strip()
-        
-        if not player_id or not manager:
-            flash("Некорректные параметры", "danger")
-            return redirect(request.referrer or url_for("home.index"))
-        
-        # Load transfer system state
         from .transfer_system import create_transfer_system
+
         transfer_system = create_transfer_system("ucl")
         state = transfer_system.load_state()
-        
-        # Find the player in available_players (transfer out pool)
-        available_players = state.get("transfers", {}).get("available_players", [])
-        transfer_out_player = None
-        new_available_players = []
-        
-        for player in available_players:
-            current_player_id = int(player.get("playerId") or player.get("id", 0))
-            if current_player_id == player_id and player.get("status") == "transfer_out":
-                transfer_out_player = player.copy()
-                # Remove transfer out markers
-                transfer_out_player.pop("status", None)
-                transfer_out_player.pop("transferred_out_gw", None)
-                print(f"[UCL] Found transfer out player: {player.get('fullName', 'Unknown')}")
-            else:
-                new_available_players.append(player)
-        
-        if not transfer_out_player:
-            flash(f"Игрок с ID {player_id} не найден в transfer out пуле", "danger")
+        transfers = state.setdefault("transfers", {})
+        history = transfers.setdefault("history", [])
+        available_players = transfers.setdefault("available_players", [])
+
+        last_record_index: Optional[int] = None
+        last_available_index: Optional[int] = None
+        transfer_out_player: Optional[Dict[str, Any]] = None
+        manager: Optional[str] = None
+        player_id: Optional[str] = None
+
+        # Find the latest transfer_out record that still has a player in the available pool
+        for idx in range(len(history) - 1, -1, -1):
+            record = history[idx]
+            if record.get("action") != "transfer_out":
+                continue
+            draft_type = str(record.get("draft_type") or "").upper()
+            if draft_type and draft_type not in ("UCL", ""):
+                continue
+
+            candidate_manager = record.get("manager")
+            candidate_player = record.get("out_player") or {}
+            candidate_player_id = candidate_player.get("playerId") or candidate_player.get("id")
+
+            if not candidate_manager or candidate_player_id is None:
+                continue
+
+            candidate_player_id_str = str(candidate_player_id)
+
+            for avail_idx in range(len(available_players) - 1, -1, -1):
+                available_player = available_players[avail_idx]
+                available_player_id = available_player.get("playerId") or available_player.get("id")
+                if available_player_id is None:
+                    continue
+
+                if str(available_player_id) == candidate_player_id_str and \
+                        available_player.get("status") == "transfer_out":
+                    last_record_index = idx
+                    last_available_index = avail_idx
+                    transfer_out_player = available_player.copy()
+                    manager = candidate_manager
+                    player_id = candidate_player_id_str
+                    break
+
+            if transfer_out_player is not None:
+                break
+
+        if transfer_out_player is None or manager is None or player_id is None or last_record_index is None:
+            flash("Нет игроков в пуле transfer out для возврата", "warning")
             return redirect(request.referrer or url_for("home.index"))
-        
-        # Add player back to manager's roster
+
+        # Remove player from available pool
+        if last_available_index is not None:
+            available_players.pop(last_available_index)
+
+        # Clean up transfer markers
+        transfer_out_player.pop("status", None)
+        transfer_out_player.pop("transferred_out_gw", None)
+        transfer_out_player.pop("transferred_in_gw", None)
+
+        # Restore player to manager roster if not already there
         rosters = state.setdefault("rosters", {})
         manager_roster = rosters.setdefault(manager, [])
-        manager_roster.append(transfer_out_player)
-        
-        # Update available players list
-        state["transfers"]["available_players"] = new_available_players
-        
-        # Remove the transfer out record from history
-        transfer_history = state.get("transfers", {}).get("history", [])
-        new_history = []
-        for record in transfer_history:
-            # Skip the transfer out record for this player and manager
-            if not (record.get("action") == "transfer_out" and 
-                    record.get("manager") == manager and
-                    record.get("out_player", {}).get("playerId") == player_id):
-                new_history.append(record)
-            else:
-                print(f"[UCL] Removing transfer out record for {transfer_out_player.get('fullName', 'Unknown')}")
-        
-        state["transfers"]["history"] = new_history
-        
-        # Save state
+        already_in_roster = any(
+            str(p.get("playerId") or p.get("id")) == player_id for p in manager_roster
+        )
+        if not already_in_roster:
+            manager_roster.append(transfer_out_player)
+
+        # Remove the corresponding history record
+        history.pop(last_record_index)
+
+        # Reset transfer window phase so manager can choose again
+        legacy_window = state.get("transfer_window")
+        if isinstance(legacy_window, dict) and legacy_window.get("active"):
+            legacy_window["transfer_phase"] = "out"
+            legacy_window["current_user"] = manager
+            participants = legacy_window.get("participant_order") or []
+            if manager in participants:
+                legacy_window["current_index"] = participants.index(manager)
+
+        active_window = transfers.get("active_window")
+        if isinstance(active_window, dict):
+            active_window["transfer_phase"] = "out"
+            managers_order = active_window.get("managers_order") or []
+            if manager in managers_order:
+                active_window["current_manager_index"] = managers_order.index(manager)
+
         transfer_system.save_state(state)
-        
-        flash(f"Игрок {transfer_out_player.get('fullName', 'Unknown')} возвращен в состав {manager}", "success")
+
+        flash(
+            f"Игрок {transfer_out_player.get('fullName', 'без имени')} возвращён в состав {manager}",
+            "success",
+        )
         return redirect(request.referrer or url_for("home.index"))
-        
+
     except Exception as e:
         print(f"Error returning transfer out player: {e}")
         flash(f"Ошибка при возврате игрока: {str(e)}", "danger")
