@@ -907,27 +907,81 @@ class TransferSystem:
 
 
 # Factory function to create transfer system for different draft types
+def _resolve_ucl_state_s3_key() -> str:
+    """Return the S3 key used for the UCL draft state."""
+
+    explicit = os.getenv("DRAFT_S3_UCL_STATE_KEY")
+    if explicit:
+        return explicit.strip()
+
+    legacy = os.getenv("UCL_S3_STATE_KEY")
+    if legacy:
+        return legacy.strip()
+
+    generic = os.getenv("DRAFT_S3_STATE_KEY")
+    if generic and "ucl" in generic.lower():
+        return generic.strip()
+
+    old_name = os.getenv("UCL_STATE_S3_KEY")
+    if old_name:
+        return old_name.strip()
+
+    return "prod/draft_state_ucl.json"
+
+
+def _resolve_epl_state_s3_key() -> str:
+    """Return the S3 key used for the EPL draft state."""
+
+    generic = os.getenv("DRAFT_S3_STATE_KEY")
+    if generic:
+        return generic.strip()
+
+    legacy = os.getenv("EPL_S3_STATE_KEY")
+    if legacy:
+        return legacy.strip()
+
+    old_name = os.getenv("EPL_STATE_S3_KEY")
+    if old_name:
+        return old_name.strip()
+
+    return "draft_state_epl.json"
+
+
+def _resolve_top4_state_s3_key() -> str:
+    """Return the S3 key used for the TOP4 draft state."""
+
+    explicit = os.getenv("TOP4_S3_STATE_KEY")
+    if explicit:
+        return explicit.strip()
+
+    old_name = os.getenv("TOP4_STATE_S3_KEY")
+    if old_name:
+        return old_name.strip()
+
+    return "draft_state_top4.json"
+
+
 def create_transfer_system(draft_type: str) -> TransferSystem:
     """Create transfer system instance for specific draft type"""
     BASE_DIR = Path(__file__).resolve().parent.parent
-    
+
     if draft_type.upper() == "UCL":
         return TransferSystem(
-            "UCL", 
+            "UCL",
             BASE_DIR / "draft_state_ucl.json",
-            s3_key=os.getenv("UCL_STATE_S3_KEY", "prod/draft_state_ucl.json")
+            s3_key=_resolve_ucl_state_s3_key()
         )
     elif draft_type.upper() == "EPL":
         return TransferSystem(
             "EPL",
-            BASE_DIR / "draft_state_epl.json", 
-            s3_key=os.getenv("EPL_STATE_S3_KEY", "draft_state_epl.json")
+            BASE_DIR / "draft_state_epl.json",
+            s3_key=_resolve_epl_state_s3_key()
         )
     elif draft_type.upper() == "TOP4":
         return TransferSystem(
             "TOP4",
             BASE_DIR / "draft_state_top4.json",
-            s3_key=os.getenv("TOP4_STATE_S3_KEY", "draft_state_top4.json")  
+            s3_key=_resolve_top4_state_s3_key()
         )
     else:
         raise ValueError(f"Unsupported draft type: {draft_type}")
