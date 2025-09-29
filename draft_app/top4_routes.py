@@ -156,29 +156,69 @@ def index():
                         print(f"❌ Error getting production roster for {current_user}: {e}")
                     
                     if user_roster:
-                        # TEMP FIX: Use S3 roster directly as players list
                         print(f"🔧 TEMP FIX: Using S3 roster directly ({len(user_roster)} players)")
-                        
-                        # Convert S3 roster to match expected format
+
                         players = []
                         for p in user_roster:
-                            # Ensure all required fields are present for template
-                            player_data = {
-                                "playerId": p.get("playerId") or p.get("id"),
-                                "fullName": p.get("fullName") or p.get("name", "Unknown"),
-                                "clubName": p.get("clubName") or p.get("club", "Unknown"),
-                                "position": p.get("position", "Unknown"),
-                                "league": p.get("league", "Mixed"),
-                                "price": p.get("price", 10.0),  # Default price
-                                "points": p.get("points", 0),
-                                "popularity": 0.5,  # Default popularity
-                                "logo": None,  # Default logo
-                                "picked": False,  # Not picked in transfer context
-                                "can_pick": True,  # Can pick for transfer
-                                "wishlist": False  # Default wishlist status
-                            }
+                            player_id = p.get("playerId") or p.get("id")
+                            player_id_str = str(player_id) if player_id is not None else None
+                            meta = pidx.get(player_id_str) if player_id_str else None
+
+                            player_data: Dict[str, Any] = {}
+                            if meta:
+                                # Start from canonical player data to preserve stats columns
+                                player_data.update(meta)
+
+                            player_data["playerId"] = meta.get("playerId") if meta else player_id
+                            player_data["fullName"] = (
+                                (meta or {}).get("fullName")
+                                or p.get("fullName")
+                                or p.get("name")
+                                or "Unknown"
+                            )
+                            player_data["shortName"] = (
+                                (meta or {}).get("shortName")
+                                or p.get("shortName")
+                                or p.get("name")
+                            )
+                            player_data["clubName"] = (
+                                (meta or {}).get("clubName")
+                                or p.get("clubName")
+                                or p.get("club")
+                                or "Unknown"
+                            )
+                            player_data["position"] = (
+                                (meta or {}).get("position")
+                                or p.get("position")
+                                or "Unknown"
+                            )
+                            player_data["league"] = (
+                                (meta or {}).get("league")
+                                or p.get("league")
+                                or "Mixed"
+                            )
+
+                            # Preserve numeric fields used in the table, falling back to real values when possible
+                            for field, default in ("price", None), ("popularity", None), ("fp_last", 0.0):
+                                if player_data.get(field) is None:
+                                    value = p.get(field)
+                                    if value is None:
+                                        value = default
+                                    player_data[field] = value
+
+                            # Ensure the table columns always have a number
+                            if player_data.get("price") is None:
+                                player_data["price"] = 0.0
+                            if player_data.get("popularity") is None:
+                                player_data["popularity"] = 0.0
+                            if player_data.get("fp_last") is None:
+                                player_data["fp_last"] = 0.0
+
+                            # Maintain transfer context flags expected by the template
+                            player_data["canPick"] = True
+
                             players.append(player_data)
-                        
+
                         print(f"✅ Converted {len(players)} S3 players for display")
                         for i, p in enumerate(players[:3]):
                             print(f"  {i+1}. {p.get('fullName')} (ID: {p.get('playerId')}) - {p.get('clubName')}")
