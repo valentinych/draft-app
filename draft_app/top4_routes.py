@@ -1,7 +1,7 @@
 from __future__ import annotations
 from flask import Blueprint, render_template, request, session, url_for, redirect, abort, flash, jsonify
 from datetime import datetime
-from typing import Dict
+from typing import Any, Dict, Optional
 
 from .top4_services import (
     load_players, players_index,
@@ -318,6 +318,119 @@ def undo_last_pick():
     save_state(state)
     flash("Последний пик отменён", "success")
     return redirect(url_for("top4draft.index"))
+
+
+@bp.route("/top4/return_transfer_out_player", methods=["POST"])
+def return_transfer_out_player():
+    """Return the most recent transfer-out player back to their Top-4 roster."""
+    if not session.get("godmode"):
+        abort(403)
+
+    try:
+        from .transfer_system import create_transfer_system
+
+        transfer_system = create_transfer_system("top4")
+        state = transfer_system.load_state()
+        transfers = state.setdefault("transfers", {})
+        history = transfers.setdefault("history", [])
+        available_players = transfers.setdefault("available_players", [])
+
+        last_record_index: Optional[int] = None
+        last_available_index: Optional[int] = None
+        transfer_out_player: Optional[Dict[str, Any]] = None
+        manager: Optional[str] = None
+        player_id: Optional[str] = None
+
+        # Find the latest transfer_out record for Top-4 that still has a player in the pool
+        for idx in range(len(history) - 1, -1, -1):
+            record = history[idx]
+            if record.get("action") != "transfer_out":
+                continue
+
+            draft_type = str(record.get("draft_type") or "").upper()
+            if draft_type and draft_type not in ("TOP4", ""):
+                continue
+
+            candidate_manager = record.get("manager")
+            candidate_player = record.get("out_player") or {}
+            candidate_player_id = candidate_player.get("playerId") or candidate_player.get("id")
+
+            if not candidate_manager or candidate_player_id is None:
+                continue
+
+            candidate_player_id_str = str(candidate_player_id)
+
+            for avail_idx in range(len(available_players) - 1, -1, -1):
+                available_player = available_players[avail_idx]
+                available_player_id = available_player.get("playerId") or available_player.get("id")
+                if available_player_id is None:
+                    continue
+
+                if str(available_player_id) == candidate_player_id_str and \
+                        available_player.get("status") == "transfer_out":
+                    last_record_index = idx
+                    last_available_index = avail_idx
+                    transfer_out_player = available_player.copy()
+                    manager = candidate_manager
+                    player_id = candidate_player_id_str
+                    break
+
+            if transfer_out_player is not None:
+                break
+
+        if transfer_out_player is None or manager is None or player_id is None or last_record_index is None:
+            flash("Нет игроков в пуле transfer out для возврата", "warning")
+            return redirect(request.referrer or url_for("top4draft.index"))
+
+        # Remove player from available pool
+        if last_available_index is not None:
+            available_players.pop(last_available_index)
+
+        # Clean up transfer markers
+        transfer_out_player.pop("status", None)
+        transfer_out_player.pop("transferred_out_gw", None)
+        transfer_out_player.pop("transferred_in_gw", None)
+
+        # Restore player to manager roster if not already there
+        rosters = state.setdefault("rosters", {})
+        manager_roster = rosters.setdefault(manager, [])
+        already_in_roster = any(
+            str(p.get("playerId") or p.get("id")) == player_id for p in manager_roster
+        )
+        if not already_in_roster:
+            manager_roster.append(transfer_out_player)
+
+        # Remove the corresponding history record
+        history.pop(last_record_index)
+
+        # Reset transfer window phase so manager can choose again
+        legacy_window = state.get("transfer_window")
+        if isinstance(legacy_window, dict) and legacy_window.get("active"):
+            legacy_window["transfer_phase"] = "out"
+            legacy_window["current_user"] = manager
+            participants = legacy_window.get("participant_order") or []
+            if manager in participants:
+                legacy_window["current_index"] = participants.index(manager)
+
+        active_window = transfers.get("active_window")
+        if isinstance(active_window, dict):
+            active_window["transfer_phase"] = "out"
+            managers_order = active_window.get("managers_order") or []
+            if manager in managers_order:
+                active_window["current_manager_index"] = managers_order.index(manager)
+
+        transfer_system.save_state(state)
+
+        flash(
+            f"Игрок {transfer_out_player.get('fullName', 'без имени')} возвращён в состав {manager}",
+            "success",
+        )
+        return redirect(request.referrer or url_for("top4draft.index"))
+
+    except Exception as e:
+        print(f"Error returning Top-4 transfer out player: {e}")
+        flash(f"Ошибка при возврате игрока: {str(e)}", "danger")
+        return redirect(request.referrer or url_for("top4draft.index"))
 
 # ---- Wishlist API ----
 def get_transfer_order_from_results() -> list[str]:
