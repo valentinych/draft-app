@@ -12,7 +12,7 @@ Provides functionality for:
 from __future__ import annotations
 import json
 import os
-from datetime import datetime
+from datetime import datetime, date
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Union
 from .services import load_json, save_json
@@ -51,6 +51,7 @@ class TransferSystem:
         self.draft_type = draft_type.upper()
         self.state_file = state_file
         self.s3_key = s3_key
+        self._player_index_cache: Optional[Dict[str, Dict[str, Any]]] = None
     
     def load_state(self) -> Dict[str, Any]:
         """Load draft state from file"""
@@ -78,7 +79,99 @@ class TransferSystem:
             transfers["active_window"] = None
             
         return state
-    
+
+    def _get_player_index(self) -> Optional[Dict[str, Dict[str, Any]]]:
+        """Lazily load player index for draft types that support it."""
+        if self.draft_type != "TOP4":
+            return None
+
+        if self._player_index_cache is not None:
+            return self._player_index_cache
+
+        try:
+            from .top4_services import load_players, players_index
+
+            players = load_players()
+            self._player_index_cache = players_index(players)
+        except Exception as exc:  # pragma: no cover - defensive logging
+            print(f"[TransferSystem] Failed to load TOP4 players: {exc}")
+            self._player_index_cache = {}
+
+        return self._player_index_cache
+
+    def _enrich_player_details(self, player: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+        """Fill in missing player metadata from cached sources when possible."""
+        if not player:
+            return player
+
+        enriched = dict(player)
+
+        full_name = enriched.get("fullName") or enriched.get("name")
+        club = enriched.get("clubName") or enriched.get("club")
+        position = enriched.get("position")
+
+        has_placeholder_name = not full_name or str(full_name).startswith("Player_")
+        has_placeholder_club = not club or str(club).lower() == "unknown"
+        has_placeholder_position = not position or str(position).lower() == "unknown"
+
+        if not (has_placeholder_name or has_placeholder_club or has_placeholder_position):
+            return enriched
+
+        player_id = enriched.get("playerId") or enriched.get("id")
+        if player_id is None:
+            return enriched
+
+        index = self._get_player_index()
+        if not index:
+            return enriched
+
+        lookup = index.get(str(player_id))
+        if not lookup:
+            return enriched
+
+        # Only overwrite placeholder fields so we keep transfer-specific metadata
+        if has_placeholder_name:
+            enriched["fullName"] = lookup.get("fullName") or lookup.get("name", full_name)
+        if has_placeholder_club:
+            enriched["clubName"] = lookup.get("clubName") or lookup.get("club", club)
+        if has_placeholder_position:
+            enriched["position"] = lookup.get("position") or enriched.get("position")
+
+        # Preserve canonical playerId if source provides one
+        if not enriched.get("playerId") and lookup.get("playerId"):
+            enriched["playerId"] = lookup.get("playerId")
+
+        return enriched
+
+    def _should_include_record_today(self, record: Dict[str, Any]) -> bool:
+        """Return True if the record should be shown when filtering to today's activity."""
+        if self.draft_type != "TOP4":
+            return True
+
+        ts = record.get("ts")
+        if not ts:
+            return True
+
+        ts_clean = ts
+        if isinstance(ts_clean, str) and ts_clean.endswith("Z"):
+            ts_clean = ts_clean[:-1]
+
+        record_date: Optional[date] = None
+        try:
+            record_dt = datetime.fromisoformat(ts_clean)
+            record_date = record_dt.date()
+        except ValueError:
+            try:
+                record_dt = datetime.strptime(ts_clean[:19], "%Y-%m-%dT%H:%M:%S")
+                record_date = record_dt.date()
+            except Exception:
+                record_date = None
+
+        if record_date is None:
+            return True
+
+        return record_date >= date.today()
+
     def get_transfer_schedule(self) -> Dict[int, int]:
         """Get transfer schedule for this draft type"""
         return TRANSFER_SCHEDULES.get(self.draft_type, {})
@@ -741,11 +834,24 @@ class TransferSystem:
         """Get transfer history, optionally filtered by manager"""
         state = self.ensure_transfer_structure(state)
         history = state["transfers"]["history"]
-        
+
+        processed: List[Dict[str, Any]] = []
+        for record in history:
+            if not self._should_include_record_today(record):
+                continue
+
+            record_copy = dict(record)
+
+            for key in ("out_player", "in_player", "player"):
+                if record_copy.get(key):
+                    record_copy[key] = self._enrich_player_details(dict(record_copy[key]))
+
+            processed.append(record_copy)
+
         if manager:
-            return [record for record in history if record.get("manager") == manager]
-        
-        return history
+            processed = [record for record in processed if record.get("manager") == manager]
+
+        return processed
     
     def validate_transfer(self, 
                          state: Dict[str, Any], 
