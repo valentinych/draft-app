@@ -444,7 +444,10 @@ def lineups():
             break
 
     _auto_fill_lineups(gw, state, rosters, deadline)
-    lineups_state = state.get("lineups") or {}
+    lineups_state = state.get("lineups")
+    if not isinstance(lineups_state, dict):
+        lineups_state = {}
+        state["lineups"] = lineups_state
 
     players = players_from_fpl(bootstrap)
     pidx = players_index(players)
@@ -453,9 +456,15 @@ def lineups():
     table: Dict[str, dict] = {}
     status: Dict[str, bool] = {}
     pos_order = {"GK": 0, "DEF": 1, "MID": 2, "FWD": 3}
+    state_changed = False
     for m in managers:
-        data_source = lineups_state.get(m) or {}
-        lineup = data_source.get(str(gw))
+        data_source = lineups_state.setdefault(m, {})
+        stored_lineup = data_source.get(str(gw))
+        file_lineup = load_lineup(m, gw)
+        lineup = file_lineup or stored_lineup
+        if file_lineup and stored_lineup != file_lineup:
+            data_source[str(gw)] = file_lineup
+            state_changed = True
         auto_generated = False
         if not lineup and last_finished and gw <= last_finished:
             auto_payload = build_auto_lineup(rosters.get(m, []) or [])
@@ -572,6 +581,10 @@ def lineups():
             "total": total_pts,
             "auto_generated": auto_generated,
         }
+
+    if state_changed:
+        save_state(state)
+
     # Persist per-gameweek totals so that results page can reuse exact values
     scores: Dict[str, int] = {}
     all_have = True
