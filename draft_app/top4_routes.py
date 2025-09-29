@@ -659,6 +659,7 @@ def open_transfer_window():
         
         # Create backup before opening transfer window
         state = load_state()
+        current_round = state.get("current_round") or 1
         create_backup(state, "before_transfer_window")
         
         # FORCE FRESH START: Clear any existing transfer data
@@ -685,7 +686,9 @@ def open_transfer_window():
             participants=transfer_order,
             transfers_per_manager=3,  # 3 rounds of transfers
             position_limits={"GK": 2, "DEF": 5, "MID": 5, "FWD": 3},
-            max_from_club=1
+            max_from_club=1,
+            gw=current_round,
+            total_rounds=3,
         )
         
         if success:
