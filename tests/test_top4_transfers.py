@@ -123,7 +123,7 @@ def test_top4_transfer_flow_and_admin_revert(isolated_top4_state):
     assert state_after_out["transfers"]["available_players"], "Player should appear in transfer-out pool"
 
     # Admin reverts the last transfer out via the new endpoint
-    app = Flask(__name__)
+    app = Flask(__name__, template_folder=str(Path(__file__).resolve().parents[1] / "templates"))
     app.secret_key = "test"
     app.register_blueprint(top4_bp)
 
@@ -176,3 +176,112 @@ def test_top4_transfer_flow_and_admin_revert(isolated_top4_state):
     assert 101 not in final_roster_ids
     assert final_state["transfer_window"]["transfer_phase"] == "out"
     assert final_state["transfer_window"]["current_user"] == participants[1]
+
+
+def test_transfer_in_players_visible_with_position_and_club_filters(isolated_top4_state, monkeypatch):
+    data = isolated_top4_state
+
+    sample_players = [
+        {
+            "playerId": 1001,
+            "fullName": "Romelu Lukaku",
+            "shortName": "Lukaku",
+            "clubName": "Roma",
+            "position": "FWD",
+            "league": "Serie A",
+            "price": 9.5,
+            "popularity": 80,
+            "fp_last": 12.0,
+        },
+        {
+            "playerId": 1002,
+            "fullName": "Victor Osimhen",
+            "shortName": "Osimhen",
+            "clubName": "Napoli",
+            "position": "FWD",
+            "league": "Serie A",
+            "price": 10.5,
+            "popularity": 90,
+            "fp_last": 15.0,
+        },
+        {
+            "playerId": 1003,
+            "fullName": "Kevin De Bruyne",
+            "shortName": "KDB",
+            "clubName": "Man City",
+            "position": "MID",
+            "league": "Premier League",
+            "price": 11.5,
+            "popularity": 95,
+            "fp_last": 18.0,
+        },
+    ]
+
+    monkeypatch.setattr("draft_app.top4_routes.load_players", lambda: sample_players)
+
+    # Open transfer window with Женя going first
+    init_transfers_for_league(
+        "top4",
+        ["Женя", "Андрей"],
+        transfers_per_manager=1,
+        position_limits={"GK": 2, "DEF": 6, "MID": 6, "FWD": 4},
+        max_from_club=1,
+    )
+
+    transfer_system = data["create_transfer_system"]("top4")
+
+    # Set up Женя roster and perform transfer out of Lukaku
+    state = transfer_system.load_state()
+    state.setdefault("rosters", {})["Женя"] = [
+        {
+            "playerId": 1001,
+            "fullName": "Romelu Lukaku",
+            "clubName": "Roma",
+            "position": "FWD",
+            "price": 9.5,
+        },
+        {
+            "playerId": 1004,
+            "fullName": "Some Midfielder",
+            "clubName": "Roma",
+            "position": "MID",
+            "price": 6.0,
+        },
+    ]
+    transfer_system.save_state(state)
+
+    state = transfer_system.load_state()
+    state = transfer_system.transfer_player_out(state, "Женя", 1001, current_gw=1)
+    state.setdefault("transfers", {}).setdefault("available_players", []).append(
+        {
+            "playerId": 1002,
+            "fullName": "Victor Osimhen",
+            "clubName": "Napoli",
+            "position": "FWD",
+            "status": "transfer_out",
+        }
+    )
+    transfer_system.save_state(state)
+
+    app = Flask(__name__)
+    app.secret_key = "test"
+    app.register_blueprint(top4_bp)
+
+    captured_context = {}
+
+    def fake_render_template(template_name, **context):
+        captured_context.clear()
+        captured_context.update(context)
+        return "ok"
+
+    monkeypatch.setattr("draft_app.top4_routes.render_template", fake_render_template)
+
+    with app.test_client() as client:
+        with client.session_transaction() as sess:
+            sess["user_name"] = "Женя"
+        response = client.get("/top4?position=FWD&club=Napoli")
+        assert response.status_code == 200
+        assert captured_context.get("players"), "Expected players to be available after filtering"
+        player_names = {p.get("fullName") for p in captured_context["players"]}
+        assert "Victor Osimhen" in player_names
+        assert "Romelu Lukaku" not in player_names
