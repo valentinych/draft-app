@@ -36,8 +36,11 @@ def index():
             flash("MantraFootball data not available. Using original data.", "info")
     else:
         players = load_players()
-    
-    pidx = players_index(players)
+
+    # Keep a canonical list of all players (including drafted ones) so that
+    # transfer pools can reference players that were previously drafted.
+    all_players = list(players)
+    pidx = players_index(all_players)
     state = load_state()
     next_user = state.get("next_user") or who_is_on_clock(state)
     draft_completed = bool(state.get("draft_completed", False))
@@ -80,21 +83,15 @@ def index():
         return redirect(url_for("top4draft.index"))
 
     picked_ids = picked_ids_from_state(state)
-    players = [p for p in players if str(p["playerId"]) not in picked_ids]
+    undrafted_players = [p for p in all_players if str(p["playerId"]) not in picked_ids]
 
     league_filter = (request.args.get("league") or "").strip()
     club_filter = (request.args.get("club") or "").strip()
     pos_filter = (request.args.get("position") or "").strip()
 
-    leagues = sorted({p.get("league") for p in players if p.get("league")})
-    if league_filter:
-        players = [p for p in players if p.get("league") == league_filter]
-    clubs = sorted({p.get("clubName") for p in players if p.get("clubName")})
-    if club_filter:
-        players = [p for p in players if p.get("clubName") == club_filter]
-    positions = sorted({p.get("position") for p in players if p.get("position")})
-    if pos_filter:
-        players = [p for p in players if p.get("position") == pos_filter]
+    # ``players`` will be reassigned based on transfer window context.  By
+    # default show undrafted players (the normal draft behaviour).
+    players = list(undrafted_players)
 
     # Sorting
     sort_field = request.args.get("sort") or "price"
@@ -106,8 +103,6 @@ def index():
         players.sort(key=lambda p: (p.get("popularity") is None, p.get("popularity")), reverse=reverse)
     elif sort_field == "pts":
         players.sort(key=lambda p: (p.get("fp_last") is None, p.get("fp_last")), reverse=reverse)
-
-    annotate_can_pick(players, state, current_user)
 
     # Check for transfer window status
     transfer_window_active = False
@@ -158,7 +153,7 @@ def index():
                     if user_roster:
                         print(f"🔧 TEMP FIX: Using S3 roster directly ({len(user_roster)} players)")
 
-                        players = []
+                        roster_players: list[Dict[str, Any]] = []
                         for p in user_roster:
                             player_id = p.get("playerId") or p.get("id")
                             player_id_str = str(player_id) if player_id is not None else None
@@ -217,11 +212,13 @@ def index():
                             # Maintain transfer context flags expected by the template
                             player_data["canPick"] = True
 
-                            players.append(player_data)
+                            roster_players.append(player_data)
 
-                        print(f"✅ Converted {len(players)} S3 players for display")
-                        for i, p in enumerate(players[:3]):
+                        print(f"✅ Converted {len(roster_players)} S3 players for display")
+                        for i, p in enumerate(roster_players[:3]):
                             print(f"  {i+1}. {p.get('fullName')} (ID: {p.get('playerId')}) - {p.get('clubName')}")
+
+                        players = roster_players
                     else:
                         # FALLBACK: If no roster found, show first 20 players for transfer out
                         print(f"WARNING: No roster found for {current_user}, showing first 20 players")
@@ -230,8 +227,35 @@ def index():
                     # Show available transfer players for transfer in
                     available_players = transfer_system.get_available_transfer_players(transfer_state)
                     if available_players:
-                        available_player_ids = {str(p.get("playerId")) for p in available_players}
-                        players = [p for p in players if str(p["playerId"]) in available_player_ids]
+                        enriched_players: list[Dict[str, Any]] = []
+                        for available_player in available_players:
+                            player_id = available_player.get("playerId") or available_player.get("id")
+                            player_id_str = str(player_id) if player_id is not None else None
+                            meta = pidx.get(player_id_str) if player_id_str else None
+
+                            player_data: Dict[str, Any] = {}
+                            if meta:
+                                player_data.update(meta)
+
+                            player_data.update(available_player)
+
+                            # Normalise expected fields for the template
+                            player_data.setdefault("playerId", player_id)
+                            player_data.setdefault("fullName", player_data.get("name", "Unknown"))
+                            player_data.setdefault("shortName", player_data.get("shortName") or player_data.get("fullName"))
+                            player_data.setdefault("clubName", player_data.get("club"))
+                            player_data.setdefault("position", player_data.get("position", "Unknown"))
+                            player_data.setdefault("league", (meta or {}).get("league") or "Mixed")
+
+                            for field, default in ("price", 0.0), ("popularity", 0.0), ("fp_last", 0.0):
+                                if player_data.get(field) is None:
+                                    player_data[field] = default
+
+                            player_data["canPick"] = True
+
+                            enriched_players.append(player_data)
+
+                        players = enriched_players
                     else:
                         # FALLBACK: If no available players, show first 20 players for transfer in
                         print(f"WARNING: No available players found, showing first 20 players")
@@ -241,7 +265,20 @@ def index():
 
     # FORCE FIX: Ensure Женя can use transfer buttons
     is_current_manager = (current_user == current_transfer_manager) or (current_user == "Женя" and current_transfer_phase == "out")
-    
+
+    # Apply filters to the final player pool
+    leagues = sorted({p.get("league") for p in players if p.get("league")})
+    if league_filter:
+        players = [p for p in players if p.get("league") == league_filter]
+    clubs = sorted({p.get("clubName") for p in players if p.get("clubName")})
+    if club_filter:
+        players = [p for p in players if p.get("clubName") == club_filter]
+    positions = sorted({p.get("position") for p in players if p.get("position")})
+    if pos_filter:
+        players = [p for p in players if p.get("position") == pos_filter]
+
+    annotate_can_pick(players, state, current_user)
+
     return render_template(
         "index.html",
         draft_title=draft_title,
