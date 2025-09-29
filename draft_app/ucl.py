@@ -494,6 +494,127 @@ def _snake_order(users: List[str], rounds: int) -> List[str]:
         order.extend(seq)
     return order
 
+
+def _extract_player_id(entry: Any) -> Optional[int]:
+    """Return player identifier from roster/pick entry when available."""
+    if not isinstance(entry, dict):
+        return None
+    for key in ("playerId", "player_id", "playerID", "id", "pid"):
+        if key in entry:
+            pid = entry.get(key)
+            try:
+                if pid is not None:
+                    return int(pid)
+            except (TypeError, ValueError):
+                continue
+    return None
+
+
+def _rosters_need_rebuild(state: Dict[str, Any]) -> bool:
+    """Detect roster structures that lost player dictionaries."""
+    rosters = state.get("rosters")
+    if not isinstance(rosters, dict):
+        return True
+    for roster in rosters.values():
+        if roster is None or not isinstance(roster, list):
+            return True
+        for entry in roster:
+            if _extract_player_id(entry) is None:
+                return True
+    return False
+
+
+def _rebuild_rosters_from_history(state: Dict[str, Any]) -> bool:
+    """Rebuild roster lists using historical picks if structure is broken."""
+    picks = state.get("picks") or []
+    if not picks:
+        return False
+
+    try:
+        players_raw = _json_load(UCL_PLAYERS) or []
+        lookup_players = {
+            int(p.get("playerId")): p
+            for p in _players_from_ucl(players_raw)
+            if isinstance(p, dict) and p.get("playerId") is not None
+        }
+    except Exception:
+        lookup_players = {}
+
+    old_rosters = state.get("rosters") if isinstance(state.get("rosters"), dict) else {}
+    preserved: Dict[str, Dict[int, Dict[str, Any]]] = {}
+    for manager, roster in (old_rosters or {}).items():
+        if not isinstance(roster, list):
+            continue
+        meta: Dict[int, Dict[str, Any]] = {}
+        for entry in roster:
+            pid = _extract_player_id(entry)
+            if pid is None or not isinstance(entry, dict):
+                continue
+            meta[pid] = entry
+        if meta:
+            preserved[manager] = meta
+
+    rebuilt: Dict[str, List[Dict[str, Any]]] = {user: [] for user in UCL_PARTICIPANTS}
+    picks_applied = 0
+
+    for pick in picks:
+        if not isinstance(pick, dict) or pick.get("skipped"):
+            continue
+        manager = pick.get("user") or pick.get("manager") or pick.get("drafter")
+        if manager not in rebuilt:
+            continue
+        pid_val = pick.get("playerId") or pick.get("id") or ((pick.get("player") or {}).get("playerId"))
+        try:
+            pid = int(pid_val)
+        except (TypeError, ValueError):
+            continue
+
+        base_entry: Dict[str, Any] = {
+            "playerId": pid,
+            "fullName": pick.get("player_name"),
+            "clubName": pick.get("club"),
+            "position": pick.get("pos"),
+            "price": pick.get("price"),
+        }
+
+        lookup = lookup_players.get(pid)
+        if lookup:
+            for field in ("fullName", "clubName", "position", "price"):
+                if base_entry.get(field) in (None, "") and lookup.get(field) not in (None, ""):
+                    base_entry[field] = lookup.get(field)
+
+        preserved_entry = preserved.get(manager, {}).get(pid)
+        if preserved_entry:
+            merged = dict(preserved_entry)
+            for key, value in base_entry.items():
+                if value is not None and value != "":
+                    merged[key] = value
+            entry = merged
+        else:
+            entry = {k: v for k, v in base_entry.items() if v is not None and v != ""}
+            entry["playerId"] = pid
+
+        rebuilt[manager].append(entry)
+        picks_applied += 1
+
+    if not picks_applied:
+        return False
+
+    for manager, roster in rebuilt.items():
+        existing_ids = {p.get("playerId") for p in roster if isinstance(p, dict)}
+        old_roster = old_rosters.get(manager) if isinstance(old_rosters, dict) else []
+        if isinstance(old_roster, list):
+            for entry in old_roster:
+                pid = _extract_player_id(entry)
+                if pid is None or pid in existing_ids or not isinstance(entry, dict):
+                    continue
+                roster.append(dict(entry))
+                existing_ids.add(pid)
+
+    state["rosters"] = rebuilt
+    return True
+
+
 def _ensure_ucl_state_shape(state: Dict[str, Any]) -> Dict[str, Any]:
     changed = False
     # Ensure rosters for participants only
@@ -502,6 +623,10 @@ def _ensure_ucl_state_shape(state: Dict[str, Any]) -> Dict[str, Any]:
     if set(rosters.keys()) != set(new_rosters.keys()):
         state["rosters"] = new_rosters
         changed = True
+    # Repair roster structure if corrupted (e.g. not lists or missing playerId)
+    if _rosters_need_rebuild(state):
+        if _rebuild_rosters_from_history(state):
+            changed = True
     # Ensure limits
     limits = state.get("limits") or {}
     slots = (limits.get("Slots") if isinstance(limits, dict) else None) or {}
