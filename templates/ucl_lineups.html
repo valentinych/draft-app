@@ -46,6 +46,7 @@
   .ucl-player-portrait { width:25px; height:25px; border-radius:50%; object-fit:cover; margin-right:20px; }
   .ucl-player-info { display:flex; align-items:center; overflow:hidden; }
   .ucl-player-text { overflow:hidden; text-overflow:ellipsis; }
+  .ucl-player-matchdays { font-size:0.75rem; margin-left:8px; background:#e6f2ff; border-radius:4px; padding:0 6px; color:#1d4ed8; flex-shrink:0; }
 </style>
 
 <script>
@@ -94,6 +95,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const stat = player.stat || {};
     const rawStats = (stat.stats && typeof stat.stats === 'object') ? stat.stats : {};
     const points = (stat.points && typeof stat.points === 'object') ? stat.points : {};
+
+    if (Array.isArray(player.matchdays) && player.matchdays.length) {
+      const mdInfo = document.createElement('p');
+      mdInfo.className = 'has-text-grey is-size-7';
+      mdInfo.textContent = `Туры: ${player.matchdays.join(', ')}`;
+      modalBody.appendChild(mdInfo);
+    }
 
     const getNumber = value => {
       const num = Number(value);
@@ -306,6 +314,12 @@ document.addEventListener('DOMContentLoaded', () => {
             spanName.textContent += ` (${player.club})`;
           }
           infoWrap.appendChild(spanName);
+          if (Array.isArray(player.matchdays) && player.matchdays.length) {
+            const spanMatchdays = document.createElement('span');
+            spanMatchdays.className = 'ucl-player-matchdays';
+            spanMatchdays.textContent = `Туры: ${player.matchdays.join(', ')}`;
+            infoWrap.appendChild(spanMatchdays);
+          }
           const spanPoints = document.createElement('span');
           spanPoints.className = 'ucl-points-box';
           spanPoints.textContent = player.points;

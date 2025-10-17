@@ -14,6 +14,7 @@ import json
 import os
 from datetime import datetime, date
 from pathlib import Path
+import re
 from typing import Any, Dict, List, Optional, Set, Union
 from .services import load_json, save_json
 
@@ -42,6 +43,32 @@ TRANSFER_SCHEDULES = {
         1: 3,   # После первых туров, 3 круга трансферов (не змейкой)
     }
 }
+
+UCL_TRANSFER_TOTAL_MATCHDAYS = 8
+
+
+def _default_ucl_matchdays() -> List[int]:
+    return list(range(1, UCL_TRANSFER_TOTAL_MATCHDAYS + 1))
+
+
+def _sanitize_ucl_matchdays(raw: Any) -> List[int]:
+    values: Set[int] = set()
+    if isinstance(raw, (list, tuple, set)):
+        items = raw
+    elif isinstance(raw, str):
+        items = [part for part in re.split(r"[^0-9]+", raw) if part]
+    else:
+        items = [raw]
+
+    for item in items:
+        try:
+            md = int(float(item))
+        except (TypeError, ValueError):
+            continue
+        if 1 <= md <= UCL_TRANSFER_TOTAL_MATCHDAYS:
+            values.add(md)
+
+    return sorted(values)
 
 
 class TransferSystem:
@@ -421,7 +448,13 @@ class TransferSystem:
             
         if "transferred_out_gw" not in normalized:
             normalized["transferred_out_gw"] = None
-            
+
+        if self.draft_type == "UCL":
+            matchdays = _sanitize_ucl_matchdays(normalized.get("matchdays"))
+            if not matchdays:
+                matchdays = _default_ucl_matchdays()
+            normalized["matchdays"] = matchdays
+
         return normalized
     
     def execute_transfer(self, 
@@ -468,6 +501,11 @@ class TransferSystem:
                 # Mark as transferred out
                 out_player["status"] = "transfer_out"
                 out_player["transferred_out_gw"] = current_gw
+                if self.draft_type == "UCL":
+                    md_list = _sanitize_ucl_matchdays(out_player.get("matchdays"))
+                    if not md_list:
+                        md_list = _default_ucl_matchdays()
+                    out_player["matchdays"] = md_list
                 # Add to available players pool
                 state["transfers"]["available_players"].append(out_player)
             else:
@@ -674,8 +712,10 @@ class TransferSystem:
                 "position": "Unknown",
                 "league": "Mixed",
                 "status": "transfer_out",
-                "transferred_out_gw": current_gw
+                "transferred_out_gw": current_gw,
             }
+            if self.draft_type == "UCL":
+                out_player["matchdays"] = _default_ucl_matchdays()
             # Add to available players pool
             state["transfers"]["available_players"].append(out_player)
         
@@ -782,10 +822,15 @@ class TransferSystem:
         
         if not picked_player:
             raise ValueError(f"Player {player_id} not available for transfer in")
-        
+
         # Update player status
         picked_player["status"] = "active"
         picked_player["transferred_in_gw"] = current_gw
+        if self.draft_type == "UCL":
+            md_list = _sanitize_ucl_matchdays(picked_player.get("matchdays"))
+            if not md_list:
+                md_list = _default_ucl_matchdays()
+            picked_player["matchdays"] = md_list
         # Extend gws_active from current GW
         existing_gws = picked_player.get("gws_active", [])
         picked_player["gws_active"] = existing_gws + list(range(current_gw, 39))
