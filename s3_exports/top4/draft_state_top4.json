@@ -1,0 +1,2764 @@
+{
+  "current_pick_index": 144,
+  "draft_completed": true,
+  "draft_order": [
+    "Ксана",
+    "Саша",
+    "Макс",
+    "Андрей",
+    "Сергей",
+    "Тёма",
+    "Женя",
+    "Руслан",
+    "Руслан",
+    "Женя",
+    "Тёма",
+    "Сергей",
+    "Андрей",
+    "Макс",
+    "Саша",
+    "Ксана",
+    "Ксана",
+    "Саша",
+    "Макс",
+    "Андрей",
+    "Сергей",
+    "Тёма",
+    "Женя",
+    "Руслан",
+    "Руслан",
+    "Женя",
+    "Тёма",
+    "Сергей",
+    "Андрей",
+    "Макс",
+    "Саша",
+    "Ксана",
+    "Ксана",
+    "Саша",
+    "Макс",
+    "Андрей",
+    "Сергей",
+    "Тёма",
+    "Женя",
+    "Руслан",
+    "Руслан",
+    "Женя",
+    "Тёма",
+    "Сергей",
+    "Андрей",
+    "Макс",
+    "Саша",
+    "Ксана",
+    "Ксана",
+    "Саша",
+    "Макс",
+    "Андрей",
+    "Сергей",
+    "Тёма",
+    "Женя",
+    "Руслан",
+    "Руслан",
+    "Женя",
+    "Тёма",
+    "Сергей",
+    "Андрей",
+    "Макс",
+    "Саша",
+    "Ксана",
+    "Ксана",
+    "Саша",
+    "Макс",
+    "Андрей",
+    "Сергей",
+    "Тёма",
+    "Женя",
+    "Руслан",
+    "Руслан",
+    "Женя",
+    "Тёма",
+    "Сергей",
+    "Андрей",
+    "Макс",
+    "Саша",
+    "Ксана",
+    "Ксана",
+    "Саша",
+    "Макс",
+    "Андрей",
+    "Сергей",
+    "Тёма",
+    "Женя",
+    "Руслан",
+    "Руслан",
+    "Женя",
+    "Тёма",
+    "Сергей",
+    "Андрей",
+    "Макс",
+    "Саша",
+    "Ксана",
+    "Ксана",
+    "Саша",
+    "Макс",
+    "Андрей",
+    "Сергей",
+    "Тёма",
+    "Женя",
+    "Руслан",
+    "Руслан",
+    "Женя",
+    "Тёма",
+    "Сергей",
+    "Андрей",
+    "Макс",
+    "Саша",
+    "Ксана",
+    "Ксана",
+    "Саша",
+    "Макс",
+    "Андрей",
+    "Сергей",
+    "Тёма",
+    "Женя",
+    "Руслан",
+    "Руслан",
+    "Женя",
+    "Тёма",
+    "Сергей",
+    "Андрей",
+    "Макс",
+    "Саша",
+    "Ксана",
+    "Ксана",
+    "Саша",
+    "Макс",
+    "Андрей",
+    "Сергей",
+    "Тёма",
+    "Женя",
+    "Руслан",
+    "Руслан",
+    "Женя",
+    "Тёма",
+    "Сергей",
+    "Андрей",
+    "Макс",
+    "Саша",
+    "Ксана"
+  ],
+  "draft_started_at": "2025-08-21T08:37:32",
+  "next_user": "Ксана",
+  "picks": [
+    {
+      "player": {
+        "clubName": "Бавария",
+        "fullName": "Кейн",
+        "league": "Bundesliga",
+        "playerId": 213183,
+        "position": "FWD"
+      },
+      "ts": "2025-08-21T08:37:32",
+      "user": "Ксана"
+    },
+    {
+      "player": {
+        "clubName": "Реал Мадрид",
+        "fullName": "Мбаппе",
+        "league": "La Liga",
+        "playerId": 213956,
+        "position": "FWD"
+      },
+      "ts": "2025-08-21T08:59:03",
+      "user": "Саша"
+    },
+    {
+      "player": {
+        "clubName": "Манчестер Сити",
+        "fullName": "Холанд",
+        "league": "EPL",
+        "playerId": 214802,
+        "position": "FWD"
+      },
+      "ts": "2025-08-21T08:59:48",
+      "user": "Макс"
+    },
+    {
+      "player": {
+        "clubName": "Барселона",
+        "fullName": "Рафинья",
+        "league": "La Liga",
+        "playerId": 213729,
+        "position": "MID"
+      },
+      "ts": "2025-08-21T09:01:46",
+      "user": "Андрей"
+    },
+    {
+      "player": {
+        "clubName": "Барселона",
+        "fullName": "Ямаль",
+        "league": "La Liga",
+        "playerId": 213728,
+        "position": "MID"
+      },
+      "ts": "2025-08-21T09:02:39",
+      "user": "Сергей"
+    },
+    {
+      "player": {
+        "clubName": "Ливерпуль",
+        "fullName": "Салах",
+        "league": "EPL",
+        "playerId": 214735,
+        "position": "MID"
+      },
+      "ts": "2025-08-21T09:05:52",
+      "user": "Тёма"
+    },
+    {
+      "player": {
+        "clubName": "Атлетико",
+        "fullName": "Хулиан Альварес",
+        "league": "La Liga",
+        "playerId": 213700,
+        "position": "FWD"
+      },
+      "ts": "2025-08-21T09:11:19",
+      "user": "Женя"
+    },
+    {
+      "player": {
+        "clubName": "Бавария",
+        "fullName": "Олисе",
+        "league": "Bundesliga",
+        "playerId": 213182,
+        "position": "MID"
+      },
+      "ts": "2025-08-21T09:20:48",
+      "user": "Руслан"
+    },
+    {
+      "player": {
+        "clubName": "Реал Мадрид",
+        "fullName": "Винисиус Жуниор",
+        "league": "La Liga",
+        "playerId": 213955,
+        "position": "MID"
+      },
+      "ts": "2025-08-21T09:21:06",
+      "user": "Руслан"
+    },
+    {
+      "player": {
+        "clubName": "Манчестер Сити",
+        "fullName": "Рейндерс",
+        "league": "EPL",
+        "playerId": 214795,
+        "position": "MID"
+      },
+      "ts": "2025-08-21T09:28:47",
+      "user": "Женя"
+    },
+    {
+      "player": {
+        "clubName": "Бавария",
+        "fullName": "Диас",
+        "league": "Bundesliga",
+        "playerId": 213180,
+        "position": "MID"
+      },
+      "ts": "2025-08-21T09:30:21",
+      "user": "Тёма"
+    },
+    {
+      "player": {
+        "clubName": "Боруссия Д",
+        "fullName": "Гирасси",
+        "league": "Bundesliga",
+        "playerId": 213239,
+        "position": "FWD"
+      },
+      "ts": "2025-08-21T09:34:34",
+      "user": "Сергей"
+    },
+    {
+      "player": {
+        "clubName": "Арсенал",
+        "fullName": "Сака",
+        "league": "EPL",
+        "playerId": 214437,
+        "position": "MID"
+      },
+      "ts": "2025-08-21T09:38:27",
+      "user": "Андрей"
+    },
+    {
+      "player": {
+        "clubName": "Барселона",
+        "fullName": "Левандовски",
+        "league": "La Liga",
+        "playerId": 213727,
+        "position": "FWD"
+      },
+      "ts": "2025-08-21T09:42:43",
+      "user": "Макс"
+    },
+    {
+      "player": {
+        "clubName": "Интер",
+        "fullName": "Мартинес",
+        "league": "Serie A",
+        "playerId": 215982,
+        "position": "FWD"
+      },
+      "ts": "2025-08-21T09:43:42",
+      "user": "Саша"
+    },
+    {
+      "player": {
+        "clubName": "Челси",
+        "fullName": "Палмер",
+        "league": "EPL",
+        "playerId": 215041,
+        "position": "MID"
+      },
+      "ts": "2025-08-21T09:44:51",
+      "user": "Ксана"
+    },
+    {
+      "player": {
+        "clubName": "Ливерпуль",
+        "fullName": "Виртц",
+        "league": "EPL",
+        "playerId": 214734,
+        "position": "MID"
+      },
+      "ts": "2025-08-21T09:45:22",
+      "user": "Ксана"
+    },
+    {
+      "player": {
+        "clubName": "Ливерпуль",
+        "fullName": "Экитике",
+        "league": "EPL",
+        "playerId": 214733,
+        "position": "FWD"
+      },
+      "ts": "2025-08-21T09:46:11",
+      "user": "Саша"
+    },
+    {
+      "player": {
+        "clubName": "Реал Мадрид",
+        "fullName": "Беллингем",
+        "league": "La Liga",
+        "playerId": 213954,
+        "position": "MID"
+      },
+      "ts": "2025-08-21T09:47:59",
+      "user": "Макс"
+    },
+    {
+      "player": {
+        "clubName": "Манчестер Юнайтед",
+        "fullName": "Бруну Фернандеш",
+        "league": "EPL",
+        "playerId": 214837,
+        "position": "MID"
+      },
+      "ts": "2025-08-21T09:49:54",
+      "user": "Андрей"
+    },
+    {
+      "player": {
+        "clubName": "Наполи",
+        "fullName": "Ди Лоренцо",
+        "league": "Serie A",
+        "playerId": 216200,
+        "position": "DEF"
+      },
+      "ts": "2025-08-21T10:09:45",
+      "user": "Сергей"
+    },
+    {
+      "player": {
+        "clubName": "Барселона",
+        "fullName": "Педри",
+        "league": "La Liga",
+        "playerId": 213723,
+        "position": "MID"
+      },
+      "ts": "2025-08-21T10:12:10",
+      "user": "Тёма"
+    },
+    {
+      "player": {
+        "clubName": "Наполи",
+        "fullName": "Лукаку",
+        "league": "Serie A",
+        "playerId": 216211,
+        "position": "FWD"
+      },
+      "ts": "2025-08-21T10:22:16",
+      "user": "Женя"
+    },
+    {
+      "player": {
+        "clubName": "Ливерпуль",
+        "fullName": "Фримпонг",
+        "league": "EPL",
+        "playerId": 214726,
+        "position": "DEF"
+      },
+      "ts": "2025-08-21T10:23:00",
+      "user": "Руслан"
+    },
+    {
+      "player": {
+        "clubName": "Байер",
+        "fullName": "Гримальдо",
+        "league": "Bundesliga",
+        "playerId": 213199,
+        "position": "DEF"
+      },
+      "ts": "2025-08-21T10:23:07",
+      "user": "Руслан"
+    },
+    {
+      "player": {
+        "clubName": "Милан",
+        "fullName": "Пулишич",
+        "league": "Serie A",
+        "playerId": 216183,
+        "position": "MID"
+      },
+      "ts": "2025-08-21T10:29:46",
+      "user": "Женя"
+    },
+    {
+      "player": {
+        "clubName": "Ньюкасл",
+        "fullName": "Исак",
+        "league": "EPL",
+        "playerId": 214898,
+        "position": "FWD"
+      },
+      "ts": "2025-08-21T10:32:58",
+      "user": "Тёма"
+    },
+    {
+      "player": {
+        "clubName": "Хоффенхайм",
+        "fullName": "Крамарич",
+        "league": "Bundesliga",
+        "playerId": 213591,
+        "position": "MID"
+      },
+      "ts": "2025-08-21T10:42:04",
+      "user": "Сергей"
+    },
+    {
+      "player": {
+        "clubName": "Реал Мадрид",
+        "fullName": "Александер-Арнолд",
+        "league": "La Liga",
+        "playerId": 213945,
+        "position": "DEF"
+      },
+      "ts": "2025-08-21T10:44:38",
+      "user": "Андрей"
+    },
+    {
+      "player": {
+        "clubName": "Наполи",
+        "fullName": "Мактоминей",
+        "league": "Serie A",
+        "playerId": 216212,
+        "position": "MID"
+      },
+      "ts": "2025-08-21T10:45:53",
+      "user": "Макс"
+    },
+    {
+      "player": {
+        "clubName": "Ньюкасл",
+        "fullName": "Вольтемаде",
+        "league": "EPL",
+        "playerId": 213617,
+        "position": "FWD"
+      },
+      "ts": "2025-08-21T10:46:59",
+      "user": "Саша"
+    },
+    {
+      "player": {
+        "clubName": "Интер",
+        "fullName": "Маркус Тюрам",
+        "league": "Serie A",
+        "playerId": 215981,
+        "position": "FWD"
+      },
+      "ts": "2025-08-21T10:56:28",
+      "user": "Ксана"
+    },
+    {
+      "player": {
+        "clubName": "Барселона",
+        "fullName": "Ферран Торрес",
+        "league": "La Liga",
+        "playerId": 213725,
+        "position": "FWD"
+      },
+      "ts": "2025-08-21T10:58:18",
+      "user": "Ксана"
+    },
+    {
+      "player": {
+        "clubName": "Наполи",
+        "fullName": "де Брюйне",
+        "league": "Serie A",
+        "playerId": 216210,
+        "position": "MID"
+      },
+      "ts": "2025-08-21T11:01:37",
+      "user": "Саша"
+    },
+    {
+      "player": {
+        "clubName": "Интер",
+        "fullName": "Димарко",
+        "league": "Serie A",
+        "playerId": 215967,
+        "position": "DEF"
+      },
+      "ts": "2025-08-21T11:12:49",
+      "user": "Макс"
+    },
+    {
+      "player": {
+        "clubName": "Интер",
+        "fullName": "Думфрис",
+        "league": "Serie A",
+        "playerId": 215968,
+        "position": "DEF"
+      },
+      "ts": "2025-08-21T11:18:37",
+      "user": "Андрей"
+    },
+    {
+      "player": {
+        "clubName": "Фиорентина",
+        "fullName": "Кин",
+        "league": "Serie A",
+        "playerId": 216469,
+        "position": "FWD"
+      },
+      "ts": "2025-08-21T11:20:07",
+      "user": "Сергей"
+    },
+    {
+      "player": {
+        "clubName": "Астон Вилла",
+        "fullName": "Уоткинс",
+        "league": "EPL",
+        "playerId": 214467,
+        "position": "FWD"
+      },
+      "ts": "2025-08-21T11:21:01",
+      "user": "Тёма"
+    },
+    {
+      "player": {
+        "clubName": "Барселона",
+        "fullName": "Ольмо",
+        "league": "La Liga",
+        "playerId": 213726,
+        "position": "MID"
+      },
+      "ts": "2025-08-21T11:30:45",
+      "user": "Женя"
+    },
+    {
+      "player": {
+        "clubName": "Вест Хэм",
+        "fullName": "Боуэн",
+        "league": "EPL",
+        "playerId": 214635,
+        "position": "FWD"
+      },
+      "ts": "2025-08-21T11:32:13",
+      "user": "Руслан"
+    },
+    {
+      "player": {
+        "clubName": "Манчестер Сити",
+        "fullName": "Аит-Нури",
+        "league": "EPL",
+        "playerId": 214784,
+        "position": "DEF"
+      },
+      "ts": "2025-08-21T11:32:21",
+      "user": "Руслан"
+    },
+    {
+      "player": {
+        "clubName": "Манчестер Юнайтед",
+        "fullName": "Шешко",
+        "league": "EPL",
+        "playerId": 213443,
+        "position": "FWD"
+      },
+      "ts": "2025-08-21T11:49:31",
+      "user": "Женя"
+    },
+    {
+      "player": {
+        "clubName": "Интер",
+        "fullName": "Бастони",
+        "league": "Serie A",
+        "playerId": 215966,
+        "position": "DEF"
+      },
+      "ts": "2025-08-21T11:51:20",
+      "user": "Тёма"
+    },
+    {
+      "player": {
+        "clubName": "Вильярреал",
+        "fullName": "Айосе Перес",
+        "league": "La Liga",
+        "playerId": 213808,
+        "position": "FWD"
+      },
+      "ts": "2025-08-21T11:55:24",
+      "user": "Сергей"
+    },
+    {
+      "player": {
+        "clubName": "Бавария",
+        "fullName": "Киммих",
+        "league": "Bundesliga",
+        "playerId": 213178,
+        "position": "MID"
+      },
+      "ts": "2025-08-21T11:58:59",
+      "user": "Андрей"
+    },
+    {
+      "player": {
+        "clubName": "Боруссия Д",
+        "fullName": "Адейеми",
+        "league": "Bundesliga",
+        "playerId": 213238,
+        "position": "MID"
+      },
+      "ts": "2025-08-21T12:07:26",
+      "user": "Макс"
+    },
+    {
+      "player": {
+        "clubName": "Ювентус",
+        "fullName": "Йылдыз",
+        "league": "Serie A",
+        "playerId": 216503,
+        "position": "MID"
+      },
+      "ts": "2025-08-21T12:09:38",
+      "user": "Саша"
+    },
+    {
+      "player": {
+        "clubName": "РБ Лейпциг",
+        "fullName": "Опенда",
+        "league": "Bundesliga",
+        "playerId": 213442,
+        "position": "FWD"
+      },
+      "ts": "2025-08-21T13:49:45",
+      "user": "Ксана"
+    },
+    {
+      "player": {
+        "clubName": "Арсенал",
+        "fullName": "Эдегор",
+        "league": "EPL",
+        "playerId": 214435,
+        "position": "MID"
+      },
+      "ts": "2025-08-21T13:50:19",
+      "user": "Ксана"
+    },
+    {
+      "player": {
+        "clubName": "Атлетик",
+        "fullName": "Нико Уильямс",
+        "league": "La Liga",
+        "playerId": 213670,
+        "position": "MID"
+      },
+      "ts": "2025-08-21T13:50:58",
+      "user": "Саша"
+    },
+    {
+      "player": {
+        "clubName": "Атлетико",
+        "fullName": "Алекс Баэна",
+        "league": "La Liga",
+        "playerId": 213698,
+        "position": "MID"
+      },
+      "ts": "2025-08-21T13:56:11",
+      "user": "Макс"
+    },
+    {
+      "player": {
+        "clubName": "Тоттенхэм",
+        "fullName": "Кудус",
+        "league": "EPL",
+        "playerId": 214977,
+        "position": "MID"
+      },
+      "ts": "2025-08-21T14:01:40",
+      "user": "Андрей"
+    },
+    {
+      "player": {
+        "clubName": "Манчестер Юнайтед",
+        "fullName": "Мбемо",
+        "league": "EPL",
+        "playerId": 214836,
+        "position": "MID"
+      },
+      "ts": "2025-08-21T14:04:08",
+      "user": "Сергей"
+    },
+    {
+      "player": {
+        "clubName": "Реал Мадрид",
+        "fullName": "Вальверде",
+        "league": "La Liga",
+        "playerId": 213950,
+        "position": "MID"
+      },
+      "ts": "2025-08-21T14:10:47",
+      "user": "Тёма"
+    },
+    {
+      "player": {
+        "clubName": "Аталанта",
+        "fullName": "Лукман",
+        "league": "Serie A",
+        "playerId": 215852,
+        "position": "MID"
+      },
+      "ts": "2025-08-21T14:25:10",
+      "user": "Женя"
+    },
+    {
+      "player": {
+        "clubName": "Осасуна",
+        "fullName": "Будимир",
+        "league": "La Liga",
+        "playerId": 213907,
+        "position": "FWD"
+      },
+      "ts": "2025-08-21T14:26:00",
+      "user": "Руслан"
+    },
+    {
+      "player": {
+        "clubName": "Наполи",
+        "fullName": "Ррахмани",
+        "league": "Serie A",
+        "playerId": 216203,
+        "position": "DEF"
+      },
+      "ts": "2025-08-21T14:26:06",
+      "user": "Руслан"
+    },
+    {
+      "player": {
+        "clubName": "Атлетик",
+        "fullName": "Иньяки Уильямс",
+        "league": "La Liga",
+        "playerId": 213669,
+        "position": "MID"
+      },
+      "ts": "2025-08-21T14:27:23",
+      "user": "Женя"
+    },
+    {
+      "player": {
+        "clubName": "Байер",
+        "fullName": "Шик",
+        "league": "Bundesliga",
+        "playerId": 213207,
+        "position": "FWD"
+      },
+      "ts": "2025-08-21T14:33:24",
+      "user": "Тёма"
+    },
+    {
+      "player": {
+        "clubName": "Тоттенхэм",
+        "fullName": "Симонс",
+        "league": "EPL",
+        "playerId": 213444,
+        "position": "MID"
+      },
+      "ts": "2025-08-21T14:41:13",
+      "user": "Сергей"
+    },
+    {
+      "player": {
+        "clubName": "Айнтрахт Ф",
+        "fullName": "Буркардт",
+        "league": "Bundesliga",
+        "playerId": 213127,
+        "position": "FWD"
+      },
+      "ts": "2025-08-21T14:56:05",
+      "user": "Андрей"
+    },
+    {
+      "player": {
+        "clubName": "Милан",
+        "fullName": "Рафаэл Леау",
+        "league": "Serie A",
+        "playerId": 216182,
+        "position": "MID"
+      },
+      "ts": "2025-08-21T15:11:23",
+      "user": "Макс"
+    },
+    {
+      "player": {
+        "clubName": "Манчестер Сити",
+        "fullName": "Гвардиол",
+        "league": "EPL",
+        "playerId": 214786,
+        "position": "DEF"
+      },
+      "ts": "2025-08-21T15:14:43",
+      "user": "Саша"
+    },
+    {
+      "player": {
+        "clubName": "Аталанта",
+        "fullName": "де Кетеларе",
+        "league": "Serie A",
+        "playerId": 215850,
+        "position": "MID"
+      },
+      "ts": "2025-08-21T15:17:06",
+      "user": "Ксана"
+    },
+    {
+      "player": {
+        "clubName": "Атлетико",
+        "fullName": "Облак",
+        "league": "La Liga",
+        "playerId": 213690,
+        "position": "GK"
+      },
+      "ts": "2025-08-21T15:20:05",
+      "user": "Ксана"
+    },
+    {
+      "player": {
+        "clubName": "Арсенал",
+        "fullName": "Салиба",
+        "league": "EPL",
+        "playerId": 214422,
+        "position": "DEF"
+      },
+      "ts": "2025-08-21T15:20:38",
+      "user": "Саша"
+    },
+    {
+      "player": {
+        "clubName": "Ливерпуль",
+        "fullName": "Гакпо",
+        "league": "EPL",
+        "playerId": 214732,
+        "position": "MID"
+      },
+      "ts": "2025-08-21T15:27:09",
+      "user": "Макс"
+    },
+    {
+      "player": {
+        "clubName": "Ювентус",
+        "fullName": "Дэвид",
+        "league": "Serie A",
+        "playerId": 216504,
+        "position": "FWD"
+      },
+      "ts": "2025-08-21T15:39:33",
+      "user": "Андрей"
+    },
+    {
+      "player": {
+        "clubName": "Боруссия М",
+        "fullName": "Хак",
+        "league": "Bundesliga",
+        "playerId": 213267,
+        "position": "MID"
+      },
+      "ts": "2025-08-21T15:48:48",
+      "user": "Сергей"
+    },
+    {
+      "player": {
+        "clubName": "Манчестер Сити",
+        "fullName": "Мармуш",
+        "league": "EPL",
+        "playerId": 214800,
+        "position": "MID"
+      },
+      "ts": "2025-08-21T15:53:10",
+      "user": "Тёма"
+    },
+    {
+      "player": {
+        "clubName": "Айнтрахт Ф",
+        "fullName": "Расмус Кристенсен",
+        "league": "Bundesliga",
+        "playerId": 213112,
+        "position": "DEF"
+      },
+      "ts": "2025-08-21T16:14:04",
+      "user": "Женя"
+    },
+    {
+      "player": {
+        "clubName": "Ноттингем Форест",
+        "fullName": "Вуд",
+        "league": "EPL",
+        "playerId": 214865,
+        "position": "FWD"
+      },
+      "ts": "2025-08-21T18:57:55",
+      "user": "Руслан"
+    },
+    {
+      "player": {
+        "clubName": "Боруссия Д",
+        "fullName": "Беллингем",
+        "league": "Bundesliga",
+        "playerId": 213235,
+        "position": "MID"
+      },
+      "ts": "2025-08-21T18:58:47",
+      "user": "Руслан"
+    },
+    {
+      "player": {
+        "clubName": "Штутгарт",
+        "fullName": "Миттельштедт",
+        "league": "Bundesliga",
+        "playerId": 213610,
+        "position": "DEF"
+      },
+      "ts": "2025-08-21T19:21:15",
+      "user": "Женя"
+    },
+    {
+      "player": {
+        "clubName": "Рома",
+        "fullName": "Анхелиньо",
+        "league": "Serie A",
+        "playerId": 216322,
+        "position": "DEF"
+      },
+      "ts": "2025-08-21T20:35:21",
+      "user": "Тёма"
+    },
+    {
+      "player": {
+        "clubName": "Айнтрахт Ф",
+        "fullName": "Доан",
+        "league": "Bundesliga",
+        "playerId": 213533,
+        "position": "MID"
+      },
+      "ts": "2025-08-21T20:37:19",
+      "user": "Сергей"
+    },
+    {
+      "player": {
+        "clubName": "Фиорентина",
+        "fullName": "Гозенс",
+        "league": "Serie A",
+        "playerId": 216460,
+        "position": "DEF"
+      },
+      "ts": "2025-08-21T21:43:18",
+      "user": "Андрей"
+    },
+    {
+      "player": {
+        "clubName": "Арсенал",
+        "fullName": "Дьокереш",
+        "league": "EPL",
+        "playerId": 214436,
+        "position": "FWD"
+      },
+      "ts": "2025-08-22T05:02:56",
+      "user": "Макс"
+    },
+    {
+      "player": {
+        "clubName": "РБ Лейпциг",
+        "fullName": "Баку",
+        "league": "Bundesliga",
+        "playerId": 213431,
+        "position": "DEF"
+      },
+      "ts": "2025-08-22T05:10:10",
+      "user": "Саша"
+    },
+    {
+      "player": {
+        "clubName": "Реал Мадрид",
+        "fullName": "Альваро Каррерас",
+        "league": "La Liga",
+        "playerId": 213939,
+        "position": "DEF"
+      },
+      "ts": "2025-08-22T05:19:49",
+      "user": "Ксана"
+    },
+    {
+      "player": {
+        "clubName": "Ювентус",
+        "fullName": "Камбьязо",
+        "league": "Serie A",
+        "playerId": 216494,
+        "position": "DEF"
+      },
+      "ts": "2025-08-22T05:20:50",
+      "user": "Ксана"
+    },
+    {
+      "player": {
+        "clubName": "Челси",
+        "fullName": "Кукурелья",
+        "league": "EPL",
+        "playerId": 215030,
+        "position": "DEF"
+      },
+      "ts": "2025-08-22T05:21:41",
+      "user": "Саша"
+    },
+    {
+      "player": {
+        "clubName": "Аталанта",
+        "fullName": "Белланова",
+        "league": "Serie A",
+        "playerId": 215839,
+        "position": "DEF"
+      },
+      "ts": "2025-08-22T05:49:12",
+      "user": "Макс"
+    },
+    {
+      "player": {
+        "clubName": "Ливерпуль",
+        "fullName": "ван Дейк",
+        "league": "EPL",
+        "playerId": 214721,
+        "position": "DEF"
+      },
+      "ts": "2025-08-22T05:53:15",
+      "user": "Андрей"
+    },
+    {
+      "player": {
+        "clubName": "Арсенал",
+        "fullName": "Райя",
+        "league": "EPL",
+        "playerId": 214421,
+        "position": "GK"
+      },
+      "ts": "2025-08-22T05:59:06",
+      "user": "Сергей"
+    },
+    {
+      "player": {
+        "clubName": "Атлетико",
+        "fullName": "Маркос Льоренте",
+        "league": "La Liga",
+        "playerId": 213689,
+        "position": "DEF"
+      },
+      "ts": "2025-08-22T06:01:54",
+      "user": "Тёма"
+    },
+    {
+      "player": {
+        "clubName": "Борнмут",
+        "fullName": "Семеньо",
+        "league": "EPL",
+        "playerId": 214535,
+        "position": "MID"
+      },
+      "ts": "2025-08-22T06:49:27",
+      "user": "Женя"
+    },
+    {
+      "player": {
+        "clubName": "Челси",
+        "fullName": "Жоао Педро",
+        "league": "EPL",
+        "playerId": 215040,
+        "position": "FWD"
+      },
+      "ts": "2025-08-22T07:47:32",
+      "user": "Руслан"
+    },
+    {
+      "player": {
+        "clubName": "Арсенал",
+        "fullName": "Райс",
+        "league": "EPL",
+        "playerId": 214430,
+        "position": "MID"
+      },
+      "ts": "2025-08-22T07:48:14",
+      "user": "Руслан"
+    },
+    {
+      "player": {
+        "clubName": "Бавария",
+        "fullName": "Та",
+        "league": "Bundesliga",
+        "playerId": 213172,
+        "position": "DEF"
+      },
+      "ts": "2025-08-22T07:50:57",
+      "user": "Женя"
+    },
+    {
+      "player": {
+        "clubName": "Милан",
+        "fullName": "Меньян",
+        "league": "Serie A",
+        "playerId": 216168,
+        "position": "GK"
+      },
+      "ts": "2025-08-22T07:56:31",
+      "user": "Тёма"
+    },
+    {
+      "player": {
+        "clubName": "Ливерпуль",
+        "fullName": "Керкез",
+        "league": "EPL",
+        "playerId": 214723,
+        "position": "DEF"
+      },
+      "ts": "2025-08-22T08:05:32",
+      "user": "Сергей"
+    },
+    {
+      "player": {
+        "clubName": "Борнмут",
+        "fullName": "Эванилсон",
+        "league": "EPL",
+        "playerId": 214534,
+        "position": "FWD"
+      },
+      "ts": "2025-08-22T08:09:50",
+      "user": "Андрей"
+    },
+    {
+      "player": {
+        "clubName": "Ювентус",
+        "fullName": "Ди Грегорио",
+        "league": "Serie A",
+        "playerId": 216493,
+        "position": "GK"
+      },
+      "ts": "2025-08-22T08:19:02",
+      "user": "Макс"
+    },
+    {
+      "player": {
+        "clubName": "Милан",
+        "fullName": "Салемакерс",
+        "league": "Serie A",
+        "playerId": 216180,
+        "position": "MID"
+      },
+      "ts": "2025-08-22T08:19:50",
+      "user": "Саша"
+    },
+    {
+      "player": {
+        "clubName": "Байер",
+        "fullName": "Куанса",
+        "league": "Bundesliga",
+        "playerId": 213190,
+        "position": "DEF"
+      },
+      "ts": "2025-08-22T08:23:31",
+      "user": "Ксана"
+    },
+    {
+      "player": {
+        "clubName": "Штутгарт",
+        "fullName": "Ундав",
+        "league": "Bundesliga",
+        "playerId": 213618,
+        "position": "MID"
+      },
+      "ts": "2025-08-22T08:24:28",
+      "user": "Ксана"
+    },
+    {
+      "player": {
+        "clubName": "Аталанта",
+        "fullName": "Дзаппакоста",
+        "league": "Serie A",
+        "playerId": 215835,
+        "position": "DEF"
+      },
+      "ts": "2025-08-22T08:29:34",
+      "user": "Саша"
+    },
+    {
+      "player": {
+        "clubName": "Атлетик",
+        "fullName": "Унаи Симон",
+        "league": "La Liga",
+        "playerId": 213664,
+        "position": "GK"
+      },
+      "ts": "2025-08-22T08:41:01",
+      "user": "Макс"
+    },
+    {
+      "player": {
+        "clubName": "Майнц",
+        "fullName": "Амири",
+        "league": "Bundesliga",
+        "playerId": 213404,
+        "position": "MID"
+      },
+      "ts": "2025-08-22T08:59:14",
+      "user": "Андрей"
+    },
+    {
+      "player": {
+        "clubName": "Реал Сосьедад",
+        "fullName": "Субельдия",
+        "league": "La Liga",
+        "playerId": 213995,
+        "position": "DEF"
+      },
+      "ts": "2025-08-22T09:31:39",
+      "user": "Сергей"
+    },
+    {
+      "player": {
+        "clubName": "Фрайбург",
+        "fullName": "Грифо",
+        "league": "Bundesliga",
+        "playerId": 213532,
+        "position": "MID"
+      },
+      "ts": "2025-08-22T09:37:47",
+      "user": "Тёма"
+    },
+    {
+      "player": {
+        "clubName": "Кристал Пэлас",
+        "fullName": "Муньос",
+        "league": "EPL",
+        "playerId": 214694,
+        "position": "DEF"
+      },
+      "ts": "2025-08-22T09:49:22",
+      "user": "Женя"
+    },
+    {
+      "player": {
+        "clubName": "Комо",
+        "fullName": "Нико Пас",
+        "league": "Serie A",
+        "playerId": 216052,
+        "position": "MID"
+      },
+      "ts": "2025-08-22T10:39:33",
+      "user": "Руслан"
+    },
+    {
+      "player": {
+        "clubName": "Интер",
+        "fullName": "Зоммер",
+        "league": "Serie A",
+        "playerId": 215970,
+        "position": "GK"
+      },
+      "ts": "2025-08-22T10:39:45",
+      "user": "Руслан"
+    },
+    {
+      "player": {
+        "clubName": "Тоттенхэм",
+        "fullName": "Соланке",
+        "league": "EPL",
+        "playerId": 214980,
+        "position": "FWD"
+      },
+      "ts": "2025-08-22T11:02:47",
+      "user": "Женя"
+    },
+    {
+      "player": {
+        "clubName": "Наполи",
+        "fullName": "Мерет",
+        "league": "Serie A",
+        "playerId": 216201,
+        "position": "GK"
+      },
+      "ts": "2025-08-22T11:06:32",
+      "user": "Тёма"
+    },
+    {
+      "player": {
+        "clubName": "Реал Мадрид",
+        "fullName": "Хейсен",
+        "league": "La Liga",
+        "playerId": 213944,
+        "position": "DEF"
+      },
+      "ts": "2025-08-22T11:14:42",
+      "user": "Сергей"
+    },
+    {
+      "player": {
+        "clubName": "Милан",
+        "fullName": "Эступиньян",
+        "league": "Serie A",
+        "playerId": 216169,
+        "position": "DEF"
+      },
+      "ts": "2025-08-22T11:44:08",
+      "user": "Андрей"
+    },
+    {
+      "player": {
+        "clubName": "Реал Сосьедад",
+        "fullName": "Серхио Гомес",
+        "league": "La Liga",
+        "playerId": 214005,
+        "position": "DEF"
+      },
+      "ts": "2025-08-22T11:44:59",
+      "user": "Макс"
+    },
+    {
+      "player": {
+        "clubName": "Реал Сосьедад",
+        "fullName": "Ремиро",
+        "league": "La Liga",
+        "playerId": 214003,
+        "position": "GK"
+      },
+      "ts": "2025-08-22T11:46:14",
+      "user": "Саша"
+    },
+    {
+      "player": {
+        "clubName": "Болонья",
+        "fullName": "Орсолини",
+        "league": "Serie A",
+        "playerId": 215882,
+        "position": "MID"
+      },
+      "ts": "2025-08-22T11:49:41",
+      "user": "Ксана"
+    },
+    {
+      "player": {
+        "clubName": "Рома",
+        "fullName": "Свилар",
+        "league": "Serie A",
+        "playerId": 216323,
+        "position": "GK"
+      },
+      "ts": "2025-08-22T11:50:44",
+      "user": "Ксана"
+    },
+    {
+      "player": {
+        "clubName": "Атлетико",
+        "fullName": "Альмада",
+        "league": "La Liga",
+        "playerId": 213695,
+        "position": "MID"
+      },
+      "ts": "2025-08-22T11:53:49",
+      "user": "Саша"
+    },
+    {
+      "player": {
+        "clubName": "Бавария",
+        "fullName": "Лаймер",
+        "league": "Bundesliga",
+        "playerId": 213170,
+        "position": "DEF"
+      },
+      "ts": "2025-08-22T11:56:11",
+      "user": "Макс"
+    },
+    {
+      "player": {
+        "clubName": "Жирона",
+        "fullName": "Мигель Гутьеррес",
+        "league": "La Liga",
+        "playerId": 213830,
+        "position": "DEF"
+      },
+      "ts": "2025-08-22T12:01:57",
+      "user": "Андрей"
+    },
+    {
+      "player": {
+        "clubName": "Кристал Пэлас",
+        "fullName": "Матета",
+        "league": "EPL",
+        "playerId": 214696,
+        "position": "FWD"
+      },
+      "ts": "2025-08-22T12:09:08",
+      "user": "Сергей"
+    },
+    {
+      "player": {
+        "clubName": "Боруссия М",
+        "fullName": "Кляйндинст",
+        "league": "Bundesliga",
+        "playerId": 213268,
+        "position": "FWD"
+      },
+      "ts": "2025-08-22T12:10:10",
+      "user": "Тёма"
+    },
+    {
+      "player": {
+        "clubName": "Фиорентина",
+        "fullName": "Де Хеа",
+        "league": "Serie A",
+        "playerId": 216455,
+        "position": "GK"
+      },
+      "ts": "2025-08-22T12:26:00",
+      "user": "Женя"
+    },
+    {
+      "player": {
+        "clubName": "Барселона",
+        "fullName": "Кубарси",
+        "league": "La Liga",
+        "playerId": 213709,
+        "position": "DEF"
+      },
+      "ts": "2025-08-22T12:37:03",
+      "user": "Руслан"
+    },
+    {
+      "player": {
+        "clubName": "Сельта",
+        "fullName": "Мингеса",
+        "league": "La Liga",
+        "playerId": 214053,
+        "position": "DEF"
+      },
+      "ts": "2025-08-22T12:37:27",
+      "user": "Руслан"
+    },
+    {
+      "player": {
+        "clubName": "Майнц",
+        "fullName": "Каси",
+        "league": "Bundesliga",
+        "playerId": 213397,
+        "position": "DEF"
+      },
+      "ts": "2025-08-22T12:57:26",
+      "user": "Женя"
+    },
+    {
+      "player": {
+        "clubName": "Ноттингем Форест",
+        "fullName": "Миленкович",
+        "league": "EPL",
+        "playerId": 214856,
+        "position": "DEF"
+      },
+      "ts": "2025-08-22T13:02:03",
+      "user": "Тёма"
+    },
+    {
+      "player": {
+        "clubName": "Рома",
+        "fullName": "Ндика",
+        "league": "Serie A",
+        "playerId": 216318,
+        "position": "DEF"
+      },
+      "ts": "2025-08-22T13:05:00",
+      "user": "Сергей"
+    },
+    {
+      "player": {
+        "clubName": "Бетис",
+        "fullName": "Кучо Эрнандес",
+        "league": "La Liga",
+        "playerId": 213757,
+        "position": "FWD"
+      },
+      "ts": "2025-08-22T13:08:28",
+      "user": "Андрей"
+    },
+    {
+      "player": {
+        "clubName": "Ньюкасл",
+        "fullName": "Висса",
+        "league": "EPL",
+        "playerId": 215652,
+        "position": "FWD"
+      },
+      "ts": "2025-08-22T13:13:38",
+      "user": "Макс"
+    },
+    {
+      "player": {
+        "clubName": "Боруссия Д",
+        "fullName": "Свенссон",
+        "league": "Bundesliga",
+        "playerId": 213229,
+        "position": "DEF"
+      },
+      "ts": "2025-08-22T13:14:35",
+      "user": "Саша"
+    },
+    {
+      "player": {
+        "clubName": "Манчестер Сити",
+        "fullName": "Рубен Диаш",
+        "league": "EPL",
+        "playerId": 214791,
+        "position": "DEF"
+      },
+      "ts": "2025-08-22T13:16:59",
+      "user": "Ксана"
+    },
+    {
+      "player": {
+        "clubName": "Атлетик",
+        "fullName": "Вивиан",
+        "league": "La Liga",
+        "playerId": 213661,
+        "position": "DEF"
+      },
+      "ts": "2025-08-22T13:17:39",
+      "user": "Ксана"
+    },
+    {
+      "player": {
+        "clubName": "Барселона",
+        "fullName": "Жоан Гарсия",
+        "league": "La Liga",
+        "playerId": 213716,
+        "position": "GK"
+      },
+      "ts": "2025-08-22T13:17:55",
+      "user": "Саша"
+    },
+    {
+      "player": {
+        "clubName": "РБ Лейпциг",
+        "fullName": "Вилли Орбан",
+        "league": "Bundesliga",
+        "playerId": 213427,
+        "position": "DEF"
+      },
+      "ts": "2025-08-22T13:19:29",
+      "user": "Макс"
+    },
+    {
+      "player": {
+        "clubName": "Ноттингем Форест",
+        "fullName": "Зельс",
+        "league": "EPL",
+        "playerId": 214855,
+        "position": "GK"
+      },
+      "ts": "2025-08-22T13:21:56",
+      "user": "Андрей"
+    },
+    {
+      "player": {
+        "clubName": "Атлетико",
+        "fullName": "Ле Норман",
+        "league": "La Liga",
+        "playerId": 213682,
+        "position": "DEF"
+      },
+      "ts": "2025-08-22T13:32:50",
+      "user": "Сергей"
+    },
+    {
+      "player": {
+        "clubName": "Фиорентина",
+        "fullName": "Додо",
+        "league": "Serie A",
+        "playerId": 216461,
+        "position": "DEF"
+      },
+      "ts": "2025-08-22T13:33:38",
+      "user": "Тёма"
+    },
+    {
+      "player": {
+        "clubName": "Бетис",
+        "fullName": "Пау Лопес",
+        "league": "La Liga",
+        "playerId": 213740,
+        "position": "GK"
+      },
+      "ts": "2025-08-22T13:42:52",
+      "user": "Женя"
+    },
+    {
+      "player": {
+        "clubName": "Атлетико",
+        "fullName": "Гризманн",
+        "league": "La Liga",
+        "playerId": 213697,
+        "position": "MID"
+      },
+      "ts": "2025-08-22T13:45:33",
+      "user": "Руслан"
+    },
+    {
+      "player": {
+        "clubName": "Тоттенхэм",
+        "fullName": "Викарио",
+        "league": "EPL",
+        "playerId": 214965,
+        "position": "GK"
+      },
+      "ts": "2025-08-22T13:46:35",
+      "user": "Руслан"
+    },
+    {
+      "player": {
+        "clubName": "Дженоа",
+        "fullName": "Аарон Мартин",
+        "league": "Serie A",
+        "playerId": 215939,
+        "position": "DEF"
+      },
+      "ts": "2025-08-22T13:47:13",
+      "user": "Женя"
+    },
+    {
+      "player": {
+        "clubName": "Манчестер Юнайтед",
+        "fullName": "Магуайр",
+        "league": "EPL",
+        "playerId": 214819,
+        "position": "DEF"
+      },
+      "ts": "2025-08-22T13:51:10",
+      "user": "Тёма"
+    },
+    {
+      "player": {
+        "clubName": "Хетафе",
+        "fullName": "Сория",
+        "league": "La Liga",
+        "playerId": 214083,
+        "position": "GK"
+      },
+      "ts": "2025-08-22T13:52:02",
+      "user": "Сергей"
+    },
+    {
+      "player": {
+        "clubName": "Кристал Пэлас",
+        "fullName": "Дин Хендерсон",
+        "league": "EPL",
+        "playerId": 214692,
+        "position": "GK"
+      },
+      "ts": "2025-08-22T14:10:19",
+      "user": "Андрей"
+    },
+    {
+      "player": {
+        "clubName": "Тоттенхэм",
+        "fullName": "Порро",
+        "league": "EPL",
+        "playerId": 214973,
+        "position": "DEF"
+      },
+      "ts": "2025-08-22T14:12:24",
+      "user": "Макс"
+    },
+    {
+      "player": {
+        "clubName": "Астон Вилла",
+        "fullName": "Роджерс",
+        "league": "EPL",
+        "playerId": 214466,
+        "position": "MID"
+      },
+      "ts": "2025-08-22T14:13:35",
+      "user": "Саша"
+    },
+    {
+      "player": {
+        "clubName": "Ньюкасл",
+        "fullName": "Ливраменто",
+        "league": "EPL",
+        "playerId": 214889,
+        "position": "DEF"
+      },
+      "ts": "2025-08-22T14:14:21",
+      "user": "Ксана"
+    }
+  ],
+  "rosters": {
+    "Андрей": [
+      {
+        "clubName": "Барселона",
+        "fullName": "Рафинья",
+        "league": "La Liga",
+        "playerId": 213729,
+        "position": "MID"
+      },
+      {
+        "clubName": "Арсенал",
+        "fullName": "Сака",
+        "league": "EPL",
+        "playerId": 214437,
+        "position": "MID"
+      },
+      {
+        "clubName": "Манчестер Юнайтед",
+        "fullName": "Бруну Фернандеш",
+        "league": "EPL",
+        "playerId": 214837,
+        "position": "MID"
+      },
+      {
+        "clubName": "Реал Мадрид",
+        "fullName": "Александер-Арнолд",
+        "league": "La Liga",
+        "playerId": 213945,
+        "position": "DEF"
+      },
+      {
+        "clubName": "Интер",
+        "fullName": "Думфрис",
+        "league": "Serie A",
+        "playerId": 215968,
+        "position": "DEF"
+      },
+      {
+        "clubName": "Бавария",
+        "fullName": "Киммих",
+        "league": "Bundesliga",
+        "playerId": 213178,
+        "position": "MID"
+      },
+      {
+        "clubName": "Тоттенхэм",
+        "fullName": "Кудус",
+        "league": "EPL",
+        "playerId": 214977,
+        "position": "MID"
+      },
+      {
+        "clubName": "Айнтрахт Ф",
+        "fullName": "Буркардт",
+        "league": "Bundesliga",
+        "playerId": 213127,
+        "position": "FWD"
+      },
+      {
+        "playerId": 216538,
+        "fullName": "Ромуло",
+        "clubName": "РБ Лейпциг",
+        "position": "FWD",
+        "league": "Bundesliga"
+      },
+      {
+        "clubName": "Фиорентина",
+        "fullName": "Гозенс",
+        "league": "Serie A",
+        "playerId": 216460,
+        "position": "DEF"
+      },
+      {
+        "clubName": "Ливерпуль",
+        "fullName": "ван Дейк",
+        "league": "EPL",
+        "playerId": 214721,
+        "position": "DEF"
+      },
+      {
+        "clubName": "Борнмут",
+        "fullName": "Эванилсон",
+        "league": "EPL",
+        "playerId": 214534,
+        "position": "FWD"
+      },
+      {
+        "playerId": 214897,
+        "fullName": "Гордон",
+        "clubName": "Ньюкасл",
+        "position": "MID",
+        "league": "Premier League"
+      },
+      {
+        "clubName": "Милан",
+        "fullName": "Эступиньян",
+        "league": "Serie A",
+        "playerId": 216169,
+        "position": "DEF"
+      },
+      {
+        "playerId": 216491,
+        "fullName": "Бремер",
+        "clubName": "Ювентус",
+        "position": "DEF",
+        "league": "Serie A"
+      },
+      {
+        "clubName": "Бетис",
+        "fullName": "Кучо Эрнандес",
+        "league": "La Liga",
+        "playerId": 213757,
+        "position": "FWD"
+      },
+      {
+        "clubName": "Ноттингем Форест",
+        "fullName": "Зельс",
+        "league": "EPL",
+        "playerId": 214855,
+        "position": "GK"
+      },
+      {
+        "clubName": "Кристал Пэлас",
+        "fullName": "Дин Хендерсон",
+        "league": "EPL",
+        "playerId": 214692,
+        "position": "GK"
+      }
+    ],
+    "Женя": [
+      {
+        "clubName": "Атлетико",
+        "fullName": "Хулиан Альварес",
+        "league": "La Liga",
+        "playerId": 213700,
+        "position": "FWD"
+      },
+      {
+        "clubName": "Манчестер Сити",
+        "fullName": "Рейндерс",
+        "league": "EPL",
+        "playerId": 214795,
+        "position": "MID"
+      },
+      {
+        "playerId": 213887,
+        "fullName": "Мурики",
+        "clubName": "Мальорка",
+        "position": "FWD",
+        "league": "La Liga"
+      },
+      {
+        "clubName": "Милан",
+        "fullName": "Пулишич",
+        "league": "Serie A",
+        "playerId": 216183,
+        "position": "MID"
+      },
+      {
+        "clubName": "Барселона",
+        "fullName": "Ольмо",
+        "league": "La Liga",
+        "playerId": 213726,
+        "position": "MID"
+      },
+      {
+        "clubName": "Манчестер Юнайтед",
+        "fullName": "Шешко",
+        "league": "EPL",
+        "playerId": 213443,
+        "position": "FWD"
+      },
+      {
+        "clubName": "Аталанта",
+        "fullName": "Лукман",
+        "league": "Serie A",
+        "playerId": 215852,
+        "position": "MID"
+      },
+      {
+        "clubName": "Атлетик",
+        "fullName": "Иньяки Уильямс",
+        "league": "La Liga",
+        "playerId": 213669,
+        "position": "MID"
+      },
+      {
+        "clubName": "Айнтрахт Ф",
+        "fullName": "Расмус Кристенсен",
+        "league": "Bundesliga",
+        "playerId": 213112,
+        "position": "DEF"
+      },
+      {
+        "clubName": "Штутгарт",
+        "fullName": "Миттельштедт",
+        "league": "Bundesliga",
+        "playerId": 213610,
+        "position": "DEF"
+      },
+      {
+        "clubName": "Борнмут",
+        "fullName": "Семеньо",
+        "league": "EPL",
+        "playerId": 214535,
+        "position": "MID"
+      },
+      {
+        "clubName": "Бавария",
+        "fullName": "Та",
+        "league": "Bundesliga",
+        "playerId": 213172,
+        "position": "DEF"
+      },
+      {
+        "clubName": "Кристал Пэлас",
+        "fullName": "Муньос",
+        "league": "EPL",
+        "playerId": 214694,
+        "position": "DEF"
+      },
+      {
+        "playerId": 214937,
+        "fullName": "Изидор",
+        "clubName": "Сандерленд",
+        "position": "FWD",
+        "league": "Premier League"
+      },
+      {
+        "clubName": "Фиорентина",
+        "fullName": "Де Хеа",
+        "league": "Serie A",
+        "playerId": 216455,
+        "position": "GK"
+      },
+      {
+        "clubName": "Майнц",
+        "fullName": "Каси",
+        "league": "Bundesliga",
+        "playerId": 213397,
+        "position": "DEF"
+      },
+      {
+        "clubName": "Бетис",
+        "fullName": "Пау Лопес",
+        "league": "La Liga",
+        "playerId": 213740,
+        "position": "GK"
+      },
+      {
+        "clubName": "Дженоа",
+        "fullName": "Аарон Мартин",
+        "league": "Serie A",
+        "playerId": 215939,
+        "position": "DEF"
+      }
+    ],
+    "Ксана": [
+      {
+        "clubName": "Бавария",
+        "fullName": "Кейн",
+        "league": "Bundesliga",
+        "playerId": 213183,
+        "position": "FWD"
+      },
+      {
+        "clubName": "Челси",
+        "fullName": "Палмер",
+        "league": "EPL",
+        "playerId": 215041,
+        "position": "MID"
+      },
+      {
+        "clubName": "Ливерпуль",
+        "fullName": "Виртц",
+        "league": "EPL",
+        "playerId": 214734,
+        "position": "MID"
+      },
+      {
+        "clubName": "Интер",
+        "fullName": "Маркус Тюрам",
+        "league": "Serie A",
+        "playerId": 215981,
+        "position": "FWD"
+      },
+      {
+        "clubName": "Барселона",
+        "fullName": "Ферран Торрес",
+        "league": "La Liga",
+        "playerId": 213725,
+        "position": "FWD"
+      },
+      {
+        "playerId": 213500,
+        "fullName": "Илич",
+        "clubName": "Унион Берлин",
+        "position": "FWD",
+        "league": "Bundesliga"
+      },
+      {
+        "clubName": "Арсенал",
+        "fullName": "Эдегор",
+        "league": "EPL",
+        "playerId": 214435,
+        "position": "MID"
+      },
+      {
+        "clubName": "Аталанта",
+        "fullName": "де Кетеларе",
+        "league": "Serie A",
+        "playerId": 215850,
+        "position": "MID"
+      },
+      {
+        "clubName": "Атлетико",
+        "fullName": "Облак",
+        "league": "La Liga",
+        "playerId": 213690,
+        "position": "GK"
+      },
+      {
+        "clubName": "Реал Мадрид",
+        "fullName": "Альваро Каррерас",
+        "league": "La Liga",
+        "playerId": 213939,
+        "position": "DEF"
+      },
+      {
+        "clubName": "Ювентус",
+        "fullName": "Камбьязо",
+        "league": "Serie A",
+        "playerId": 216494,
+        "position": "DEF"
+      },
+      {
+        "clubName": "Байер",
+        "fullName": "Куанса",
+        "league": "Bundesliga",
+        "playerId": 213190,
+        "position": "DEF"
+      },
+      {
+        "playerId": 213613,
+        "fullName": "Левелинг",
+        "clubName": "Штутгарт",
+        "position": "MID",
+        "league": "Bundesliga"
+      },
+      {
+        "clubName": "Болонья",
+        "fullName": "Орсолини",
+        "league": "Serie A",
+        "playerId": 215882,
+        "position": "MID"
+      },
+      {
+        "clubName": "Рома",
+        "fullName": "Свилар",
+        "league": "Serie A",
+        "playerId": 216323,
+        "position": "GK"
+      },
+      {
+        "clubName": "Манчестер Сити",
+        "fullName": "Рубен Диаш",
+        "league": "EPL",
+        "playerId": 214791,
+        "position": "DEF"
+      },
+      {
+        "clubName": "Атлетик",
+        "fullName": "Вивиан",
+        "league": "La Liga",
+        "playerId": 213661,
+        "position": "DEF"
+      },
+      {
+        "playerId": 214883,
+        "fullName": "Берн",
+        "clubName": "Ньюкасл",
+        "position": "DEF",
+        "league": "Premier League"
+      }
+    ],
+    "Макс": [
+      {
+        "clubName": "Манчестер Сити",
+        "fullName": "Холанд",
+        "league": "EPL",
+        "playerId": 214802,
+        "position": "FWD"
+      },
+      {
+        "clubName": "Барселона",
+        "fullName": "Левандовски",
+        "league": "La Liga",
+        "playerId": 213727,
+        "position": "FWD"
+      },
+      {
+        "clubName": "Реал Мадрид",
+        "fullName": "Беллингем",
+        "league": "La Liga",
+        "playerId": 213954,
+        "position": "MID"
+      },
+      {
+        "clubName": "Наполи",
+        "fullName": "Мактоминей",
+        "league": "Serie A",
+        "playerId": 216212,
+        "position": "MID"
+      },
+      {
+        "clubName": "Интер",
+        "fullName": "Димарко",
+        "league": "Serie A",
+        "playerId": 215967,
+        "position": "DEF"
+      },
+      {
+        "clubName": "Боруссия Д",
+        "fullName": "Адейеми",
+        "league": "Bundesliga",
+        "playerId": 213238,
+        "position": "MID"
+      },
+      {
+        "clubName": "Атлетико",
+        "fullName": "Алекс Баэна",
+        "league": "La Liga",
+        "playerId": 213698,
+        "position": "MID"
+      },
+      {
+        "clubName": "Милан",
+        "fullName": "Рафаэл Леау",
+        "league": "Serie A",
+        "playerId": 216182,
+        "position": "MID"
+      },
+      {
+        "clubName": "Ливерпуль",
+        "fullName": "Гакпо",
+        "league": "EPL",
+        "playerId": 214732,
+        "position": "MID"
+      },
+      {
+        "clubName": "Арсенал",
+        "fullName": "Дьокереш",
+        "league": "EPL",
+        "playerId": 214436,
+        "position": "FWD"
+      },
+      {
+        "clubName": "Аталанта",
+        "fullName": "Белланова",
+        "league": "Serie A",
+        "playerId": 215839,
+        "position": "DEF"
+      },
+      {
+        "clubName": "Ювентус",
+        "fullName": "Ди Грегорио",
+        "league": "Serie A",
+        "playerId": 216493,
+        "position": "GK"
+      },
+      {
+        "clubName": "Атлетик",
+        "fullName": "Унаи Симон",
+        "league": "La Liga",
+        "playerId": 213664,
+        "position": "GK"
+      },
+      {
+        "playerId": 216320,
+        "fullName": "Франса",
+        "clubName": "Рома",
+        "position": "DEF",
+        "league": "Serie A"
+      },
+      {
+        "clubName": "Бавария",
+        "fullName": "Лаймер",
+        "league": "Bundesliga",
+        "playerId": 213170,
+        "position": "DEF"
+      },
+      {
+        "playerId": 213589,
+        "fullName": "Аслани",
+        "clubName": "Хоффенхайм",
+        "position": "FWD",
+        "league": "Bundesliga"
+      },
+      {
+        "clubName": "РБ Лейпциг",
+        "fullName": "Вилли Орбан",
+        "league": "Bundesliga",
+        "playerId": 213427,
+        "position": "DEF"
+      },
+      {
+        "playerId": 214967,
+        "fullName": "Ромеро",
+        "clubName": "Тоттенхэм",
+        "position": "DEF",
+        "league": "Premier League"
+      }
+    ],
+    "Руслан": [
+      {
+        "clubName": "Бавария",
+        "fullName": "Олисе",
+        "league": "Bundesliga",
+        "playerId": 213182,
+        "position": "MID"
+      },
+      {
+        "clubName": "Реал Мадрид",
+        "fullName": "Винисиус Жуниор",
+        "league": "La Liga",
+        "playerId": 213955,
+        "position": "MID"
+      },
+      {
+        "clubName": "Ливерпуль",
+        "fullName": "Фримпонг",
+        "league": "EPL",
+        "playerId": 214726,
+        "position": "DEF"
+      },
+      {
+        "clubName": "Байер",
+        "fullName": "Гримальдо",
+        "league": "Bundesliga",
+        "playerId": 213199,
+        "position": "DEF"
+      },
+      {
+        "clubName": "Вест Хэм",
+        "fullName": "Боуэн",
+        "league": "EPL",
+        "playerId": 214635,
+        "position": "FWD"
+      },
+      {
+        "playerId": 214681,
+        "fullName": "Гехи",
+        "clubName": "Кристал Пэлас",
+        "position": "DEF",
+        "league": "Premier League"
+      },
+      {
+        "clubName": "Осасуна",
+        "fullName": "Будимир",
+        "league": "La Liga",
+        "playerId": 213907,
+        "position": "FWD"
+      },
+      {
+        "clubName": "Наполи",
+        "fullName": "Ррахмани",
+        "league": "Serie A",
+        "playerId": 216203,
+        "position": "DEF"
+      },
+      {
+        "clubName": "Ноттингем Форест",
+        "fullName": "Вуд",
+        "league": "EPL",
+        "playerId": 214865,
+        "position": "FWD"
+      },
+      {
+        "clubName": "Боруссия Д",
+        "fullName": "Беллингем",
+        "league": "Bundesliga",
+        "playerId": 213235,
+        "position": "MID"
+      },
+      {
+        "clubName": "Челси",
+        "fullName": "Жоао Педро",
+        "league": "EPL",
+        "playerId": 215040,
+        "position": "FWD"
+      },
+      {
+        "clubName": "Арсенал",
+        "fullName": "Райс",
+        "league": "EPL",
+        "playerId": 214430,
+        "position": "MID"
+      },
+      {
+        "clubName": "Комо",
+        "fullName": "Нико Пас",
+        "league": "Serie A",
+        "playerId": 216052,
+        "position": "MID"
+      },
+      {
+        "clubName": "Интер",
+        "fullName": "Зоммер",
+        "league": "Serie A",
+        "playerId": 215970,
+        "position": "GK"
+      },
+      {
+        "clubName": "Барселона",
+        "fullName": "Кубарси",
+        "league": "La Liga",
+        "playerId": 213709,
+        "position": "DEF"
+      },
+      {
+        "playerId": 214043,
+        "fullName": "Руэда",
+        "clubName": "Сельта",
+        "position": "DEF",
+        "league": "La Liga"
+      },
+      {
+        "clubName": "Атлетико",
+        "fullName": "Гризманн",
+        "league": "La Liga",
+        "playerId": 213697,
+        "position": "MID"
+      },
+      {
+        "clubName": "Тоттенхэм",
+        "fullName": "Викарио",
+        "league": "EPL",
+        "playerId": 214965,
+        "position": "GK"
+      }
+    ],
+    "Саша": [
+      {
+        "clubName": "Реал Мадрид",
+        "fullName": "Мбаппе",
+        "league": "La Liga",
+        "playerId": 213956,
+        "position": "FWD"
+      },
+      {
+        "clubName": "Интер",
+        "fullName": "Мартинес",
+        "league": "Serie A",
+        "playerId": 215982,
+        "position": "FWD"
+      },
+      {
+        "clubName": "Ливерпуль",
+        "fullName": "Экитике",
+        "league": "EPL",
+        "playerId": 214733,
+        "position": "FWD"
+      },
+      {
+        "playerId": 213177,
+        "fullName": "Гнабри",
+        "clubName": "Бавария",
+        "position": "FWD",
+        "league": "Bundesliga"
+      },
+      {
+        "clubName": "Наполи",
+        "fullName": "де Брюйне",
+        "league": "Serie A",
+        "playerId": 216210,
+        "position": "MID"
+      },
+      {
+        "clubName": "Ювентус",
+        "fullName": "Йылдыз",
+        "league": "Serie A",
+        "playerId": 216503,
+        "position": "MID"
+      },
+      {
+        "clubName": "Атлетик",
+        "fullName": "Нико Уильямс",
+        "league": "La Liga",
+        "playerId": 213670,
+        "position": "MID"
+      },
+      {
+        "clubName": "Манчестер Сити",
+        "fullName": "Гвардиол",
+        "league": "EPL",
+        "playerId": 214786,
+        "position": "DEF"
+      },
+      {
+        "clubName": "Арсенал",
+        "fullName": "Салиба",
+        "league": "EPL",
+        "playerId": 214422,
+        "position": "DEF"
+      },
+      {
+        "clubName": "РБ Лейпциг",
+        "fullName": "Баку",
+        "league": "Bundesliga",
+        "playerId": 213431,
+        "position": "DEF"
+      },
+      {
+        "clubName": "Челси",
+        "fullName": "Кукурелья",
+        "league": "EPL",
+        "playerId": 215030,
+        "position": "DEF"
+      },
+      {
+        "clubName": "Милан",
+        "fullName": "Салемакерс",
+        "league": "Serie A",
+        "playerId": 216180,
+        "position": "MID"
+      },
+      {
+        "clubName": "Аталанта",
+        "fullName": "Дзаппакоста",
+        "league": "Serie A",
+        "playerId": 215835,
+        "position": "DEF"
+      },
+      {
+        "clubName": "Реал Сосьедад",
+        "fullName": "Ремиро",
+        "league": "La Liga",
+        "playerId": 214003,
+        "position": "GK"
+      },
+      {
+        "playerId": 213695,
+        "fullName": "Альмада",
+        "clubName": "Атлетико",
+        "position": "MID",
+        "league": "La Liga"
+      },
+      {
+        "clubName": "Боруссия Д",
+        "fullName": "Свенссон",
+        "league": "Bundesliga",
+        "playerId": 213229,
+        "position": "DEF"
+      },
+      {
+        "clubName": "Барселона",
+        "fullName": "Жоан Гарсия",
+        "league": "La Liga",
+        "playerId": 213716,
+        "position": "GK"
+      },
+      {
+        "playerId": 214787,
+        "fullName": "Грилиш",
+        "clubName": "Эвертон",
+        "position": "MID",
+        "league": "Premier League"
+      }
+    ],
+    "Сергей": [
+      {
+        "clubName": "Барселона",
+        "fullName": "Ямаль",
+        "league": "La Liga",
+        "playerId": 213728,
+        "position": "MID"
+      },
+      {
+        "clubName": "Боруссия Д",
+        "fullName": "Гирасси",
+        "league": "Bundesliga",
+        "playerId": 213239,
+        "position": "FWD"
+      },
+      {
+        "clubName": "Наполи",
+        "fullName": "Ди Лоренцо",
+        "league": "Serie A",
+        "playerId": 216200,
+        "position": "DEF"
+      },
+      {
+        "clubName": "Хоффенхайм",
+        "fullName": "Крамарич",
+        "league": "Bundesliga",
+        "playerId": 213591,
+        "position": "MID"
+      },
+      {
+        "clubName": "Фиорентина",
+        "fullName": "Кин",
+        "league": "Serie A",
+        "playerId": 216469,
+        "position": "FWD"
+      },
+      {
+        "playerId": 213494,
+        "fullName": "Ансах",
+        "clubName": "Унион Берлин",
+        "position": "FWD",
+        "league": "Bundesliga"
+      },
+      {
+        "clubName": "Манчестер Юнайтед",
+        "fullName": "Мбемо",
+        "league": "EPL",
+        "playerId": 214836,
+        "position": "MID"
+      },
+      {
+        "clubName": "Тоттенхэм",
+        "fullName": "Симонс",
+        "league": "EPL",
+        "playerId": 213444,
+        "position": "MID"
+      },
+      {
+        "playerId": 213754,
+        "fullName": "Форнальс",
+        "clubName": "Бетис",
+        "position": "MID",
+        "league": "La Liga"
+      },
+      {
+        "clubName": "Айнтрахт Ф",
+        "fullName": "Доан",
+        "league": "Bundesliga",
+        "playerId": 213533,
+        "position": "MID"
+      },
+      {
+        "clubName": "Арсенал",
+        "fullName": "Райя",
+        "league": "EPL",
+        "playerId": 214421,
+        "position": "GK"
+      },
+      {
+        "clubName": "Ливерпуль",
+        "fullName": "Керкез",
+        "league": "EPL",
+        "playerId": 214723,
+        "position": "DEF"
+      },
+      {
+        "playerId": 214521,
+        "fullName": "Сенеси",
+        "clubName": "Борнмут",
+        "position": "DEF",
+        "league": "Premier League"
+      },
+      {
+        "clubName": "Реал Мадрид",
+        "fullName": "Хейсен",
+        "league": "La Liga",
+        "playerId": 213944,
+        "position": "DEF"
+      },
+      {
+        "clubName": "Кристал Пэлас",
+        "fullName": "Матета",
+        "league": "EPL",
+        "playerId": 214696,
+        "position": "FWD"
+      },
+      {
+        "clubName": "Рома",
+        "fullName": "Ндика",
+        "league": "Serie A",
+        "playerId": 216318,
+        "position": "DEF"
+      },
+      {
+        "clubName": "Атлетико",
+        "fullName": "Ле Норман",
+        "league": "La Liga",
+        "playerId": 213682,
+        "position": "DEF"
+      },
+      {
+        "clubName": "Хетафе",
+        "fullName": "Сория",
+        "league": "La Liga",
+        "playerId": 214083,
+        "position": "GK"
+      }
+    ],
+    "Тёма": [
+      {
+        "clubName": "Ливерпуль",
+        "fullName": "Салах",
+        "league": "EPL",
+        "playerId": 214735,
+        "position": "MID"
+      },
+      {
+        "clubName": "Бавария",
+        "fullName": "Диас",
+        "league": "Bundesliga",
+        "playerId": 213180,
+        "position": "MID"
+      },
+      {
+        "clubName": "Барселона",
+        "fullName": "Педри",
+        "league": "La Liga",
+        "playerId": 213723,
+        "position": "MID"
+      },
+      {
+        "clubName": "Ньюкасл",
+        "fullName": "Исак",
+        "league": "EPL",
+        "playerId": 214898,
+        "position": "FWD"
+      },
+      {
+        "clubName": "Астон Вилла",
+        "fullName": "Уоткинс",
+        "league": "EPL",
+        "playerId": 214467,
+        "position": "FWD"
+      },
+      {
+        "clubName": "Интер",
+        "fullName": "Бастони",
+        "league": "Serie A",
+        "playerId": 215966,
+        "position": "DEF"
+      },
+      {
+        "clubName": "Реал Мадрид",
+        "fullName": "Вальверде",
+        "league": "La Liga",
+        "playerId": 213950,
+        "position": "MID"
+      },
+      {
+        "clubName": "Байер",
+        "fullName": "Шик",
+        "league": "Bundesliga",
+        "playerId": 213207,
+        "position": "FWD"
+      },
+      {
+        "clubName": "Манчестер Сити",
+        "fullName": "Мармуш",
+        "league": "EPL",
+        "playerId": 214800,
+        "position": "MID"
+      },
+      {
+        "clubName": "Рома",
+        "fullName": "Анхелиньо",
+        "league": "Serie A",
+        "playerId": 216322,
+        "position": "DEF"
+      },
+      {
+        "clubName": "Атлетико",
+        "fullName": "Маркос Льоренте",
+        "league": "La Liga",
+        "playerId": 213689,
+        "position": "DEF"
+      },
+      {
+        "clubName": "Милан",
+        "fullName": "Меньян",
+        "league": "Serie A",
+        "playerId": 216168,
+        "position": "GK"
+      },
+      {
+        "clubName": "Фрайбург",
+        "fullName": "Грифо",
+        "league": "Bundesliga",
+        "playerId": 213532,
+        "position": "MID"
+      },
+      {
+        "clubName": "Наполи",
+        "fullName": "Мерет",
+        "league": "Serie A",
+        "playerId": 216201,
+        "position": "GK"
+      },
+      {
+        "clubName": "Боруссия М",
+        "fullName": "Кляйндинст",
+        "league": "Bundesliga",
+        "playerId": 213268,
+        "position": "FWD"
+      },
+      {
+        "clubName": "Ноттингем Форест",
+        "fullName": "Миленкович",
+        "league": "EPL",
+        "playerId": 214856,
+        "position": "DEF"
+      },
+      {
+        "clubName": "Фиорентина",
+        "fullName": "Додо",
+        "league": "Serie A",
+        "playerId": 216461,
+        "position": "DEF"
+      },
+      {
+        "clubName": "Манчестер Юнайтед",
+        "fullName": "Магуайр",
+        "league": "EPL",
+        "playerId": 214819,
+        "position": "DEF"
+      }
+    ]
+  }
+}
