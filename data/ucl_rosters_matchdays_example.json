@@ -1,0 +1,50 @@
+{
+  "rosters": {
+    "Ксана": [
+      {
+        "playerId": 250112880,
+        "fullName": "Raphinha",
+        "clubName": "Barcelona",
+        "position": "MID",
+        "price": 9.5,
+        "matchdays": [1, 2, 3, 4, 5, 6]
+      },
+      {
+        "playerId": 250068805,
+        "fullName": "Marcus Thuram",
+        "clubName": "Inter",
+        "position": "FWD",
+        "price": 8.0,
+        "matchdays": [1, 2, 4, 5]
+      }
+    ],
+    "Андрей": [
+      {
+        "playerId": 250103758,
+        "fullName": "Erling Haaland",
+        "clubName": "Man City",
+        "position": "FWD",
+        "price": 10.5,
+        "matchdays": [2, 3, 4, 5, 6, 7, 8]
+      },
+      {
+        "playerId": 250089868,
+        "fullName": "Alexander Isak",
+        "clubName": "Liverpool",
+        "position": "FWD",
+        "price": 9.0,
+        "matchdays": [1, 2, 3]
+      }
+    ]
+  },
+  "limits": {
+    "Slots": {
+      "GK": 3,
+      "DEF": 8,
+      "MID": 9,
+      "FWD": 5
+    },
+    "Max from club": 1
+  },
+  "finished_matchdays": [1]
+}

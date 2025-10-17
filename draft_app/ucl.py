@@ -50,6 +50,7 @@ UCL_POINTS = BASE_DIR / "players_70_en_3.json"   # очки прошлого с�
 # --- параметры UCL драфта ---
 UCL_PARTICIPANTS = ["Ксана", "Андрей", "Саша", "Руслан", "Женя", "Макс", "Серёга Б", "Сергей"]
 UCL_ROUNDS = 25
+UCL_TOTAL_MATCHDAYS = 8
 
 # ----------------- helpers -----------------
 def _json_load(p: Path) -> Any:
@@ -65,6 +66,69 @@ def _json_dump_atomic(p: Path, data: Any) -> None:
         tmp.replace(p)
     except Exception:
         pass
+
+
+def _default_matchdays() -> List[int]:
+    """Return the default list of UCL matchdays for a player."""
+    return list(range(1, UCL_TOTAL_MATCHDAYS + 1))
+
+
+def _coerce_matchday(value: Any) -> Optional[int]:
+    """Convert raw value to a valid matchday number when possible."""
+    if value is None:
+        return None
+    try:
+        md = int(float(value))
+    except (TypeError, ValueError):
+        if isinstance(value, str):
+            value = value.strip()
+            if not value:
+                return None
+            try:
+                md = int(value)
+            except ValueError:
+                return None
+        else:
+            return None
+    if 1 <= md <= UCL_TOTAL_MATCHDAYS:
+        return md
+    return None
+
+
+def _normalize_matchdays(raw: Any, *, default_all: bool = True) -> List[int]:
+    """Normalize raw matchday payload to a sorted unique list of ints."""
+    values: Set[int] = set()
+
+    if isinstance(raw, (list, tuple, set)):
+        for item in raw:
+            md = _coerce_matchday(item)
+            if md is not None:
+                values.add(md)
+    elif isinstance(raw, (int, float)):
+        md = _coerce_matchday(raw)
+        if md is not None:
+            values.add(md)
+    elif isinstance(raw, str):
+        parts = [p for p in raw.replace(";", ",").split(",")]
+        for part in parts:
+            md = _coerce_matchday(part)
+            if md is not None:
+                values.add(md)
+
+    if not values and default_all:
+        values = set(_default_matchdays())
+
+    return sorted(values)
+
+
+def _player_matchdays(entry: Optional[Dict[str, Any]]) -> Set[int]:
+    """Return the set of matchdays assigned to a roster/transfer entry."""
+    if not isinstance(entry, dict):
+        return set(_default_matchdays())
+    normalized = _normalize_matchdays(entry.get("matchdays"), default_all=False)
+    if not normalized:
+        normalized = _default_matchdays()
+    return set(normalized)
 
 # Optional S3-backed state for UCL
 def _ucl_s3_enabled() -> bool:
@@ -575,6 +639,7 @@ def _rebuild_rosters_from_history(state: Dict[str, Any]) -> bool:
             "clubName": pick.get("club"),
             "position": pick.get("pos"),
             "price": pick.get("price"),
+            "matchdays": _default_matchdays(),
         }
 
         lookup = lookup_players.get(pid)
@@ -587,12 +652,23 @@ def _rebuild_rosters_from_history(state: Dict[str, Any]) -> bool:
         if preserved_entry:
             merged = dict(preserved_entry)
             for key, value in base_entry.items():
+                if key == "matchdays":
+                    existing = _normalize_matchdays(merged.get("matchdays"), default_all=False)
+                    if not existing:
+                        merged[key] = _normalize_matchdays(value, default_all=True)
+                    else:
+                        merged[key] = existing
+                    continue
                 if value is not None and value != "":
                     merged[key] = value
             entry = merged
         else:
             entry = {k: v for k, v in base_entry.items() if v is not None and v != ""}
             entry["playerId"] = pid
+            entry["matchdays"] = _normalize_matchdays(entry.get("matchdays"), default_all=True)
+
+        if isinstance(entry, dict):
+            entry["matchdays"] = _normalize_matchdays(entry.get("matchdays"), default_all=True)
 
         rebuilt[manager].append(entry)
         picks_applied += 1
@@ -627,6 +703,22 @@ def _ensure_ucl_state_shape(state: Dict[str, Any]) -> Dict[str, Any]:
     if _rosters_need_rebuild(state):
         if _rebuild_rosters_from_history(state):
             changed = True
+    # Ensure roster entries have normalized matchdays
+    rosters = state.get("rosters") or {}
+    roster_normalized = False
+    for manager, roster in rosters.items():
+        if not isinstance(roster, list):
+            continue
+        for entry in roster:
+            if not isinstance(entry, dict):
+                continue
+            normalized = _normalize_matchdays(entry.get("matchdays"), default_all=True)
+            if entry.get("matchdays") != normalized:
+                entry["matchdays"] = normalized
+                roster_normalized = True
+    if roster_normalized:
+        state["rosters"] = rosters
+        changed = True
     # Ensure limits
     limits = state.get("limits") or {}
     slots = (limits.get("Slots") if isinstance(limits, dict) else None) or {}
@@ -1045,6 +1137,7 @@ def index():
                     "clubName": meta.get("clubName"),
                     "position": meta.get("position"),
                     "price": meta.get("price"),
+                    "matchdays": _default_matchdays(),
                 }
                 state.setdefault("picks", []).append({
                     "round": state.get("next_round"),
@@ -1475,7 +1568,19 @@ def ucl_lineups_data():
                 if not already_in_roster:
                     current_roster.append(out_player)
         
-        return current_roster
+        filtered: List[Dict[str, Any]] = []
+        for entry in current_roster:
+            payload = entry.get("player") if isinstance(entry, dict) and isinstance(entry.get("player"), dict) else entry
+            if not isinstance(payload, dict):
+                continue
+            matchdays = _player_matchdays(payload)
+            if md not in matchdays:
+                continue
+            payload_copy = dict(payload)
+            payload_copy["matchdays"] = sorted(matchdays)
+            filtered.append(payload_copy)
+
+        return filtered
 
     def _norm_team_id(raw: Any) -> Optional[str]:
         if raw in (None, "", [], {}):
@@ -1623,6 +1728,7 @@ def ucl_lineups_data():
                     "stat": stat_payload,
                     "statsCount": stat_payload.get("_stats_count", 0),
                     "playerId": str(pid_int),
+                    "matchdays": payload.get("matchdays") or _default_matchdays(),
                 }
             )
         results[manager] = {"players": lineup, "total": total}
@@ -1745,24 +1851,59 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
     
     def get_all_manager_players(manager: str) -> Dict[str, Dict]:
         """Get all players who were ever in manager's roster with their active periods"""
-        all_players = {}
-        
+        all_players: Dict[str, Dict[str, Any]] = {}
+        status_priority = {"transfer_out": 1, "transfer_in": 2, "current": 3}
+
+        def register_player(player_payload: Optional[Dict[str, Any]], status: str, transfer_gw: Optional[int] = None) -> None:
+            if not isinstance(player_payload, dict):
+                return
+            pid_raw = player_payload.get("playerId") or player_payload.get("id") or player_payload.get("pid")
+            try:
+                pid_int = int(pid_raw)
+            except (TypeError, ValueError):
+                return
+
+            matchdays_set = _player_matchdays(player_payload)
+            if not matchdays_set and transfer_gw is not None:
+                try:
+                    pivot = int(transfer_gw)
+                except (TypeError, ValueError):
+                    pivot = None
+                if pivot is not None:
+                    if status == "transfer_out":
+                        matchdays_set = {md for md in range(1, pivot + 1) if md <= UCL_TOTAL_MATCHDAYS}
+                    else:
+                        start = max(1, pivot)
+                        matchdays_set = {md for md in range(start, UCL_TOTAL_MATCHDAYS + 1)}
+            if not matchdays_set:
+                matchdays_set = set(_default_matchdays())
+
+            player_copy = dict(player_payload)
+            player_copy["matchdays"] = sorted(matchdays_set)
+
+            key = str(pid_int)
+            existing = all_players.get(key)
+            if existing:
+                existing["active_mds"].update(matchdays_set)
+                if status_priority.get(status, 0) >= status_priority.get(existing.get("transfer_status"), 0):
+                    existing["player"] = player_copy
+                    existing["transfer_status"] = status
+            else:
+                all_players[key] = {
+                    "player": player_copy,
+                    "active_mds": set(matchdays_set),
+                    "transfer_status": status,
+                }
+
         # Start with current roster
         current_roster = rosters.get(manager, [])
-        # Ensure all roster players have fp_current from curGDPts
         _ensure_fp_current_from_uefa_feed(current_roster)
         for player in current_roster:
-            player_id = player.get("playerId")
-            if player_id:
-                all_players[str(player_id)] = {
-                    "player": player,
-                    "active_mds": set(range(1, 9)),  # Assume active for all MDs initially
-                    "transfer_status": "current"  # current, transfer_in, transfer_out
-                }
-        
-        # Process transfer history to determine actual active periods and transfer status
-        all_transfers = []
-        
+            register_player(player, "current")
+
+        # Process transfer history entries
+        all_transfers: List[Dict[str, Any]] = []
+
         # Add old format transfers
         for transfer in old_transfer_history:
             if transfer.get("manager") == manager:
@@ -1787,7 +1928,7 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
         
         # Sort transfers by time
         all_transfers.sort(key=lambda x: x.get("ts", ""))
-        
+
         # Apply transfers to determine active periods
         for transfer in all_transfers:
             transfer_gw = transfer.get("gw", 1)
@@ -1798,53 +1939,21 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
                 in_player = transfer.get("in_player")
                 
                 if out_player:
-                    out_id = str(out_player.get("playerId"))
-                    if out_id in all_players:
-                        # Player was active until this transfer (inclusive)
-                        all_players[out_id]["active_mds"] = set(range(1, transfer_gw + 1))
-                        all_players[out_id]["transfer_status"] = "transfer_out"
-                    else:
-                        # Add player who was transferred out
-                        all_players[out_id] = {
-                            "player": out_player,
-                            "active_mds": set(range(1, transfer_gw + 1)),
-                            "transfer_status": "transfer_out"
-                        }
-                
+                    register_player(out_player, "transfer_out", transfer_gw)
+
                 if in_player:
-                    in_id = str(in_player.get("playerId"))
-                    all_players[in_id] = {
-                        "player": in_player,
-                        "active_mds": set(range(transfer_gw + 1, 9)),
-                        "transfer_status": "transfer_in"
-                    }
-            
+                    register_player(in_player, "transfer_in", transfer_gw + 1)
+
             elif transfer.get("action") == "transfer_out":
                 out_player = transfer.get("out_player")
                 if out_player:
-                    out_id = str(out_player.get("playerId"))
-                    if out_id in all_players:
-                        # Player was active until this transfer (inclusive)
-                        all_players[out_id]["active_mds"] = set(range(1, transfer_gw + 1))
-                        all_players[out_id]["transfer_status"] = "transfer_out"
-                    else:
-                        # Add player who was transferred out
-                        all_players[out_id] = {
-                            "player": out_player,
-                            "active_mds": set(range(1, transfer_gw + 1)),
-                            "transfer_status": "transfer_out"
-                        }
-            
+                    register_player(out_player, "transfer_out", transfer_gw)
+
             elif transfer.get("action") == "transfer_in":
                 in_player = transfer.get("in_player")
                 if in_player:
-                    in_id = str(in_player.get("playerId"))
-                    all_players[in_id] = {
-                        "player": in_player,
-                        "active_mds": set(range(transfer_gw + 1, 9)),
-                        "transfer_status": "transfer_in"
-                    }
-        
+                    register_player(in_player, "transfer_in", transfer_gw + 1)
+
         return all_players
     
     for manager in managers:
@@ -1920,7 +2029,8 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
                 "playerId": str(pid_int),
                 "teamId": team_id,  # For club logo
                 "transfer_status": transfer_status,  # current, transfer_in, transfer_out
-                "active_mds": list(active_mds)  # List of MDs when player was active
+                "active_mds": sorted(active_mds),  # List of MDs when player was active
+                "matchdays": payload.get("matchdays") or sorted(active_mds),
             })
         
         results[manager] = {"players": lineup, "total": total}

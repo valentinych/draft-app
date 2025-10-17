@@ -6,175 +6,425 @@
         "fullName": "Raphinha",
         "clubName": "Barcelona",
         "position": "MID",
-        "price": 9.5
+        "price": 9.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250068805,
         "fullName": "Marcus Thuram",
         "clubName": "Inter",
         "position": "FWD",
-        "price": 8.0
+        "price": 8.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250161881,
         "fullName": "Arda Güler",
         "clubName": "Real Madrid",
         "position": "MID",
-        "price": 6.0
+        "price": 6.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250171055,
         "fullName": "Kenan Yıldız",
         "clubName": "Juventus",
         "position": "MID",
-        "price": 6.5
+        "price": 6.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250139445,
         "fullName": "Florian Wirtz",
         "clubName": "Liverpool",
         "position": "MID",
-        "price": 9.0
+        "price": 9.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250101534,
         "fullName": "Phil Foden",
         "clubName": "Man City",
         "position": "MID",
-        "price": 8.0
+        "price": 8.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250117705,
         "fullName": "Charles De Ketelaere",
         "clubName": "Atalanta",
         "position": "FWD",
-        "price": 6.0
+        "price": 6.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250101444,
         "fullName": "Vitinha",
         "clubName": "Paris",
         "position": "MID",
-        "price": 7.0
+        "price": 7.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250088240,
         "fullName": "Scott McTominay",
         "clubName": "Napoli",
         "position": "MID",
-        "price": 7.0
+        "price": 7.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 50327427,
         "fullName": "Micky van de Ven",
         "clubName": "Tottenham",
         "position": "DEF",
-        "price": 5.0
+        "price": 5.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250101728,
         "fullName": "Jurriën Timber",
         "clubName": "Arsenal",
         "position": "DEF",
-        "price": 5.0
+        "price": 5.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250055110,
         "fullName": "Patrik Schick",
         "clubName": "Leverkusen",
         "position": "FWD",
-        "price": 7.0
+        "price": 7.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250160436,
         "fullName": "Maghnes Akliouche",
         "clubName": "Monaco",
         "position": "MID",
-        "price": 5.0
+        "price": 5.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250124222,
         "fullName": "Maximilian Beier",
         "clubName": "B. Dortmund",
         "position": "FWD",
-        "price": 6.0
+        "price": 6.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250041770,
         "fullName": "Serge Gnabry",
         "clubName": "Bayern München",
         "position": "MID",
-        "price": 6.5
+        "price": 6.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250154983,
         "fullName": "Robert Sánchez",
         "clubName": "Chelsea",
         "position": "GK",
-        "price": 5.0
+        "price": 5.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250081921,
         "fullName": "Benjamin Pavard",
         "clubName": "Marseille",
         "position": "DEF",
-        "price": 4.5
+        "price": 4.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250017040,
         "fullName": "Nicolás Otamendi",
         "clubName": "Benfica",
         "position": "DEF",
-        "price": 5.0
+        "price": 5.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250097909,
         "fullName": "Mehdi Taremi",
         "clubName": "Olympiacos",
         "position": "FWD",
-        "price": 7.0
+        "price": 7.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250132323,
         "fullName": "Wilfried Singo",
         "clubName": "Galatasaray",
         "position": "DEF",
-        "price": 4.5
+        "price": 4.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250092668,
         "fullName": "Dávid Hancko",
         "clubName": "Atleti",
         "position": "DEF",
-        "price": 4.5
+        "price": 4.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 103823,
         "fullName": "Yuri Berchiche",
         "clubName": "Athletic Club",
         "position": "DEF",
-        "price": 4.5
+        "price": 4.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250000919,
         "fullName": "Kieran Trippier",
         "clubName": "Newcastle",
         "position": "DEF",
-        "price": 4.5
+        "price": 4.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250062141,
         "fullName": "Rui Silva",
         "clubName": "Sporting CP",
         "position": "GK",
-        "price": 5.0
+        "price": 5.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250123304,
         "fullName": "Kjell Scherpen",
         "clubName": "Union SG",
         "position": "GK",
-        "price": 4.0
+        "price": 4.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       }
     ],
     "Андрей": [
@@ -183,175 +433,425 @@
         "fullName": "Erling Haaland",
         "clubName": "Man City",
         "position": "FWD",
-        "price": 10.5
+        "price": 10.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250089868,
         "fullName": "Alexander Isak",
         "clubName": "Liverpool",
         "position": "FWD",
-        "price": 9.0
+        "price": 9.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250105927,
         "fullName": "Viktor Gyökeres",
         "clubName": "Arsenal",
         "position": "FWD",
-        "price": 9.0
+        "price": 9.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250128377,
         "fullName": "Jude Bellingham",
         "clubName": "Real Madrid",
         "position": "MID",
-        "price": 8.5
+        "price": 8.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250121904,
         "fullName": "Mohammed Kudus",
         "clubName": "Tottenham",
         "position": "MID",
-        "price": 7.0
+        "price": 7.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250174838,
         "fullName": "Enzo Fernández",
         "clubName": "Chelsea",
         "position": "MID",
-        "price": 6.5
+        "price": 6.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250081720,
         "fullName": "Dani Olmo",
         "clubName": "Barcelona",
         "position": "MID",
-        "price": 7.0
+        "price": 7.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250162177,
         "fullName": "Désiré Doué",
         "clubName": "Paris",
         "position": "MID",
-        "price": 8.0
+        "price": 8.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250091199,
         "fullName": "Alessandro Bastoni",
         "clubName": "Inter",
         "position": "DEF",
-        "price": 5.5
+        "price": 5.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250132322,
         "fullName": "Bremer",
         "clubName": "Juventus",
         "position": "DEF",
-        "price": 5.0
+        "price": 5.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250143328,
         "fullName": "Pedro Gonçalves",
         "clubName": "Sporting CP",
         "position": "MID",
-        "price": 6.0
+        "price": 6.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250117036,
         "fullName": "Anthony Gordon",
         "clubName": "Newcastle",
         "position": "MID",
-        "price": 7.0
+        "price": 7.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250155025,
         "fullName": "Georges Mikautadze",
         "clubName": "Villarreal",
         "position": "FWD",
-        "price": 6.0
+        "price": 6.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250167111,
         "fullName": "Mika Biereth",
         "clubName": "Monaco",
         "position": "FWD",
-        "price": 7.0
+        "price": 7.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250069832,
         "fullName": "Gregor Kobel",
         "clubName": "B. Dortmund",
         "position": "GK",
-        "price": 5.0
+        "price": 5.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250076116,
         "fullName": "Unai Simón",
         "clubName": "Athletic Club",
         "position": "GK",
-        "price": 5.0
+        "price": 5.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250189214,
         "fullName": "Francisco Ortega",
         "clubName": "Olympiacos",
         "position": "DEF",
-        "price": 4.5
+        "price": 4.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250124430,
         "fullName": "Jamal Musiala",
         "clubName": "Bayern München",
         "position": "MID",
-        "price": 9.0
+        "price": 9.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250177886,
         "fullName": "Igor Paixao",
         "clubName": "Marseille",
         "position": "MID",
-        "price": 6.0
+        "price": 6.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250097317,
         "fullName": "Owen Wijndal",
         "clubName": "Ajax",
         "position": "DEF",
-        "price": 4.5
+        "price": 4.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250112513,
         "fullName": "Robin Le Normand",
         "clubName": "Atleti",
         "position": "DEF",
-        "price": 4.5
+        "price": 4.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250059233,
         "fullName": "Amir Rrahmani",
         "clubName": "Napoli",
         "position": "DEF",
-        "price": 5.0
+        "price": 5.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250104207,
         "fullName": "Fredrik André Bjørkan",
         "clubName": "Bodø/Glimt",
         "position": "DEF",
-        "price": 5.0
+        "price": 5.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250078452,
         "fullName": "Uğurcan Çakır",
         "clubName": "Galatasaray",
         "position": "GK",
-        "price": 5.0
+        "price": 5.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 1900733,
         "fullName": "David Luiz",
         "clubName": "Pafos",
         "position": "DEF",
-        "price": 4.0
+        "price": 4.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       }
     ],
     "Саша": [
@@ -360,175 +860,425 @@
         "fullName": "Harry Kane",
         "clubName": "Bayern München",
         "position": "FWD",
-        "price": 10.5
+        "price": 10.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250121533,
         "fullName": "Vinícius Júnior",
         "clubName": "Real Madrid",
         "position": "MID",
-        "price": 9.5
+        "price": 9.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250101808,
         "fullName": "Khvicha Kvaratskhelia",
         "clubName": "Paris",
         "position": "MID",
-        "price": 8.0
+        "price": 8.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250188541,
         "fullName": "João Pedro",
         "clubName": "Chelsea",
         "position": "FWD",
-        "price": 7.5
+        "price": 7.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250096849,
         "fullName": "Cody Gakpo",
         "clubName": "Liverpool",
         "position": "FWD",
-        "price": 7.5
+        "price": 7.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250022829,
         "fullName": "Hakan Çalhanoğlu",
         "clubName": "Inter",
         "position": "MID",
-        "price": 7.0
+        "price": 7.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250128451,
         "fullName": "Xavi Simons",
         "clubName": "Tottenham",
         "position": "MID",
-        "price": 6.5
+        "price": 6.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250127360,
         "fullName": "Nick Woltemade",
         "clubName": "Newcastle",
         "position": "FWD",
-        "price": 7.0
+        "price": 7.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250096954,
         "fullName": "Loïs Openda",
         "clubName": "Juventus",
         "position": "FWD",
-        "price": 7.5
+        "price": 7.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250127347,
         "fullName": "Karim Adeyemi",
         "clubName": "B. Dortmund",
         "position": "MID",
-        "price": 7.0
+        "price": 7.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250187458,
         "fullName": "Ruben van Bommel",
         "clubName": "PSV",
         "position": "MID",
-        "price": 5.5
+        "price": 5.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250127284,
         "fullName": "Joško Gvardiol",
         "clubName": "Man City",
         "position": "DEF",
-        "price": 5.5
+        "price": 5.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250136464,
         "fullName": "Gonçalo Inácio",
         "clubName": "Sporting CP",
         "position": "DEF",
-        "price": 4.5
+        "price": 4.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250074671,
         "fullName": "Iñaki Williams",
         "clubName": "Athletic Club",
         "position": "MID",
-        "price": 7.0
+        "price": 7.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250050381,
         "fullName": "Matteo Politano",
         "clubName": "Napoli",
         "position": "MID",
-        "price": 5.5
+        "price": 5.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250012069,
         "fullName": "Jan Oblak",
         "clubName": "Atleti",
         "position": "GK",
-        "price": 6.0
+        "price": 6.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250005335,
         "fullName": "İlkay Gündoğan",
         "clubName": "Galatasaray",
         "position": "MID",
-        "price": 6.5
+        "price": 6.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250040521,
         "fullName": "Lucas Vázquez",
         "clubName": "Leverkusen",
         "position": "DEF",
-        "price": 4.5
+        "price": 4.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250128468,
         "fullName": "António Silva",
         "clubName": "Benfica",
         "position": "DEF",
-        "price": 4.5
+        "price": 4.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250129755,
         "fullName": "Giorgio Scalvini",
         "clubName": "Atalanta",
         "position": "DEF",
-        "price": 4.5
+        "price": 4.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250113263,
         "fullName": "Vitězslav Jaroš",
         "clubName": "Ajax",
         "position": "GK",
-        "price": 4.0
+        "price": 4.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250101087,
         "fullName": "Nayef Aguerd",
         "clubName": "Marseille",
         "position": "DEF",
-        "price": 4.5
+        "price": 4.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 98078,
         "fullName": "Simon Mignolet",
         "clubName": "Club Brugge",
         "position": "GK",
-        "price": 5.0
+        "price": 5.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250103561,
         "fullName": "Eric García",
         "clubName": "Barcelona",
         "position": "DEF",
-        "price": 4.5
+        "price": 4.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250131901,
         "fullName": "Gabriel",
         "clubName": "Arsenal",
         "position": "DEF",
-        "price": 5.5
+        "price": 5.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       }
     ],
     "Руслан": [
@@ -537,175 +1287,425 @@
         "fullName": "Kylian Mbappé",
         "clubName": "Real Madrid",
         "position": "FWD",
-        "price": 10.5
+        "price": 10.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250052469,
         "fullName": "Mohamed Salah",
         "clubName": "Liverpool",
         "position": "MID",
-        "price": 10.5
+        "price": 10.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250088061,
         "fullName": "Achraf Hakimi",
         "clubName": "Paris",
         "position": "DEF",
-        "price": 6.0
+        "price": 6.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250112690,
         "fullName": "Denzel Dumfries",
         "clubName": "Inter",
         "position": "DEF",
-        "price": 6.0
+        "price": 6.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250106939,
         "fullName": "Bukayo Saka",
         "clubName": "Arsenal",
         "position": "MID",
-        "price": 9.5
+        "price": 9.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250078012,
         "fullName": "Vangelis Pavlidis",
         "clubName": "Benfica",
         "position": "FWD",
-        "price": 7.0
+        "price": 7.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250143693,
         "fullName": "Pedri",
         "clubName": "Barcelona",
         "position": "MID",
-        "price": 7.5
+        "price": 7.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250147458,
         "fullName": "Luis Suárez",
         "clubName": "Sporting CP",
         "position": "FWD",
-        "price": 5.0
+        "price": 5.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250127436,
         "fullName": "Rayan Aït-Nouri",
         "clubName": "Man City",
         "position": "DEF",
-        "price": 5.0
+        "price": 5.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250116767,
         "fullName": "Mason Greenwood",
         "clubName": "Marseille",
         "position": "FWD",
-        "price": 7.0
+        "price": 7.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250166964,
         "fullName": "Can Uzun",
         "clubName": "Frankfurt",
         "position": "MID",
-        "price": 5.0
+        "price": 5.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250063984,
         "fullName": "Leroy Sané",
         "clubName": "Galatasaray",
         "position": "MID",
-        "price": 7.0
+        "price": 7.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250173127,
         "fullName": "Tajon Buchanan",
         "clubName": "Villarreal",
         "position": "MID",
-        "price": 5.0
+        "price": 5.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 97923,
         "fullName": "Manuel Neuer",
         "clubName": "Bayern München",
         "position": "GK",
-        "price": 6.0
+        "price": 6.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250091828,
         "fullName": "Raoul Bellanova",
         "clubName": "Atalanta",
         "position": "DEF",
-        "price": 4.0
+        "price": 4.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250105890,
         "fullName": "Joey Veerman",
         "clubName": "PSV",
         "position": "MID",
-        "price": 6.5
+        "price": 6.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250178594,
         "fullName": "Guglielmo Vicario",
         "clubName": "Tottenham",
         "position": "GK",
-        "price": 5.0
+        "price": 5.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250106986,
         "fullName": "Pedro Neto",
         "clubName": "Chelsea",
         "position": "MID",
-        "price": 7.0
+        "price": 7.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250128391,
         "fullName": "Jarell Quansah",
         "clubName": "Leverkusen",
         "position": "DEF",
-        "price": 4.5
+        "price": 4.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250119677,
         "fullName": "Ramy Bensebaini",
         "clubName": "B. Dortmund",
         "position": "DEF",
-        "price": 4.5
+        "price": 4.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250126271,
         "fullName": "Aitor Paredes",
         "clubName": "Athletic Club",
         "position": "DEF",
-        "price": 4.0
+        "price": 4.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250130221,
         "fullName": "Rasmus Højlund",
         "clubName": "Napoli",
         "position": "FWD",
-        "price": 6.0
+        "price": 6.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250117508,
         "fullName": "Tino Livramento",
         "clubName": "Newcastle",
         "position": "DEF",
-        "price": 4.5
+        "price": 4.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250101201,
         "fullName": "Michele Di Gregorio",
         "clubName": "Juventus",
         "position": "GK",
-        "price": 4.5
+        "price": 4.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250153634,
         "fullName": "Giuliano Simeone",
         "clubName": "Atleti",
         "position": "MID",
-        "price": 6.0
+        "price": 6.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       }
     ],
     "Женя": [
@@ -714,175 +1714,425 @@
         "fullName": "Lamine Yamal",
         "clubName": "Barcelona",
         "position": "MID",
-        "price": 10.0
+        "price": 10.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250124282,
         "fullName": "Cole Palmer",
         "clubName": "Chelsea",
         "position": "MID",
-        "price": 9.5
+        "price": 9.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250066886,
         "fullName": "Ousmane Dembélé",
         "clubName": "Paris",
         "position": "FWD",
-        "price": 10.0
+        "price": 10.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250172668,
         "fullName": "Julián Alvarez",
         "clubName": "Atleti",
         "position": "FWD",
-        "price": 9.0
+        "price": 9.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250008901,
         "fullName": "Kevin De Bruyne",
         "clubName": "Napoli",
         "position": "MID",
-        "price": 8.0
+        "price": 8.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250099180,
         "fullName": "Dušan Vlahović",
         "clubName": "Juventus",
         "position": "FWD",
-        "price": 7.5
+        "price": 7.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250081341,
         "fullName": "Martin Ødegaard",
         "clubName": "Arsenal",
         "position": "MID",
-        "price": 8.5
+        "price": 8.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250070417,
         "fullName": "Joshua Kimmich",
         "clubName": "Bayern München",
         "position": "MID",
-        "price": 6.5
+        "price": 6.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250056189,
         "fullName": "Federico Dimarco",
         "clubName": "Inter",
         "position": "DEF",
-        "price": 5.5
+        "price": 5.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250074434,
         "fullName": "Mauro Icardi",
         "clubName": "Galatasaray",
         "position": "FWD",
-        "price": 6.5
+        "price": 6.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250078682,
         "fullName": "Wout Weghorst",
         "clubName": "Ajax",
         "position": "FWD",
-        "price": 6.5
+        "price": 6.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250121294,
         "fullName": "Tijjani Reijnders",
         "clubName": "Man City",
         "position": "MID",
-        "price": 6.5
+        "price": 6.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250064232,
         "fullName": "Davide Zappacosta",
         "clubName": "Atalanta",
         "position": "DEF",
-        "price": 4.5
+        "price": 4.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250046522,
         "fullName": "Julian Brandt",
         "clubName": "B. Dortmund",
         "position": "MID",
-        "price": 7.0
+        "price": 7.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250104066,
         "fullName": "Dominik Szoboszlai",
         "clubName": "Liverpool",
         "position": "MID",
-        "price": 6.5
+        "price": 6.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250132829,
         "fullName": "Rodrygo",
         "clubName": "Real Madrid",
         "position": "MID",
-        "price": 8.5
+        "price": 8.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250145845,
         "fullName": "Geny Catamo",
         "clubName": "Sporting CP",
         "position": "DEF",
-        "price": 5.5
+        "price": 5.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250118266,
         "fullName": "Nick Pope",
         "clubName": "Newcastle",
         "position": "GK",
-        "price": 5.0
+        "price": 5.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250129412,
         "fullName": "Rafa Marín",
         "clubName": "Villarreal",
         "position": "DEF",
-        "price": 4.5
+        "price": 4.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250053044,
         "fullName": "Brandon Mechele",
         "clubName": "Club Brugge",
         "position": "DEF",
-        "price": 5.0
+        "price": 5.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250100056,
         "fullName": "Emerson",
         "clubName": "Marseille",
         "position": "DEF",
-        "price": 5.0
+        "price": 5.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250050416,
         "fullName": "Eric Dier",
         "clubName": "Monaco",
         "position": "DEF",
-        "price": 4.5
+        "price": 4.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250074850,
         "fullName": "Rasmus Kristensen",
         "clubName": "Frankfurt",
         "position": "DEF",
-        "price": 4.5
+        "price": 4.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250167143,
         "fullName": "Mark Flekken",
         "clubName": "Leverkusen",
         "position": "GK",
-        "price": 5.0
+        "price": 5.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250113444,
         "fullName": "Anatoliy Trubin",
         "clubName": "Benfica",
         "position": "GK",
-        "price": 4.5
+        "price": 4.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       }
     ],
     "Макс": [
@@ -891,175 +2141,425 @@
         "fullName": "Bradley Barcola",
         "clubName": "Paris",
         "position": "MID",
-        "price": 7.5
+        "price": 7.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250132811,
         "fullName": "Luis Díaz",
         "clubName": "Bayern München",
         "position": "FWD",
-        "price": 7.5
+        "price": 7.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250080553,
         "fullName": "Serhou Guirassy",
         "clubName": "B. Dortmund",
         "position": "FWD",
-        "price": 8.0
+        "price": 8.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250002096,
         "fullName": "Robert Lewandowski",
         "clubName": "Barcelona",
         "position": "FWD",
-        "price": 9.5
+        "price": 9.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250042422,
         "fullName": "Alejandro Grimaldo",
         "clubName": "Leverkusen",
         "position": "DEF",
-        "price": 6.0
+        "price": 6.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250132987,
         "fullName": "Victor Osimhen",
         "clubName": "Galatasaray",
         "position": "FWD",
-        "price": 7.5
+        "price": 7.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250134376,
         "fullName": "Eberechi Eze",
         "clubName": "Arsenal",
         "position": "MID",
-        "price": 7.5
+        "price": 7.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 97746,
         "fullName": "Yann Sommer",
         "clubName": "Inter",
         "position": "GK",
-        "price": 6.0
+        "price": 6.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250194474,
         "fullName": "Dean Huijsen",
         "clubName": "Real Madrid",
         "position": "DEF",
-        "price": 4.5
+        "price": 4.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 50327420,
         "fullName": "Virgil van Dijk",
         "clubName": "Liverpool",
         "position": "DEF",
-        "price": 6.0
+        "price": 6.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250124460,
         "fullName": "Christos Tzolis",
         "clubName": "Club Brugge",
         "position": "FWD",
-        "price": 6.0
+        "price": 6.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250106003,
         "fullName": "Nicolas Pépé",
         "clubName": "Villarreal",
         "position": "MID",
-        "price": 6.0
+        "price": 6.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250082664,
         "fullName": "Rodri",
         "clubName": "Man City",
         "position": "MID",
-        "price": 7.0
+        "price": 7.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250086987,
         "fullName": "André-Frank Zambo Anguissa",
         "clubName": "Napoli",
         "position": "MID",
-        "price": 5.5
+        "price": 5.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250181610,
         "fullName": "Moises Caicedo",
         "clubName": "Chelsea",
         "position": "MID",
-        "price": 6.0
+        "price": 6.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250163623,
         "fullName": "Andrea Cambiaso",
         "clubName": "Juventus",
         "position": "DEF",
-        "price": 5.0
+        "price": 5.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250144325,
         "fullName": "Cristian Romero",
         "clubName": "Tottenham",
         "position": "DEF",
-        "price": 5.0
+        "price": 5.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250112122,
         "fullName": "Francisco Trincão",
         "clubName": "Sporting CP",
         "position": "MID",
-        "price": 6.0
+        "price": 6.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250105612,
         "fullName": "Marco Carnesecchi",
         "clubName": "Atalanta",
         "position": "GK",
-        "price": 4.5
+        "price": 4.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250079670,
         "fullName": "Marcos Llorente",
         "clubName": "Atleti",
         "position": "MID",
-        "price": 6.5
+        "price": 6.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250134309,
         "fullName": "Ritsu Doan",
         "clubName": "Frankfurt",
         "position": "MID",
-        "price": 5.5
+        "price": 5.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250194503,
         "fullName": "Daniel Vivian",
         "clubName": "Athletic Club",
         "position": "DEF",
-        "price": 4.5
+        "price": 4.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250117491,
         "fullName": "Matěj Kovář",
         "clubName": "PSV",
         "position": "GK",
-        "price": 4.5
+        "price": 4.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250186141,
         "fullName": "Dan Burn",
         "clubName": "Newcastle",
         "position": "DEF",
-        "price": 4.5
+        "price": 4.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250126449,
         "fullName": "Amar Dedić",
         "clubName": "Benfica",
         "position": "DEF",
-        "price": 4.5
+        "price": 4.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       }
     ],
     "Серёга Б": [
@@ -1068,175 +2568,425 @@
         "fullName": "Michael Olise",
         "clubName": "Bayern München",
         "position": "MID",
-        "price": 8.0
+        "price": 8.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250118281,
         "fullName": "Lautaro Martínez",
         "clubName": "Inter",
         "position": "FWD",
-        "price": 9.5
+        "price": 9.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250088320,
         "fullName": "Ferran Torres",
         "clubName": "Barcelona",
         "position": "FWD",
-        "price": 7.0
+        "price": 7.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250144643,
         "fullName": "Hugo Ekitike",
         "clubName": "Liverpool",
         "position": "FWD",
-        "price": 8.0
+        "price": 8.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250076168,
         "fullName": "Marc Cucurella",
         "clubName": "Chelsea",
         "position": "DEF",
-        "price": 5.5
+        "price": 5.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250106722,
         "fullName": "Khephren Thuram",
         "clubName": "Juventus",
         "position": "MID",
-        "price": 5.5
+        "price": 5.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250113134,
         "fullName": "Noni Madueke",
         "clubName": "Arsenal",
         "position": "MID",
-        "price": 6.5
+        "price": 6.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250078922,
         "fullName": "Gianluigi Donnarumma",
         "clubName": "Man City",
         "position": "GK",
-        "price": 6.0
+        "price": 6.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250064229,
         "fullName": "Giovanni Di Lorenzo",
         "clubName": "Napoli",
         "position": "DEF",
-        "price": 5.5
+        "price": 5.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250164991,
         "fullName": "João Neves",
         "clubName": "Paris",
         "position": "MID",
-        "price": 6.0
+        "price": 6.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250099258,
         "fullName": "Ademola Lookman",
         "clubName": "Atalanta",
         "position": "MID",
-        "price": 7.0
+        "price": 7.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 150562676,
         "fullName": "Pedro Porro",
         "clubName": "Tottenham",
         "position": "DEF",
-        "price": 5.0
+        "price": 5.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250081223,
         "fullName": "Takumi Minamino",
         "clubName": "Monaco",
         "position": "MID",
-        "price": 6.0
+        "price": 6.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250050401,
         "fullName": "Fabian Schär",
         "clubName": "Newcastle",
         "position": "DEF",
-        "price": 4.5
+        "price": 4.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250088039,
         "fullName": "Brahim Díaz",
         "clubName": "Real Madrid",
         "position": "MID",
-        "price": 6.5
+        "price": 6.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250112998,
         "fullName": "Sergiño Dest",
         "clubName": "PSV",
         "position": "DEF",
-        "price": 4.5
+        "price": 4.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250163185,
         "fullName": "Nico Williams",
         "clubName": "Athletic Club",
         "position": "MID",
-        "price": 8.0
+        "price": 8.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250211809,
         "fullName": "Michael Zetterer",
         "clubName": "Frankfurt",
         "position": "GK",
-        "price": 4.0
+        "price": 4.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250139036,
         "fullName": "Pablo Barrios",
         "clubName": "Atleti",
         "position": "MID",
-        "price": 5.5
+        "price": 5.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250092517,
         "fullName": "Julian Ryerson",
         "clubName": "B. Dortmund",
         "position": "DEF",
-        "price": 5.0
+        "price": 5.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250118298,
         "fullName": "Ayoub El Kaabi",
         "clubName": "Olympiacos",
         "position": "FWD",
-        "price": 6.0
+        "price": 6.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250174052,
         "fullName": "Anton Gaaei",
         "clubName": "Ajax",
         "position": "DEF",
-        "price": 4.0
+        "price": 4.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250011037,
         "fullName": "Pierre-Emerick Aubameyang",
         "clubName": "Marseille",
         "position": "FWD",
-        "price": 6.5
+        "price": 6.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250210287,
         "fullName": "Luiz Júnior",
         "clubName": "Villarreal",
         "position": "GK",
-        "price": 4.0
+        "price": 4.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250161164,
         "fullName": "Loic Bade",
         "clubName": "Leverkusen",
         "position": "DEF",
-        "price": 4.5
+        "price": 4.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       }
     ],
     "Сергей": [
@@ -1245,175 +2995,425 @@
         "fullName": "David Raya",
         "clubName": "Arsenal",
         "position": "GK",
-        "price": 5.5
+        "price": 5.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250187620,
         "fullName": "Ricardo Pepi",
         "clubName": "PSV",
         "position": "FWD",
-        "price": 6.0
+        "price": 6.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250139217,
         "fullName": "Omar Marmoush",
         "clubName": "Man City",
         "position": "FWD",
-        "price": 8.5
+        "price": 8.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250164780,
         "fullName": "Fermín López",
         "clubName": "Barcelona",
         "position": "MID",
-        "price": 6.5
+        "price": 6.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250011668,
         "fullName": "Thibaut Courtois",
         "clubName": "Real Madrid",
         "position": "GK",
-        "price": 6.0
+        "price": 6.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250167832,
         "fullName": "Jobe Bellingham",
         "clubName": "B. Dortmund",
         "position": "MID",
-        "price": 6.0
+        "price": 6.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250130510,
         "fullName": "Lloyd Kelly",
         "clubName": "Juventus",
         "position": "DEF",
-        "price": 4.5
+        "price": 4.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250130428,
         "fullName": "Samuel Dahl",
         "clubName": "Benfica",
         "position": "DEF",
-        "price": 4.5
+        "price": 4.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250146926,
         "fullName": "Randal Kolo Muani",
         "clubName": "Tottenham",
         "position": "FWD",
-        "price": 7.5
+        "price": 7.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250075625,
         "fullName": "Ayoze Pérez",
         "clubName": "Villarreal",
         "position": "FWD",
-        "price": 6.0
+        "price": 6.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250113276,
         "fullName": "Jeremie Frimpong",
         "clubName": "Liverpool",
         "position": "DEF",
-        "price": 5.5
+        "price": 5.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250112220,
         "fullName": "Josip Stanišić",
         "clubName": "Bayern München",
         "position": "DEF",
-        "price": 4.5
+        "price": 4.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250066739,
         "fullName": "Nicolò Barella",
         "clubName": "Inter",
         "position": "MID",
-        "price": 6.5
+        "price": 6.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250088491,
         "fullName": "Alessandro Buongiorno",
         "clubName": "Napoli",
         "position": "DEF",
-        "price": 4.0
+        "price": 4.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250124269,
         "fullName": "Anthony Elanga",
         "clubName": "Newcastle",
         "position": "MID",
-        "price": 7.0
+        "price": 7.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250164528,
         "fullName": "Jean-Matteo Bahoya",
         "clubName": "Frankfurt",
         "position": "MID",
-        "price": 5.0
+        "price": 5.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250013855,
         "fullName": "Davy Klaassen",
         "clubName": "Ajax",
         "position": "MID",
-        "price": 6.0
+        "price": 6.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250110362,
         "fullName": "Reece James",
         "clubName": "Chelsea",
         "position": "DEF",
-        "price": 5.0
+        "price": 5.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250076743,
         "fullName": "Gianluca Scamacca",
         "clubName": "Atalanta",
         "position": "FWD",
-        "price": 6.5
+        "price": 6.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250127239,
         "fullName": "Matteo Ruggeri",
         "clubName": "Atleti",
         "position": "DEF",
-        "price": 4.5
+        "price": 4.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250115436,
         "fullName": "Fabián Ruiz",
         "clubName": "Paris",
         "position": "MID",
-        "price": 6.5
+        "price": 6.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250123677,
         "fullName": "Malik Tillman",
         "clubName": "Leverkusen",
         "position": "MID",
-        "price": 6.5
+        "price": 6.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250158929,
         "fullName": "Barış Alper Yılmaz",
         "clubName": "Galatasaray",
         "position": "MID",
-        "price": 5.0
+        "price": 5.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250141864,
         "fullName": "Nikita Haikin",
         "clubName": "Bodø/Glimt",
         "position": "GK",
-        "price": 4.5
+        "price": 4.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       },
       {
         "playerId": 250077643,
         "fullName": "Ricardo Mangas",
         "clubName": "Sporting CP",
         "position": "DEF",
-        "price": 4.5
+        "price": 4.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ]
       }
     ]
   },
