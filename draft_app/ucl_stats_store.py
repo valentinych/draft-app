@@ -319,6 +319,7 @@ def _run_curl(url: str, label: str) -> Optional[str]:
         str(CURL_TIMEOUT),
         "--connect-timeout",
         str(REQUEST_CONNECT_TIMEOUT),
+        "--compressed",
     ]
     for key, value in headers.items():
         cmd.extend(["-H", f"{key}: {value}"])
