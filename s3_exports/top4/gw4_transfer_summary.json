@@ -1,0 +1,135 @@
+[
+  {
+    "out": "Субельдия",
+    "in": "Сенеси",
+    "manager": "Сергей",
+    "status": "inserted",
+    "roster_index": 12
+  },
+  {
+    "out": "Опенда",
+    "in": "Илич",
+    "manager": "Ксана",
+    "status": "inserted",
+    "roster_index": 5
+  },
+  {
+    "out": "Мингеса",
+    "in": "Руэда",
+    "manager": "Руслан",
+    "status": "inserted",
+    "roster_index": 15
+  },
+  {
+    "out": "Роджерс",
+    "in": "Грилиш",
+    "manager": "Саша",
+    "status": "inserted",
+    "roster_index": 17
+  },
+  {
+    "out": "Мигель Гутьеррес",
+    "in": "Бремер",
+    "manager": "Андрей",
+    "status": "inserted",
+    "roster_index": 14
+  },
+  {
+    "out": "Серхио Гомес",
+    "in": "Франса",
+    "manager": "Макс",
+    "status": "inserted",
+    "roster_index": 13
+  },
+  {
+    "out": "Айосе Перес",
+    "in": "Ансах",
+    "manager": "Сергей",
+    "status": "inserted",
+    "roster_index": 5
+  },
+  {
+    "out": "Соланке",
+    "in": "Изидор",
+    "manager": "Женя",
+    "status": "inserted",
+    "roster_index": 13
+  },
+  {
+    "out": "Ундав",
+    "in": "Левелинг",
+    "manager": "Ксана",
+    "status": "inserted",
+    "roster_index": 12
+  },
+  {
+    "out": "Аит-Нури",
+    "in": "Гехи",
+    "manager": "Руслан",
+    "status": "inserted",
+    "roster_index": 5
+  },
+  {
+    "out": "Дэвид",
+    "in": "Ромуло",
+    "manager": "Андрей",
+    "status": "inserted",
+    "roster_index": 8
+  },
+  {
+    "out": "Вольтемаде",
+    "in": "Гнабри",
+    "manager": "Саша",
+    "status": "inserted",
+    "roster_index": 3
+  },
+  {
+    "out": "Хак",
+    "in": "Форнальс",
+    "manager": "Сергей",
+    "status": "inserted",
+    "roster_index": 8
+  },
+  {
+    "out": "Лукаку",
+    "in": "Мурики",
+    "manager": "Женя",
+    "status": "inserted",
+    "roster_index": 2
+  },
+  {
+    "out": "Порро",
+    "in": "Ромеро",
+    "manager": "Макс",
+    "status": "inserted",
+    "roster_index": 17
+  },
+  {
+    "out": "Амири",
+    "in": "Гордон",
+    "manager": "Андрей",
+    "status": "inserted",
+    "roster_index": 12
+  },
+  {
+    "out": "Висса",
+    "in": "Аслани",
+    "manager": "Макс",
+    "status": "inserted",
+    "roster_index": 15
+  },
+  {
+    "out": "Симеоне",
+    "in": "Альмада",
+    "manager": "Саша",
+    "status": "updated_existing",
+    "roster_index": 14
+  },
+  {
+    "out": "Ливраменто",
+    "in": "Берн",
+    "manager": "Ксана",
+    "status": "inserted",
+    "roster_index": 17
+  }
+]
