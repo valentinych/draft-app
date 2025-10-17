@@ -342,13 +342,12 @@
         ]
       },
       {
-        "playerId": 250092668,
-        "fullName": "Dávid Hancko",
-        "clubName": "Atleti",
+        "playerId": 250197577,
+        "fullName": "Rodrigo Huescas",
+        "clubName": "Copenhagen",
         "position": "DEF",
         "price": 4.5,
         "matchdays": [
-          1,
           2,
           3,
           4,
@@ -356,7 +355,20 @@
           6,
           7,
           8
-        ]
+        ],
+        "transferred_in_gw": 2
+      },
+      {
+        "playerId": 250092668,
+        "fullName": "Dávid Hancko",
+        "clubName": "Atleti",
+        "position": "DEF",
+        "price": 4.5,
+        "matchdays": [
+          1
+        ],
+        "status": "transfer_out",
+        "transferred_out_gw": 2
       },
       {
         "playerId": 103823,
@@ -1230,13 +1242,12 @@
         ]
       },
       {
-        "playerId": 98078,
-        "fullName": "Simon Mignolet",
+        "playerId": 250066521,
+        "fullName": "Nordin Jackers",
         "clubName": "Club Brugge",
         "position": "GK",
-        "price": 5.0,
+        "price": 4.0,
         "matchdays": [
-          1,
           2,
           3,
           4,
@@ -1244,7 +1255,20 @@
           6,
           7,
           8
-        ]
+        ],
+        "transferred_in_gw": 2
+      },
+      {
+        "playerId": 98078,
+        "fullName": "Simon Mignolet",
+        "clubName": "Club Brugge",
+        "position": "GK",
+        "price": 5.0,
+        "matchdays": [
+          1
+        ],
+        "status": "transfer_out",
+        "transferred_out_gw": 2
       },
       {
         "playerId": 250103561,
@@ -1419,13 +1443,12 @@
         ]
       },
       {
-        "playerId": 250127436,
-        "fullName": "Rayan Aït-Nouri",
+        "playerId": 250058220,
+        "fullName": "Rúben Dias",
         "clubName": "Man City",
         "position": "DEF",
-        "price": 5.0,
+        "price": 5.5,
         "matchdays": [
-          1,
           2,
           3,
           4,
@@ -1433,7 +1456,20 @@
           6,
           7,
           8
-        ]
+        ],
+        "transferred_in_gw": 2
+      },
+      {
+        "playerId": 250127436,
+        "fullName": "Rayan Aït-Nouri",
+        "clubName": "Man City",
+        "position": "DEF",
+        "price": 5.0,
+        "matchdays": [
+          1
+        ],
+        "status": "transfer_out",
+        "transferred_out_gw": 2
       },
       {
         "playerId": 250116767,
@@ -1982,13 +2018,12 @@
         ]
       },
       {
-        "playerId": 250145845,
-        "fullName": "Geny Catamo",
+        "playerId": 250177497,
+        "fullName": "Geovany Quenda",
         "clubName": "Sporting CP",
         "position": "DEF",
-        "price": 5.5,
+        "price": 5.0,
         "matchdays": [
-          1,
           2,
           3,
           4,
@@ -1996,7 +2031,20 @@
           6,
           7,
           8
-        ]
+        ],
+        "transferred_in_gw": 2
+      },
+      {
+        "playerId": 250145845,
+        "fullName": "Geny Catamo",
+        "clubName": "Sporting CP",
+        "position": "DEF",
+        "price": 5.5,
+        "matchdays": [
+          1
+        ],
+        "status": "transfer_out",
+        "transferred_out_gw": 2
       },
       {
         "playerId": 250118266,
@@ -2341,13 +2389,12 @@
         ]
       },
       {
-        "playerId": 250082664,
-        "fullName": "Rodri",
+        "playerId": 250113142,
+        "fullName": "Jérémy Doku",
         "clubName": "Man City",
         "position": "MID",
         "price": 7.0,
         "matchdays": [
-          1,
           2,
           3,
           4,
@@ -2355,7 +2402,20 @@
           6,
           7,
           8
-        ]
+        ],
+        "transferred_in_gw": 2
+      },
+      {
+        "playerId": 250082664,
+        "fullName": "Rodri",
+        "clubName": "Man City",
+        "position": "MID",
+        "price": 7.0,
+        "matchdays": [
+          1
+        ],
+        "status": "transfer_out",
+        "transferred_out_gw": 2
       },
       {
         "playerId": 250086987,
@@ -2666,13 +2726,12 @@
         ]
       },
       {
-        "playerId": 250113134,
-        "fullName": "Noni Madueke",
+        "playerId": 250134304,
+        "fullName": "Gabriel Martinelli",
         "clubName": "Arsenal",
         "position": "MID",
-        "price": 6.5,
+        "price": 7.5,
         "matchdays": [
-          1,
           2,
           3,
           4,
@@ -2680,7 +2739,20 @@
           6,
           7,
           8
-        ]
+        ],
+        "transferred_in_gw": 2
+      },
+      {
+        "playerId": 250113134,
+        "fullName": "Noni Madueke",
+        "clubName": "Arsenal",
+        "position": "MID",
+        "price": 6.5,
+        "matchdays": [
+          1
+        ],
+        "status": "transfer_out",
+        "transferred_out_gw": 2
       },
       {
         "playerId": 250078922,
@@ -3076,13 +3148,12 @@
         ]
       },
       {
-        "playerId": 250167832,
-        "fullName": "Jobe Bellingham",
-        "clubName": "B. Dortmund",
+        "playerId": 250064188,
+        "fullName": "Hans Vanaken",
+        "clubName": "Club Brugge",
         "position": "MID",
-        "price": 6.0,
+        "price": 5.0,
         "matchdays": [
-          1,
           2,
           3,
           4,
@@ -3090,7 +3161,20 @@
           6,
           7,
           8
-        ]
+        ],
+        "transferred_in_gw": 2
+      },
+      {
+        "playerId": 250167832,
+        "fullName": "Jobe Bellingham",
+        "clubName": "B. Dortmund",
+        "position": "MID",
+        "price": 6.0,
+        "matchdays": [
+          1
+        ],
+        "status": "transfer_out",
+        "transferred_out_gw": 2
       },
       {
         "playerId": 250130510,
