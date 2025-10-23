@@ -315,14 +315,26 @@
         "price": 7.0,
         "matchdays": [
           1,
-          2,
+          2
+        ],
+        "status": "transfer_out",
+        "transferred_out_gw": 3
+      },
+      {
+        "playerId": 250106143,
+        "fullName": "J. Burkardt",
+        "clubName": "Frankfurt",
+        "position": "FWD",
+        "price": 5.0,
+        "matchdays": [
           3,
           4,
           5,
           6,
           7,
           8
-        ]
+        ],
+        "transferred_in_gw": 3
       },
       {
         "playerId": 250132323,
@@ -805,14 +817,26 @@
         "price": 5.0,
         "matchdays": [
           1,
-          2,
+          2
+        ],
+        "status": "transfer_out",
+        "transferred_out_gw": 3
+      },
+      {
+        "playerId": 250020885,
+        "fullName": "L. Spinazzola",
+        "clubName": "Napoli",
+        "position": "DEF",
+        "price": 4.5,
+        "matchdays": [
           3,
           4,
           5,
           6,
           7,
           8
-        ]
+        ],
+        "transferred_in_gw": 3
       },
       {
         "playerId": 250104207,
@@ -1011,14 +1035,26 @@
         "price": 7.5,
         "matchdays": [
           1,
-          2,
+          2
+        ],
+        "status": "transfer_out",
+        "transferred_out_gw": 3
+      },
+      {
+        "playerId": 250102035,
+        "fullName": "J. David",
+        "clubName": "Juventus",
+        "position": "FWD",
+        "price": 6.0,
+        "matchdays": [
           3,
           4,
           5,
           6,
           7,
           8
-        ]
+        ],
+        "transferred_in_gw": 3
       },
       {
         "playerId": 250127347,
@@ -1564,14 +1600,26 @@
         "price": 4.0,
         "matchdays": [
           1,
-          2,
+          2
+        ],
+        "status": "transfer_out",
+        "transferred_out_gw": 3
+      },
+      {
+        "playerId": 250138174,
+        "fullName": "L. Bernasconi",
+        "clubName": "Atalanta",
+        "position": "DEF",
+        "price": 4.0,
+        "matchdays": [
           3,
           4,
           5,
           6,
           7,
           8
-        ]
+        ],
+        "transferred_in_gw": 3
       },
       {
         "playerId": 250105890,
@@ -2716,14 +2764,26 @@
         "price": 5.5,
         "matchdays": [
           1,
-          2,
+          2
+        ],
+        "status": "transfer_out",
+        "transferred_out_gw": 3
+      },
+      {
+        "playerId": 250116904,
+        "fullName": "W. McKennie",
+        "clubName": "Juventus",
+        "position": "MID",
+        "price": 6.0,
+        "matchdays": [
           3,
           4,
           5,
           6,
           7,
           8
-        ]
+        ],
+        "transferred_in_gw": 3
       },
       {
         "playerId": 250134304,
@@ -3490,14 +3550,26 @@
         "price": 4.5,
         "matchdays": [
           1,
-          2,
+          2
+        ],
+        "status": "transfer_out",
+        "transferred_out_gw": 3
+      },
+      {
+        "playerId": 250163731,
+        "fullName": "Yan Couto",
+        "clubName": "B. Dortmund",
+        "position": "DEF",
+        "price": 4.0,
+        "matchdays": [
           3,
           4,
           5,
           6,
           7,
           8
-        ]
+        ],
+        "transferred_in_gw": 3
       }
     ]
   },
