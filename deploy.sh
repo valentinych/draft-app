@@ -35,10 +35,16 @@ else
     echo -e "${GREEN}✅ Изменения закоммичены${NC}"
 fi
 
-# Пушим в master
-echo -e "${GREEN}📤 Пушим в master...${NC}"
-git push origin master
-echo -e "${GREEN}✅ Изменения запушены в master${NC}"
+# Определяем текущую ветку
+CURRENT_BRANCH=$(git branch --show-current)
+if [ -z "$CURRENT_BRANCH" ]; then
+    CURRENT_BRANCH="main"
+fi
+
+# Пушим в текущую ветку
+echo -e "${GREEN}📤 Пушим в ${CURRENT_BRANCH}...${NC}"
+git push origin "$CURRENT_BRANCH"
+echo -e "${GREEN}✅ Изменения запушены в ${CURRENT_BRANCH}${NC}"
 
 # Пушим в Heroku
 echo -e "${GREEN}🌐 Деплоим на Heroku...${NC}"
