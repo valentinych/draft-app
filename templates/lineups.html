@@ -22,7 +22,8 @@
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 100%;
-    font-size: clamp(0.7rem, 2.5vw, 1rem);
+    /* Базовый размер шрифта - не используем clamp, чтобы JS мог работать с исходным размером */
+    font-size: 0.875rem; /* 14px по умолчанию */
   }
   
   /* Для ячеек таблицы - ограничиваем ширину */
@@ -48,7 +49,7 @@
   .player-info .player-name {
     flex: 1;
     min-width: 0;
-    font-size: clamp(0.65rem, 2vw, 0.875rem);
+    font-size: 0.875rem; /* 14px - базовый размер, JS будет уменьшать только при необходимости */
   }
 </style>
 
@@ -66,50 +67,45 @@ document.addEventListener('DOMContentLoaded', function() {
       const rowContainer = container.closest('.is-flex.is-justify-content-space-between');
       if (!rowContainer) return;
       
-      const containerWidth = rowContainer.offsetWidth;
-      const pointsSpan = rowContainer.querySelector('.has-text-right');
-      const pointsWidth = pointsSpan ? pointsSpan.offsetWidth : 40; // Резерв для очков
-      
-      // Учитываем все элементы в контейнере
-      const img = container.querySelector('img');
-      const imgWidth = img ? img.offsetWidth + 4 : 0; // +4 для padding
-      const liveDot = container.querySelector('.live-dot');
-      const dotWidth = liveDot ? liveDot.offsetWidth + 2 : 0;
-      const subbedIcon = container.querySelector('.has-text-danger:last-child, .has-text-success:last-child');
-      const iconWidth = subbedIcon ? subbedIcon.offsetWidth : 0;
-      
-      // Доступная ширина для имени
-      const availableWidth = containerWidth - imgWidth - iconWidth - dotWidth - pointsWidth - 16; // -16 для padding
-      
-      // Сбрасываем размер шрифта для проверки
+      // Сбрасываем inline стили для проверки с исходным размером
       nameSpan.style.fontSize = '';
-      const originalFontSize = parseFloat(window.getComputedStyle(nameSpan).fontSize);
       
-      // Проверяем, влезает ли текст
-      if (nameSpan.scrollWidth > availableWidth && availableWidth > 0) {
-        // Уменьшаем шрифт пока не влезет
-        let fontSize = originalFontSize;
-        const minFontSize = 0.6; // Минимальный размер в rem (примерно 9.6px)
-        
-        while (nameSpan.scrollWidth > availableWidth && fontSize > minFontSize) {
-          fontSize -= 0.05;
-          nameSpan.style.fontSize = fontSize + 'rem';
-          
-          // Защита от бесконечного цикла
-          if (fontSize <= minFontSize) break;
-        }
+      // Получаем исходный размер шрифта из CSS
+      const computedStyle = window.getComputedStyle(nameSpan);
+      const baseFontSize = parseFloat(computedStyle.fontSize);
+      
+      // Получаем реальные размеры после рендеринга
+      const containerWidth = container.offsetWidth;
+      const nameWidth = nameSpan.scrollWidth;
+      
+      // Если имя влезает, не трогаем
+      if (nameWidth <= containerWidth || containerWidth <= 0) {
+        return;
+      }
+      
+      // Вычисляем необходимый масштаб (с небольшим запасом)
+      const scale = (containerWidth - 4) / nameWidth; // -4 для небольшого запаса
+      
+      // Ограничиваем уменьшение: минимум 90% от исходного размера
+      const minScale = 0.9;
+      const finalScale = Math.max(scale, minScale);
+      
+      // Применяем уменьшение только если действительно нужно (scale < 1)
+      if (finalScale < 1) {
+        const newFontSize = baseFontSize * finalScale;
+        nameSpan.style.fontSize = newFontSize + 'px';
       }
     });
   }
   
-  // Выполняем при загрузке с небольшой задержкой для рендеринга
-  setTimeout(adjustPlayerNames, 50);
+  // Выполняем при загрузке с задержкой для полного рендеринга
+  setTimeout(adjustPlayerNames, 150);
   
   // Выполняем при изменении размера окна
   let resizeTimeout;
   window.addEventListener('resize', function() {
     clearTimeout(resizeTimeout);
-    resizeTimeout = setTimeout(adjustPlayerNames, 100);
+    resizeTimeout = setTimeout(adjustPlayerNames, 200);
   });
 });
 </script>
