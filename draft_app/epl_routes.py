@@ -760,12 +760,16 @@ def results():
 
     # determine completed gameweeks and deadlines
     events = bootstrap.get("events") or []
-    # Определяем завершённые геймвики: берём отмеченные в bootstrap
-    # и те, для которых уже сохранены результаты
+    # Определяем завершённые геймвики: только отмеченные в bootstrap как finished
+    # Не показываем незавершённые туры
     gws_set = {int(e.get("id")) for e in events if e.get("finished")}
+    # Также добавляем туры, для которых уже сохранены результаты (на случай, если bootstrap не обновлен)
     for p in GW_SCORE_DIR.glob("gw*.json"):
         try:
-            gws_set.add(int(p.stem[2:]))
+            gw_num = int(p.stem[2:])
+            # Проверяем, что тур действительно завершен (есть в events и finished)
+            if any(int(e.get("id")) == gw_num and e.get("finished") for e in events):
+                gws_set.add(gw_num)
         except Exception:
             pass
     gws = sorted(gws_set)

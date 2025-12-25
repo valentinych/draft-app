@@ -3,41 +3,164 @@
 {% block content %}
 <h1 class="title">EPL Результаты</h1>
 {% if gws %}
-<table class="table is-striped is-fullwidth">
-  <thead>
-    <tr>
-      <th>Менеджер</th>
-      {% for gw in gws %}
-      <th>GW{{ gw }}</th>
-      {% endfor %}
-      <th>Баллы</th>
-      <th>Победы</th>
-      <th>Очки</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for row in standings %}
-    <tr>
-      <td>{{ row.manager }}</td>
-      {% for gw in gws %}
-      {% set cls = row.gw_class_points.get(gw, 0) %}
-      <td>
-        {{ row.gw_points.get(gw, 0) }} /
-        {% if cls == 8 %}
-          <strong style="color:red;">{{ cls }}</strong>
-        {% else %}
-          {{ cls }}
-        {% endif %}
-      </td>
-      {% endfor %}
-      <td>{{ row.class_points }}</td>
-      <td>{{ row.wins }}</td>
-      <td>{{ row.raw_points }}</td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
+<div class="results-wrapper">
+  <div class="results-table-container">
+    <table class="table is-striped results-table">
+      <thead>
+        <tr>
+          <th class="sticky-col manager-col">Менеджер</th>
+          {% for gw in gws %}
+          <th class="gw-col">GW{{ gw }}</th>
+          {% endfor %}
+          <th class="sticky-col points-col">Баллы</th>
+          <th class="sticky-col wins-col">Победы</th>
+          <th class="sticky-col total-col">Очки</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in standings %}
+        <tr>
+          <td class="sticky-col manager-col">{{ row.manager }}</td>
+          {% for gw in gws %}
+          {% set cls = row.gw_class_points.get(gw, 0) %}
+          <td class="gw-col">
+            {{ row.gw_points.get(gw, 0) }} /
+            {% if cls == 8 %}
+              <strong style="color:red;">{{ cls }}</strong>
+            {% else %}
+              {{ cls }}
+            {% endif %}
+          </td>
+          {% endfor %}
+          <td class="sticky-col points-col">{{ row.class_points }}</td>
+          <td class="sticky-col wins-col">{{ row.wins }}</td>
+          <td class="sticky-col total-col">{{ row.raw_points }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
 {% else %}
 <p>Нет завершённых туров.</p>
 {% endif %}
+
+<style>
+.results-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  position: relative;
+}
+
+.results-table-container {
+  position: relative;
+  min-width: 100%;
+}
+
+.results-table {
+  border-collapse: separate;
+  border-spacing: 0;
+  width: 100%;
+  min-width: 600px;
+}
+
+.results-table thead th,
+.results-table tbody td {
+  white-space: nowrap;
+  padding: 0.5em 0.75em;
+  border: 1px solid #dbdbdb;
+  text-align: center;
+}
+
+.results-table thead th {
+  background-color: #363636;
+  color: white;
+  font-weight: bold;
+}
+
+.results-table tbody td {
+  background-color: white;
+}
+
+.results-table tbody tr:nth-child(even) td {
+  background-color: #fafafa;
+}
+
+/* Закрепленные колонки */
+.sticky-col {
+  position: sticky;
+  z-index: 10;
+}
+
+.manager-col {
+  left: 0;
+  min-width: 120px;
+  max-width: 120px;
+  text-align: left;
+  font-weight: bold;
+  background-color: #f5f5f5;
+}
+
+.results-table thead .manager-col {
+  background-color: #363636;
+  color: white;
+}
+
+.results-table tbody tr:nth-child(even) .manager-col {
+  background-color: #f0f0f0;
+}
+
+.results-table tbody tr:nth-child(odd) .manager-col {
+  background-color: #f5f5f5;
+}
+
+.points-col {
+  right: 120px;
+  min-width: 80px;
+  max-width: 80px;
+  background-color: #f5f5f5;
+  font-weight: bold;
+}
+
+.wins-col {
+  right: 60px;
+  min-width: 60px;
+  max-width: 60px;
+  background-color: #f5f5f5;
+  font-weight: bold;
+}
+
+.total-col {
+  right: 0;
+  min-width: 60px;
+  max-width: 60px;
+  background-color: #f5f5f5;
+  font-weight: bold;
+}
+
+.results-table thead .points-col,
+.results-table thead .wins-col,
+.results-table thead .total-col {
+  background-color: #363636;
+  color: white;
+}
+
+.results-table tbody tr:nth-child(even) .points-col,
+.results-table tbody tr:nth-child(even) .wins-col,
+.results-table tbody tr:nth-child(even) .total-col {
+  background-color: #f0f0f0;
+}
+
+.results-table tbody tr:nth-child(odd) .points-col,
+.results-table tbody tr:nth-child(odd) .wins-col,
+.results-table tbody tr:nth-child(odd) .total-col {
+  background-color: #f5f5f5;
+}
+
+/* Колонки GW в скролле */
+.gw-col {
+  min-width: 100px;
+  text-align: center;
+}
+</style>
 {% endblock %}
