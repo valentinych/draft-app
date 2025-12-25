@@ -79,13 +79,6 @@
         "price": 6.0
       },
       {
-        "playerId": 663,
-        "fullName": "Jhon Arias",
-        "clubName": "WOL",
-        "position": "MID",
-        "price": 5.5
-      },
-      {
         "playerId": 106,
         "fullName": "Nathan Collins",
         "clubName": "BRE",
@@ -142,18 +135,25 @@
         "price": 6.5
       },
       {
-        "playerId": 669,
-        "fullName": "Dan Ndoye",
-        "clubName": "NFO",
-        "position": "MID",
-        "price": 6.0
-      },
-      {
         "playerId": 674,
         "fullName": "Aaron Ramsdale",
         "clubName": "NEW",
         "position": "GK",
         "price": 5.0
+      },
+      {
+        "playerId": 242,
+        "fullName": "Kiernan Dewsbury-Hall",
+        "clubName": "EVE",
+        "position": "MID",
+        "price": 5.0
+      },
+      {
+        "playerId": 668,
+        "fullName": "Granit Xhaka",
+        "clubName": "SUN",
+        "position": "MID",
+        "price": 5.2
       }
     ],
     "Саша": [
@@ -256,13 +256,6 @@
         "price": 5.0
       },
       {
-        "playerId": 353,
-        "fullName": "Daniel James",
-        "clubName": "LEE",
-        "position": "MID",
-        "price": 5.5
-      },
-      {
         "playerId": 225,
         "fullName": "Reece James",
         "clubName": "CHE",
@@ -270,25 +263,11 @@
         "price": 5.5
       },
       {
-        "playerId": 526,
-        "fullName": "Igor Jesus Maciel da Cruz",
-        "clubName": "NFO",
-        "position": "FWD",
-        "price": 6.0
-      },
-      {
         "playerId": 53,
         "fullName": "Donyell Malen",
         "clubName": "AVL",
         "position": "MID",
         "price": 5.5
-      },
-      {
-        "playerId": 607,
-        "fullName": "Nayef Aguerd",
-        "clubName": "WHU",
-        "position": "DEF",
-        "price": 4.5
       },
       {
         "playerId": 375,
@@ -310,6 +289,27 @@
         "clubName": "LIV",
         "position": "GK",
         "price": 4.5
+      },
+      {
+        "playerId": 261,
+        "fullName": "Chris Richards",
+        "clubName": "CRY",
+        "position": "DEF",
+        "price": 4.5
+      },
+      {
+        "playerId": 714,
+        "fullName": "Nick Woltemade",
+        "clubName": "NEW",
+        "position": "FWD",
+        "price": 7.0
+      },
+      {
+        "playerId": 20,
+        "fullName": "Leandro Trossard",
+        "clubName": "ARS",
+        "position": "MID",
+        "price": 6.9
       }
     ],
     "Руслан": [
@@ -340,13 +340,6 @@
         "clubName": "MCI",
         "position": "DEF",
         "price": 6.0
-      },
-      {
-        "playerId": 525,
-        "fullName": "Chris Wood",
-        "clubName": "NFO",
-        "position": "FWD",
-        "price": 7.5
       },
       {
         "playerId": 18,
@@ -405,13 +398,6 @@
         "price": 6.0
       },
       {
-        "playerId": 239,
-        "fullName": "Jamie Bynoe-Gittens",
-        "clubName": "CHE",
-        "position": "MID",
-        "price": 6.5
-      },
-      {
         "playerId": 10,
         "fullName": "Myles Lewis-Skelly",
         "clubName": "ARS",
@@ -454,18 +440,32 @@
         "price": 5.5
       },
       {
-        "playerId": 672,
-        "fullName": "Jorrel Hato",
-        "clubName": "CHE",
-        "position": "DEF",
-        "price": 5.0
-      },
-      {
         "playerId": 2,
         "fullName": "Kepa Arrizabalaga Revuelta",
         "clubName": "ARS",
         "position": "GK",
         "price": 4.5
+      },
+      {
+        "playerId": 478,
+        "fullName": "Kieran Trippier",
+        "clubName": "NEW",
+        "position": "DEF",
+        "price": 5.0
+      },
+      {
+        "playerId": 516,
+        "fullName": "Callum Hudson-Odoi",
+        "clubName": "NFO",
+        "position": "MID",
+        "price": 6.0
+      },
+      {
+        "playerId": 100,
+        "fullName": "Junior Kroupi",
+        "clubName": "BOU",
+        "position": "FWD",
+        "price": 4.6
       }
     ],
     "Тёма": [
@@ -610,17 +610,17 @@
         "price": 5.5
       },
       {
-        "playerId": 680,
-        "fullName": "Armando Broja",
-        "clubName": "BUR",
-        "position": "FWD",
-        "price": 5.5
-      },
-      {
         "playerId": 182,
         "fullName": "James Trafford",
         "clubName": "MCI",
         "position": "GK",
+        "price": 5.0
+      },
+      {
+        "playerId": 365,
+        "fullName": "Lucas Nmecha",
+        "clubName": "LEE",
+        "position": "FWD",
         "price": 5.0
       }
     ],
@@ -731,13 +731,6 @@
         "price": 5.5
       },
       {
-        "playerId": 583,
-        "fullName": "Dejan Kulusevski",
-        "clubName": "TOT",
-        "position": "MID",
-        "price": 6.5
-      },
-      {
         "playerId": 473,
         "fullName": "Lewis Hall",
         "clubName": "NEW",
@@ -778,6 +771,13 @@
         "clubName": "EVE",
         "position": "GK",
         "price": 4.5
+      },
+      {
+        "playerId": 673,
+        "fullName": "Palhinha",
+        "clubName": "TOT",
+        "position": "MID",
+        "price": 5.5
       }
     ],
     "Андрей": [
@@ -859,20 +859,6 @@
         "price": 5.5
       },
       {
-        "playerId": 507,
-        "fullName": "Ola Aina",
-        "clubName": "NFO",
-        "position": "DEF",
-        "price": 5.0
-      },
-      {
-        "playerId": 677,
-        "fullName": "Evann Guessand",
-        "clubName": "AVL",
-        "position": "MID",
-        "price": 6.5
-      },
-      {
         "playerId": 67,
         "fullName": "Đorđe Petrović",
         "clubName": "BOU",
@@ -891,13 +877,6 @@
         "fullName": "Norberto Bercique Gomes Betuncal",
         "clubName": "EVE",
         "position": "FWD",
-        "price": 5.5
-      },
-      {
-        "playerId": 491,
-        "fullName": "Sandro Tonali",
-        "clubName": "NEW",
-        "position": "MID",
         "price": 5.5
       },
       {
@@ -934,6 +913,27 @@
         "clubName": "TOT",
         "position": "GK",
         "price": 4.0
+      },
+      {
+        "playerId": 83,
+        "fullName": "Dango Ouattara",
+        "clubName": "BRE",
+        "position": "MID",
+        "price": 6.0
+      },
+      {
+        "playerId": 389,
+        "fullName": "Harvey Elliott",
+        "clubName": "AVL",
+        "position": "MID",
+        "price": 5.4
+      },
+      {
+        "playerId": 411,
+        "fullName": "Nico O’Reilly",
+        "clubName": "MCI",
+        "position": "DEF",
+        "price": 5.0
       }
     ],
     "Женя": [
@@ -978,13 +978,6 @@
         "clubName": "CRY",
         "position": "MID",
         "price": 7.5
-      },
-      {
-        "playerId": 48,
-        "fullName": "Youri Tielemans",
-        "clubName": "AVL",
-        "position": "MID",
-        "price": 6.0
       },
       {
         "playerId": 121,
@@ -1078,18 +1071,25 @@
         "price": 4.5
       },
       {
-        "playerId": 655,
-        "fullName": "Fábio Soares Silva",
-        "clubName": "WOL",
-        "position": "FWD",
-        "price": 5.0
-      },
-      {
         "playerId": 339,
         "fullName": "Illan Meslier",
         "clubName": "LEE",
         "position": "GK",
         "price": 4.5
+      },
+      {
+        "playerId": 726,
+        "fullName": "Randal Kolo Muani",
+        "clubName": "TOT",
+        "position": "FWD",
+        "price": 7.0
+      },
+      {
+        "playerId": 205,
+        "fullName": "Josh Cullen",
+        "clubName": "BUR",
+        "position": "MID",
+        "price": 5.0
       }
     ],
     "Макс": [
@@ -1185,25 +1185,11 @@
         "price": 5.0
       },
       {
-        "playerId": 610,
-        "fullName": "Aaron Wan-Bissaka",
-        "clubName": "WHU",
-        "position": "DEF",
-        "price": 4.5
-      },
-      {
         "playerId": 136,
         "fullName": "Igor Thiago Nascimento Rodrigues",
         "clubName": "BRE",
         "position": "FWD",
         "price": 6.0
-      },
-      {
-        "playerId": 11,
-        "fullName": "Benjamin White",
-        "clubName": "ARS",
-        "position": "DEF",
-        "price": 5.5
       },
       {
         "playerId": 290,
@@ -1227,13 +1213,6 @@
         "price": 4.5
       },
       {
-        "playerId": 158,
-        "fullName": "Georginio Rutter",
-        "clubName": "BHA",
-        "position": "MID",
-        "price": 6.0
-      },
-      {
         "playerId": 138,
         "fullName": "Jason Steele",
         "clubName": "BHA",
@@ -1246,6 +1225,27 @@
         "clubName": "SUN",
         "position": "FWD",
         "price": 5.5
+      },
+      {
+        "playerId": 569,
+        "fullName": "Cristian Romero",
+        "clubName": "TOT",
+        "position": "DEF",
+        "price": 5.0
+      },
+      {
+        "playerId": 717,
+        "fullName": "Xavi Simons",
+        "clubName": "TOT",
+        "position": "MID",
+        "price": 7.0
+      },
+      {
+        "playerId": 36,
+        "fullName": "Matty Cash",
+        "clubName": "AVL",
+        "position": "DEF",
+        "price": 4.6
       }
     ]
   },
@@ -3525,7 +3525,386 @@
       "Саша"
     ],
     "index": 0,
-    "history": []
+    "history": [
+      {
+        "gw": 3,
+        "round": 1,
+        "manager": "Ксана",
+        "out": 663,
+        "out_player": {
+          "playerId": 663,
+          "fullName": "Jhon Arias",
+          "clubName": "WOL",
+          "position": "MID",
+          "price": 5.5
+        },
+        "in": {
+          "playerId": 242,
+          "fullName": "Kiernan Dewsbury-Hall",
+          "clubName": "EVE",
+          "position": "MID",
+          "price": 5.0
+        },
+        "ts": "2025-12-25T13:16:38"
+      },
+      {
+        "gw": 3,
+        "round": 1,
+        "manager": "Саша",
+        "out": 526,
+        "out_player": {
+          "playerId": 526,
+          "fullName": "Igor Jesus Maciel da Cruz",
+          "clubName": "NFO",
+          "position": "FWD",
+          "price": 6.0
+        },
+        "in": {
+          "playerId": 261,
+          "fullName": "Chris Richards",
+          "clubName": "CRY",
+          "position": "DEF",
+          "price": 4.5
+        },
+        "ts": "2025-12-25T13:16:38"
+      },
+      {
+        "gw": 3,
+        "round": 1,
+        "manager": "Саша",
+        "out": 607,
+        "out_player": {
+          "playerId": 607,
+          "fullName": "Nayef Aguerd",
+          "clubName": "WHU",
+          "position": "DEF",
+          "price": 4.5
+        },
+        "in": {
+          "playerId": 714,
+          "fullName": "Nick Woltemade",
+          "clubName": "NEW",
+          "position": "FWD",
+          "price": 7.0
+        },
+        "ts": "2025-12-25T13:16:38"
+      },
+      {
+        "gw": 3,
+        "round": 1,
+        "manager": "Руслан",
+        "out": 239,
+        "out_player": {
+          "playerId": 239,
+          "fullName": "Jamie Bynoe-Gittens",
+          "clubName": "CHE",
+          "position": "MID",
+          "price": 6.5
+        },
+        "in": {
+          "playerId": 478,
+          "fullName": "Kieran Trippier",
+          "clubName": "NEW",
+          "position": "DEF",
+          "price": 5.0
+        },
+        "ts": "2025-12-25T13:16:38"
+      },
+      {
+        "gw": 3,
+        "round": 1,
+        "manager": "Руслан",
+        "out": 672,
+        "out_player": {
+          "playerId": 672,
+          "fullName": "Jorrel Hato",
+          "clubName": "CHE",
+          "position": "DEF",
+          "price": 5.0
+        },
+        "in": {
+          "playerId": 516,
+          "fullName": "Callum Hudson-Odoi",
+          "clubName": "NFO",
+          "position": "MID",
+          "price": 6.0
+        },
+        "ts": "2025-12-25T13:16:38"
+      },
+      {
+        "gw": 3,
+        "round": 1,
+        "manager": "Андрей",
+        "out": 491,
+        "out_player": {
+          "playerId": 491,
+          "fullName": "Sandro Tonali",
+          "clubName": "NEW",
+          "position": "MID",
+          "price": 5.5
+        },
+        "in": {
+          "playerId": 83,
+          "fullName": "Dango Ouattara",
+          "clubName": "BRE",
+          "position": "MID",
+          "price": 6.0
+        },
+        "ts": "2025-12-25T13:16:38"
+      },
+      {
+        "gw": 3,
+        "round": 1,
+        "manager": "Андрей",
+        "out": 677,
+        "out_player": {
+          "playerId": 677,
+          "fullName": "Evann Guessand",
+          "clubName": "AVL",
+          "position": "MID",
+          "price": 6.5
+        },
+        "in": {
+          "playerId": 389,
+          "fullName": "Harvey Elliott",
+          "clubName": "AVL",
+          "position": "MID",
+          "price": 5.4
+        },
+        "ts": "2025-12-25T13:16:38"
+      },
+      {
+        "gw": 3,
+        "round": 1,
+        "manager": "Женя",
+        "out": 655,
+        "out_player": {
+          "playerId": 655,
+          "fullName": "Fábio Soares Silva",
+          "clubName": "WOL",
+          "position": "FWD",
+          "price": 5.0
+        },
+        "in": {
+          "playerId": 726,
+          "fullName": "Randal Kolo Muani",
+          "clubName": "TOT",
+          "position": "FWD",
+          "price": 7.0
+        },
+        "ts": "2025-12-25T13:16:38"
+      },
+      {
+        "gw": 3,
+        "round": 1,
+        "manager": "Макс",
+        "out": 158,
+        "out_player": {
+          "playerId": 158,
+          "fullName": "Georginio Rutter",
+          "clubName": "BHA",
+          "position": "MID",
+          "price": 6.0
+        },
+        "in": {
+          "playerId": 569,
+          "fullName": "Cristian Romero",
+          "clubName": "TOT",
+          "position": "DEF",
+          "price": 5.0
+        },
+        "ts": "2025-12-25T13:16:38"
+      },
+      {
+        "gw": 3,
+        "round": 1,
+        "manager": "Макс",
+        "out": 610,
+        "out_player": {
+          "playerId": 610,
+          "fullName": "Aaron Wan-Bissaka",
+          "clubName": "WHU",
+          "position": "DEF",
+          "price": 4.5
+        },
+        "in": {
+          "playerId": 717,
+          "fullName": "Xavi Simons",
+          "clubName": "TOT",
+          "position": "MID",
+          "price": 7.0
+        },
+        "ts": "2025-12-25T13:16:38"
+      },
+      {
+        "gw": 10,
+        "round": 1,
+        "manager": "Ксана",
+        "out": 669,
+        "out_player": {
+          "playerId": 669,
+          "fullName": "Dan Ndoye",
+          "clubName": "NFO",
+          "position": "MID",
+          "price": 6.0
+        },
+        "in": {
+          "playerId": 668,
+          "fullName": "Granit Xhaka",
+          "clubName": "SUN",
+          "position": "MID",
+          "price": 5.2
+        },
+        "ts": "2025-12-25T13:16:38"
+      },
+      {
+        "gw": 10,
+        "round": 1,
+        "manager": "Саша",
+        "out": 353,
+        "out_player": {
+          "playerId": 353,
+          "fullName": "Daniel James",
+          "clubName": "LEE",
+          "position": "MID",
+          "price": 5.5
+        },
+        "in": {
+          "playerId": 20,
+          "fullName": "Leandro Trossard",
+          "clubName": "ARS",
+          "position": "MID",
+          "price": 6.9
+        },
+        "ts": "2025-12-25T13:16:38"
+      },
+      {
+        "gw": 10,
+        "round": 1,
+        "manager": "Руслан",
+        "out": 525,
+        "out_player": {
+          "playerId": 525,
+          "fullName": "Chris Wood",
+          "clubName": "NFO",
+          "position": "FWD",
+          "price": 7.5
+        },
+        "in": {
+          "playerId": 100,
+          "fullName": "Junior Kroupi",
+          "clubName": "BOU",
+          "position": "FWD",
+          "price": 4.6
+        },
+        "ts": "2025-12-25T13:16:38"
+      },
+      {
+        "gw": 10,
+        "round": 1,
+        "manager": "Тёма",
+        "out": 680,
+        "out_player": {
+          "playerId": 680,
+          "fullName": "Armando Broja",
+          "clubName": "BUR",
+          "position": "FWD",
+          "price": 5.5
+        },
+        "in": {
+          "playerId": 365,
+          "fullName": "Lucas Nmecha",
+          "clubName": "LEE",
+          "position": "FWD",
+          "price": 5.0
+        },
+        "ts": "2025-12-25T13:16:38"
+      },
+      {
+        "gw": 10,
+        "round": 1,
+        "manager": "Сергей",
+        "out": 583,
+        "out_player": {
+          "playerId": 583,
+          "fullName": "Dejan Kulusevski",
+          "clubName": "TOT",
+          "position": "MID",
+          "price": 6.5
+        },
+        "in": {
+          "playerId": 673,
+          "fullName": "Palhinha",
+          "clubName": "TOT",
+          "position": "MID",
+          "price": 5.5
+        },
+        "ts": "2025-12-25T13:16:38"
+      },
+      {
+        "gw": 10,
+        "round": 1,
+        "manager": "Андрей",
+        "out": 507,
+        "out_player": {
+          "playerId": 507,
+          "fullName": "Ola Aina",
+          "clubName": "NFO",
+          "position": "DEF",
+          "price": 5.0
+        },
+        "in": {
+          "playerId": 411,
+          "fullName": "Nico O’Reilly",
+          "clubName": "MCI",
+          "position": "DEF",
+          "price": 5.0
+        },
+        "ts": "2025-12-25T13:16:38"
+      },
+      {
+        "gw": 10,
+        "round": 1,
+        "manager": "Женя",
+        "out": 48,
+        "out_player": {
+          "playerId": 48,
+          "fullName": "Youri Tielemans",
+          "clubName": "AVL",
+          "position": "MID",
+          "price": 6.0
+        },
+        "in": {
+          "playerId": 205,
+          "fullName": "Josh Cullen",
+          "clubName": "BUR",
+          "position": "MID",
+          "price": 5.0
+        },
+        "ts": "2025-12-25T13:16:38"
+      },
+      {
+        "gw": 10,
+        "round": 1,
+        "manager": "Макс",
+        "out": 11,
+        "out_player": {
+          "playerId": 11,
+          "fullName": "Benjamin White",
+          "clubName": "ARS",
+          "position": "DEF",
+          "price": 5.5
+        },
+        "in": {
+          "playerId": 36,
+          "fullName": "Matty Cash",
+          "clubName": "AVL",
+          "position": "DEF",
+          "price": 4.6
+        },
+        "ts": "2025-12-25T13:16:38"
+      }
+    ]
   },
   "next_round": 23
 }
