@@ -831,6 +831,9 @@ def record_transfer(
     """Записывает трансфер игрока. out_pid может быть None, если игрок был
     удалён из состава ранее (например, до фикса багов). В этом случае
     выполняется лишь добавление нового игрока с проверкой лимитов.
+    
+    Трансфер можно совершить только в рамках одной позиции:
+    DEF можно поменять только на DEF, MID на MID, FWD на FWD, GK на GK.
     """
     t = state.setdefault("transfer", {})
     history = t.setdefault("history", [])
@@ -845,6 +848,16 @@ def record_transfer(
             if pid == int(out_pid):
                 out_player = dict(p)
                 break
+        
+        # Проверяем, что позиции совпадают
+        out_position = out_player.get("position") if out_player else None
+        in_position = in_player.get("position")
+        
+        if out_position and in_position and out_position != in_position:
+            raise ValueError(
+                f"Трансфер можно совершить только в рамках одной позиции. "
+                f"Попытка заменить {out_position} на {in_position}"
+            )
     
     event = {
         "gw": t.get("gw"),
@@ -856,6 +869,10 @@ def record_transfer(
         "ts": datetime.utcnow().isoformat(timespec="seconds"),
     }
     history.append(event)
+    
+    # Убеждаемся, что история сохраняется в state
+    t["history"] = history
+    
     try:
         from .transfer_store import append_transfer
         append_transfer(event)

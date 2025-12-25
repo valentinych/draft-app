@@ -79,6 +79,26 @@ def index():
                 "position": meta.get("position"),
                 "price": meta.get("price"),
             }
+            # Проверяем позиции при трансфере
+            if out_pid is not None:
+                rosters = state.get("rosters", {})
+                roster = rosters.get(current_user, [])
+                out_player = None
+                for p in roster:
+                    pid = int(p.get("playerId") or p.get("id"))
+                    if pid == int(out_pid):
+                        out_player = p
+                        break
+                if out_player:
+                    out_position = out_player.get("position")
+                    in_position = new_pl.get("position")
+                    if out_position and in_position and out_position != in_position:
+                        flash(
+                            f"Трансфер можно совершить только в рамках одной позиции. "
+                            f"Попытка заменить {out_position} на {in_position}",
+                            "danger"
+                        )
+                        return redirect(url_for("epl.index"))
             # Проверяем позиционные лимиты, если игрок не был предварительно удалён
             if out_pid is None:
                 from .config import EPL_POSITION_LIMITS
@@ -836,7 +856,30 @@ def do_transfer():
             "position": meta.get("position"),
             "price": meta.get("price"),
         }
-        record_transfer(state, user, out_pid, new_pl)
+        # Проверяем позиции при трансфере
+        rosters = state.get("rosters", {})
+        roster = rosters.get(user, [])
+        out_player = None
+        for p in roster:
+            pid = int(p.get("playerId") or p.get("id"))
+            if pid == int(out_pid):
+                out_player = p
+                break
+        if out_player:
+            out_position = out_player.get("position")
+            in_position = new_pl.get("position")
+            if out_position and in_position and out_position != in_position:
+                flash(
+                    f"Трансфер можно совершить только в рамках одной позиции. "
+                    f"Попытка заменить {out_position} на {in_position}",
+                    "danger"
+                )
+                return redirect(url_for("epl.squad"))
+        try:
+            record_transfer(state, user, out_pid, new_pl)
+        except ValueError as e:
+            flash(str(e), "danger")
+            return redirect(url_for("epl.squad"))
         advance_transfer_turn(state)
         flash("Трансфер выполнен", "success")
         return redirect(url_for("epl.squad"))
