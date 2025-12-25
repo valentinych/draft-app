@@ -18,6 +18,7 @@ from .epl_services import (
     fixtures_for_gw, points_for_gw, gw_info,
     start_transfer_window, transfer_current_manager,
     advance_transfer_turn, record_transfer,
+    get_roster_for_gw,
     _s3_enabled, _s3_bucket, _gwstats_s3_key,
 )
 from .transfer_store import pop_transfer_target
@@ -467,7 +468,9 @@ def lineups():
             state_changed = True
         auto_generated = False
         if not lineup and last_finished and gw <= last_finished:
-            auto_payload = build_auto_lineup(rosters.get(m, []) or [])
+            # Используем ростер для конкретного GW, чтобы не учитывать трансферы из будущего
+            roster_for_gw = get_roster_for_gw(state, m, gw)
+            auto_payload = build_auto_lineup(roster_for_gw)
             if auto_payload:
                 lineup = auto_payload
                 auto_generated = True
@@ -501,7 +504,9 @@ def lineups():
                 })
             selected = {str(pid) for pid in (lineup.get("players") or []) + (lineup.get("bench") or [])}
             extra = []
-            for pl in rosters.get(m, []) or []:
+            # Используем ростер для конкретного GW, чтобы не учитывать трансферы из будущего
+            roster_for_gw = get_roster_for_gw(state, m, gw)
+            for pl in roster_for_gw:
                 pid = pl.get("playerId") or pl.get("id")
                 if str(pid) in selected:
                     continue
@@ -542,8 +547,10 @@ def lineups():
                     ts = None
             status[m] = not auto_generated
         else:
+            # Используем ростер для конкретного GW, чтобы не учитывать трансферы из будущего
+            roster_for_gw = get_roster_for_gw(state, m, gw)
             roster_sorted = sorted(
-                rosters.get(m, []) or [],
+                roster_for_gw,
                 key=lambda pl: (pos_order.get((pl.get("position") or "").upper(), 99), pl.get("fullName") or ""),
             )
             for pl in roster_sorted:
@@ -695,14 +702,16 @@ def results():
                 lineup = lineups_map.get(m) or {}
                 players_ids = [int(x) for x in (lineup.get("players") or [])]
                 bench_ids = [int(x) for x in (lineup.get("bench") or [])]
+                # Используем ростер для конкретного GW, чтобы не учитывать трансферы из будущего
+                roster_for_gw = get_roster_for_gw(state, m, gw)
                 if not players_ids:
-                    roster_ids = [int(p.get("playerId")) for p in rosters.get(m, [])]
+                    roster_ids = [int(p.get("playerId")) for p in roster_for_gw]
                     players_ids = roster_ids[:11]
                     bench_ids = roster_ids[11:]
                 else:
                     selected = {pid for pid in players_ids + bench_ids}
                     extra: list[int] = []
-                    for pl in rosters.get(m, []) or []:
+                    for pl in roster_for_gw:
                         pid = pl.get("playerId") or pl.get("id")
                         if pid and int(pid) not in selected:
                             extra.append(int(pid))

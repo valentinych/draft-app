@@ -834,11 +834,24 @@ def record_transfer(
     """
     t = state.setdefault("transfer", {})
     history = t.setdefault("history", [])
+    
+    # Находим информацию об удаляемом игроке для сохранения в истории
+    out_player = None
+    if out_pid is not None:
+        rosters = state.get("rosters", {})
+        roster = rosters.get(manager, [])
+        for p in roster:
+            pid = int(p.get("playerId") or p.get("id"))
+            if pid == int(out_pid):
+                out_player = dict(p)
+                break
+    
     event = {
         "gw": t.get("gw"),
         "round": t.get("round"),
         "manager": manager,
         "out": int(out_pid) if out_pid is not None else None,
+        "out_player": out_player,  # Сохраняем информацию об удаленном игроке
         "in": in_player,
         "ts": datetime.utcnow().isoformat(timespec="seconds"),
     }
@@ -855,6 +868,67 @@ def record_transfer(
     roster.append(in_player)
     rosters[manager] = roster
     save_state(state)
+
+
+def get_roster_for_gw(state: Dict[str, Any], manager: str, target_gw: int) -> List[Dict[str, Any]]:
+    """Восстанавливает ростер менеджера для конкретного GW, откатывая трансферы, 
+    которые произошли после этого GW.
+    
+    Args:
+        state: Состояние драфта
+        manager: Имя менеджера
+        target_gw: Целевой GW, для которого нужно восстановить ростер
+        
+    Returns:
+        Ростер менеджера, который был актуален для target_gw
+    """
+    rosters = state.get("rosters", {})
+    current_roster = list(rosters.get(manager, []))
+    
+    # Получаем историю трансферов
+    transfer_data = state.get("transfer", {})
+    transfer_history = transfer_data.get("history", [])
+    
+    # Фильтруем трансферы, которые произошли в target_gw или после него
+    # Трансферы применяются только с следующего GW после трансферного окна
+    # Например, трансфер в GW 10 применяется только с GW 11
+    rollback_transfers = []
+    for transfer in transfer_history:
+        transfer_gw = transfer.get("gw")
+        transfer_manager = transfer.get("manager")
+        if transfer_manager == manager and transfer_gw is not None and transfer_gw >= target_gw:
+            rollback_transfers.append(transfer)
+    
+    # Сортируем трансферы в обратном хронологическом порядке для отката
+    rollback_transfers.sort(key=lambda x: (x.get("gw", 0), x.get("ts", "")), reverse=True)
+    
+    # Откатываем трансферы в обратном порядке
+    for transfer in rollback_transfers:
+        out_player = transfer.get("out_player")
+        in_player = transfer.get("in")
+        
+        # Откатываем transfer_in: удаляем игрока, который был добавлен
+        if in_player:
+            in_player_id = in_player.get("playerId") or in_player.get("id")
+            if in_player_id:
+                current_roster = [
+                    p for p in current_roster 
+                    if int(p.get("playerId") or p.get("id")) != int(in_player_id)
+                ]
+        
+        # Откатываем transfer_out: возвращаем игрока, который был удален
+        if out_player:
+            out_player_id = out_player.get("playerId") or out_player.get("id")
+            if out_player_id:
+                # Проверяем, что игрок еще не в ростре (избегаем дубликатов)
+                already_in_roster = any(
+                    int(p.get("playerId") or p.get("id")) == int(out_player_id)
+                    for p in current_roster
+                )
+                if not already_in_roster:
+                    current_roster.append(dict(out_player))
+    
+    return current_roster
 
 # -------- element-summary cache --------
 def cache_path_for(pid: int) -> Path: return CACHE_DIR / f"{pid}.json"
