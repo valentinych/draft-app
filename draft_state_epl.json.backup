@@ -3559,6 +3559,7 @@
           "playerId": 83,
           "id": 83,
           "fullName": "Dango Ouattara",
+          "name": "O.Dango",
           "position": "Midfielder",
           "teamId": 5
         },
@@ -3580,6 +3581,7 @@
           "playerId": 389,
           "id": 389,
           "fullName": "Harvey Elliott",
+          "name": "Elliott",
           "position": "Midfielder",
           "teamId": 2
         },
@@ -3601,6 +3603,7 @@
           "playerId": 726,
           "id": 726,
           "fullName": "Randal Kolo Muani",
+          "name": "Kolo Muani",
           "position": "Forward",
           "teamId": 18
         },
@@ -3622,6 +3625,7 @@
           "playerId": 242,
           "id": 242,
           "fullName": "Kiernan Dewsbury-Hall",
+          "name": "Dewsbury-Hall",
           "position": "Midfielder",
           "teamId": 9
         },
@@ -3643,6 +3647,7 @@
           "playerId": 717,
           "id": 717,
           "fullName": "Xavi Simons",
+          "name": "Xavi",
           "position": "Midfielder",
           "teamId": 18
         },
@@ -3664,6 +3669,7 @@
           "playerId": 569,
           "id": 569,
           "fullName": "Cristian Romero",
+          "name": "Romero",
           "position": "Defender",
           "teamId": 18
         },
@@ -3685,6 +3691,7 @@
           "playerId": 516,
           "id": 516,
           "fullName": "Callum Hudson-Odoi",
+          "name": "Hudson-Odoi",
           "position": "Midfielder",
           "teamId": 16
         },
@@ -3706,6 +3713,7 @@
           "playerId": 478,
           "id": 478,
           "fullName": "Kieran Trippier",
+          "name": "Trippier",
           "position": "Defender",
           "teamId": 15
         },
@@ -3727,6 +3735,7 @@
           "playerId": 714,
           "id": 714,
           "fullName": "Nick Woltemade",
+          "name": "Woltemade",
           "position": "Forward",
           "teamId": 15
         },
@@ -3748,6 +3757,7 @@
           "playerId": 261,
           "id": 261,
           "fullName": "Chris Richards",
+          "name": "Richards",
           "position": "Defender",
           "teamId": 8
         },
@@ -3769,6 +3779,7 @@
           "playerId": 200,
           "id": 200,
           "fullName": "Jaidon Anthony",
+          "name": "Anthony",
           "position": "Midfielder",
           "teamId": 3
         },
@@ -3790,6 +3801,7 @@
           "playerId": 685,
           "id": 685,
           "fullName": "Bafodé Diakité",
+          "name": "Diakité",
           "position": "Defender",
           "teamId": 4
         },
@@ -3811,6 +3823,7 @@
           "playerId": 561,
           "id": 561,
           "fullName": "Eliezer Mayenda Dossou",
+          "name": "Mayenda",
           "position": "Forward",
           "teamId": 17
         },
@@ -3832,6 +3845,7 @@
           "playerId": 736,
           "id": 736,
           "fullName": "Gianluigi Donnarumma",
+          "name": "Donnarumma",
           "position": "Goalkeeper",
           "teamId": 13
         },
@@ -3853,6 +3867,7 @@
           "playerId": 84,
           "id": 84,
           "fullName": "Marcus Tavernier",
+          "name": "Tavernier",
           "position": "Midfielder",
           "teamId": 4
         },
@@ -3874,6 +3889,7 @@
           "playerId": 411,
           "id": 411,
           "fullName": "Nico O'Reilly",
+          "name": "O'Reilly",
           "position": "Defender",
           "teamId": 13
         },
@@ -3895,6 +3911,7 @@
           "playerId": 205,
           "id": 205,
           "fullName": "Josh Cullen",
+          "name": "Cullen",
           "position": "Midfielder",
           "teamId": 3
         },
@@ -3916,6 +3933,7 @@
           "playerId": 668,
           "id": 668,
           "fullName": "Granit Xhaka",
+          "name": "Xhaka",
           "position": "Midfielder",
           "teamId": 17
         },
@@ -3937,6 +3955,7 @@
           "playerId": 36,
           "id": 36,
           "fullName": "Matty Cash",
+          "name": "Cash",
           "position": "Defender",
           "teamId": 2
         },
@@ -3958,6 +3977,7 @@
           "playerId": 100,
           "id": 100,
           "fullName": "Junior Kroupi",
+          "name": "Kroupi.Jr",
           "position": "Forward",
           "teamId": 4
         },
@@ -3979,6 +3999,7 @@
           "playerId": 20,
           "id": 20,
           "fullName": "Leandro Trossard",
+          "name": "Trossard",
           "position": "Midfielder",
           "teamId": 1
         },
@@ -4000,6 +4021,7 @@
           "playerId": 673,
           "id": 673,
           "fullName": "João Maria Lobo Alves Palhares Costa Palhinha Gonçalves",
+          "name": "J.Palhinha",
           "position": "Midfielder",
           "teamId": 18
         },
@@ -4021,6 +4043,7 @@
           "playerId": 365,
           "id": 365,
           "fullName": "Lukas Nmecha",
+          "name": "Nmecha",
           "position": "Forward",
           "teamId": 11
         },

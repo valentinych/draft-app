@@ -481,13 +481,26 @@ def lineups():
     for m in managers:
         data_source = lineups_state.setdefault(m, {})
         stored_lineup = data_source.get(str(gw))
-        # Приоритетно загружаем из S3 (гарантированно правильные составы)
-        file_lineup = load_lineup(m, gw, prefer_s3=True)
-        # Используем состав из S3/файла, если он есть, иначе из state
-        lineup = file_lineup or stored_lineup
-        # Если есть состав из файла/S3 и он отличается от сохраненного в state, обновляем state
-        if file_lineup and stored_lineup != file_lineup:
+        # Приоритетно загружаем из draft_state_epl.json (state)
+        # Если нет в state, загружаем из файлов/S3 для верификации
+        file_lineup = load_lineup(m, gw, prefer_s3=True) if not stored_lineup else None
+        # Если состав не найден в lineups/, пробуем взять из предыдущего тура
+        prev_lineup_used = False
+        if not file_lineup and not stored_lineup and gw > 1:
+            prev_lineup = load_lineup(m, gw - 1, prefer_s3=True)
+            if prev_lineup:
+                file_lineup = dict(prev_lineup)
+                # Обновляем timestamp, но сохраняем структуру
+                file_lineup["ts"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
+                prev_lineup_used = True
+        # Используем состав из state, если он есть, иначе из файла/S3
+        lineup = stored_lineup or file_lineup
+        # Если состав был загружен из файла/S3 (когда нет в state), сохраняем его в state и lineups/
+        if file_lineup and not stored_lineup:
             data_source[str(gw)] = file_lineup
+            lineup = file_lineup
+            # Сохраняем в lineups/ для верификации (особенно если взят из предыдущего тура)
+            save_lineup(m, gw, file_lineup)
             state_changed = True
         auto_generated = False
         if not lineup and last_finished and gw <= last_finished:
@@ -549,7 +562,9 @@ def lineups():
                 lineup = dict(lineup)
                 lineup["players"] = valid_players
                 lineup["bench"] = valid_bench
+                # Сохраняем в state (draft_state_epl.json)
                 data_source[str(gw)] = lineup
+                # Также сохраняем в lineups/ для верификации
                 save_lineup(m, gw, lineup)
                 state_changed = True
             
