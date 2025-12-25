@@ -2,7 +2,7 @@ from __future__ import annotations
 import json, os, tempfile, time
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple, Set
-from datetime import datetime
+from datetime import datetime, timezone
 
 import requests
 
@@ -866,7 +866,7 @@ def record_transfer(
         "out": int(out_pid) if out_pid is not None else None,
         "out_player": out_player,  # Сохраняем информацию об удаленном игроке
         "in": in_player,
-        "ts": datetime.utcnow().isoformat(timespec="seconds"),
+        "ts": datetime.now(timezone.utc).isoformat(timespec="seconds"),
     }
     history.append(event)
     
