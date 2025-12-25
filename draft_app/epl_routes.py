@@ -498,7 +498,23 @@ def lineups():
         bench: list[dict] = []
         ts = None
         if lineup:
-            for pid in lineup.get("players") or []:
+            # Получаем ростер для этого GW, чтобы проверить валидность игроков в составе
+            roster_for_gw = get_roster_for_gw(state, m, gw)
+            valid_player_ids = {int(p.get("playerId") or p.get("id")) for p in roster_for_gw}
+            
+            # Фильтруем игроков, которые не должны быть в ростре для этого GW
+            valid_players = [pid for pid in (lineup.get("players") or []) if pid in valid_player_ids]
+            valid_bench = [pid for pid in (lineup.get("bench") or []) if pid in valid_player_ids]
+            
+            # Если были удалены игроки, обновляем состав
+            if len(valid_players) != len(lineup.get("players") or []) or len(valid_bench) != len(lineup.get("bench") or []):
+                lineup = dict(lineup)
+                lineup["players"] = valid_players
+                lineup["bench"] = valid_bench
+                data_source[str(gw)] = lineup
+                state_changed = True
+            
+            for pid in valid_players:
                 meta = pidx.get(str(pid), {})
                 name = meta.get("shortName") or meta.get("fullName") or str(pid)
                 s = stats_map.get(int(pid), {})
@@ -510,7 +526,7 @@ def lineups():
                     "minutes": s.get("minutes", 0),
                     "status": s.get("status", "not_started"),
                 })
-            for pid in (lineup.get("bench") or []):
+            for pid in valid_bench:
                 meta = pidx.get(str(pid), {})
                 name = meta.get("shortName") or meta.get("fullName") or str(pid)
                 s = stats_map.get(int(pid), {})
@@ -522,10 +538,9 @@ def lineups():
                     "minutes": s.get("minutes", 0),
                     "status": s.get("status", "not_started"),
                 })
-            selected = {str(pid) for pid in (lineup.get("players") or []) + (lineup.get("bench") or [])}
+            selected = {str(pid) for pid in valid_players + valid_bench}
             extra = []
-            # Используем ростер для конкретного GW, чтобы не учитывать трансферы из будущего
-            roster_for_gw = get_roster_for_gw(state, m, gw)
+            # roster_for_gw уже получен выше
             for pl in roster_for_gw:
                 pid = pl.get("playerId") or pl.get("id")
                 if str(pid) in selected:
