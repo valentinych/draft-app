@@ -8,13 +8,13 @@
     <table class="table is-striped results-table">
       <thead>
         <tr>
-          <th class="sticky-col manager-col">Менеджер</th>
-          {% for gw in gws %}
-          <th class="gw-col">GW{{ gw }}</th>
-          {% endfor %}
-          <th class="sticky-col points-col">Баллы</th>
-          <th class="sticky-col wins-col">Победы</th>
-          <th class="sticky-col total-col">Очки</th>
+      <th class="sticky-col manager-col">Менеджер</th>
+      {% for gw in gws %}
+      <th class="gw-col" style="text-align: center;">GW{{ gw }}</th>
+      {% endfor %}
+      <th class="sticky-col points-col">Баллы</th>
+      <th class="sticky-col wins-col" style="font-size: 0.85rem;">Победы</th>
+      <th class="sticky-col total-col">Очки</th>
         </tr>
       </thead>
       <tbody>
@@ -64,13 +64,29 @@
   min-width: 600px;
 }
 
-.results-table thead th,
-.results-table tbody td {
-  white-space: nowrap;
-  padding: 0.5em 0.75em;
-  border: 1px solid #dbdbdb;
-  text-align: center;
-}
+  .results-table thead th,
+  .results-table tbody td {
+    white-space: nowrap;
+    padding: 0.5em 0.75em;
+    border: 1px solid #dbdbdb;
+    text-align: center;
+  }
+  
+  /* Заголовки GW по центру */
+  .results-table thead .gw-col {
+    text-align: center;
+  }
+  
+  /* Ячейки GW по центру */
+  .results-table tbody .gw-col {
+    text-align: center;
+  }
+  
+  /* Уменьшаем шрифт для "Победы" */
+  .results-table thead .wins-col {
+    font-size: 0.85rem;
+    padding: 0.5em 0.5em;
+  }
 
 .results-table thead th {
   background-color: #363636;
@@ -122,13 +138,15 @@
   font-weight: bold;
 }
 
-.wins-col {
-  right: 60px;
-  min-width: 60px;
-  max-width: 60px;
-  background-color: #f5f5f5;
-  font-weight: bold;
-}
+  .wins-col {
+    right: 60px;
+    min-width: 60px;
+    max-width: 60px;
+    background-color: #f5f5f5;
+    font-weight: bold;
+    font-size: 0.85rem;
+    padding: 0.5em 0.4em;
+  }
 
 .total-col {
   right: 0;
@@ -160,7 +178,7 @@
 /* Колонки GW в скролле */
 .gw-col {
   min-width: 100px;
-  text-align: center;
+  text-align: center !important;
 }
 </style>
 {% endblock %}
