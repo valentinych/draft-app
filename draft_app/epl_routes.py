@@ -481,8 +481,11 @@ def lineups():
     for m in managers:
         data_source = lineups_state.setdefault(m, {})
         stored_lineup = data_source.get(str(gw))
-        file_lineup = load_lineup(m, gw)
+        # Приоритетно загружаем из S3 (гарантированно правильные составы)
+        file_lineup = load_lineup(m, gw, prefer_s3=True)
+        # Используем состав из S3/файла, если он есть, иначе из state
         lineup = file_lineup or stored_lineup
+        # Если есть состав из файла/S3 и он отличается от сохраненного в state, обновляем state
         if file_lineup and stored_lineup != file_lineup:
             data_source[str(gw)] = file_lineup
             state_changed = True
@@ -497,66 +500,118 @@ def lineups():
         starters: list[dict] = []
         bench: list[dict] = []
         ts = None
+        valid_players = []  # Инициализируем для использования в подсчете очков
         if lineup:
             # Получаем ростер для этого GW, чтобы проверить валидность игроков в составе
             roster_for_gw = get_roster_for_gw(state, m, gw)
             valid_player_ids = {int(p.get("playerId") or p.get("id")) for p in roster_for_gw}
             
-            # Фильтруем игроков, которые не должны быть в ростре для этого GW
-            valid_players = [pid for pid in (lineup.get("players") or []) if pid in valid_player_ids]
-            valid_bench = [pid for pid in (lineup.get("bench") or []) if pid in valid_player_ids]
+            # Фильтруем некорректные ID (больше 1000 или меньше 1)
+            max_valid_id = 1000
+            original_players = lineup.get("players") or []
+            original_bench = lineup.get("bench") or []
             
-            # Если были удалены игроки, обновляем состав
-            if len(valid_players) != len(lineup.get("players") or []) or len(valid_bench) != len(lineup.get("bench") or []):
+            # Фильтруем игроков, которые не должны быть в ростре для этого GW
+            valid_players = [
+                pid for pid in original_players 
+                if isinstance(pid, int) and pid in valid_player_ids and 1 <= pid <= max_valid_id
+            ]
+            valid_bench = [
+                pid for pid in original_bench 
+                if isinstance(pid, int) and pid in valid_player_ids and 1 <= pid <= max_valid_id
+            ]
+            
+            # Дополняем состав до 11 игроков, если не хватает
+            if len(valid_players) < 11:
+                # Сначала пытаемся взять из скамейки
+                while len(valid_players) < 11 and valid_bench:
+                    valid_players.append(valid_bench.pop(0))
+                
+                # Если все еще не хватает, берем из ростра
+                if len(valid_players) < 11:
+                    selected = set(valid_players + valid_bench)
+                    for pl in roster_for_gw:
+                        pid = int(pl.get("playerId") or pl.get("id"))
+                        if pid not in selected and 1 <= pid <= max_valid_id:
+                            if len(valid_players) < 11:
+                                valid_players.append(pid)
+                            else:
+                                valid_bench.append(pid)
+                            selected.add(pid)
+                            if len(valid_players) >= 11:
+                                break
+            
+            # Если были изменения, обновляем состав
+            if (len(valid_players) != len(original_players) or 
+                len(valid_bench) != len(original_bench) or
+                set(valid_players) != set(original_players) or
+                set(valid_bench) != set(original_bench)):
                 lineup = dict(lineup)
                 lineup["players"] = valid_players
                 lineup["bench"] = valid_bench
                 data_source[str(gw)] = lineup
+                save_lineup(m, gw, lineup)
                 state_changed = True
+            
+            # Создаем словарь для быстрого доступа к позициям игроков
+            player_positions = {}
+            for pl in roster_for_gw:
+                pid = int(pl.get("playerId") or pl.get("id"))
+                player_positions[pid] = pl.get("position")
             
             for pid in valid_players:
                 meta = pidx.get(str(pid), {})
                 name = meta.get("shortName") or meta.get("fullName") or str(pid)
                 s = stats_map.get(int(pid), {})
+                pos = meta.get("position") or player_positions.get(pid)
                 starters.append({
                     "name": name,
-                    "pos": meta.get("position"),
+                    "pos": pos,
                     "points": s.get("points", 0),
                     "club": team_codes.get(meta.get("teamId")),
                     "minutes": s.get("minutes", 0),
                     "status": s.get("status", "not_started"),
                 })
+            
+            # Сортируем стартовый состав по позициям
+            starters.sort(key=lambda p: (pos_order.get(p.get("pos"), 99), p.get("name")))
+            
             for pid in valid_bench:
                 meta = pidx.get(str(pid), {})
                 name = meta.get("shortName") or meta.get("fullName") or str(pid)
                 s = stats_map.get(int(pid), {})
+                pos = meta.get("position") or player_positions.get(pid)
                 bench.append({
                     "name": name,
-                    "pos": meta.get("position"),
+                    "pos": pos,
                     "points": s.get("points", 0),
                     "club": team_codes.get(meta.get("teamId")),
                     "minutes": s.get("minutes", 0),
                     "status": s.get("status", "not_started"),
                 })
-            selected = {str(pid) for pid in valid_players + valid_bench}
+            
+            selected = {int(pid) for pid in valid_players + valid_bench}
             extra = []
             # roster_for_gw уже получен выше
             for pl in roster_for_gw:
-                pid = pl.get("playerId") or pl.get("id")
-                if str(pid) in selected:
+                pid = int(pl.get("playerId") or pl.get("id"))
+                if pid in selected:
+                    continue
+                if not (1 <= pid <= max_valid_id):
                     continue
                 meta = pidx.get(str(pid), {})
                 name = meta.get("shortName") or meta.get("fullName") or pl.get("fullName") or str(pid)
-                s = stats_map.get(int(pid), {})
+                s = stats_map.get(pid, {})
+                pos = pl.get("position") or meta.get("position")
                 extra.append({
                     "name": name,
-                    "pos": pl.get("position") or meta.get("position"),
+                    "pos": pos,
                     "points": s.get("points", 0),
                     "club": team_codes.get(meta.get("teamId")),
                     "minutes": s.get("minutes", 0),
                     "status": s.get("status", "not_started"),
                 })
-            extra.sort(key=lambda p: pos_order.get(p.get("pos"), 99))
+            extra.sort(key=lambda p: (pos_order.get(p.get("pos"), 99), p.get("name")))
             bench.extend(extra)
             for s in starters:
                 if s["status"] == "finished" and s.get("minutes", 0) == 0:
@@ -580,12 +635,20 @@ def lineups():
                     ts = datetime.fromisoformat(ts_raw).astimezone(ZoneInfo("Europe/Warsaw"))
                 except Exception:
                     ts = None
-            status[m] = not auto_generated
+            # Статус зеленый только если есть сохраненный состав с 11 игроками
+            # и он не был автоматически сгенерирован
+            status[m] = not auto_generated and len(valid_players) == 11
         else:
             # Используем ростер для конкретного GW, чтобы не учитывать трансферы из будущего
             roster_for_gw = get_roster_for_gw(state, m, gw)
+            # Фильтруем некорректные ID
+            max_valid_id = 1000
+            roster_filtered = [
+                pl for pl in roster_for_gw
+                if 1 <= int(pl.get("playerId") or pl.get("id")) <= max_valid_id
+            ]
             roster_sorted = sorted(
-                roster_for_gw,
+                roster_filtered,
                 key=lambda pl: (pos_order.get((pl.get("position") or "").upper(), 99), pl.get("fullName") or ""),
             )
             for pl in roster_sorted:
@@ -602,7 +665,11 @@ def lineups():
                     "status": s.get("status", "not_started"),
                 })
             status[m] = False
-        players_cnt = len(lineup.get("players") or []) if lineup else 0
+        # Используем количество валидных игроков после фильтрации и дополнения
+        if lineup:
+            players_cnt = len(valid_players) if valid_players else len(lineup.get("players") or [])
+        else:
+            players_cnt = 0
         if lineup and players_cnt == 11:
             total_pts = 0
             for s in starters:

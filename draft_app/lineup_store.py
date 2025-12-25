@@ -56,17 +56,36 @@ def _s3_key(manager: str, gw: int) -> str:
     return f"{prefix}/{slug}/gw{int(gw)}.json"
 
 
-def load_lineup(manager: str, gw: int) -> dict:
+def load_lineup(manager: str, gw: int, prefer_s3: bool = True) -> dict:
+    """Загружает состав менеджера для указанного GW
+    
+    Args:
+        manager: Имя менеджера
+        gw: Номер gameweek
+        prefer_s3: Если True, приоритетно загружает из S3 (по умолчанию True)
+    
+    Returns:
+        Словарь с составом или пустой словарь, если не найден
+    """
     slug, _, has_ascii = _slug_parts(manager)
-    if _s3_client:
+    
+    # Приоритетно загружаем из S3, если доступен
+    if prefer_s3 and _s3_client and S3_BUCKET:
         key = _s3_key(manager, gw)
         try:
             obj = _s3_client.get_object(Bucket=S3_BUCKET, Key=key)
             body = obj.get("Body").read().decode("utf-8")
             data = json.loads(body)
-            return data if isinstance(data, dict) else {}
-        except (ClientError, BotoCoreError, Exception):
+            if isinstance(data, dict):
+                return data
+        except ClientError as e:
+            # Если файл не найден (404), это нормально - пробуем локальные файлы
+            if e.response.get('Error', {}).get('Code') != 'NoSuchKey':
+                pass  # Другие ошибки игнорируем
+        except (BotoCoreError, Exception):
             pass
+    
+    # Пробуем загрузить из локальных файлов
     p = _file_path(manager, gw)
     if p.exists():
         try:
@@ -74,7 +93,9 @@ def load_lineup(manager: str, gw: int) -> dict:
                 data = json.load(f)
             return data if isinstance(data, dict) else {}
         except Exception:
-            return {}
+            pass
+    
+    # Пробуем legacy путь
     if has_ascii:
         legacy = _legacy_file_path(manager, gw)
         if legacy.exists():
@@ -83,7 +104,8 @@ def load_lineup(manager: str, gw: int) -> dict:
                     data = json.load(f)
                 return data if isinstance(data, dict) else {}
             except Exception:
-                return {}
+                pass
+    
     return {}
 
 
