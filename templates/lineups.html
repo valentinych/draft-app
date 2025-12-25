@@ -8,7 +8,111 @@
     animation: blink 1s linear infinite;
   }
   @keyframes blink { 50% { opacity:0; } }
+  
+  /* Автоматическое уменьшение шрифта для имен игроков */
+  .player-name-container {
+    display: inline-flex;
+    align-items: center;
+    max-width: 100%;
+    overflow: hidden;
+  }
+  
+  .player-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    font-size: clamp(0.7rem, 2.5vw, 1rem);
+  }
+  
+  /* Для ячеек таблицы - ограничиваем ширину */
+  .table td {
+    max-width: 200px;
+    min-width: 150px;
+  }
+  
+  /* Контейнер с логотипом и именем */
+  .player-info {
+    display: inline-flex;
+    align-items: center;
+    max-width: 100%;
+    overflow: hidden;
+    flex: 1;
+    min-width: 0;
+  }
+  
+  .player-info img {
+    flex-shrink: 0;
+  }
+  
+  .player-info .player-name {
+    flex: 1;
+    min-width: 0;
+    font-size: clamp(0.65rem, 2vw, 0.875rem);
+  }
 </style>
+
+<script>
+// Автоматическое уменьшение шрифта для имен игроков, если они не влезают
+document.addEventListener('DOMContentLoaded', function() {
+  function adjustPlayerNames() {
+    const playerInfos = document.querySelectorAll('.player-info');
+    
+    playerInfos.forEach(function(container) {
+      const nameSpan = container.querySelector('.player-name');
+      if (!nameSpan) return;
+      
+      // Получаем родительский контейнер строки
+      const rowContainer = container.closest('.is-flex.is-justify-content-space-between');
+      if (!rowContainer) return;
+      
+      const containerWidth = rowContainer.offsetWidth;
+      const pointsSpan = rowContainer.querySelector('.has-text-right');
+      const pointsWidth = pointsSpan ? pointsSpan.offsetWidth : 40; // Резерв для очков
+      
+      // Учитываем все элементы в контейнере
+      const img = container.querySelector('img');
+      const imgWidth = img ? img.offsetWidth + 4 : 0; // +4 для padding
+      const liveDot = container.querySelector('.live-dot');
+      const dotWidth = liveDot ? liveDot.offsetWidth + 2 : 0;
+      const subbedIcon = container.querySelector('.has-text-danger:last-child, .has-text-success:last-child');
+      const iconWidth = subbedIcon ? subbedIcon.offsetWidth : 0;
+      
+      // Доступная ширина для имени
+      const availableWidth = containerWidth - imgWidth - iconWidth - dotWidth - pointsWidth - 16; // -16 для padding
+      
+      // Сбрасываем размер шрифта для проверки
+      nameSpan.style.fontSize = '';
+      const originalFontSize = parseFloat(window.getComputedStyle(nameSpan).fontSize);
+      
+      // Проверяем, влезает ли текст
+      if (nameSpan.scrollWidth > availableWidth && availableWidth > 0) {
+        // Уменьшаем шрифт пока не влезет
+        let fontSize = originalFontSize;
+        const minFontSize = 0.6; // Минимальный размер в rem (примерно 9.6px)
+        
+        while (nameSpan.scrollWidth > availableWidth && fontSize > minFontSize) {
+          fontSize -= 0.05;
+          nameSpan.style.fontSize = fontSize + 'rem';
+          
+          // Защита от бесконечного цикла
+          if (fontSize <= minFontSize) break;
+        }
+      }
+    });
+  }
+  
+  // Выполняем при загрузке с небольшой задержкой для рендеринга
+  setTimeout(adjustPlayerNames, 50);
+  
+  // Выполняем при изменении размера окна
+  let resizeTimeout;
+  window.addEventListener('resize', function() {
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(adjustPlayerNames, 100);
+  });
+});
+</script>
 <h1 class="title">Составы на Gameweek {{ gw }}</h1>
 {% if deadline_warsaw %}
 <p>Дедлайн: {{ deadline_warsaw.strftime("%d.%m %H:%M") }} (Варшава) / {{ deadline_minsk.strftime("%d.%m %H:%M") }} (Минск)</p>
@@ -79,13 +183,13 @@ function clearGwCache() {
             {% set ns.last_pos = p.pos %}
             {% set row_color = c1 if loop.index0 % 2 == 0 else c2 %}
               <div class="is-flex is-justify-content-space-between" style="background-color: {{ row_color }};">
-                <span>
+                <span class="player-info">
                   {% if p.status == 'in_progress' %}<span class="live-dot"></span>{% endif %}
-                  <img src="https://resources.premierleague.com/premierleague25/badges/{{ p.club }}.svg" alt="{{ p.club }}" style="height:14px; vertical-align:middle; padding-left:2px"/>
-                  <span class="{% if p.subbed_out %}has-text-danger{% elif p.status == 'finished' and p.minutes > 0 %}has-text-weight-bold{% endif %}" style="padding-left:2px">{{ p.name }}</span>
-                  {% if p.subbed_out %}<span class="has-text-danger">⬇️</span>{% endif %}
+                  <img src="https://resources.premierleague.com/premierleague25/badges/{{ p.club }}.svg" alt="{{ p.club }}" style="height:14px; vertical-align:middle; padding-left:2px; flex-shrink: 0;"/>
+                  <span class="player-name {% if p.subbed_out %}has-text-danger{% elif p.status == 'finished' and p.minutes > 0 %}has-text-weight-bold{% endif %}" style="padding-left:2px;">{{ p.name }}</span>
+                  {% if p.subbed_out %}<span class="has-text-danger" style="flex-shrink: 0;">⬇️</span>{% endif %}
                 </span>
-                <span class="has-text-right" style="min-width:2em; padding-right:2px"><span class="{% if p.penalized %}has-text-danger has-text-weight-bold{% endif %}">{{ p.points }}</span></span>
+                <span class="has-text-right" style="min-width:2em; padding-right:2px; flex-shrink: 0;"><span class="{% if p.penalized %}has-text-danger has-text-weight-bold{% endif %}">{{ p.points }}</span></span>
               </div>
           {% endfor %}
           {% if lineups[m].bench %}
@@ -98,15 +202,15 @@ function clearGwCache() {
               {% set ns_bench.last_pos = p.pos %}
                 {% set row_color = c1 if loop.index0 % 2 == 0 else c2 %}
                 <div class="is-flex is-justify-content-space-between {% if p.subbed_in %}{% else %}has-text-grey{% endif %}" style="background-color: {{ row_color }};">
-                  <span>
+                  <span class="player-info">
                     {% if p.status == 'in_progress' %}<span class="live-dot"></span>{% endif %}
                     {% if p.subbed_in %}
-                      <span class="has-text-weight-bold has-text-success">{{ p.name }}<span class="has-text-success">⬆️</span> ({{ p.pos }})</span>
+                      <span class="player-name has-text-weight-bold has-text-success">{{ p.name }}<span class="has-text-success" style="flex-shrink: 0;">⬆️</span> ({{ p.pos }})</span>
                     {% else %}
-                      <span class="{{ 'has-text-weight-bold' if p.status == 'finished' and p.minutes > 0 else '' }}">{{ p.name }} ({{ p.pos }})</span>
+                      <span class="player-name {{ 'has-text-weight-bold' if p.status == 'finished' and p.minutes > 0 else '' }}">{{ p.name }} ({{ p.pos }})</span>
                     {% endif %}
                   </span>
-                  <span class="has-text-right" style="min-width:2em; padding-right:2px">{{ p.points }}</span>
+                  <span class="has-text-right" style="min-width:2em; padding-right:2px; flex-shrink: 0;">{{ p.points }}</span>
                 </div>
             {% endfor %}
           {% endif %}
@@ -119,12 +223,12 @@ function clearGwCache() {
             {% set ns.last_pos = p.pos %}
             {% set row_color = c1 if loop.index0 % 2 == 0 else c2 %}
             <div class="is-flex is-justify-content-space-between" style="background-color: {{ row_color }};">
-              <span>
+              <span class="player-info">
                 {% if p.status == 'in_progress' %}<span class="live-dot"></span>{% endif %}
-                <img src="https://resources.premierleague.com/premierleague25/badges/{{ p.club }}.svg" alt="{{ p.club }}" style="height:14px; vertical-align:middle; padding-left:2px"/>
-                <span class="{{ 'has-text-weight-bold' if p.status == 'finished' and p.minutes > 0 else '' }}" style="padding-left:2px">{{ p.name }}</span>
+                <img src="https://resources.premierleague.com/premierleague25/badges/{{ p.club }}.svg" alt="{{ p.club }}" style="height:14px; vertical-align:middle; padding-left:2px; flex-shrink: 0;"/>
+                <span class="player-name {{ 'has-text-weight-bold' if p.status == 'finished' and p.minutes > 0 else '' }}" style="padding-left:2px;">{{ p.name }}</span>
               </span>
-              <span class="has-text-right" style="min-width:2em; padding-right:2px">{{ p.points }}</span>
+              <span class="has-text-right" style="min-width:2em; padding-right:2px; flex-shrink: 0;">{{ p.points }}</span>
             </div>
           {% endfor %}
         {% endif %}
