@@ -536,18 +536,49 @@ def lineups():
             
             # Дополняем состав до 11 игроков, если не хватает
             if len(valid_players) < 11:
-                # Сначала пытаемся взять из скамейки
-                while len(valid_players) < 11 and valid_bench:
-                    valid_players.append(valid_bench.pop(0))
+                # Определяем, какие позиции уже есть в составе
+                player_positions = {}
+                for pl in roster_for_gw:
+                    pid = int(pl.get("playerId") or pl.get("id"))
+                    player_positions[pid] = pl.get("position")
                 
-                # Если все еще не хватает, берем из ростра
+                existing_positions = {}
+                for pid in valid_players:
+                    pos = player_positions.get(pid)
+                    if pos:
+                        existing_positions[pos] = existing_positions.get(pos, 0) + 1
+                
+                # Сначала пытаемся взять из скамейки, избегая дублирования позиций
+                bench_idx = 0
+                while len(valid_players) < 11 and bench_idx < len(valid_bench):
+                    pid = valid_bench[bench_idx]
+                    pos = player_positions.get(pid)
+                    # Не добавляем второго вратаря, если уже есть вратарь
+                    if pos == "GK" and existing_positions.get("GK", 0) > 0:
+                        bench_idx += 1
+                        continue
+                    # Добавляем игрока
+                    valid_players.append(valid_bench.pop(bench_idx))
+                    if pos:
+                        existing_positions[pos] = existing_positions.get(pos, 0) + 1
+                
+                # Если все еще не хватает, берем из ростра, избегая дублирования позиций
                 if len(valid_players) < 11:
                     selected = set(valid_players + valid_bench)
                     for pl in roster_for_gw:
                         pid = int(pl.get("playerId") or pl.get("id"))
                         if pid not in selected and 1 <= pid <= max_valid_id:
+                            pos = pl.get("position")
+                            # Не добавляем второго вратаря, если уже есть вратарь
+                            if pos == "GK" and existing_positions.get("GK", 0) > 0:
+                                if len(valid_players) < 11:
+                                    valid_bench.append(pid)
+                                selected.add(pid)
+                                continue
                             if len(valid_players) < 11:
                                 valid_players.append(pid)
+                                if pos:
+                                    existing_positions[pos] = existing_positions.get(pos, 0) + 1
                             else:
                                 valid_bench.append(pid)
                             selected.add(pid)
