@@ -183,6 +183,9 @@ document.addEventListener('DOMContentLoaded', function() {
           // Проверяем, что это не placeholder уже
           if (this.src !== placeholderUrl && !this.src.includes('wikitide')) {
             this.src = placeholderUrl;
+            // Для placeholder используем contain, чтобы изображение полностью помещалось по высоте
+            this.style.objectFit = 'contain';
+            this.style.objectPosition = 'center';
           }
         });
         
@@ -191,6 +194,14 @@ document.addEventListener('DOMContentLoaded', function() {
           // Проверяем, не является ли изображение пустым
           if (isImageEmpty(this) && this.src !== placeholderUrl && !this.src.includes('wikitide')) {
             this.src = placeholderUrl;
+            // Для placeholder используем contain, чтобы изображение полностью помещалось по высоте
+            this.style.objectFit = 'contain';
+            this.style.objectPosition = 'center';
+          }
+          // Если это placeholder, устанавливаем contain
+          if (this.src.includes('wikitide')) {
+            this.style.objectFit = 'contain';
+            this.style.objectPosition = 'center';
           }
         });
       }

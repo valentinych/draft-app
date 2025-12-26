@@ -30,6 +30,11 @@
   object-fit: cover;
   border-radius: 0;
 }
+/* Для placeholder используем contain, чтобы изображение полностью помещалось по высоте */
+.player img[src*="wikitide"] {
+  object-fit: contain;
+  object-position: center;
+}
 .lineup-pos {
   margin-bottom: 1rem;
 }

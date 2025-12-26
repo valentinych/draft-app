@@ -138,7 +138,15 @@ function initPlayerModal(){
       photoEl.onerror = function() {
         this.onerror = null;
         this.src = 'https://static.wikitide.net/rytpwiki/thumb/2/20/%D0%A1%D0%B2%D0%B8%D0%B4%D0%B5%D1%82%D0%B5%D0%BB%D1%8C_%D0%B8%D0%B7_%D0%A4%D1%80%D1%8F%D0%B7%D0%B8%D0%BD%D0%BE.png/250px-%D0%A1%D0%B2%D0%B8%D0%B4%D0%B5%D1%82%D0%B5%D0%BB%D1%8C_%D0%B8%D0%B7_%D0%A4%D1%80%D1%8F%D0%B7%D0%B8%D0%BD%D0%BE.png';
+        // Для placeholder используем contain, чтобы изображение полностью помещалось по высоте
+        this.style.objectFit = 'contain';
+        this.style.objectPosition = 'center';
       };
+      // Если это placeholder, устанавливаем contain
+      if(img.src.includes('wikitide')) {
+        photoEl.style.objectFit = 'contain';
+        photoEl.style.objectPosition = 'center';
+      }
     } else { 
       photoEl.style.display='none'; 
     }
