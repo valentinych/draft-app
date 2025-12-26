@@ -32,7 +32,7 @@
 
 ### Тёма
 1. **Nicolas Jackson** (FWD, ID: 251) → **Eliezer Mayenda Dossou** (FWD, ID: 561)
-2. **James Trafford** (GK, ID: 182) → **Gianluigi Donnarumma** (GK, ID: 736)
+2. **Ederson Santana de Moraes** (GK, ID: 399) → **Gianluigi Donnarumma** (GK, ID: 736)
 3. **Kevin Schade** (MID, ID: 120) → **Marcus Tavernier** (MID, ID: 84)
 
 **ИТОГО GW3: 13 трансферов**

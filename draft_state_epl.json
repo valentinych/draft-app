@@ -568,13 +568,6 @@
         "price": 5.0
       },
       {
-        "playerId": 399,
-        "fullName": "Ederson Santana de Moraes",
-        "clubName": "MCI",
-        "position": "GK",
-        "price": 5.5
-      },
-      {
         "playerId": 238,
         "fullName": "Estêvão Almeida de Oliveira Gonçalves",
         "clubName": "CHE",
@@ -625,6 +618,13 @@
         "name": "Tavernier",
         "position": "Midfielder",
         "teamId": 4
+      },
+      {
+        "playerId": 182,
+        "fullName": "James Trafford",
+        "clubName": "MCI",
+        "position": "GK",
+        "price": 5.0
       }
     ],
     "Сергей": [
@@ -3730,7 +3730,6 @@
         "ts": "2025-11-08T11:00:00+00:00"
       },
       "12": {
-        "formation": "4-4-2",
         "players": [
           220,
           373,
@@ -3758,6 +3757,7 @@
           106,
           668
         ],
+        "formation": "4-4-2",
         "ts": "2025-11-22T09:45:48+00:00"
       },
       "13": {
@@ -5162,7 +5162,8 @@
           238,
           365,
           561,
-          84
+          84,
+          182
         ],
         "ts": "2025-10-18T10:00:00+00:00"
       },
@@ -5192,7 +5193,8 @@
           238,
           365,
           561,
-          84
+          84,
+          182
         ],
         "ts": "2025-10-24T17:30:00+00:00"
       },
@@ -5222,7 +5224,8 @@
           238,
           365,
           561,
-          84
+          84,
+          182
         ],
         "ts": "2025-11-01T13:30:00+00:00"
       },
@@ -5252,7 +5255,8 @@
           390,
           365,
           561,
-          84
+          84,
+          182
         ],
         "ts": "2025-11-08T11:00:00+00:00"
       },
@@ -7927,13 +7931,13 @@
         "gw": 3,
         "round": 1,
         "manager": "Тёма",
-        "out": 182,
+        "out": 399,
         "out_player": {
-          "playerId": 182,
-          "fullName": "James Trafford",
+          "playerId": 399,
+          "fullName": "Ederson Santana de Moraes",
           "clubName": "MCI",
           "position": "GK",
-          "price": 5.0
+          "price": 5.5
         },
         "in": {
           "playerId": 736,
