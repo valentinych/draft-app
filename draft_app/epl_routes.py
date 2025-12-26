@@ -18,6 +18,7 @@ from .epl_services import (
     fixtures_for_gw, points_for_gw, gw_info,
     start_transfer_window, transfer_current_manager,
     advance_transfer_turn, record_transfer,
+    POS_CANON,
     get_roster_for_gw,
     _s3_enabled, _s3_bucket, _gwstats_s3_key,
 )
@@ -252,6 +253,13 @@ def squad():
     lineup_ids = [str(x) for x in (selected.get("players") or [])]
     bench_ids = [str(x) for x in (selected.get("bench") or [])]
 
+    # Normalize position mapping using POS_CANON
+    def normalize_position(pos: str) -> str:
+        """Normalize position from 'Goalkeeper' to 'GK', etc."""
+        if not pos:
+            return ""
+        return POS_CANON.get(pos, pos)
+    
     # Add photos
     roster_ext = []
     for pl in roster:
@@ -259,11 +267,13 @@ def squad():
         meta = pidx.get(str(pid), {})
         team_id = meta.get("teamId")
         stats = meta.get("stats") or {}
+        raw_position = pl.get("position") or meta.get("position") or ""
+        normalized_position = normalize_position(raw_position)
         roster_ext.append({
             "playerId": pid,
             "fullName": pl.get("fullName") or meta.get("fullName"),
             "shortName": meta.get("shortName"),
-            "position": pl.get("position") or meta.get("position"),
+            "position": normalized_position,
             "clubName": pl.get("clubName") or meta.get("clubName"),
             "photo": photo_url_for(pid),
             "fixture": fixtures_map.get(team_id, ""),
@@ -289,11 +299,13 @@ def squad():
         if meta:
             team_id = meta.get("teamId")
             stats = meta.get("stats") or {}
+            raw_position = meta.get("position") or ""
+            normalized_position = normalize_position(raw_position)
             lineup_ext.append({
                 "playerId": int(pid),
                 "fullName": meta.get("fullName"),
                 "shortName": meta.get("shortName"),
-                "position": meta.get("position"),
+                "position": normalized_position,
                 "clubName": meta.get("clubName"),
                 "photo": photo_url_for(pid),
                 "fixture": fixtures_map.get(team_id, ""),
@@ -315,11 +327,13 @@ def squad():
         if meta:
             team_id = meta.get("teamId")
             stats = meta.get("stats") or {}
+            raw_position = meta.get("position") or ""
+            normalized_position = normalize_position(raw_position)
             bench_ext.append({
                 "playerId": int(pid),
                 "fullName": meta.get("fullName"),
                 "shortName": meta.get("shortName"),
-                "position": meta.get("position"),
+                "position": normalized_position,
                 "clubName": meta.get("clubName"),
                 "photo": photo_url_for(pid),
                 "fixture": fixtures_map.get(team_id, ""),
