@@ -129,8 +129,81 @@ document.addEventListener('DOMContentLoaded', function() {
       </button>
     </div>
     {% endif %}
+    <div class="control">
+      <button type="button" id="view-toggle" class="button is-small">Фото</button>
+    </div>
   </div>
 </form>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const viewToggle = document.getElementById('view-toggle');
+  if (viewToggle) {
+    let photoMode = false;
+    viewToggle.addEventListener('click', function() {
+      photoMode = !photoMode;
+      viewToggle.textContent = photoMode ? 'Список' : 'Фото';
+      
+      // Переключаем отображение фото
+      const playerInfos = document.querySelectorAll('.player-info');
+      playerInfos.forEach(function(container) {
+        const nameSpan = container.querySelector('.player-name');
+        const clubImg = container.querySelector('img[alt]');
+        if (!nameSpan) return;
+        
+        // Получаем playerId из data-атрибута или из родительского элемента
+        const row = container.closest('.is-flex.is-justify-content-space-between');
+        if (!row) return;
+        
+        const playerId = row.dataset.playerId;
+        const photoUrl = row.dataset.photoUrl;
+        
+        if (photoMode && photoUrl) {
+          // Режим фото: показываем фото вместо логотипа клуба
+          let photoImg = container.querySelector('img.player-photo');
+          if (!photoImg) {
+            photoImg = document.createElement('img');
+            photoImg.className = 'player-photo';
+            photoImg.style.width = '40px';
+            photoImg.style.height = '40px';
+            photoImg.style.objectFit = 'cover';
+            photoImg.style.borderRadius = '4px';
+            photoImg.style.marginRight = '4px';
+            photoImg.style.flexShrink = '0';
+            photoImg.alt = nameSpan.textContent;
+            photoImg.src = photoUrl;
+            photoImg.onerror = function() {
+              // Используем указанный placeholder, если фото не загрузилось
+              this.src = 'https://static.wikitide.net/rytpwiki/thumb/2/20/%D0%A1%D0%B2%D0%B8%D0%B4%D0%B5%D1%82%D0%B5%D0%BB%D1%8C_%D0%B8%D0%B7_%D0%A4%D1%80%D1%8F%D0%B7%D0%B8%D0%BD%D0%BE.png/250px-%D0%A1%D0%B2%D0%B8%D0%B4%D0%B5%D1%82%D0%B5%D0%BB%D1%8C_%D0%B8%D0%B7_%D0%A4%D1%80%D1%8F%D0%B7%D0%B8%D0%BD%D0%BE.png';
+            };
+            
+            // Вставляем фото перед именем (после live-dot, если есть)
+            const liveDot = container.querySelector('.live-dot');
+            if (liveDot) {
+              container.insertBefore(photoImg, liveDot.nextSibling);
+            } else {
+              container.insertBefore(photoImg, nameSpan);
+            }
+          }
+          photoImg.style.display = '';
+          if (clubImg) {
+            clubImg.style.display = 'none';
+          }
+        } else {
+          // Режим списка: показываем логотип клуба, скрываем фото
+          const photoImg = container.querySelector('img.player-photo');
+          if (photoImg) {
+            photoImg.style.display = 'none';
+          }
+          if (clubImg) {
+            clubImg.style.display = '';
+          }
+        }
+      });
+    });
+  }
+});
+</script>
 
 {% if session.get('godmode') %}
 <!-- Hidden form for cache clearing -->
@@ -178,7 +251,7 @@ function clearGwCache() {
             {% endif %}
             {% set ns.last_pos = p.pos %}
             {% set row_color = c1 if loop.index0 % 2 == 0 else c2 %}
-              <div class="is-flex is-justify-content-space-between" style="background-color: {{ row_color }};">
+              <div class="is-flex is-justify-content-space-between" style="background-color: {{ row_color }};" data-player-id="{{ p.playerId }}" data-photo-url="{{ p.photo }}">
                 <span class="player-info">
                   {% if p.status == 'in_progress' %}<span class="live-dot"></span>{% endif %}
                   <img src="https://resources.premierleague.com/premierleague25/badges/{{ p.club }}.svg" alt="{{ p.club }}" style="height:14px; vertical-align:middle; padding-left:2px; flex-shrink: 0;"/>
@@ -197,7 +270,7 @@ function clearGwCache() {
               {% endif %}
               {% set ns_bench.last_pos = p.pos %}
                 {% set row_color = c1 if loop.index0 % 2 == 0 else c2 %}
-                <div class="is-flex is-justify-content-space-between {% if p.subbed_in %}{% else %}has-text-grey{% endif %}" style="background-color: {{ row_color }};">
+                <div class="is-flex is-justify-content-space-between {% if p.subbed_in %}{% else %}has-text-grey{% endif %}" style="background-color: {{ row_color }};" data-player-id="{{ p.playerId }}" data-photo-url="{{ p.photo }}">
                   <span class="player-info">
                     {% if p.status == 'in_progress' %}<span class="live-dot"></span>{% endif %}
                     {% if p.subbed_in %}
@@ -218,7 +291,7 @@ function clearGwCache() {
             {% endif %}
             {% set ns.last_pos = p.pos %}
             {% set row_color = c1 if loop.index0 % 2 == 0 else c2 %}
-            <div class="is-flex is-justify-content-space-between" style="background-color: {{ row_color }};">
+            <div class="is-flex is-justify-content-space-between" style="background-color: {{ row_color }};" data-player-id="{{ p.playerId }}" data-photo-url="{{ p.photo }}">
               <span class="player-info">
                 {% if p.status == 'in_progress' %}<span class="live-dot"></span>{% endif %}
                 <img src="https://resources.premierleague.com/premierleague25/badges/{{ p.club }}.svg" alt="{{ p.club }}" style="height:14px; vertical-align:middle; padding-left:2px; flex-shrink: 0;"/>

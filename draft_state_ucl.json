@@ -354,23 +354,6 @@
         ]
       },
       {
-        "playerId": 250197577,
-        "fullName": "Rodrigo Huescas",
-        "clubName": "Copenhagen",
-        "position": "DEF",
-        "price": 4.5,
-        "matchdays": [
-          2,
-          3,
-          4,
-          5,
-          6,
-          7,
-          8
-        ],
-        "transferred_in_gw": 2
-      },
-      {
         "playerId": 250092668,
         "fullName": "Dávid Hancko",
         "clubName": "Atleti",
@@ -448,6 +431,60 @@
           6,
           7,
           8
+        ]
+      },
+      {
+        "playerId": 250212115,
+        "fullName": "El Hadji Youssoupha Mbodji",
+        "clubName": "Slavia Praha",
+        "position": "DEF",
+        "price": 4.0,
+        "status": "active",
+        "transferred_in_gw": 4,
+        "matchdays": [
+          4,
+          5,
+          6,
+          7,
+          8
+        ],
+        "gws_active": [
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10,
+          11,
+          12,
+          13,
+          14,
+          15,
+          16,
+          17,
+          18,
+          19,
+          20,
+          21,
+          22,
+          23,
+          24,
+          25,
+          26,
+          27,
+          28,
+          29,
+          30,
+          31,
+          32,
+          33,
+          34,
+          35,
+          36,
+          37,
+          38
         ]
       }
     ],
@@ -674,23 +711,6 @@
         ]
       },
       {
-        "playerId": 250167111,
-        "fullName": "Mika Biereth",
-        "clubName": "Monaco",
-        "position": "FWD",
-        "price": 7.0,
-        "matchdays": [
-          1,
-          2,
-          3,
-          4,
-          5,
-          6,
-          7,
-          8
-        ]
-      },
-      {
         "playerId": 250069832,
         "fullName": "Gregor Kobel",
         "clubName": "B. Dortmund",
@@ -888,6 +908,26 @@
           7,
           8
         ]
+      },
+      {
+        "playerId": 250139070,
+        "fullName": "Ernest Poku",
+        "shortName": "E. Poku",
+        "clubName": "Leverkusen",
+        "position": "FWD",
+        "price": 5.5,
+        "status": "",
+        "news": "In contention to start next game",
+        "curGDPts": 1,
+        "canPick": true,
+        "matchdays": [
+          4,
+          5,
+          6,
+          7,
+          8
+        ],
+        "transferred_in_gw": 4
       }
     ],
     "Саша": [
@@ -1062,23 +1102,6 @@
         "clubName": "B. Dortmund",
         "position": "MID",
         "price": 7.0,
-        "matchdays": [
-          1,
-          2,
-          3,
-          4,
-          5,
-          6,
-          7,
-          8
-        ]
-      },
-      {
-        "playerId": 250187458,
-        "fullName": "Ruben van Bommel",
-        "clubName": "PSV",
-        "position": "MID",
-        "price": 5.5,
         "matchdays": [
           1,
           2,
@@ -1339,6 +1362,26 @@
           7,
           8
         ]
+      },
+      {
+        "playerId": 250104534,
+        "fullName": "Dennis Man",
+        "shortName": "D. Man",
+        "clubName": "PSV",
+        "position": "MID",
+        "price": 5.0,
+        "status": "",
+        "news": "In contention to start next game",
+        "curGDPts": 1,
+        "canPick": true,
+        "matchdays": [
+          4,
+          5,
+          6,
+          7,
+          8
+        ],
+        "transferred_in_gw": 4
       }
     ],
     "Руслан": [
@@ -1741,23 +1784,6 @@
         ]
       },
       {
-        "playerId": 250117508,
-        "fullName": "Tino Livramento",
-        "clubName": "Newcastle",
-        "position": "DEF",
-        "price": 4.5,
-        "matchdays": [
-          1,
-          2,
-          3,
-          4,
-          5,
-          6,
-          7,
-          8
-        ]
-      },
-      {
         "playerId": 250101201,
         "fullName": "Michele Di Gregorio",
         "clubName": "Juventus",
@@ -1790,6 +1816,26 @@
           7,
           8
         ]
+      },
+      {
+        "playerId": 250187843,
+        "fullName": "Kevin Mac Allister",
+        "shortName": "K. Mac Allister",
+        "clubName": "Union SG",
+        "position": "DEF",
+        "price": 4.5,
+        "status": "",
+        "news": "In contention to start next game",
+        "curGDPts": 11,
+        "canPick": true,
+        "matchdays": [
+          4,
+          5,
+          6,
+          7,
+          8
+        ],
+        "transferred_in_gw": 4
       }
     ],
     "Женя": [
@@ -3002,23 +3048,6 @@
         ]
       },
       {
-        "playerId": 250139036,
-        "fullName": "Pablo Barrios",
-        "clubName": "Atleti",
-        "position": "MID",
-        "price": 5.5,
-        "matchdays": [
-          1,
-          2,
-          3,
-          4,
-          5,
-          6,
-          7,
-          8
-        ]
-      },
-      {
         "playerId": 250092517,
         "fullName": "Julian Ryerson",
         "clubName": "B. Dortmund",
@@ -3119,6 +3148,26 @@
           7,
           8
         ]
+      },
+      {
+        "playerId": 250113103,
+        "fullName": "Conor Gallagher",
+        "shortName": "C. Gallagher",
+        "clubName": "Atleti",
+        "position": "MID",
+        "price": 5.5,
+        "status": "",
+        "news": "In contention to start next game",
+        "curGDPts": 3,
+        "canPick": true,
+        "matchdays": [
+          4,
+          5,
+          6,
+          7,
+          8
+        ],
+        "transferred_in_gw": 4
       }
     ],
     "Сергей": [
@@ -3293,23 +3342,6 @@
         "clubName": "Villarreal",
         "position": "FWD",
         "price": 6.0,
-        "matchdays": [
-          1,
-          2,
-          3,
-          4,
-          5,
-          6,
-          7,
-          8
-        ]
-      },
-      {
-        "playerId": 250113276,
-        "fullName": "Jeremie Frimpong",
-        "clubName": "Liverpool",
-        "position": "DEF",
-        "price": 5.5,
         "matchdays": [
           1,
           2,
@@ -3570,6 +3602,26 @@
           8
         ],
         "transferred_in_gw": 3
+      },
+      {
+        "playerId": 250067337,
+        "fullName": "Derrick Luckassen",
+        "shortName": "D. Luckassen",
+        "clubName": "Pafos",
+        "position": "DEF",
+        "price": 4.5,
+        "status": "",
+        "news": "In contention to start next game",
+        "curGDPts": 12,
+        "canPick": true,
+        "matchdays": [
+          4,
+          5,
+          6,
+          7,
+          8
+        ],
+        "transferred_in_gw": 4
       }
     ]
   },
@@ -5604,5 +5656,438 @@
   "draft_completed": true,
   "finished_matchdays": [
     1
-  ]
+  ],
+  "transfers": {
+    "history": [
+      {
+        "gw": 4,
+        "round": 1,
+        "manager": "Сергей",
+        "out": 250113276,
+        "out_player": {
+          "playerId": 250113276,
+          "fullName": "Jeremie Frimpong",
+          "clubName": "Liverpool",
+          "position": "DEF",
+          "price": 5.5,
+          "matchdays": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+          ],
+          "status": "transfer_out",
+          "transferred_out_gw": 3
+        },
+        "in": {
+          "playerId": 250067337,
+          "id": 250067337,
+          "fullName": "Derrick Luckassen",
+          "position": "DEF",
+          "clubName": "Pafos",
+          "price": 4.5,
+          "matchdays": [
+            4,
+            5,
+            6,
+            7,
+            8
+          ]
+        },
+        "ts": "2025-12-26T13:22:22+00:00"
+      },
+      {
+        "gw": 4,
+        "round": 1,
+        "manager": "Серёга Б",
+        "out": 250139036,
+        "out_player": {
+          "playerId": 250139036,
+          "fullName": "Pablo Barrios",
+          "clubName": "Atleti",
+          "position": "MID",
+          "price": 5.5,
+          "matchdays": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+          ],
+          "status": "transfer_out",
+          "transferred_out_gw": 3
+        },
+        "in": {
+          "playerId": 250113103,
+          "id": 250113103,
+          "fullName": "Conor Gallagher",
+          "position": "MID",
+          "clubName": "Atleti",
+          "price": 5.5,
+          "matchdays": [
+            4,
+            5,
+            6,
+            7,
+            8
+          ]
+        },
+        "ts": "2025-12-26T13:22:22+00:00"
+      },
+      {
+        "gw": 4,
+        "round": 1,
+        "manager": "Саша",
+        "out": 250187458,
+        "out_player": {
+          "playerId": 250187458,
+          "fullName": "Ruben van Bommel",
+          "clubName": "PSV",
+          "position": "MID",
+          "price": 5.5,
+          "matchdays": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+          ],
+          "status": "transfer_out",
+          "transferred_out_gw": 3
+        },
+        "in": {
+          "playerId": 250104534,
+          "id": 250104534,
+          "fullName": "Dennis Man",
+          "position": "MID",
+          "clubName": "PSV",
+          "price": 5.0,
+          "matchdays": [
+            4,
+            5,
+            6,
+            7,
+            8
+          ]
+        },
+        "ts": "2025-12-26T13:22:22+00:00"
+      },
+      {
+        "gw": 4,
+        "round": 1,
+        "manager": "Андрей",
+        "out": 250167111,
+        "out_player": {
+          "playerId": 250167111,
+          "fullName": "Mika Biereth",
+          "clubName": "Monaco",
+          "position": "FWD",
+          "price": 7.0,
+          "matchdays": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+          ],
+          "status": "transfer_out",
+          "transferred_out_gw": 3
+        },
+        "in": {
+          "playerId": 250139070,
+          "id": 250139070,
+          "fullName": "Ernest Poku",
+          "position": "FWD",
+          "clubName": "Leverkusen",
+          "price": 5.5,
+          "matchdays": [
+            4,
+            5,
+            6,
+            7,
+            8
+          ]
+        },
+        "ts": "2025-12-26T13:22:22+00:00"
+      },
+      {
+        "gw": 4,
+        "round": 1,
+        "manager": "Руслан",
+        "out": 250117508,
+        "out_player": {
+          "playerId": 250117508,
+          "fullName": "Tino Livramento",
+          "clubName": "Newcastle",
+          "position": "DEF",
+          "price": 4.5,
+          "matchdays": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+          ],
+          "status": "transfer_out",
+          "transferred_out_gw": 3
+        },
+        "in": {
+          "playerId": 250187843,
+          "id": 250187843,
+          "fullName": "Kevin Mac Allister",
+          "position": "DEF",
+          "clubName": "Union SG",
+          "price": 4.5,
+          "matchdays": [
+            4,
+            5,
+            6,
+            7,
+            8
+          ]
+        },
+        "ts": "2025-12-26T13:22:22+00:00"
+      },
+      {
+        "gw": 4,
+        "round": 1,
+        "manager": "Ксана",
+        "out": 250197577,
+        "out_player": {
+          "playerId": 250197577,
+          "fullName": "Rodrigo Huescas",
+          "clubName": "Copenhagen",
+          "position": "DEF",
+          "price": 4.5,
+          "matchdays": [
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+          ],
+          "transferred_in_gw": 2,
+          "status": "transfer_out",
+          "transferred_out_gw": 4
+        },
+        "in": {
+          "playerId": 250212115,
+          "id": 250212115,
+          "fullName": "El Hadji Youssoupha Mbodji",
+          "position": "DEF",
+          "clubName": "Slavia Praha",
+          "price": 4.0,
+          "matchdays": [
+            4,
+            5,
+            6,
+            7,
+            8
+          ]
+        },
+        "ts": "2025-12-26T13:35:38+00:00"
+      }
+    ],
+    "available_players": [
+      {
+        "playerId": 250197577,
+        "fullName": "Rodrigo Huescas",
+        "clubName": "Copenhagen",
+        "position": "DEF",
+        "price": 4.5,
+        "matchdays": [
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ],
+        "transferred_in_gw": 2,
+        "status": "transfer_out",
+        "transferred_out_gw": 3
+      },
+      {
+        "playerId": 250113276,
+        "fullName": "Jeremie Frimpong",
+        "clubName": "Liverpool",
+        "position": "DEF",
+        "price": 5.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ],
+        "status": "transfer_out",
+        "transferred_out_gw": 3
+      },
+      {
+        "playerId": 250139036,
+        "fullName": "Pablo Barrios",
+        "clubName": "Atleti",
+        "position": "MID",
+        "price": 5.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ],
+        "status": "transfer_out",
+        "transferred_out_gw": 3
+      },
+      {
+        "playerId": 250187458,
+        "fullName": "Ruben van Bommel",
+        "clubName": "PSV",
+        "position": "MID",
+        "price": 5.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ],
+        "status": "transfer_out",
+        "transferred_out_gw": 3
+      },
+      {
+        "playerId": 250167111,
+        "fullName": "Mika Biereth",
+        "clubName": "Monaco",
+        "position": "FWD",
+        "price": 7.0,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ],
+        "status": "transfer_out",
+        "transferred_out_gw": 3
+      },
+      {
+        "playerId": 250117508,
+        "fullName": "Tino Livramento",
+        "clubName": "Newcastle",
+        "position": "DEF",
+        "price": 4.5,
+        "matchdays": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8
+        ],
+        "status": "transfer_out",
+        "transferred_out_gw": 3
+      }
+    ],
+    "active_window": {
+      "gw": 3,
+      "total_rounds": 1,
+      "current_round": 1,
+      "current_manager_index": 0,
+      "managers_order": [
+        "Ксана",
+        "Андрей",
+        "Саша",
+        "Руслан",
+        "Женя",
+        "Макс",
+        "Серёга Б",
+        "Сергей"
+      ],
+      "transfer_phase": "in",
+      "started_at": "2025-12-26T13:18:17",
+      "metadata": {
+        "transfers_per_manager": 1,
+        "position_limits": {
+          "GK": 3,
+          "DEF": 8,
+          "MID": 9,
+          "FWD": 5
+        },
+        "max_from_club": 1,
+        "source": "init_transfers_for_league"
+      }
+    },
+    "legacy_windows": []
+  },
+  "transfer_window": {
+    "active": true,
+    "current_user": "Руслан",
+    "participant_order": [
+      "Ксана",
+      "Андрей",
+      "Саша",
+      "Руслан",
+      "Женя",
+      "Макс",
+      "Серёга Б",
+      "Сергей"
+    ],
+    "current_index": 1,
+    "transfer_phase": "out",
+    "transfers_per_manager": 1,
+    "transfers_completed": {
+      "Ксана": 1,
+      "Андрей": 0,
+      "Саша": 0,
+      "Руслан": 0,
+      "Женя": 0,
+      "Макс": 0,
+      "Серёга Б": 0,
+      "Сергей": 0
+    },
+    "position_limits": {
+      "GK": 3,
+      "DEF": 8,
+      "MID": 9,
+      "FWD": 5
+    },
+    "max_from_club": 1,
+    "started_at": "2025-12-26T13:18:17.345601",
+    "gw": 3,
+    "total_rounds": 1
+  }
 }

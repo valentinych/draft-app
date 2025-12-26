@@ -289,9 +289,11 @@ def photo_url_for(pid: int) -> Optional[str]:
                     "https://resources.premierleague.com/"
                     f"premierleague/photos/players/110x140/p{code}.png"
                 )
+    # Используем указанный placeholder URL
     return (
-        "https://resources.premierleague.com/"
-        "premierleague25/photos/players/110x140/placeholder.png"
+        "https://static.wikitide.net/rytpwiki/thumb/2/20/"
+        "%D0%A1%D0%B2%D0%B8%D0%B4%D0%B5%D1%82%D0%B5%D0%BB%D1%8C_%D0%B8%D0%B7_%D0%A4%D1%80%D1%8F%D0%B7%D0%B8%D0%BD%D0%BE.png/"
+        "250px-%D0%A1%D0%B2%D0%B8%D0%B4%D0%B5%D1%82%D0%B5%D0%BB%D1%8C_%D0%B8%D0%B7_%D0%A4%D1%80%D1%8F%D0%B7%D0%B8%D0%BD%D0%BE.png"
     )
 
 

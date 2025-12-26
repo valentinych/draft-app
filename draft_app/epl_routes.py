@@ -617,6 +617,8 @@ def lineups():
                     "club": team_codes.get(meta.get("teamId")),
                     "minutes": s.get("minutes", 0),
                     "status": s.get("status", "not_started"),
+                    "photo": photo_url_for(int(pid)),
+                    "playerId": int(pid),
                 })
             
             # Сортируем стартовый состав по позициям
@@ -634,6 +636,8 @@ def lineups():
                     "club": team_codes.get(meta.get("teamId")),
                     "minutes": s.get("minutes", 0),
                     "status": s.get("status", "not_started"),
+                    "photo": photo_url_for(int(pid)),
+                    "playerId": int(pid),
                 })
             
             selected = {int(pid) for pid in valid_players + valid_bench}
@@ -656,6 +660,8 @@ def lineups():
                     "club": team_codes.get(meta.get("teamId")),
                     "minutes": s.get("minutes", 0),
                     "status": s.get("status", "not_started"),
+                    "photo": photo_url_for(int(pid)),
+                    "playerId": int(pid),
                 })
             extra.sort(key=lambda p: (pos_order.get(p.get("pos"), 99), p.get("name")))
             bench.extend(extra)
@@ -709,6 +715,8 @@ def lineups():
                     "club": team_codes.get(meta.get("teamId")),
                     "minutes": s.get("minutes", 0),
                     "status": s.get("status", "not_started"),
+                    "photo": photo_url_for(int(pid)),
+                    "playerId": int(pid),
                 })
             status[m] = False
         # Используем количество валидных игроков после фильтрации и дополнения
