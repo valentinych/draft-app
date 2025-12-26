@@ -40,7 +40,7 @@
                    data-fixture="{{ p.fixture }}"
                    data-news="{{ p.news or '' }}"
                    data-stats='{{ p.stats|tojson|safe }}'>
-                <img src="{{ p.photo }}" alt="" />
+                <img src="{{ p.photo }}" alt="" onerror="this.onerror=null; this.src='https://static.wikitide.net/rytpwiki/thumb/2/20/%D0%A1%D0%B2%D0%B8%D0%B4%D0%B5%D1%82%D0%B5%D0%BB%D1%8C_%D0%B8%D0%B7_%D0%A4%D1%80%D1%8F%D0%B7%D0%B8%D0%BD%D0%BE.png/250px-%D0%A1%D0%B2%D0%B8%D0%B4%D0%B5%D1%82%D0%B5%D0%BB%D1%8C_%D0%B8%D0%B7_%D0%A4%D1%80%D1%8F%D0%B7%D0%B8%D0%BD%D0%BE.png';" />
                 {% set st = p.status or 'a' %}
                 {% if st != 'a' %}
                   {% set ch = p.chance or 0 %}
@@ -159,4 +159,60 @@
 </div>
 
 <script src="{{ url_for('static', filename='js/squad.js') }}"></script>
+<script>
+// Универсальный обработчик ошибок для всех изображений на странице
+document.addEventListener('DOMContentLoaded', function() {
+  const placeholderUrl = 'https://static.wikitide.net/rytpwiki/thumb/2/20/%D0%A1%D0%B2%D0%B8%D0%B4%D0%B5%D1%82%D0%B5%D0%BB%D1%8C_%D0%B8%D0%B7_%D0%A4%D1%80%D1%8F%D0%B7%D0%B8%D0%BD%D0%BE.png/250px-%D0%A1%D0%B2%D0%B8%D0%B4%D0%B5%D1%82%D0%B5%D0%BB%D1%8C_%D0%B8%D0%B7_%D0%A4%D1%80%D1%8F%D0%B7%D0%B8%D0%BD%D0%BE.png';
+  
+  // Функция для проверки, является ли изображение пустым
+  function isImageEmpty(img) {
+    // Проверяем размер изображения (пустые фото обычно очень маленькие)
+    return img.naturalWidth <= 1 && img.naturalHeight <= 1;
+  }
+  
+  // Обработчик для всех изображений в составе
+  function setupImageErrorHandlers() {
+    const images = document.querySelectorAll('#roster img, #lineup img, #player-modal img');
+    images.forEach(function(img) {
+      // Проверяем, не установлен ли уже обработчик
+      if (!img.hasAttribute('data-error-handler-set')) {
+        img.setAttribute('data-error-handler-set', 'true');
+        
+        // Обработчик ошибок загрузки
+        img.addEventListener('error', function() {
+          // Проверяем, что это не placeholder уже
+          if (this.src !== placeholderUrl && !this.src.includes('wikitide')) {
+            this.src = placeholderUrl;
+          }
+        });
+        
+        // Обработчик для проверки пустых изображений после загрузки
+        img.addEventListener('load', function() {
+          // Проверяем, не является ли изображение пустым
+          if (isImageEmpty(this) && this.src !== placeholderUrl && !this.src.includes('wikitide')) {
+            this.src = placeholderUrl;
+          }
+        });
+      }
+    });
+  }
+  
+  // Устанавливаем обработчики при загрузке
+  setupImageErrorHandlers();
+  
+  // Также устанавливаем обработчики после динамических изменений
+  const observer = new MutationObserver(function(mutations) {
+    setupImageErrorHandlers();
+  });
+  
+  const roster = document.getElementById('roster');
+  const lineup = document.getElementById('lineup');
+  if (roster) {
+    observer.observe(roster, { childList: true, subtree: true });
+  }
+  if (lineup) {
+    observer.observe(lineup, { childList: true, subtree: true });
+  }
+});
+</script>
 {% endblock %}

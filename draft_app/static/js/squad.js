@@ -131,7 +131,17 @@ function initPlayerModal(){
     try{ stats=JSON.parse(playerEl.dataset.stats||'{}'); }catch(e){}
     nameEl.textContent=name;
     const img=playerEl.querySelector('img');
-    if(img){ photoEl.src=img.src; photoEl.style.display=''; } else { photoEl.style.display='none'; }
+    if(img){ 
+      photoEl.src=img.src; 
+      photoEl.style.display=''; 
+      // Добавляем обработчик ошибок для модального окна
+      photoEl.onerror = function() {
+        this.onerror = null;
+        this.src = 'https://static.wikitide.net/rytpwiki/thumb/2/20/%D0%A1%D0%B2%D0%B8%D0%B4%D0%B5%D1%82%D0%B5%D0%BB%D1%8C_%D0%B8%D0%B7_%D0%A4%D1%80%D1%8F%D0%B7%D0%B8%D0%BD%D0%BE.png/250px-%D0%A1%D0%B2%D0%B8%D0%B4%D0%B5%D1%82%D0%B5%D0%BB%D1%8C_%D0%B8%D0%B7_%D0%A4%D1%80%D1%8F%D0%B7%D0%B8%D0%BD%D0%BE.png';
+      };
+    } else { 
+      photoEl.style.display='none'; 
+    }
     newsEl.textContent=news;
     const rows=[
       ['Minutes',stats.minutes],
