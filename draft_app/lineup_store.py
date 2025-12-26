@@ -56,6 +56,29 @@ def _s3_key(manager: str, gw: int) -> str:
     return f"{prefix}/{slug}/gw{int(gw)}.json"
 
 
+def _s3_get_json_public(manager: str, gw: int, bucket: str = None, prefix: str = None) -> dict:
+    """Загружает состав из публичного S3 URL"""
+    import urllib.request
+    
+    bucket = bucket or S3_BUCKET or "val-draft-storage"
+    prefix = prefix or S3_PREFIX or "lineups"
+    slug, _, _ = _slug_parts(manager)
+    
+    regions = ["us-east-1", "eu-central-1", "eu-west-1"]
+    base_urls = [f"https://{bucket}.s3.{region}.amazonaws.com" for region in regions]
+    
+    for base_url in base_urls:
+        url = f"{base_url}/{prefix.strip('/')}/{slug}/gw{int(gw)}.json"
+        try:
+            with urllib.request.urlopen(url, timeout=10) as response:
+                data = json.loads(response.read().decode('utf-8'))
+                if isinstance(data, dict):
+                    return data
+        except Exception:
+            continue
+    return {}
+
+
 def load_lineup(manager: str, gw: int, prefer_s3: bool = True) -> dict:
     """Загружает состав менеджера для указанного GW
     
@@ -69,7 +92,7 @@ def load_lineup(manager: str, gw: int, prefer_s3: bool = True) -> dict:
     """
     slug, _, has_ascii = _slug_parts(manager)
     
-    # Приоритетно загружаем из S3, если доступен
+    # Приоритетно загружаем из S3 через API, если доступен
     if prefer_s3 and _s3_client and S3_BUCKET:
         key = _s3_key(manager, gw)
         try:
@@ -79,11 +102,17 @@ def load_lineup(manager: str, gw: int, prefer_s3: bool = True) -> dict:
             if isinstance(data, dict):
                 return data
         except ClientError as e:
-            # Если файл не найден (404), это нормально - пробуем локальные файлы
+            # Если файл не найден (404), это нормально - пробуем публичные URL
             if e.response.get('Error', {}).get('Code') != 'NoSuchKey':
                 pass  # Другие ошибки игнорируем
         except (BotoCoreError, Exception):
             pass
+    
+    # Пробуем загрузить из публичных S3 URL
+    if prefer_s3:
+        public_data = _s3_get_json_public(manager, gw)
+        if public_data:
+            return public_data
     
     # Пробуем загрузить из локальных файлов
     p = _file_path(manager, gw)
