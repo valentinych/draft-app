@@ -287,33 +287,33 @@ def _get_all_ucl_clubs() -> Dict[str, Dict[str, Any]]:
     if not raw:
         return clubs_map
     
-    players_list = _players_from_ucl(raw)
-    for p in players_list:
-        club_name = p.get("clubName") or ""
+    # Extract players list from raw data
+    players_raw = []
+    if isinstance(raw, list):
+        players_raw = raw
+    elif isinstance(raw, dict):
+        players_raw = (
+            raw.get("data", {})
+               .get("value", {})
+               .get("playerList", [])
+            if isinstance(raw.get("data"), dict) else []
+        )
+    
+    # Iterate through raw players and extract clubs with teamId
+    for p in players_raw:
+        if not isinstance(p, dict):
+            continue
+        
+        # Get club name (same logic as in _players_from_ucl)
+        club_name = p.get("tName") or p.get("tSCode") or p.get("cCode") or ""
         if not club_name:
             continue
         
-        # Try to get teamId from original raw data
-        team_id = None
-        if isinstance(raw, list):
-            for orig_p in raw:
-                if (orig_p.get("playerId") == p.get("playerId") or 
-                    orig_p.get("id") == p.get("playerId")):
-                    team_id = orig_p.get("tId") or orig_p.get("teamId")
-                    break
-        elif isinstance(raw, dict):
-            players_raw = (
-                raw.get("data", {})
-                   .get("value", {})
-                   .get("playerList", [])
-                if isinstance(raw.get("data"), dict) else []
-            )
-            for orig_p in players_raw:
-                if orig_p.get("id") == p.get("playerId"):
-                    team_id = orig_p.get("tId") or orig_p.get("teamId")
-                    break
+        # Get teamId (tId is the field in UCL data)
+        team_id = p.get("tId") or p.get("teamId")
         
-        if club_name and club_name not in clubs_map:
+        # Store club if not already stored
+        if club_name not in clubs_map:
             clubs_map[club_name] = {
                 "clubName": club_name,
                 "teamId": str(team_id) if team_id else None
