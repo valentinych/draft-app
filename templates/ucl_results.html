@@ -42,6 +42,7 @@
   .player-portrait { width:25px; height:25px; border-radius:50%; object-fit:cover; margin-right:20px; }
   .player-info { display:flex; align-items:center; overflow:hidden; }
   .player-text { overflow:hidden; text-overflow:ellipsis; }
+  .player-matchdays { font-size:0.75rem; margin-left:8px; background:#e6f2ff; border-radius:4px; padding:0 6px; color:#1d4ed8; flex-shrink:0; }
 </style>
 
 <script>
@@ -161,8 +162,14 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   const render = data => {
-    const managers = data.managers || [];
+    const rawManagers = data.managers || [];
     const lineups = data.lineups || {};
+    // Сортировка менеджеров от большего к меньшему по очкам (как на странице лайнапов)
+    const managers = rawManagers.slice().sort((a, b) => {
+      const totalA = Number(lineups[a] && lineups[a].total) || 0;
+      const totalB = Number(lineups[b] && lineups[b].total) || 0;
+      return totalB - totalA;
+    });
     container.innerHTML = '';
 
     const tabs = document.createElement('div');
@@ -264,6 +271,14 @@ document.addEventListener('DOMContentLoaded', () => {
           nameSpan.textContent += ` - ${p.club}`;
         }
         infoWrap.appendChild(nameSpan);
+        
+        // Add matchdays indicator (как на странице лайнапов)
+        if (Array.isArray(p.matchdays) && p.matchdays.length) {
+          const spanMatchdays = document.createElement('span');
+          spanMatchdays.className = 'player-matchdays';
+          spanMatchdays.textContent = `Туры: ${p.matchdays.join(', ')}`;
+          infoWrap.appendChild(spanMatchdays);
+        }
         
         // Add transfer status indicator
         if (p.transfer_status === 'transfer_out') {

@@ -1250,23 +1250,6 @@
         ]
       },
       {
-        "playerId": 250129755,
-        "fullName": "Giorgio Scalvini",
-        "clubName": "Atalanta",
-        "position": "DEF",
-        "price": 4.5,
-        "matchdays": [
-          1,
-          2,
-          3,
-          4,
-          5,
-          6,
-          7,
-          8
-        ]
-      },
-      {
         "playerId": 250113263,
         "fullName": "Vitězslav Jaroš",
         "clubName": "Ajax",
@@ -1382,6 +1365,20 @@
           8
         ],
         "transferred_in_gw": 4
+      },
+      {
+        "playerId": 250147278,
+        "fullName": "Juan Foyth",
+        "clubName": "Villarreal",
+        "position": "DEF",
+        "price": 4.5,
+        "matchdays": [
+          5,
+          6,
+          7,
+          8
+        ],
+        "transferred_in_gw": 5
       }
     ],
     "Руслан": [
@@ -2832,23 +2829,6 @@
         "transferred_in_gw": 3
       },
       {
-        "playerId": 250134304,
-        "fullName": "Gabriel Martinelli",
-        "clubName": "Arsenal",
-        "position": "MID",
-        "price": 7.5,
-        "matchdays": [
-          2,
-          3,
-          4,
-          5,
-          6,
-          7,
-          8
-        ],
-        "transferred_in_gw": 2
-      },
-      {
         "playerId": 250113134,
         "fullName": "Noni Madueke",
         "clubName": "Arsenal",
@@ -3168,6 +3148,20 @@
           8
         ],
         "transferred_in_gw": 4
+      },
+      {
+        "playerId": 250023009,
+        "fullName": "Leandro Trossard",
+        "clubName": "Arsenal",
+        "position": "MID",
+        "price": 7.0,
+        "matchdays": [
+          5,
+          6,
+          7,
+          8
+        ],
+        "transferred_in_gw": 5
       }
     ],
     "Сергей": [
@@ -5655,7 +5649,12 @@
   "turn_left": 0,
   "draft_completed": true,
   "finished_matchdays": [
-    1
+    1,
+    2,
+    3,
+    4,
+    5,
+    6
   ],
   "transfers": {
     "history": [
@@ -5904,6 +5903,74 @@
           ]
         },
         "ts": "2025-12-26T13:35:38+00:00"
+      },
+      {
+        "gw": 4,
+        "manager": "Саша",
+        "out_player": {
+          "playerId": 250129755,
+          "fullName": "Giorgio Scalvini",
+          "clubName": "Atalanta",
+          "position": "DEF",
+          "price": 4.5,
+          "matchdays": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "transferred_out_gw": 4
+        },
+        "in_player": {
+          "playerId": 250147278,
+          "fullName": "Juan Foyth",
+          "clubName": "Villarreal",
+          "position": "DEF",
+          "price": 4.5,
+          "matchdays": [
+            5,
+            6,
+            7,
+            8
+          ],
+          "transferred_in_gw": 5
+        },
+        "ts": "2025-12-27T17:07:31",
+        "draft_type": "UCL"
+      },
+      {
+        "gw": 4,
+        "manager": "Серёга Б",
+        "out_player": {
+          "playerId": 250134304,
+          "fullName": "Gabriel Martinelli",
+          "clubName": "Arsenal",
+          "position": "MID",
+          "price": 7.5,
+          "matchdays": [
+            2,
+            3,
+            4
+          ],
+          "transferred_in_gw": 2,
+          "transferred_out_gw": 4
+        },
+        "in_player": {
+          "playerId": 250023009,
+          "fullName": "Leandro Trossard",
+          "clubName": "Arsenal",
+          "position": "MID",
+          "price": 7.0,
+          "matchdays": [
+            5,
+            6,
+            7,
+            8
+          ],
+          "transferred_in_gw": 5
+        },
+        "ts": "2025-12-27T17:07:31",
+        "draft_type": "UCL"
       }
     ],
     "available_players": [

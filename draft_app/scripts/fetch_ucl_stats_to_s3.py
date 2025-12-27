@@ -18,14 +18,26 @@ def _extract_ids(raw) -> Set[int]:
         for item in raw:
             ids.update(_extract_ids(item))
     elif isinstance(raw, dict):
-        if "playerList" in raw and isinstance(raw["playerList"], list):
-            ids.update(_extract_ids(raw["playerList"]))
+        # Check for playerId/id/pid in current dict
         pid = raw.get("playerId") or raw.get("id") or raw.get("pid")
         if pid is not None:
             try:
                 ids.add(int(pid))
             except Exception:
                 pass
+        
+        # Check for rosters structure (draft_state_ucl.json format)
+        if "rosters" in raw and isinstance(raw["rosters"], dict):
+            for manager, roster in raw["rosters"].items():
+                if isinstance(roster, list):
+                    for player in roster:
+                        ids.update(_extract_ids(player))
+        
+        # Check for playerList (UCL feed format)
+        if "playerList" in raw and isinstance(raw["playerList"], list):
+            ids.update(_extract_ids(raw["playerList"]))
+        
+        # Recursively check nested structures
         for key in ("data", "value", "players"):
             child = raw.get(key)
             if child:
