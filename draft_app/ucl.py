@@ -1900,6 +1900,13 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
     # Get list of finished matchdays - only count points from these
     finished_matchdays = set(state.get("finished_matchdays", []))
     
+    # Get the last finished matchday for available clubs calculation
+    # If no matchdays are finished, use 1 as default
+    last_finished_md = max(finished_matchdays) if finished_matchdays else 1
+    
+    # Get all UCL clubs
+    all_clubs = _get_all_ucl_clubs()
+    
     # Get transfer history from both old and new systems
     old_transfer_history = state.get("transfer_history", [])
     new_transfer_history = state.get("transfers", {}).get("history", [])
@@ -2069,14 +2076,21 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
         total = 0
         
         # Get roster for last finished MD to calculate available clubs
-        roster_for_last_md = get_roster_for_md(manager, last_finished_md)
-        manager_clubs: Set[str] = set()
-        for player in roster_for_last_md:
-            payload = player.get("player") if isinstance(player, dict) and player.get("player") else player
-            if isinstance(payload, dict):
-                club = payload.get("clubName") or ""
-                if club:
-                    manager_clubs.add(club)
+        try:
+            roster_for_last_md = get_roster_for_md(manager, last_finished_md)
+            manager_clubs: Set[str] = set()
+            for player in roster_for_last_md:
+                if not isinstance(player, dict):
+                    continue
+                # Try different ways to get player data
+                payload = player.get("player") if isinstance(player.get("player"), dict) else player
+                if isinstance(payload, dict):
+                    club = payload.get("clubName") or ""
+                    if club:
+                        manager_clubs.add(club)
+        except Exception as e:
+            # If there's an error getting roster, just use empty set
+            manager_clubs: Set[str] = set()
         
         # Calculate available clubs (not in roster)
         available_clubs: List[Dict[str, Any]] = []
