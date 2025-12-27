@@ -330,6 +330,46 @@ document.addEventListener('DOMContentLoaded', () => {
           rowIndex += 1;
         });
       });
+      
+      // Add available clubs section
+      const availableClubs = lineups[manager] && Array.isArray(lineups[manager].available_clubs)
+        ? lineups[manager].available_clubs
+        : [];
+      if (availableClubs.length > 0) {
+        const hr = document.createElement('hr');
+        hr.className = 'my-2';
+        block.appendChild(hr);
+        
+        const clubsLabel = document.createElement('div');
+        clubsLabel.style.fontWeight = 'bold';
+        clubsLabel.style.marginBottom = '8px';
+        clubsLabel.textContent = 'Доступные клубы:';
+        block.appendChild(clubsLabel);
+        
+        const clubsContainer = document.createElement('div');
+        clubsContainer.style.display = 'flex';
+        clubsContainer.style.flexWrap = 'wrap';
+        clubsContainer.style.gap = '8px';
+        clubsContainer.style.marginBottom = '16px';
+        
+        availableClubs.forEach(club => {
+          const clubLogo = document.createElement('img');
+          clubLogo.className = 'ucl-team-logo';
+          clubLogo.style.width = '30px';
+          clubLogo.style.height = '30px';
+          if (club.teamId) {
+            clubLogo.src = `https://img.uefa.com/imgml/TP/teams/logos/140x140/${club.teamId}.png`;
+          } else {
+            clubLogo.src = 'https://img.uefa.com/imgml/TP/teams/logos/140x140/0.png';
+          }
+          clubLogo.alt = club.clubName || '';
+          clubLogo.title = club.clubName || '';
+          clubsContainer.appendChild(clubLogo);
+        });
+        
+        block.appendChild(clubsContainer);
+      }
+      
       contents.appendChild(block);
       blocks.push(block);
 

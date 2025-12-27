@@ -277,6 +277,51 @@ def _players_from_ucl(raw: Any) -> List[Dict[str, Any]]:
     return out
 
 
+def _get_all_ucl_clubs() -> Dict[str, Dict[str, Any]]:
+    """
+    Get all UCL clubs from players file with their teamId.
+    Returns: {club_name: {"clubName": club_name, "teamId": team_id}}
+    """
+    clubs_map: Dict[str, Dict[str, Any]] = {}
+    raw = _json_load(UCL_PLAYERS)
+    if not raw:
+        return clubs_map
+    
+    players_list = _players_from_ucl(raw)
+    for p in players_list:
+        club_name = p.get("clubName") or ""
+        if not club_name:
+            continue
+        
+        # Try to get teamId from original raw data
+        team_id = None
+        if isinstance(raw, list):
+            for orig_p in raw:
+                if (orig_p.get("playerId") == p.get("playerId") or 
+                    orig_p.get("id") == p.get("playerId")):
+                    team_id = orig_p.get("tId") or orig_p.get("teamId")
+                    break
+        elif isinstance(raw, dict):
+            players_raw = (
+                raw.get("data", {})
+                   .get("value", {})
+                   .get("playerList", [])
+                if isinstance(raw.get("data"), dict) else []
+            )
+            for orig_p in players_raw:
+                if orig_p.get("id") == p.get("playerId"):
+                    team_id = orig_p.get("tId") or orig_p.get("teamId")
+                    break
+        
+        if club_name and club_name not in clubs_map:
+            clubs_map[club_name] = {
+                "clubName": club_name,
+                "teamId": str(team_id) if team_id else None
+            }
+    
+    return clubs_map
+
+
 def _ensure_fp_current_from_uefa_feed(players: List[Dict[str, Any]]) -> None:
     """Ensure all players have fp_current set from curGDPts (UEFA feed)"""
     for player in players:
@@ -1665,12 +1710,31 @@ def ucl_lineups_data():
                 return norm
         return None
 
+    # Get all UCL clubs
+    all_clubs = _get_all_ucl_clubs()
+    
     results: Dict[str, Dict[str, Any]] = {}
     for manager in managers:
         # Get roster as it was for this specific MD
         roster = get_roster_for_md(manager, md)
         lineup: List[Dict[str, Any]] = []
         total = 0
+        
+        # Get clubs in manager's roster for this MD
+        manager_clubs: Set[str] = set()
+        for item in roster:
+            payload = item.get("player") if isinstance(item, dict) and item.get("player") else item
+            if isinstance(payload, dict):
+                club = payload.get("clubName") or ""
+                if club:
+                    manager_clubs.add(club)
+        
+        # Calculate available clubs (not in roster)
+        available_clubs: List[Dict[str, Any]] = []
+        for club_name, club_data in all_clubs.items():
+            if club_name not in manager_clubs:
+                available_clubs.append(club_data)
+        available_clubs.sort(key=lambda x: x.get("clubName", ""))
         for item in roster:
             payload = item.get("player") if isinstance(item, dict) and item.get("player") else item
             if not isinstance(payload, dict):
@@ -1731,7 +1795,7 @@ def ucl_lineups_data():
                     "matchdays": payload.get("matchdays") or _default_matchdays(),
                 }
             )
-        results[manager] = {"players": lineup, "total": total}
+        results[manager] = {"players": lineup, "total": total, "available_clubs": available_clubs}
 
     return jsonify({"lineups": results, "managers": managers, "md": md})
 
@@ -1956,11 +2020,70 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
 
         return all_players
     
+    def get_roster_for_md(manager: str, target_md: int) -> List[Dict]:
+        """Get manager's roster as it was for the specific MD (for available clubs calculation)"""
+        current_roster = list(rosters.get(manager, []))
+        
+        # Apply old format transfers first (legacy)
+        for transfer in old_transfer_history:
+            if (transfer.get("manager") == manager and 
+                transfer.get("matchday", 999) < target_md):
+                if "player_out" in transfer:
+                    out_id = transfer["player_out"].get("playerId")
+                    current_roster = [p for p in current_roster if p.get("playerId") != out_id]
+                if "player_in" in transfer:
+                    in_player = transfer["player_in"]
+                    in_player_id = in_player.get("playerId")
+                    already_in_roster = any(p.get("playerId") == in_player_id for p in current_roster)
+                    if not already_in_roster:
+                        current_roster.append(in_player)
+        
+        # Rollback transfers that happened AFTER the target MD
+        rollback_transfers = []
+        for transfer in new_transfer_history:
+            transfer_gw = transfer.get("gw", 999)
+            transfer_manager = transfer.get("manager")
+            if transfer_manager == manager and transfer_gw >= target_md:
+                rollback_transfers.append(transfer)
+        
+        rollback_transfers.sort(key=lambda x: x.get("ts", ""), reverse=True)
+        
+        for transfer in rollback_transfers:
+            transfer_action = transfer.get("action")
+            if transfer_action == "transfer_in" and "in_player" in transfer:
+                in_player_id = transfer["in_player"].get("playerId")
+                current_roster = [p for p in current_roster if p.get("playerId") != in_player_id]
+            elif transfer_action == "transfer_out" and "out_player" in transfer:
+                out_player = transfer["out_player"]
+                out_player_id = out_player.get("playerId")
+                already_in_roster = any(p.get("playerId") == out_player_id for p in current_roster)
+                if not already_in_roster:
+                    current_roster.append(out_player)
+        
+        return current_roster
+    
     for manager in managers:
         # Get all players who were ever in this manager's roster
         all_manager_players = get_all_manager_players(manager)
         lineup = []
         total = 0
+        
+        # Get roster for last finished MD to calculate available clubs
+        roster_for_last_md = get_roster_for_md(manager, last_finished_md)
+        manager_clubs: Set[str] = set()
+        for player in roster_for_last_md:
+            payload = player.get("player") if isinstance(player, dict) and player.get("player") else player
+            if isinstance(payload, dict):
+                club = payload.get("clubName") or ""
+                if club:
+                    manager_clubs.add(club)
+        
+        # Calculate available clubs (not in roster)
+        available_clubs: List[Dict[str, Any]] = []
+        for club_name, club_data in all_clubs.items():
+            if club_name not in manager_clubs:
+                available_clubs.append(club_data)
+        available_clubs.sort(key=lambda x: x.get("clubName", ""))
         
         for player_id, player_data in all_manager_players.items():
             payload = player_data["player"]
@@ -2033,7 +2156,7 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
                 "matchdays": payload.get("matchdays") or sorted(active_mds),
             })
         
-        results[manager] = {"players": lineup, "total": total}
+        results[manager] = {"players": lineup, "total": total, "available_clubs": available_clubs}
     
     return {"lineups": results, "managers": managers}
 
