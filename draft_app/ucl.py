@@ -2107,7 +2107,8 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
         lineup = []
         total = 0
         
-        # Get roster for last finished MD to calculate available clubs
+        # Get roster for last finished MD to calculate available clubs and check active players
+        active_player_ids: Set[int] = set()
         try:
             roster_for_last_md = get_roster_for_md(manager, last_finished_md)
             manager_clubs: Set[str] = set()
@@ -2120,6 +2121,13 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
                     club = payload.get("clubName") or ""
                     if club:
                         manager_clubs.add(club)
+                    # Track active player IDs
+                    pid = payload.get("playerId") or payload.get("id") or payload.get("pid")
+                    if pid:
+                        try:
+                            active_player_ids.add(int(pid))
+                        except Exception:
+                            pass
         except Exception as e:
             # If there's an error getting roster, just use empty set
             manager_clubs: Set[str] = set()
@@ -2199,6 +2207,10 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
             # Use active_mds for matchdays display, not payload.matchdays
             # active_mds is correctly calculated based on transfer history
             display_matchdays = sorted(active_mds)
+            
+            # Check if player is currently active (in roster for last finished MD)
+            is_active = pid_int in active_player_ids
+            
             lineup.append({
                 "name": payload.get("fullName") or payload.get("name") or str(pid_int),
                 "pos": payload.get("position"),
@@ -2210,6 +2222,7 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
                 "transfer_status": transfer_status,  # current, transfer_in, transfer_out
                 "active_mds": display_matchdays,  # List of MDs when player was active
                 "matchdays": display_matchdays,  # Use active_mds, not payload.matchdays
+                "is_active": is_active,  # Whether player is currently in roster
             })
         
         results[manager] = {"players": lineup, "total": total, "available_clubs": available_clubs}

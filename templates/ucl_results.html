@@ -280,13 +280,16 @@ document.addEventListener('DOMContentLoaded', () => {
           infoWrap.appendChild(spanMatchdays);
         }
         
-        // Add transfer status indicator
-        if (p.transfer_status === 'transfer_out') {
+        // Add transfer status indicator and dimming for inactive players
+        // Player is inactive if they are not in the current roster (is_active === false)
+        const isInactive = p.is_active === false;
+        
+        if (isInactive) {
           const transferIcon = document.createElement('span');
           transferIcon.textContent = ' ⬇️';
           transferIcon.style.color = 'red';
           transferIcon.style.fontWeight = 'bold';
-          transferIcon.title = 'Transfer out';
+          transferIcon.title = 'Неактивный игрок';
           nameSpan.appendChild(transferIcon);
           div.style.opacity = '0.7';
         } else if (p.transfer_status === 'transfer_in') {
