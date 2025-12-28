@@ -1942,9 +1942,13 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
                     pivot = None
                 if pivot is not None:
                     if status == "transfer_out":
-                        matchdays_set = {md for md in range(1, pivot + 1) if md <= UCL_TOTAL_MATCHDAYS}
+                        # If player was transferred out after GW pivot, they played in MDs 1 to pivot-1
+                        # (e.g., if transferred after GW3, they played in MDs 1-3)
+                        matchdays_set = {md for md in range(1, pivot) if md <= UCL_TOTAL_MATCHDAYS}
                     else:
-                        start = max(1, pivot)
+                        # If player was transferred in after GW pivot, they play from MD pivot+1 onwards
+                        # (e.g., if transferred after GW3, they play from MD4 onwards)
+                        start = max(1, pivot + 1)
                         matchdays_set = {md for md in range(start, UCL_TOTAL_MATCHDAYS + 1)}
             if not matchdays_set:
                 matchdays_set = set(_default_matchdays())
@@ -1989,9 +1993,20 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
         # Add new format transfers
         for transfer in new_transfer_history:
             if transfer.get("manager") == manager:
+                # Determine action if not explicitly set
+                action = transfer.get("action")
+                if not action:
+                    # If both out_player and in_player exist, it's a combined transfer
+                    if transfer.get("out_player") and transfer.get("in_player"):
+                        action = "combined"
+                    elif transfer.get("out_player"):
+                        action = "transfer_out"
+                    elif transfer.get("in_player"):
+                        action = "transfer_in"
+                
                 all_transfers.append({
                     "gw": transfer.get("gw", 1),
-                    "action": transfer.get("action"),
+                    "action": action,
                     "out_player": transfer.get("out_player"),
                     "in_player": transfer.get("in_player"),
                     "ts": transfer.get("ts", "")
@@ -2115,6 +2130,12 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
                 pid_int = int(pid)
             except Exception:
                 continue
+            
+            # Check if player played in any finished matchdays
+            # If not, skip this player (they haven't played in any finished games yet)
+            played_in_finished = bool(active_mds & finished_matchdays)
+            if not played_in_finished:
+                continue
                 
             # Get player stats
             stats = get_player_stats_cached(pid_int)
@@ -2143,9 +2164,10 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
                                 if isinstance(md_stat, dict):
                                     md_points = safe_int(md_stat.get("tPoints", 0))
                                     md_num = md_stat.get("mdId")
-                                    if md_num and md_points > 0:
+                                    if md_num:
                                         # Only include if matchday is finished AND player was active in this MD
                                         if md_num in finished_matchdays and md_num in active_mds:
+                                            # Include even if points = 0, to show player played in this MD
                                             breakdown.append({
                                                 "label": f"MD{md_num}",
                                                 "value": md_points
