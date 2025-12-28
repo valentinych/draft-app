@@ -1712,7 +1712,7 @@ def ucl_lineups_data():
 
     # Get all UCL clubs
     all_clubs = _get_all_ucl_clubs()
-    
+
     results: Dict[str, Dict[str, Any]] = {}
     for manager in managers:
         # Get roster as it was for this specific MD
@@ -1939,15 +1939,38 @@ def ucl_lineups_data():
         team_of_md_data = optimal_teams[md_str].get("team_of_md", {})
         unpicked_geniuses_data = optimal_teams[md_str].get("unpicked_geniuses", {})
         
+        # Helper function to find manager for a player
+        def find_manager_for_player(pid: int) -> str | None:
+            """Find which manager has this player in their roster for this MD"""
+            for manager in managers:
+                try:
+                    roster = get_roster_for_md(manager, md)
+                    for item in roster:
+                        payload = item.get("player") if isinstance(item, dict) and item.get("player") else item
+                        if isinstance(payload, dict):
+                            roster_pid = payload.get("playerId")
+                            if roster_pid:
+                                try:
+                                    if int(roster_pid) == pid:
+                                        return manager
+                                except Exception:
+                                    pass
+                except Exception:
+                    pass
+            return None
+        
         # Convert saved format to display format
-        def convert_team_format(team_data: Dict[str, Any]) -> Dict[str, Any]:
+        def convert_team_format(team_data: Dict[str, Any], is_unpicked: bool = False) -> Dict[str, Any]:
             players = team_data.get("players", [])
             converted_players = []
             for p in players:
-                # Load stats if needed for popup
+                # Load stats if needed for popup and to get teamId
                 pid = p.get("playerId")
                 stat_payload = {}
-                if pid:
+                team_id = p.get("teamId")
+                
+                # If teamId is missing, try to get it from stats
+                if not team_id and pid:
                     try:
                         pid_int = int(pid)
                         stats = get_player_stats_cached(pid_int)
@@ -1956,28 +1979,93 @@ def ucl_lineups_data():
                             md_stat = _ucl_points_for_md(stats, md)
                             if md_stat:
                                 stat_payload = md_stat
+                            
+                            # Try to extract teamId from stats
+                            data = stats.get("data", {})
+                            value = data.get("value", {}) if isinstance(data, dict) else {}
+                            
+                            # Try various fields for teamId
+                            for candidate in (
+                                value.get("tId"),
+                                value.get("teamId"),
+                                data.get("tId"),
+                                data.get("teamId"),
+                                stats.get("tId"),
+                                stats.get("teamId"),
+                            ):
+                                if candidate:
+                                    try:
+                                        team_id = str(int(candidate))
+                                        break
+                                    except Exception:
+                                        pass
                     except Exception:
                         pass
                 
-                converted_players.append({
+                # If still no teamId, try to get from raw player data
+                if not team_id and pid:
+                    try:
+                        raw_players = _json_load(UCL_PLAYERS) or []
+                        players_list = []
+                        if isinstance(raw_players, dict):
+                            players_list = (
+                                raw_players.get("data", {})
+                                .get("value", {})
+                                .get("playerList", [])
+                                if isinstance(raw_players.get("data"), dict) else []
+                            )
+                        elif isinstance(raw_players, list):
+                            players_list = raw_players
+                        
+                        # Find player in raw data
+                        for raw_p in players_list:
+                            if isinstance(raw_p, dict):
+                                raw_pid = raw_p.get("id") or raw_p.get("playerId")
+                                if raw_pid and int(raw_pid) == int(pid):
+                                    raw_team_id = raw_p.get("tId") or raw_p.get("teamId")
+                                    if raw_team_id:
+                                        try:
+                                            team_id = str(int(raw_team_id))
+                                            break
+                                    except Exception:
+                                        pass
+                    except Exception:
+                        pass
+                
+                # For optimal teams, don't show matchdays, but for Team of the MD show manager info
+                player_info = {
                     "name": p.get("fullName") or p.get("name") or str(p.get("playerId", "")),
                     "pos": p.get("pos") or p.get("position"),
                     "club": p.get("club") or p.get("clubName"),
-                    "teamId": p.get("teamId"),
+                    "teamId": team_id,
                     "points": p.get("points", 0),
                     "stat": stat_payload,
                     "statsCount": stat_payload.get("_stats_count", 0),
                     "playerId": str(p.get("playerId", "")),
-                    "matchdays": p.get("matchdays", []),
-                })
+                    "matchdays": [],  # Don't show matchdays for optimal teams
+                }
+                
+                # For Team of the MD (not unpicked), add manager info
+                if not is_unpicked and pid:
+                    try:
+                        pid_int = int(pid)
+                        manager = find_manager_for_player(pid_int)
+                        if manager:
+                            player_info["manager"] = manager
+                        else:
+                            player_info["manager"] = "Непикнутый гений"
+                    except Exception:
+                        pass
+                
+                converted_players.append(player_info)
             return {
                 "players": converted_players,
                 "total": team_data.get("total", 0),
                 "available_clubs": []
             }
         
-        results["Team of The MD"] = convert_team_format(team_of_md_data)
-        results["Непикнутые гении"] = convert_team_format(unpicked_geniuses_data)
+        results["Team of The MD"] = convert_team_format(team_of_md_data, is_unpicked=False)
+        results["Непикнутые гении"] = convert_team_format(unpicked_geniuses_data, is_unpicked=True)
     else:
         # Build on the fly (for non-finished matchdays or if not pre-calculated)
         raw_players = _json_load(UCL_PLAYERS) or []
@@ -2145,7 +2233,7 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
                                 matchdays_set = {int(md) for md in payload_matchdays if md <= UCL_TOTAL_MATCHDAYS}
                             except (TypeError, ValueError):
                                 matchdays_set = set()
-                        else:
+                    else:
                             matchdays_set = set()
                         
                         # If matchdays not in payload, calculate from transferred_in_gw and transferred_out_gw
@@ -2190,7 +2278,7 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
                             except (TypeError, ValueError):
                                 # Fallback to transfer_gw logic
                                 start = max(1, pivot + 1)
-                                matchdays_set = {md for md in range(start, UCL_TOTAL_MATCHDAYS + 1)}
+                        matchdays_set = {md for md in range(start, UCL_TOTAL_MATCHDAYS + 1)}
                         else:
                             # For transfer_in, use transfer_gw+1 to calculate matchdays
                             # If transferred after GW pivot, they play from MD pivot+1 onwards
@@ -2223,10 +2311,10 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
                     existing["transfer_status"] = status
                 else:
                     # For "current" status, update active_mds (union)
-                    existing["active_mds"].update(matchdays_set)
-                    if status_priority.get(status, 0) >= status_priority.get(existing.get("transfer_status"), 0):
-                        existing["player"] = player_copy
-                        existing["transfer_status"] = status
+                existing["active_mds"].update(matchdays_set)
+                if status_priority.get(status, 0) >= status_priority.get(existing.get("transfer_status"), 0):
+                    existing["player"] = player_copy
+                    existing["transfer_status"] = status
             else:
                 all_players[key] = {
                     "player": player_copy,
@@ -2260,7 +2348,7 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
                 register_player(player_with_gw, "transfer_in", transferred_in_gw - 1)
             else:
                 # Regular current player
-                register_player(player, "current")
+            register_player(player, "current")
 
         # Process transfer history entries
         all_transfers: List[Dict[str, Any]] = []

@@ -100,12 +100,38 @@ def _resolve_club_name_from_stats(stats: Dict[str, Any], player: Dict[str, Any])
     
     return ""
 
+def _get_player_team_id_from_raw(pid: int, raw_players_data: Any) -> str | None:
+    """Extract teamId from raw players data"""
+    players_list = []
+    if isinstance(raw_players_data, dict):
+        players_list = (
+            raw_players_data.get("data", {})
+            .get("value", {})
+            .get("playerList", [])
+            if isinstance(raw_players_data.get("data"), dict) else []
+        )
+    elif isinstance(raw_players_data, list):
+        players_list = raw_players_data
+    
+    for raw_p in players_list:
+        if isinstance(raw_p, dict):
+            raw_pid = raw_p.get("id") or raw_p.get("playerId")
+            if raw_pid and int(raw_pid) == pid:
+                raw_team_id = raw_p.get("tId") or raw_p.get("teamId")
+                if raw_team_id:
+                    try:
+                        return str(int(raw_team_id))
+                    except Exception:
+                        pass
+    return None
+
 def build_optimal_team_for_md(
     all_players: List[Dict[str, Any]],
     md: int,
     managers: List[str],
     rosters: Dict[str, List[Dict[str, Any]]],
-    exclude_picked: bool = False
+    exclude_picked: bool = False,
+    raw_players_data: Any = None
 ) -> Dict[str, Any]:
     """Build optimal team for specific MD"""
     # Position limits: GK: 3, DEF: 8, MID: 9, FWD: 5
@@ -148,6 +174,12 @@ def build_optimal_team_for_md(
         if md not in matchdays:
             continue
         
+        # Get teamId from raw players data first (from players_80_en_1.json)
+        # In UCL data, teamId is stored as "tId" in the raw player data
+        team_id = None
+        if raw_players_data:
+            team_id = _get_player_team_id_from_raw(pid_int, raw_players_data)
+        
         # Get stats from local cache (popupstats directory)
         # Load directly from popupstats file for full data
         stats = None
@@ -180,18 +212,11 @@ def build_optimal_team_for_md(
         
         points = _safe_int(md_stats.get("tPoints"))
         
-        # Debug: show if points are found
-        if points > 0 and pid_int % 100 == 0:  # Sample every 100th player
-            pass  # Can add debug output here if needed
+        # Get team ID from stats if not found in player data
+        if not team_id:
+            team_id = _resolve_team_id_from_stats(stats)
         
-        # Skip players with 0 points (they might not have played)
-        # But include them if they're in the matchdays list
-        if points == 0:
-            # Still include them if they're in matchdays (they might have played but got 0 points)
-            pass
-        
-        # Get team ID and club name
-        team_id = _resolve_team_id_from_stats(stats)
+        # Get club name
         club_name = _resolve_club_name_from_stats(stats, player)
         
         # Normalize position
@@ -287,6 +312,9 @@ def main():
     managers = [m for m in UCL_PARTICIPANTS if m in rosters]
     print(f"✅ Менеджеров: {len(managers)}")
     
+    # Keep raw players data for teamId extraction
+    raw_players_data = raw_players
+    
     # Initialize optimal_teams in state if not exists
     if "optimal_teams" not in state:
         state["optimal_teams"] = {}
@@ -300,7 +328,7 @@ def main():
         # Team of The MD (all players)
         print(f"  • Team of The MD...")
         team_of_md = build_optimal_team_for_md(
-            all_players, md, managers, rosters, exclude_picked=False
+            all_players, md, managers, rosters, exclude_picked=False, raw_players_data=raw_players_data
         )
         # Verify total points by summing player points
         calculated_total = sum(p.get("points", 0) for p in team_of_md["players"])
@@ -309,7 +337,7 @@ def main():
         # Непикнутые гении (unpicked only)
         print(f"  • Непикнутые гении...")
         unpicked_geniuses = build_optimal_team_for_md(
-            all_players, md, managers, rosters, exclude_picked=True
+            all_players, md, managers, rosters, exclude_picked=True, raw_players_data=raw_players_data
         )
         
         # Verify total points by summing player points

@@ -335,7 +335,14 @@ document.addEventListener('DOMContentLoaded', () => {
             spanName.textContent += ` (${player.club})`;
           }
           infoWrap.appendChild(spanName);
-          if (Array.isArray(player.matchdays) && player.matchdays.length) {
+          
+          // For optimal teams, show manager info instead of matchdays
+          if (manager === "Team of The MD" && player.manager) {
+            const managerSpan = document.createElement('span');
+            managerSpan.className = 'ucl-player-matchdays';
+            managerSpan.textContent = player.manager;
+            infoWrap.appendChild(managerSpan);
+          } else if (manager !== "Team of The MD" && manager !== "Непикнутые гении" && Array.isArray(player.matchdays) && player.matchdays.length) {
             const spanMatchdays = document.createElement('span');
             spanMatchdays.className = 'ucl-player-matchdays';
             spanMatchdays.textContent = `Туры: ${player.matchdays.join(', ')}`;
