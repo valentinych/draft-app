@@ -1797,7 +1797,145 @@ def ucl_lineups_data():
             )
         results[manager] = {"players": lineup, "total": total, "available_clubs": available_clubs}
 
-    return jsonify({"lineups": results, "managers": managers, "md": md})
+    # Build optimal teams
+    def build_optimal_team(all_players: List[Dict[str, Any]], exclude_picked: bool = False) -> Dict[str, Any]:
+        """Build optimal team with maximum points, respecting position limits and one player per club"""
+        # Position limits: GK: 3, DEF: 8, MID: 9, FWD: 5
+        pos_limits = {"GK": 3, "DEF": 8, "MID": 9, "FWD": 5}
+        
+        # Get picked player IDs for this MD
+        picked_ids_for_md: Set[int] = set()
+        if exclude_picked:
+            for manager in managers:
+                roster = get_roster_for_md(manager, md)
+                for item in roster:
+                    payload = item.get("player") if isinstance(item, dict) and item.get("player") else item
+                    if isinstance(payload, dict):
+                        pid = payload.get("playerId")
+                        if pid:
+                            try:
+                                picked_ids_for_md.add(int(pid))
+                            except Exception:
+                                pass
+        
+        # Filter players
+        available_players = []
+        for player in all_players:
+            pid = player.get("playerId")
+            if not pid:
+                continue
+            try:
+                pid_int = int(pid)
+            except Exception:
+                continue
+            
+            # Skip if exclude_picked and player is picked
+            if exclude_picked and pid_int in picked_ids_for_md:
+                continue
+            
+            # Check if player played in this MD
+            matchdays = _player_matchdays(player)
+            if md not in matchdays:
+                continue
+            
+            # Get stats
+            stats = get_player_stats_cached(pid_int)
+            stat_payload, points_dict, raw_stats, data_section, value_section = _stat_sections(stats)
+            points = _safe_int(stat_payload.get("tPoints"))
+            
+            # Get team ID and club name
+            team_id = _resolve_team_id(player, stat_payload, points_dict, raw_stats, data_section, value_section, stats)
+            club_name = _first_non_empty(
+                player.get("clubName"),
+                stat_payload.get("teamName"),
+                stat_payload.get("tName"),
+                raw_stats.get("teamName"),
+                points_dict.get("teamName"),
+            )
+            
+            pos_raw = player.get("position")
+            # Normalize position
+            pos = None
+            if pos_raw:
+                pos_upper = str(pos_raw).upper()
+                if pos_upper.startswith('GOAL') or pos_upper in ('GK', 'GKP'):
+                    pos = 'GK'
+                elif pos_upper.startswith('DEF'):
+                    pos = 'DEF'
+                elif pos_upper.startswith('MID'):
+                    pos = 'MID'
+                elif pos_upper.startswith('FWD') or pos_upper.startswith('FOR'):
+                    pos = 'FWD'
+            
+            if pos not in pos_limits:
+                continue
+            
+            available_players.append({
+                "playerId": pid_int,
+                "name": player.get("fullName") or player.get("name") or str(pid_int),
+                "pos": pos,
+                "club": club_name,
+                "teamId": team_id,
+                "points": points,
+                "stat": stat_payload,
+                "statsCount": stat_payload.get("_stats_count", 0),
+                "matchdays": matchdays,
+            })
+        
+        # Sort by points descending
+        available_players.sort(key=lambda x: x["points"], reverse=True)
+        
+        # Build team using greedy algorithm
+        selected: List[Dict[str, Any]] = []
+        pos_counts = {"GK": 0, "DEF": 0, "MID": 0, "FWD": 0}
+        clubs_used: Set[str] = set()
+        total_points = 0
+        
+        for player in available_players:
+            pos = player["pos"]
+            club = (player.get("club") or "").upper()
+            
+            # Check position limit
+            if pos_counts[pos] >= pos_limits[pos]:
+                continue
+            
+            # Check club limit (one player per club)
+            if club and club in clubs_used:
+                continue
+            
+            # Add player
+            selected.append(player)
+            pos_counts[pos] += 1
+            if club:
+                clubs_used.add(club)
+            total_points += player["points"]
+            
+            # Check if team is complete (25 players total)
+            if sum(pos_counts.values()) >= 25:
+                break
+        
+        return {
+            "players": selected,
+            "total": total_points,
+            "available_clubs": []
+        }
+    
+    # Get all players from UCL players file
+    raw_players = _json_load(UCL_PLAYERS) or []
+    all_ucl_players = _players_from_ucl(raw_players)
+    
+    # Build Team of The MD (all players)
+    team_of_md = build_optimal_team(all_ucl_players, exclude_picked=False)
+    results["Team of The MD"] = team_of_md
+    
+    # Build Непикнутые гении (unpicked players only)
+    unpicked_geniuses = build_optimal_team(all_ucl_players, exclude_picked=True)
+    results["Непикнутые гении"] = unpicked_geniuses
+    
+    # Add special teams to managers list
+    all_managers = managers + ["Team of The MD", "Непикнутые гении"]
+
+    return jsonify({"lineups": results, "managers": all_managers, "md": md})
 
 @bp.get("/ucl/status")
 def status():

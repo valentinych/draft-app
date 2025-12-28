@@ -5672,12 +5672,7 @@
           "matchdays": [
             1,
             2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            8
+            3
           ],
           "status": "transfer_out",
           "transferred_out_gw": 3
@@ -5713,12 +5708,7 @@
           "matchdays": [
             1,
             2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            8
+            3
           ],
           "status": "transfer_out",
           "transferred_out_gw": 3
@@ -5754,12 +5744,7 @@
           "matchdays": [
             1,
             2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            8
+            3
           ],
           "status": "transfer_out",
           "transferred_out_gw": 3
@@ -5876,12 +5861,7 @@
           "price": 4.5,
           "matchdays": [
             2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            8
+            3
           ],
           "transferred_in_gw": 2,
           "status": "transfer_out",
@@ -5982,12 +5962,7 @@
         "price": 4.5,
         "matchdays": [
           2,
-          3,
-          4,
-          5,
-          6,
-          7,
-          8
+          3
         ],
         "transferred_in_gw": 2,
         "status": "transfer_out",
@@ -6059,12 +6034,7 @@
         "matchdays": [
           1,
           2,
-          3,
-          4,
-          5,
-          6,
-          7,
-          8
+          3
         ],
         "status": "transfer_out",
         "transferred_out_gw": 3
@@ -6078,12 +6048,7 @@
         "matchdays": [
           1,
           2,
-          3,
-          4,
-          5,
-          6,
-          7,
-          8
+          3
         ],
         "status": "transfer_out",
         "transferred_out_gw": 3

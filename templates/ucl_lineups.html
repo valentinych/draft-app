@@ -204,11 +204,21 @@ document.addEventListener('DOMContentLoaded', () => {
   const render = data => {
     const rawManagers = data.managers || [];
     const lineups = data.lineups || {};
-    const managers = rawManagers.slice().sort((a, b) => {
+    
+    // Separate regular managers from special teams
+    const regularManagers = rawManagers.filter(m => m !== 'Team of The MD' && m !== 'Непикнутые гении');
+    const specialTeams = rawManagers.filter(m => m === 'Team of The MD' || m === 'Непикнутые гении');
+    
+    // Sort regular managers by total points
+    const managers = regularManagers.slice().sort((a, b) => {
       const totalA = Number(lineups[a] && lineups[a].total) || 0;
       const totalB = Number(lineups[b] && lineups[b].total) || 0;
       return totalB - totalA;
     });
+    
+    // Add special teams at the end
+    const allManagers = managers.concat(specialTeams);
+    
     container.innerHTML = '';
 
     const tabs = document.createElement('div');
@@ -221,7 +231,7 @@ document.addEventListener('DOMContentLoaded', () => {
     contents.style.display = 'block';
     const blocks = [];
 
-    managers.forEach((manager, idx) => {
+    allManagers.forEach((manager, idx) => {
       const li = document.createElement('li');
       if (idx === 0) li.classList.add('is-active');
       const a = document.createElement('a');
@@ -247,9 +257,20 @@ document.addEventListener('DOMContentLoaded', () => {
       const players = lineups[manager] && Array.isArray(lineups[manager].players)
         ? lineups[manager].players.slice()
         : [];
-      const hue = idx * 60;
-      const c1 = `hsl(${hue}, 70%, 90%)`;
-      const c2 = `hsl(${hue}, 70%, 80%)`;
+      
+      // Special styling for special teams
+      let c1, c2;
+      if (manager === 'Team of The MD') {
+        c1 = 'hsl(270, 70%, 95%)'; // Light purple
+        c2 = 'hsl(270, 70%, 85%)'; // Medium purple
+      } else if (manager === 'Непикнутые гении') {
+        c1 = 'hsl(300, 70%, 95%)'; // Light magenta
+        c2 = 'hsl(300, 70%, 85%)'; // Medium magenta
+      } else {
+        const hue = idx * 60;
+        c1 = `hsl(${hue}, 70%, 90%)`;
+        c2 = `hsl(${hue}, 70%, 80%)`;
+      }
       const buckets = { GK: [], DEF: [], MID: [], FWD: [], OTHER: [] };
       const normalizePos = (pos) => {
         const upper = (pos || '').toString().toUpperCase();
