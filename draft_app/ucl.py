@@ -1942,14 +1942,55 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
                     pivot = None
                 if pivot is not None:
                     if status == "transfer_out":
-                        # If player was transferred out after GW pivot, they played in MDs 1 to pivot-1
-                        # (e.g., if transferred after GW3 (gw=4), they played in MDs 1-3)
-                        matchdays_set = {md for md in range(1, pivot) if md <= UCL_TOTAL_MATCHDAYS}
+                        # Check if _transferred_out_gw_for_matchdays is set
+                        # This is set when registering from roster with transferred_out_gw
+                        explicit_out_gw = player_payload.get("_transferred_out_gw_for_matchdays")
+                        explicit_in_gw = player_payload.get("_transferred_in_gw_for_matchdays")
+                        
+                        # If player was both transferred in and out, use both values
+                        if explicit_in_gw is not None and explicit_out_gw is not None:
+                            try:
+                                in_gw = int(explicit_in_gw)
+                                out_gw = int(explicit_out_gw)
+                                # Player was available from transferred_in_gw to transferred_out_gw
+                                # (e.g., if transferred_in_gw=2 and transferred_out_gw=4, they played in MDs 2-4)
+                                matchdays_set = {md for md in range(in_gw, out_gw + 1) if md <= UCL_TOTAL_MATCHDAYS}
+                            except (TypeError, ValueError):
+                                # Fallback to transfer_gw logic
+                                matchdays_set = {md for md in range(1, pivot) if md <= UCL_TOTAL_MATCHDAYS}
+                        elif explicit_out_gw is not None:
+                            try:
+                                out_gw = int(explicit_out_gw)
+                                # transferred_out_gw means player was transferred out after this GW
+                                # So they played in MDs 1 to transferred_out_gw
+                                # (e.g., if transferred_out_gw=4, they played in MDs 1-4)
+                                matchdays_set = {md for md in range(1, out_gw + 1) if md <= UCL_TOTAL_MATCHDAYS}
+                            except (TypeError, ValueError):
+                                # Fallback to transfer_gw logic
+                                matchdays_set = {md for md in range(1, pivot) if md <= UCL_TOTAL_MATCHDAYS}
+                        else:
+                            # If player was transferred out after GW pivot, they played in MDs 1 to pivot-1
+                            # (e.g., if transferred after GW3 (gw=4), they played in MDs 1-3)
+                            matchdays_set = {md for md in range(1, pivot) if md <= UCL_TOTAL_MATCHDAYS}
                     elif status == "transfer_in":
-                        # If player was transferred in after GW pivot, they play from MD pivot+1 onwards
-                        # (e.g., if transferred after GW3 (gw=4), they play from MD4 onwards)
-                        start = max(1, pivot + 1)
-                        matchdays_set = {md for md in range(start, UCL_TOTAL_MATCHDAYS + 1)}
+                        # For transfer_in, check if _transferred_in_gw_for_matchdays is set
+                        # This is set when registering from roster with transferred_in_gw
+                        explicit_in_gw = player_payload.get("_transferred_in_gw_for_matchdays")
+                        if explicit_in_gw is not None:
+                            try:
+                                in_gw = int(explicit_in_gw)
+                                # transferred_in_gw means player is available from this MD
+                                matchdays_set = {md for md in range(in_gw, UCL_TOTAL_MATCHDAYS + 1) if md <= UCL_TOTAL_MATCHDAYS}
+                            except (TypeError, ValueError):
+                                # Fallback to transfer_gw logic
+                                start = max(1, pivot + 1)
+                                matchdays_set = {md for md in range(start, UCL_TOTAL_MATCHDAYS + 1)}
+                        else:
+                            # For transfer_in, use transfer_gw+1 to calculate matchdays
+                            # If transferred after GW pivot, they play from MD pivot+1 onwards
+                            # (e.g., if transferred after GW4 (gw=4), they play from MD5 onwards)
+                            start = max(1, pivot + 1)
+                            matchdays_set = {md for md in range(start, UCL_TOTAL_MATCHDAYS + 1)}
                     else:
                         # For "current" status, use payload matchdays or default
                         matchdays_set = _player_matchdays(player_payload)
@@ -1991,7 +2032,29 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
         current_roster = rosters.get(manager, [])
         _ensure_fp_current_from_uefa_feed(current_roster)
         for player in current_roster:
-            register_player(player, "current")
+            # Check if player has transfer status in roster
+            player_status = player.get("status", "")
+            transferred_in_gw = player.get("transferred_in_gw")
+            transferred_out_gw = player.get("transferred_out_gw")
+            
+            if player_status == "transfer_out" and transferred_out_gw is not None:
+                # Player was transferred out, register with transfer_out status
+                # Pass transferred_out_gw in the payload so it can be used for matchdays calculation
+                player_with_gw = dict(player)
+                player_with_gw["_transferred_out_gw_for_matchdays"] = transferred_out_gw
+                register_player(player_with_gw, "transfer_out", transferred_out_gw)
+            elif transferred_in_gw is not None:
+                # Player was transferred in, register with transfer_in status
+                # transferred_in_gw is the MD when player becomes available
+                # So if transferred_in_gw=4, player is available from MD4
+                # The transfer happened after GW(transferred_in_gw-1), so use transferred_in_gw-1 as gw
+                # Pass transferred_in_gw in the payload so it can be used for matchdays calculation
+                player_with_gw = dict(player)
+                player_with_gw["_transferred_in_gw_for_matchdays"] = transferred_in_gw
+                register_player(player_with_gw, "transfer_in", transferred_in_gw - 1)
+            else:
+                # Regular current player
+                register_player(player, "current")
 
         # Process transfer history entries
         all_transfers: List[Dict[str, Any]] = []
@@ -2042,20 +2105,37 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
                 in_player = transfer.get("in_player")
                 
                 if out_player:
-                    register_player(out_player, "transfer_out", transfer_gw)
+                    # Pass transferred_out_gw and transferred_in_gw from payload if available
+                    out_player_with_gw = dict(out_player)
+                    if "transferred_out_gw" in out_player:
+                        out_player_with_gw["_transferred_out_gw_for_matchdays"] = out_player.get("transferred_out_gw")
+                    if "transferred_in_gw" in out_player:
+                        out_player_with_gw["_transferred_in_gw_for_matchdays"] = out_player.get("transferred_in_gw")
+                    register_player(out_player_with_gw, "transfer_out", transfer_gw)
 
                 if in_player:
-                    register_player(in_player, "transfer_in", transfer_gw + 1)
+                    # Pass transferred_in_gw from payload if available
+                    in_player_with_gw = dict(in_player)
+                    if "transferred_in_gw" in in_player:
+                        in_player_with_gw["_transferred_in_gw_for_matchdays"] = in_player.get("transferred_in_gw")
+                    register_player(in_player_with_gw, "transfer_in", transfer_gw)
 
             elif transfer.get("action") == "transfer_out":
                 out_player = transfer.get("out_player")
                 if out_player:
-                    register_player(out_player, "transfer_out", transfer_gw)
+                    # Pass transferred_out_gw and transferred_in_gw from payload if available
+                    out_player_with_gw = dict(out_player)
+                    if "transferred_out_gw" in out_player:
+                        out_player_with_gw["_transferred_out_gw_for_matchdays"] = out_player.get("transferred_out_gw")
+                    if "transferred_in_gw" in out_player:
+                        out_player_with_gw["_transferred_in_gw_for_matchdays"] = out_player.get("transferred_in_gw")
+                    register_player(out_player_with_gw, "transfer_out", transfer_gw)
 
             elif transfer.get("action") == "transfer_in":
                 in_player = transfer.get("in_player")
                 if in_player:
-                    register_player(in_player, "transfer_in", transfer_gw + 1)
+                    # For transfer_in, use transfer_gw (transferred_in_gw will be used from payload if available)
+                    register_player(in_player, "transfer_in", transfer_gw)
 
         return all_players
     
