@@ -2027,8 +2027,8 @@ def ucl_lineups_data():
                                         try:
                                             team_id = str(int(raw_team_id))
                                             break
-                                    except Exception:
-                                        pass
+                                        except Exception:
+                                            pass
                     except Exception:
                         pass
                 
@@ -2233,7 +2233,7 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
                                 matchdays_set = {int(md) for md in payload_matchdays if md <= UCL_TOTAL_MATCHDAYS}
                             except (TypeError, ValueError):
                                 matchdays_set = set()
-                    else:
+                        else:
                             matchdays_set = set()
                         
                         # If matchdays not in payload, calculate from transferred_in_gw and transferred_out_gw
@@ -2278,7 +2278,7 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
                             except (TypeError, ValueError):
                                 # Fallback to transfer_gw logic
                                 start = max(1, pivot + 1)
-                        matchdays_set = {md for md in range(start, UCL_TOTAL_MATCHDAYS + 1)}
+                                matchdays_set = {md for md in range(start, UCL_TOTAL_MATCHDAYS + 1)}
                         else:
                             # For transfer_in, use transfer_gw+1 to calculate matchdays
                             # If transferred after GW pivot, they play from MD pivot+1 onwards
@@ -2311,7 +2311,7 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
                     existing["transfer_status"] = status
                 else:
                     # For "current" status, update active_mds (union)
-                existing["active_mds"].update(matchdays_set)
+                    existing["active_mds"].update(matchdays_set)
                 if status_priority.get(status, 0) >= status_priority.get(existing.get("transfer_status"), 0):
                     existing["player"] = player_copy
                     existing["transfer_status"] = status
@@ -2348,7 +2348,7 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
                 register_player(player_with_gw, "transfer_in", transferred_in_gw - 1)
             else:
                 # Regular current player
-            register_player(player, "current")
+                register_player(player, "current")
 
         # Process transfer history entries
         all_transfers: List[Dict[str, Any]] = []
