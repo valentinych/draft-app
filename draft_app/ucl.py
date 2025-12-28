@@ -1797,6 +1797,14 @@ def ucl_lineups_data():
             )
         results[manager] = {"players": lineup, "total": total, "available_clubs": available_clubs}
 
+    # Load optimal teams from state if available (for finished matchdays)
+    finished_matchdays = state.get("finished_matchdays", [])
+    optimal_teams = state.get("optimal_teams", {})
+    
+    # Check if optimal teams are pre-calculated for finished matchdays
+    finished_matchdays = state.get("finished_matchdays", [])
+    optimal_teams = state.get("optimal_teams", {})
+    
     # Build optimal teams
     def build_optimal_team(all_players: List[Dict[str, Any]], exclude_picked: bool = False) -> Dict[str, Any]:
         """Build optimal team with maximum points, respecting position limits and one player per club"""
@@ -1920,17 +1928,66 @@ def ucl_lineups_data():
             "available_clubs": []
         }
     
-    # Get all players from UCL players file
-    raw_players = _json_load(UCL_PLAYERS) or []
-    all_ucl_players = _players_from_ucl(raw_players)
+    # Load or build optimal teams
+    finished_matchdays = state.get("finished_matchdays", [])
+    optimal_teams = state.get("optimal_teams", {})
+    md_str = str(md)
     
-    # Build Team of The MD (all players)
-    team_of_md = build_optimal_team(all_ucl_players, exclude_picked=False)
-    results["Team of The MD"] = team_of_md
-    
-    # Build Непикнутые гении (unpicked players only)
-    unpicked_geniuses = build_optimal_team(all_ucl_players, exclude_picked=True)
-    results["Непикнутые гении"] = unpicked_geniuses
+    # Use pre-calculated teams if available (for finished matchdays or any pre-calculated MD)
+    if md_str in optimal_teams:
+        # Use pre-calculated teams from state
+        team_of_md_data = optimal_teams[md_str].get("team_of_md", {})
+        unpicked_geniuses_data = optimal_teams[md_str].get("unpicked_geniuses", {})
+        
+        # Convert saved format to display format
+        def convert_team_format(team_data: Dict[str, Any]) -> Dict[str, Any]:
+            players = team_data.get("players", [])
+            converted_players = []
+            for p in players:
+                # Load stats if needed for popup
+                pid = p.get("playerId")
+                stat_payload = {}
+                if pid:
+                    try:
+                        pid_int = int(pid)
+                        stats = get_player_stats_cached(pid_int)
+                        if isinstance(stats, dict):
+                            # Use _ucl_points_for_md to get stats for this MD
+                            md_stat = _ucl_points_for_md(stats, md)
+                            if md_stat:
+                                stat_payload = md_stat
+                    except Exception:
+                        pass
+                
+                converted_players.append({
+                    "name": p.get("fullName") or p.get("name") or str(p.get("playerId", "")),
+                    "pos": p.get("pos") or p.get("position"),
+                    "club": p.get("club") or p.get("clubName"),
+                    "teamId": p.get("teamId"),
+                    "points": p.get("points", 0),
+                    "stat": stat_payload,
+                    "statsCount": stat_payload.get("_stats_count", 0),
+                    "playerId": str(p.get("playerId", "")),
+                    "matchdays": p.get("matchdays", []),
+                })
+            return {
+                "players": converted_players,
+                "total": team_data.get("total", 0),
+                "available_clubs": []
+            }
+        
+        results["Team of The MD"] = convert_team_format(team_of_md_data)
+        results["Непикнутые гении"] = convert_team_format(unpicked_geniuses_data)
+    else:
+        # Build on the fly (for non-finished matchdays or if not pre-calculated)
+        raw_players = _json_load(UCL_PLAYERS) or []
+        all_ucl_players = _players_from_ucl(raw_players)
+        
+        team_of_md = build_optimal_team(all_ucl_players, exclude_picked=False)
+        results["Team of The MD"] = team_of_md
+        
+        unpicked_geniuses = build_optimal_team(all_ucl_players, exclude_picked=True)
+        results["Непикнутые гении"] = unpicked_geniuses
     
     # Add special teams to managers list
     all_managers = managers + ["Team of The MD", "Непикнутые гении"]
