@@ -2179,6 +2179,9 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
                     team_id = stats.get("tId") or stats.get("teamId")
             
             total += points
+            # Use active_mds for matchdays display, not payload.matchdays
+            # active_mds is correctly calculated based on transfer history
+            display_matchdays = sorted(active_mds)
             lineup.append({
                 "name": payload.get("fullName") or payload.get("name") or str(pid_int),
                 "pos": payload.get("position"),
@@ -2188,8 +2191,8 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
                 "playerId": str(pid_int),
                 "teamId": team_id,  # For club logo
                 "transfer_status": transfer_status,  # current, transfer_in, transfer_out
-                "active_mds": sorted(active_mds),  # List of MDs when player was active
-                "matchdays": payload.get("matchdays") or sorted(active_mds),
+                "active_mds": display_matchdays,  # List of MDs when player was active
+                "matchdays": display_matchdays,  # Use active_mds, not payload.matchdays
             })
         
         results[manager] = {"players": lineup, "total": total, "available_clubs": available_clubs}
