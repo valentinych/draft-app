@@ -276,7 +276,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (Array.isArray(p.matchdays) && p.matchdays.length) {
           const spanMatchdays = document.createElement('span');
           spanMatchdays.className = 'player-matchdays';
-          spanMatchdays.textContent = `Туры: ${p.matchdays.join(', ')}`;
+          spanMatchdays.textContent = `Туры: ${p.matchdays.join(',')}`;
           infoWrap.appendChild(spanMatchdays);
         }
         

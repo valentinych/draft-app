@@ -1942,36 +1942,47 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
                     pivot = None
                 if pivot is not None:
                     if status == "transfer_out":
-                        # Check if _transferred_out_gw_for_matchdays is set
-                        # This is set when registering from roster with transferred_out_gw
-                        explicit_out_gw = player_payload.get("_transferred_out_gw_for_matchdays")
-                        explicit_in_gw = player_payload.get("_transferred_in_gw_for_matchdays")
-                        
-                        # If player was both transferred in and out, use both values
-                        if explicit_in_gw is not None and explicit_out_gw is not None:
+                        # First, check if matchdays are explicitly set in payload
+                        # This is the most reliable source
+                        payload_matchdays = player_payload.get("matchdays")
+                        if payload_matchdays and isinstance(payload_matchdays, list):
                             try:
-                                in_gw = int(explicit_in_gw)
-                                out_gw = int(explicit_out_gw)
-                                # Player was available from transferred_in_gw to transferred_out_gw
-                                # (e.g., if transferred_in_gw=2 and transferred_out_gw=4, they played in MDs 2-4)
-                                matchdays_set = {md for md in range(in_gw, out_gw + 1) if md <= UCL_TOTAL_MATCHDAYS}
+                                matchdays_set = {int(md) for md in payload_matchdays if md <= UCL_TOTAL_MATCHDAYS}
                             except (TypeError, ValueError):
-                                # Fallback to transfer_gw logic
-                                matchdays_set = {md for md in range(1, pivot) if md <= UCL_TOTAL_MATCHDAYS}
-                        elif explicit_out_gw is not None:
-                            try:
-                                out_gw = int(explicit_out_gw)
-                                # transferred_out_gw means player was transferred out after this GW
-                                # So they played in MDs 1 to transferred_out_gw
-                                # (e.g., if transferred_out_gw=4, they played in MDs 1-4)
-                                matchdays_set = {md for md in range(1, out_gw + 1) if md <= UCL_TOTAL_MATCHDAYS}
-                            except (TypeError, ValueError):
-                                # Fallback to transfer_gw logic
-                                matchdays_set = {md for md in range(1, pivot) if md <= UCL_TOTAL_MATCHDAYS}
+                                matchdays_set = set()
                         else:
-                            # If player was transferred out after GW pivot, they played in MDs 1 to pivot-1
-                            # (e.g., if transferred after GW3 (gw=4), they played in MDs 1-3)
-                            matchdays_set = {md for md in range(1, pivot) if md <= UCL_TOTAL_MATCHDAYS}
+                            matchdays_set = set()
+                        
+                        # If matchdays not in payload, calculate from transferred_in_gw and transferred_out_gw
+                        if not matchdays_set:
+                            explicit_out_gw = player_payload.get("_transferred_out_gw_for_matchdays")
+                            explicit_in_gw = player_payload.get("_transferred_in_gw_for_matchdays")
+                            
+                            # If player was both transferred in and out, use both values
+                            if explicit_in_gw is not None and explicit_out_gw is not None:
+                                try:
+                                    in_gw = int(explicit_in_gw)
+                                    out_gw = int(explicit_out_gw)
+                                    # Player was available from transferred_in_gw to transferred_out_gw
+                                    # (e.g., if transferred_in_gw=2 and transferred_out_gw=4, they played in MDs 2-4)
+                                    matchdays_set = {md for md in range(in_gw, out_gw + 1) if md <= UCL_TOTAL_MATCHDAYS}
+                                except (TypeError, ValueError):
+                                    # Fallback to transfer_gw logic
+                                    matchdays_set = {md for md in range(1, pivot) if md <= UCL_TOTAL_MATCHDAYS}
+                            elif explicit_out_gw is not None:
+                                try:
+                                    out_gw = int(explicit_out_gw)
+                                    # transferred_out_gw means player was transferred out after this GW
+                                    # So they played in MDs 1 to transferred_out_gw
+                                    # (e.g., if transferred_out_gw=4, they played in MDs 1-4)
+                                    matchdays_set = {md for md in range(1, out_gw + 1) if md <= UCL_TOTAL_MATCHDAYS}
+                                except (TypeError, ValueError):
+                                    # Fallback to transfer_gw logic
+                                    matchdays_set = {md for md in range(1, pivot) if md <= UCL_TOTAL_MATCHDAYS}
+                            else:
+                                # If player was transferred out after GW pivot, they played in MDs 1 to pivot-1
+                                # (e.g., if transferred after GW3 (gw=4), they played in MDs 1-3)
+                                matchdays_set = {md for md in range(1, pivot) if md <= UCL_TOTAL_MATCHDAYS}
                     elif status == "transfer_in":
                         # For transfer_in, check if _transferred_in_gw_for_matchdays is set
                         # This is set when registering from roster with transferred_in_gw
