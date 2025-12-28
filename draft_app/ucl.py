@@ -2063,6 +2063,25 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
         """Get manager's roster as it was for the specific MD (for available clubs calculation)"""
         current_roster = list(rosters.get(manager, []))
         
+        # First, remove players with transfer_out status if they were transferred before target_md
+        # These players are still in the roster but marked as transfer_out
+        filtered_roster = []
+        for player in current_roster:
+            if not isinstance(player, dict):
+                continue
+            player_status = player.get("status")
+            transferred_out_gw = player.get("transferred_out_gw")
+            if player_status == "transfer_out" and transferred_out_gw is not None:
+                try:
+                    out_gw = int(transferred_out_gw)
+                    # If player was transferred out before or at target_md, exclude them
+                    if out_gw <= target_md:
+                        continue
+                except (ValueError, TypeError):
+                    pass
+            filtered_roster.append(player)
+        current_roster = filtered_roster
+        
         # Apply old format transfers first (legacy)
         for transfer in old_transfer_history:
             if (transfer.get("manager") == manager and 
@@ -2115,22 +2134,40 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
             for player in roster_for_last_md:
                 if not isinstance(player, dict):
                     continue
-                # Try different ways to get player data
+                
+                # Get player ID - try multiple ways
+                pid = (
+                    player.get("playerId")
+                    or player.get("id")
+                    or player.get("pid")
+                )
+                
+                # Also check nested "player" structure
+                if not pid and isinstance(player.get("player"), dict):
+                    nested_player = player.get("player")
+                    pid = (
+                        nested_player.get("playerId")
+                        or nested_player.get("id")
+                        or nested_player.get("pid")
+                    )
+                
+                if pid:
+                    try:
+                        pid_int = int(pid)
+                        active_player_ids.add(pid_int)
+                    except (ValueError, TypeError):
+                        pass
+                
+                # Get club name for available clubs calculation
                 payload = player.get("player") if isinstance(player.get("player"), dict) else player
                 if isinstance(payload, dict):
                     club = payload.get("clubName") or ""
                     if club:
                         manager_clubs.add(club)
-                    # Track active player IDs
-                    pid = payload.get("playerId") or payload.get("id") or payload.get("pid")
-                    if pid:
-                        try:
-                            active_player_ids.add(int(pid))
-                        except Exception:
-                            pass
         except Exception as e:
             # If there's an error getting roster, just use empty set
             manager_clubs: Set[str] = set()
+            active_player_ids: Set[int] = set()
         
         # Calculate available clubs (not in roster)
         available_clubs: List[Dict[str, Any]] = []
