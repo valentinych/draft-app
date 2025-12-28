@@ -2064,17 +2064,63 @@ def ucl_lineups_data():
                 "available_clubs": []
             }
         
-        results["Team of The MD"] = convert_team_format(team_of_md_data, is_unpicked=False)
-        results["Непикнутые гении"] = convert_team_format(unpicked_geniuses_data, is_unpicked=True)
+        # Get all UCL clubs
+        all_clubs = _get_all_ucl_clubs()
+        
+        # Calculate unused clubs for Team of The MD
+        team_of_md_result = convert_team_format(team_of_md_data, is_unpicked=False)
+        team_of_md_players = team_of_md_result.get("players", [])
+        used_clubs_tom = {p.get("club", "").upper() for p in team_of_md_players if p.get("club")}
+        unused_clubs_tom = [
+            {"clubName": name, "teamId": info.get("teamId")}
+            for name, info in all_clubs.items()
+            if name.upper() not in used_clubs_tom
+        ]
+        team_of_md_result["available_clubs"] = unused_clubs_tom
+        
+        # Calculate unused clubs for Непикнутые гении
+        unpicked_result = convert_team_format(unpicked_geniuses_data, is_unpicked=True)
+        unpicked_players = unpicked_result.get("players", [])
+        used_clubs_unpicked = {p.get("club", "").upper() for p in unpicked_players if p.get("club")}
+        unused_clubs_unpicked = [
+            {"clubName": name, "teamId": info.get("teamId")}
+            for name, info in all_clubs.items()
+            if name.upper() not in used_clubs_unpicked
+        ]
+        unpicked_result["available_clubs"] = unused_clubs_unpicked
+        
+        results["Team of The MD"] = team_of_md_result
+        results["Непикнутые гении"] = unpicked_result
     else:
         # Build on the fly (for non-finished matchdays or if not pre-calculated)
         raw_players = _json_load(UCL_PLAYERS) or []
         all_ucl_players = _players_from_ucl(raw_players)
         
+        # Get all UCL clubs
+        all_clubs = _get_all_ucl_clubs()
+        
         team_of_md = build_optimal_team(all_ucl_players, exclude_picked=False)
+        # Calculate unused clubs for Team of The MD
+        team_of_md_players = team_of_md.get("players", [])
+        used_clubs_tom = {p.get("club", "").upper() for p in team_of_md_players if p.get("club")}
+        unused_clubs_tom = [
+            {"clubName": name, "teamId": info.get("teamId")}
+            for name, info in all_clubs.items()
+            if name.upper() not in used_clubs_tom
+        ]
+        team_of_md["available_clubs"] = unused_clubs_tom
         results["Team of The MD"] = team_of_md
         
         unpicked_geniuses = build_optimal_team(all_ucl_players, exclude_picked=True)
+        # Calculate unused clubs for Непикнутые гении
+        unpicked_players = unpicked_geniuses.get("players", [])
+        used_clubs_unpicked = {p.get("club", "").upper() for p in unpicked_players if p.get("club")}
+        unused_clubs_unpicked = [
+            {"clubName": name, "teamId": info.get("teamId")}
+            for name, info in all_clubs.items()
+            if name.upper() not in used_clubs_unpicked
+        ]
+        unpicked_geniuses["available_clubs"] = unused_clubs_unpicked
         results["Непикнутые гении"] = unpicked_geniuses
     
     # Add special teams to managers list

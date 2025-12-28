@@ -371,7 +371,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const clubsLabel = document.createElement('div');
         clubsLabel.style.fontWeight = 'bold';
         clubsLabel.style.marginBottom = '8px';
-        clubsLabel.textContent = 'Доступные клубы:';
+        // For optimal teams, show "Незадействованные клубы:" instead of "Доступные клубы:"
+        if (manager === "Team of The MD" || manager === "Непикнутые гении") {
+          clubsLabel.textContent = 'Незадействованные клубы:';
+        } else {
+          clubsLabel.textContent = 'Доступные клубы:';
+        }
         block.appendChild(clubsLabel);
         
         const clubsContainer = document.createElement('div');
