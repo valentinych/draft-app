@@ -1934,8 +1934,8 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
             except (TypeError, ValueError):
                 return
 
-            matchdays_set = _player_matchdays(player_payload)
-            if not matchdays_set and transfer_gw is not None:
+            # If transfer_gw is provided, calculate matchdays based on transfer, ignoring payload matchdays
+            if transfer_gw is not None:
                 try:
                     pivot = int(transfer_gw)
                 except (TypeError, ValueError):
@@ -1943,13 +1943,22 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
                 if pivot is not None:
                     if status == "transfer_out":
                         # If player was transferred out after GW pivot, they played in MDs 1 to pivot-1
-                        # (e.g., if transferred after GW3, they played in MDs 1-3)
+                        # (e.g., if transferred after GW3 (gw=4), they played in MDs 1-3)
                         matchdays_set = {md for md in range(1, pivot) if md <= UCL_TOTAL_MATCHDAYS}
-                    else:
+                    elif status == "transfer_in":
                         # If player was transferred in after GW pivot, they play from MD pivot+1 onwards
-                        # (e.g., if transferred after GW3, they play from MD4 onwards)
+                        # (e.g., if transferred after GW3 (gw=4), they play from MD4 onwards)
                         start = max(1, pivot + 1)
                         matchdays_set = {md for md in range(start, UCL_TOTAL_MATCHDAYS + 1)}
+                    else:
+                        # For "current" status, use payload matchdays or default
+                        matchdays_set = _player_matchdays(player_payload)
+                else:
+                    matchdays_set = _player_matchdays(player_payload)
+            else:
+                # No transfer info, use payload matchdays
+                matchdays_set = _player_matchdays(player_payload)
+            
             if not matchdays_set:
                 matchdays_set = set(_default_matchdays())
 
@@ -1959,10 +1968,18 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
             key = str(pid_int)
             existing = all_players.get(key)
             if existing:
-                existing["active_mds"].update(matchdays_set)
-                if status_priority.get(status, 0) >= status_priority.get(existing.get("transfer_status"), 0):
+                # If registering with transfer status, replace active_mds instead of updating
+                # This ensures transfer_out/transfer_in override current status
+                if status in ("transfer_out", "transfer_in"):
+                    existing["active_mds"] = set(matchdays_set)
                     existing["player"] = player_copy
                     existing["transfer_status"] = status
+                else:
+                    # For "current" status, update active_mds (union)
+                    existing["active_mds"].update(matchdays_set)
+                    if status_priority.get(status, 0) >= status_priority.get(existing.get("transfer_status"), 0):
+                        existing["player"] = player_copy
+                        existing["transfer_status"] = status
             else:
                 all_players[key] = {
                     "player": player_copy,
