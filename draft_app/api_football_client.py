@@ -104,6 +104,17 @@ class APIFootballClient:
             return result[0]
         return None
     
+    def get_player_fixture_statistics(self, player_id: int, fixture_id: int) -> Optional[Dict]:
+        """Get player statistics for a specific fixture"""
+        params = {
+            "player": player_id,
+            "fixture": fixture_id,
+        }
+        result = self._make_request("fixtures/players", params)
+        if result and len(result) > 0:
+            return result[0]
+        return None
+    
     def get_fixtures(self, league_id: int, season: int = 2024, round: Optional[str] = None) -> List[Dict]:
         """Get fixtures for a league"""
         params = {

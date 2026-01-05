@@ -612,19 +612,29 @@ def _build_lineups(round_no: int, current_round: int, state: dict) -> dict:
                             if league_id:
                                 try:
                                     # Fetch player stats from API Football
+                                    # Note: API Football provides season stats, not per-round
+                                    # We'll use season stats and calculate per-round approximation
                                     api_stats = api_football_client.get_player_statistics(api_football_id, league_id, 2024)
-                                    if api_stats and "statistics" in api_stats:
+                                    if api_stats and "statistics" in api_stats and len(api_stats["statistics"]) > 0:
                                         # Convert to Top-4 format
-                                        # Note: API Football provides season stats, not per-round
-                                        # For now, we'll use season stats as approximation
-                                        formatted_stats = api_football_client._format_statistics(api_stats["statistics"][0] if api_stats["statistics"] else {})
+                                        formatted_stats = api_football_client._format_statistics(api_stats["statistics"][0])
+                                        
+                                        # For now, use season stats as approximation
+                                        # TODO: Enhance to fetch fixture-specific stats per round
                                         stat = convert_api_football_stats_to_top4_format(
                                             formatted_stats,
                                             pos,
                                             round_no=league_round
                                         )
+                                        
+                                        # If stat is None or has zero values, fallback to MantraFootball
+                                        if not stat or (stat.get("played_minutes", 0) == 0 and stat.get("goals", 0) == 0 and stat.get("assists", 0) == 0):
+                                            raise ValueError("API Football stats are empty or zero")
+                                    else:
+                                        raise ValueError("No API Football stats available")
+                                        
                                 except Exception as e:
-                                    print(f"[API_FOOTBALL] Error fetching stats for {api_football_id}: {e}")
+                                    print(f"[API_FOOTBALL] Error fetching stats for {api_football_id} (round {league_round}): {e}")
                                     # Fallback to MantraFootball
                                     player = _load_player(mid, debug, league_round)
                                     round_stats = player.get("round_stats", [])
