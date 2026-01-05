@@ -338,16 +338,35 @@ def _fetch_players_from_api_football() -> List[Dict[str, Any]]:
             goals = stats.get("goals", {})
             
             # Calculate popularity based on appearances and goals
-            appearances = games.get("appearences", 0)
-            goals_total = goals.get("total", 0)
-            assists = goals.get("assists", 0)
+            # Handle None values safely - convert to 0 if None
+            def safe_int(value, default=0):
+                """Safely convert value to int, handling None"""
+                if value is None:
+                    return default
+                try:
+                    return int(value)
+                except (TypeError, ValueError):
+                    return default
+            
+            appearances = safe_int(games.get("appearences"), 0)
+            goals_total = safe_int(goals.get("total"), 0)
+            assists = safe_int(goals.get("assists"), 0)
+            
             popularity = appearances * 2 + goals_total * 4 + assists * 3
             
             # Format player to match existing structure
+            # Safely extract values with defaults
+            player_id = player_data.get("api_football_id")
+            if player_id is None:
+                continue  # Skip players without ID
+            
+            team_info = player_data.get("team", {})
+            club_name = team_info.get("name", "") if isinstance(team_info, dict) else ""
+            
             formatted_player = {
-                "playerId": player_data.get("api_football_id"),
-                "fullName": player_data.get("name", ""),
-                "clubName": player_data.get("team", {}).get("name", ""),
+                "playerId": int(player_id),
+                "fullName": player_data.get("name", "") or "",
+                "clubName": club_name,
                 "position": player_data.get("position", "MID"),
                 "league": player_data.get("league", ""),
                 "price": 0.0,  # API Football doesn't provide prices
