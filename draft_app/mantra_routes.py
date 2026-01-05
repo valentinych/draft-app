@@ -34,6 +34,9 @@ from .top4_schedule import build_schedule
 from .player_map_store import load_player_map, save_player_map
 from .top4_score_store import load_top4_score, save_top4_score, SCORE_CACHE_TTL
 from .top4_player_info_store import load_player_info, save_player_info
+from .api_football_client import api_football_client
+from .api_football_score_converter import convert_api_football_stats_to_top4_format
+import os
 
 # Routes related to Top-4 statistics and lineups (formerly "mantra").
 bp = Blueprint("top4", __name__, url_prefix="/top4")
@@ -578,16 +581,86 @@ def _build_lineups(round_no: int, current_round: int, state: dict) -> dict:
             if mid and league_round:
                 key = str(mid)
                 if past_round or round_no == current_round:
-                    player = _load_player(mid, debug, league_round)
-                    round_stats = player.get("round_stats", [])
-                    stat = next(
-                        (
-                            s
-                            for s in round_stats
-                            if _to_int(s.get("tournament_round_number")) == league_round
-                        ),
-                        None,
-                    )
+                    # Check if we should use API Football instead of MantraFootball
+                    use_api_football = os.getenv("TOP4_USE_API_FOOTBALL", "false").lower() == "true"
+                    
+                    if use_api_football:
+                        # Try to get stats from API Football
+                        # First, check if we have mapping from draft ID to API Football ID
+                        mapping = load_player_map()
+                        api_football_id = None
+                        # Reverse mapping: find API Football ID for this draft ID
+                        for api_id, draft_id in mapping.items():
+                            if str(draft_id) == fid:
+                                try:
+                                    api_football_id = int(api_id)
+                                    break
+                                except (ValueError, TypeError):
+                                    continue
+                        
+                        stat = None
+                        if api_football_id:
+                            # Get league ID for this league
+                            league_ids = {
+                                "EPL": 39,
+                                "La Liga": 140,
+                                "Serie A": 135,
+                                "Bundesliga": 78,
+                            }
+                            league_id = league_ids.get(league, None)
+                            
+                            if league_id:
+                                try:
+                                    # Fetch player stats from API Football
+                                    api_stats = api_football_client.get_player_statistics(api_football_id, league_id, 2024)
+                                    if api_stats and "statistics" in api_stats:
+                                        # Convert to Top-4 format
+                                        # Note: API Football provides season stats, not per-round
+                                        # For now, we'll use season stats as approximation
+                                        formatted_stats = api_football_client._format_statistics(api_stats["statistics"][0] if api_stats["statistics"] else {})
+                                        stat = convert_api_football_stats_to_top4_format(
+                                            formatted_stats,
+                                            pos,
+                                            round_no=league_round
+                                        )
+                                except Exception as e:
+                                    print(f"[API_FOOTBALL] Error fetching stats for {api_football_id}: {e}")
+                                    # Fallback to MantraFootball
+                                    player = _load_player(mid, debug, league_round)
+                                    round_stats = player.get("round_stats", [])
+                                    stat = next(
+                                        (
+                                            s
+                                            for s in round_stats
+                                            if _to_int(s.get("tournament_round_number")) == league_round
+                                        ),
+                                        None,
+                                    )
+                        else:
+                            # No mapping found, fallback to MantraFootball
+                            player = _load_player(mid, debug, league_round)
+                            round_stats = player.get("round_stats", [])
+                            stat = next(
+                                (
+                                    s
+                                    for s in round_stats
+                                    if _to_int(s.get("tournament_round_number")) == league_round
+                                ),
+                                None,
+                            )
+                    else:
+                        # Use MantraFootball (original behavior)
+                        player = _load_player(mid, debug, league_round)
+                        round_stats = player.get("round_stats", [])
+                        stat = next(
+                            (
+                                s
+                                for s in round_stats
+                                if _to_int(s.get("tournament_round_number")) == league_round
+                            ),
+                            None,
+                        )
+                    
                     pts, breakdown = _calc_score_breakdown(stat, pos) if stat else (0, [])
                     cached = cache.get(key) if past_round else None
                     if cached != pts:
@@ -722,21 +795,117 @@ def _build_results(state: dict) -> dict:
             extra = 0
             breakdown: list[dict] = []
             if mid:
-                player = _load_player(mid, debug=None, round_no=None, force_refresh=False)
-                if not isinstance(player, dict):
-                    print(f"[results] Warning: _load_player({mid}) returned {type(player)}: {player}")
-                    player = {}
-                round_stats = player.get("round_stats") or []
-                for stat in round_stats:
-                    rnd = _to_int(stat.get("tournament_round_number"))
-                    gw = round_to_gw.get(league, {}).get(rnd)
-                    score = _calc_score(stat, pos) if pos else 0
-                    label = f"GW{gw}" if gw else f"R{rnd}"
-                    breakdown.append({"label": label, "points": int(score)})
-                    if gw:
-                        pts += score
+                # Check if we should use API Football instead of MantraFootball
+                use_api_football = os.getenv("TOP4_USE_API_FOOTBALL", "false").lower() == "true"
+                
+                if use_api_football:
+                    # Try to get stats from API Football
+                    api_football_id = None
+                    # Reverse mapping: find API Football ID for this draft ID
+                    for api_id, draft_id in mapping.items():
+                        if str(draft_id) == fid:
+                            try:
+                                api_football_id = int(api_id)
+                                break
+                            except (ValueError, TypeError):
+                                continue
+                    
+                    if api_football_id:
+                        # Get league ID for this league
+                        league_ids = {
+                            "EPL": 39,
+                            "La Liga": 140,
+                            "Serie A": 135,
+                            "Bundesliga": 78,
+                        }
+                        league_id = league_ids.get(league, None)
+                        
+                        if league_id:
+                            try:
+                                # Fetch player stats from API Football
+                                api_stats = api_football_client.get_player_statistics(api_football_id, league_id, 2024)
+                                if api_stats and "statistics" in api_stats:
+                                    # Convert to Top-4 format
+                                    formatted_stats = api_football_client._format_statistics(api_stats["statistics"][0] if api_stats["statistics"] else {})
+                                    stat = convert_api_football_stats_to_top4_format(
+                                        formatted_stats,
+                                        pos or "MID",
+                                        round_no=None  # Results page shows all rounds
+                                    )
+                                    # For results, we use season stats (API Football doesn't provide per-round)
+                                    # Calculate total score for the season
+                                    score, _ = _calc_score_breakdown(stat, pos or "MID")
+                                    pts = score
+                                    breakdown.append({"label": "Season", "points": int(pts)})
+                                else:
+                                    # Fallback to MantraFootball
+                                    player = _load_player(mid, debug=None, round_no=None, force_refresh=False)
+                                    if not isinstance(player, dict):
+                                        print(f"[results] Warning: _load_player({mid}) returned {type(player)}: {player}")
+                                        player = {}
+                                    round_stats = player.get("round_stats") or []
+                                    for stat in round_stats:
+                                        rnd = _to_int(stat.get("tournament_round_number"))
+                                        gw = round_to_gw.get(league, {}).get(rnd)
+                                        score = _calc_score(stat, pos) if pos else 0
+                                        label = f"GW{gw}" if gw else f"R{rnd}"
+                                        breakdown.append({"label": label, "points": int(score)})
+                                        if gw:
+                                            pts += score
+                                        else:
+                                            extra += score
+                            except Exception as e:
+                                print(f"[API_FOOTBALL] Error fetching stats for {api_football_id}: {e}")
+                                # Fallback to MantraFootball
+                                player = _load_player(mid, debug=None, round_no=None, force_refresh=False)
+                                if not isinstance(player, dict):
+                                    print(f"[results] Warning: _load_player({mid}) returned {type(player)}: {player}")
+                                    player = {}
+                                round_stats = player.get("round_stats") or []
+                                for stat in round_stats:
+                                    rnd = _to_int(stat.get("tournament_round_number"))
+                                    gw = round_to_gw.get(league, {}).get(rnd)
+                                    score = _calc_score(stat, pos) if pos else 0
+                                    label = f"GW{gw}" if gw else f"R{rnd}"
+                                    breakdown.append({"label": label, "points": int(score)})
+                                    if gw:
+                                        pts += score
+                                    else:
+                                        extra += score
                     else:
-                        extra += score
+                        # No mapping found, fallback to MantraFootball
+                        player = _load_player(mid, debug=None, round_no=None, force_refresh=False)
+                        if not isinstance(player, dict):
+                            print(f"[results] Warning: _load_player({mid}) returned {type(player)}: {player}")
+                            player = {}
+                        round_stats = player.get("round_stats") or []
+                        for stat in round_stats:
+                            rnd = _to_int(stat.get("tournament_round_number"))
+                            gw = round_to_gw.get(league, {}).get(rnd)
+                            score = _calc_score(stat, pos) if pos else 0
+                            label = f"GW{gw}" if gw else f"R{rnd}"
+                            breakdown.append({"label": label, "points": int(score)})
+                            if gw:
+                                pts += score
+                            else:
+                                extra += score
+                else:
+                    # Use MantraFootball (original behavior)
+                    player = _load_player(mid, debug=None, round_no=None, force_refresh=False)
+                    if not isinstance(player, dict):
+                        print(f"[results] Warning: _load_player({mid}) returned {type(player)}: {player}")
+                        player = {}
+                    round_stats = player.get("round_stats") or []
+                    for stat in round_stats:
+                        rnd = _to_int(stat.get("tournament_round_number"))
+                        gw = round_to_gw.get(league, {}).get(rnd)
+                        score = _calc_score(stat, pos) if pos else 0
+                        label = f"GW{gw}" if gw else f"R{rnd}"
+                        breakdown.append({"label": label, "points": int(score)})
+                        if gw:
+                            pts += score
+                        else:
+                            extra += score
             info = load_player_info(mid) if mid else {}
             if not isinstance(info, dict):
                 print(f"[results] Warning: load_player_info({mid}) returned {type(info)}: {info}")
