@@ -2,6 +2,11 @@
 """
 Update Top-4 players from API Football
 This script fetches fresh player data from API Football and updates the cache
+
+Usage:
+    python3 scripts/update_top4_players_api_football.py
+    or
+    heroku run --app val-draft-app "python3 scripts/update_top4_players_api_football.py"
 """
 import sys
 import os
