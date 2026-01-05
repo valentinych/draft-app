@@ -12495,5 +12495,1059 @@
         "total": 236
       }
     }
+  },
+  "optimal_teams_with_transfers": {
+    "optimal_team": {
+      "players": [
+        {
+          "playerId": 250112122,
+          "fullName": "Francisco Trincão",
+          "name": "Francisco Trincão",
+          "position": "MID",
+          "pos": "MID",
+          "clubName": "SPORTING CP",
+          "club": "SPORTING CP",
+          "teamId": "50149",
+          "points": 17,
+          "matchdays": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "playerId": 250212115,
+          "fullName": "El Hadji Youssoupha Mbodji",
+          "name": "El Hadji Youssoupha Mbodji",
+          "position": "DEF",
+          "pos": "DEF",
+          "clubName": "SLAVIA PRAHA",
+          "club": "SLAVIA PRAHA",
+          "teamId": "52498",
+          "points": 17,
+          "matchdays": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "playerId": 250016833,
+          "fullName": "Harry Kane",
+          "name": "Harry Kane",
+          "position": "FWD",
+          "pos": "FWD",
+          "clubName": "BAYERN MÜNCHEN",
+          "club": "BAYERN MÜNCHEN",
+          "teamId": "50037",
+          "points": 15,
+          "matchdays": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "playerId": 250099180,
+          "fullName": "Dušan Vlahović",
+          "name": "Dušan Vlahović",
+          "position": "FWD",
+          "pos": "FWD",
+          "clubName": "JUVENTUS",
+          "club": "JUVENTUS",
+          "teamId": "50139",
+          "points": 15,
+          "matchdays": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "playerId": 250106143,
+          "fullName": "Jonathan Burkardt",
+          "name": "Jonathan Burkardt",
+          "position": "FWD",
+          "pos": "FWD",
+          "clubName": "FRANKFURT",
+          "club": "FRANKFURT",
+          "teamId": "50072",
+          "points": 15,
+          "matchdays": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "playerId": 250064064,
+          "fullName": "Marquinhos",
+          "name": "Marquinhos",
+          "position": "DEF",
+          "pos": "DEF",
+          "clubName": "PARIS",
+          "club": "PARIS",
+          "teamId": "52747",
+          "points": 15,
+          "matchdays": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "playerId": 250088246,
+          "fullName": "Marcus Rashford",
+          "name": "Marcus Rashford",
+          "position": "FWD",
+          "pos": "FWD",
+          "clubName": "BARCELONA",
+          "club": "BARCELONA",
+          "teamId": "50080",
+          "points": 14,
+          "matchdays": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "playerId": 250079670,
+          "fullName": "Marcos Llorente",
+          "name": "Marcos Llorente",
+          "position": "MID",
+          "pos": "MID",
+          "clubName": "ATLETI",
+          "club": "ATLETI",
+          "teamId": "50124",
+          "points": 14,
+          "matchdays": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "playerId": 250064188,
+          "fullName": "Hans Vanaken",
+          "name": "Hans Vanaken",
+          "position": "MID",
+          "pos": "MID",
+          "clubName": "CLUB BRUGGE",
+          "club": "CLUB BRUGGE",
+          "teamId": "50043",
+          "points": 14,
+          "matchdays": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "playerId": 250076574,
+          "fullName": "Kylian Mbappé",
+          "name": "Kylian Mbappé",
+          "position": "FWD",
+          "pos": "FWD",
+          "clubName": "REAL MADRID",
+          "club": "REAL MADRID",
+          "teamId": "50051",
+          "points": 13,
+          "matchdays": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "playerId": 250134304,
+          "fullName": "Gabriel Martinelli",
+          "name": "Gabriel Martinelli",
+          "position": "MID",
+          "pos": "MID",
+          "clubName": "ARSENAL",
+          "club": "ARSENAL",
+          "teamId": "52280",
+          "points": 12,
+          "matchdays": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "playerId": 250127347,
+          "fullName": "Karim Adeyemi",
+          "name": "Karim Adeyemi",
+          "position": "MID",
+          "pos": "MID",
+          "clubName": "B. DORTMUND",
+          "club": "B. DORTMUND",
+          "teamId": "52758",
+          "points": 12,
+          "matchdays": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "playerId": 50327420,
+          "fullName": "Virgil van Dijk",
+          "name": "Virgil van Dijk",
+          "position": "DEF",
+          "pos": "DEF",
+          "clubName": "LIVERPOOL",
+          "club": "LIVERPOOL",
+          "teamId": "7889",
+          "points": 12,
+          "matchdays": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "playerId": 250118896,
+          "fullName": "Anouar Ait El Hadj",
+          "name": "Anouar Ait El Hadj",
+          "position": "MID",
+          "pos": "MID",
+          "clubName": "UNION SG",
+          "club": "UNION SG",
+          "teamId": "64125",
+          "points": 12,
+          "matchdays": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "playerId": 250067337,
+          "fullName": "Derrick Luckassen",
+          "name": "Derrick Luckassen",
+          "position": "DEF",
+          "pos": "DEF",
+          "clubName": "PAFOS",
+          "club": "PAFOS",
+          "teamId": "2609532",
+          "points": 12,
+          "matchdays": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "playerId": 250139154,
+          "fullName": "Enzo Barrenechea",
+          "name": "Enzo Barrenechea",
+          "position": "MID",
+          "pos": "MID",
+          "clubName": "BENFICA",
+          "club": "BENFICA",
+          "teamId": "50147",
+          "points": 11,
+          "matchdays": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "playerId": 250022829,
+          "fullName": "Hakan Çalhanoğlu",
+          "name": "Hakan Çalhanoğlu",
+          "position": "MID",
+          "pos": "MID",
+          "clubName": "INTER",
+          "club": "INTER",
+          "teamId": "50138",
+          "points": 10,
+          "matchdays": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "playerId": 250101534,
+          "fullName": "Phil Foden",
+          "name": "Phil Foden",
+          "position": "MID",
+          "pos": "MID",
+          "clubName": "MAN CITY",
+          "club": "MAN CITY",
+          "teamId": "52919",
+          "points": 9,
+          "matchdays": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "playerId": 250042422,
+          "fullName": "Alejandro Grimaldo",
+          "name": "Alejandro Grimaldo",
+          "position": "DEF",
+          "pos": "DEF",
+          "clubName": "LEVERKUSEN",
+          "club": "LEVERKUSEN",
+          "teamId": "50109",
+          "points": 9,
+          "matchdays": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "playerId": 250076626,
+          "fullName": "Panagiotis Retsos",
+          "name": "Panagiotis Retsos",
+          "position": "DEF",
+          "pos": "DEF",
+          "clubName": "OLYMPIACOS",
+          "club": "OLYMPIACOS",
+          "teamId": "2610",
+          "points": 9,
+          "matchdays": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "playerId": 150562676,
+          "fullName": "Pedro Porro",
+          "name": "Pedro Porro",
+          "position": "DEF",
+          "pos": "DEF",
+          "clubName": "TOTTENHAM",
+          "club": "TOTTENHAM",
+          "teamId": "1652",
+          "points": 8,
+          "matchdays": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "playerId": 250105612,
+          "fullName": "Marco Carnesecchi",
+          "name": "Marco Carnesecchi",
+          "position": "GK",
+          "pos": "GK",
+          "clubName": "ATALANTA",
+          "club": "ATALANTA",
+          "teamId": "52816",
+          "points": 8,
+          "matchdays": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "playerId": 250197577,
+          "fullName": "Rodrigo Huescas",
+          "name": "Rodrigo Huescas",
+          "position": "DEF",
+          "pos": "DEF",
+          "clubName": "COPENHAGEN",
+          "club": "COPENHAGEN",
+          "teamId": "52709",
+          "points": 6,
+          "matchdays": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "playerId": 250192321,
+          "fullName": "Sherhan Kalmurza",
+          "name": "Sherhan Kalmurza",
+          "position": "GK",
+          "pos": "GK",
+          "clubName": "KAIRAT ALMATY",
+          "club": "KAIRAT ALMATY",
+          "teamId": "79970",
+          "points": 6,
+          "matchdays": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "playerId": 250073918,
+          "fullName": "Gerónimo Rulli",
+          "name": "Gerónimo Rulli",
+          "position": "GK",
+          "pos": "GK",
+          "clubName": "MARSEILLE",
+          "club": "MARSEILLE",
+          "teamId": "52748",
+          "points": 5,
+          "matchdays": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        }
+      ],
+      "total": 290,
+      "available_clubs": [
+        {
+          "clubName": "Chelsea",
+          "teamId": "52914"
+        },
+        {
+          "clubName": "Athletic Club",
+          "teamId": "50125"
+        },
+        {
+          "clubName": "Napoli",
+          "teamId": "50136"
+        },
+        {
+          "clubName": "Galatasaray",
+          "teamId": "50067"
+        },
+        {
+          "clubName": "Newcastle",
+          "teamId": "59324"
+        },
+        {
+          "clubName": "Monaco",
+          "teamId": "50023"
+        },
+        {
+          "clubName": "Ajax",
+          "teamId": "50143"
+        },
+        {
+          "clubName": "Villarreal",
+          "teamId": "70691"
+        },
+        {
+          "clubName": "PSV",
+          "teamId": "50062"
+        },
+        {
+          "clubName": "Bodø/Glimt",
+          "teamId": "59333"
+        },
+        {
+          "clubName": "Qarabağ",
+          "teamId": "60609"
+        }
+      ]
+    },
+    "unpicked_geniuses": {
+      "players": [
+        {
+          "playerId": 250064064,
+          "fullName": "Marquinhos",
+          "name": "Marquinhos",
+          "position": "DEF",
+          "pos": "DEF",
+          "clubName": "PARIS",
+          "club": "PARIS",
+          "teamId": "52747",
+          "points": 15,
+          "matchdays": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "playerId": 250088246,
+          "fullName": "Marcus Rashford",
+          "name": "Marcus Rashford",
+          "position": "FWD",
+          "pos": "FWD",
+          "clubName": "BARCELONA",
+          "club": "BARCELONA",
+          "teamId": "50080",
+          "points": 14,
+          "matchdays": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "playerId": 250134304,
+          "fullName": "Gabriel Martinelli",
+          "name": "Gabriel Martinelli",
+          "position": "MID",
+          "pos": "MID",
+          "clubName": "ARSENAL",
+          "club": "ARSENAL",
+          "teamId": "52280",
+          "points": 12,
+          "matchdays": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "playerId": 250064811,
+          "fullName": "Lukáš Provod",
+          "name": "Lukáš Provod",
+          "position": "MID",
+          "pos": "MID",
+          "clubName": "SLAVIA PRAHA",
+          "club": "SLAVIA PRAHA",
+          "teamId": "52498",
+          "points": 12,
+          "matchdays": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "playerId": 250118896,
+          "fullName": "Anouar Ait El Hadj",
+          "name": "Anouar Ait El Hadj",
+          "position": "MID",
+          "pos": "MID",
+          "clubName": "UNION SG",
+          "club": "UNION SG",
+          "teamId": "64125",
+          "points": 12,
+          "matchdays": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "playerId": 250135101,
+          "fullName": "Raphael Onyedika",
+          "name": "Raphael Onyedika",
+          "position": "MID",
+          "pos": "MID",
+          "clubName": "CLUB BRUGGE",
+          "club": "CLUB BRUGGE",
+          "teamId": "50043",
+          "points": 11,
+          "matchdays": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "playerId": 250139154,
+          "fullName": "Enzo Barrenechea",
+          "name": "Enzo Barrenechea",
+          "position": "MID",
+          "pos": "MID",
+          "clubName": "BENFICA",
+          "club": "BENFICA",
+          "teamId": "50147",
+          "points": 11,
+          "matchdays": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "playerId": 250212186,
+          "fullName": "Camilo Andres Duran Marquez",
+          "name": "Camilo Andres Duran Marquez",
+          "position": "FWD",
+          "pos": "FWD",
+          "clubName": "QARABAĞ",
+          "club": "QARABAĞ",
+          "teamId": "60609",
+          "points": 9,
+          "matchdays": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "playerId": 250172482,
+          "fullName": "Lucas Bergvall",
+          "name": "Lucas Bergvall",
+          "position": "MID",
+          "pos": "MID",
+          "clubName": "TOTTENHAM",
+          "club": "TOTTENHAM",
+          "teamId": "1652",
+          "points": 9,
+          "matchdays": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "playerId": 250090718,
+          "fullName": "Jordan Larsson",
+          "name": "Jordan Larsson",
+          "position": "FWD",
+          "pos": "FWD",
+          "clubName": "COPENHAGEN",
+          "club": "COPENHAGEN",
+          "teamId": "52709",
+          "points": 9,
+          "matchdays": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "playerId": 250076626,
+          "fullName": "Panagiotis Retsos",
+          "name": "Panagiotis Retsos",
+          "position": "DEF",
+          "pos": "DEF",
+          "clubName": "OLYMPIACOS",
+          "club": "OLYMPIACOS",
+          "teamId": "2610",
+          "points": 9,
+          "matchdays": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "playerId": 250195989,
+          "fullName": "David Goldar",
+          "name": "David Goldar",
+          "position": "DEF",
+          "pos": "DEF",
+          "clubName": "PAFOS",
+          "club": "PAFOS",
+          "teamId": "2609532",
+          "points": 9,
+          "matchdays": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "playerId": 250112224,
+          "fullName": "Felix Nmecha",
+          "name": "Felix Nmecha",
+          "position": "MID",
+          "pos": "MID",
+          "clubName": "B. DORTMUND",
+          "club": "B. DORTMUND",
+          "teamId": "52758",
+          "points": 8,
+          "matchdays": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "playerId": 250066157,
+          "fullName": "Andy Robertson",
+          "name": "Andy Robertson",
+          "position": "DEF",
+          "pos": "DEF",
+          "clubName": "LIVERPOOL",
+          "club": "LIVERPOOL",
+          "teamId": "7889",
+          "points": 8,
+          "matchdays": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "playerId": 250085369,
+          "fullName": "Manuel Akanji",
+          "name": "Manuel Akanji",
+          "position": "DEF",
+          "pos": "DEF",
+          "clubName": "INTER",
+          "club": "INTER",
+          "teamId": "50138",
+          "points": 8,
+          "matchdays": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "playerId": 250186054,
+          "fullName": "Daniel Bassi",
+          "name": "Daniel Bassi",
+          "position": "FWD",
+          "pos": "FWD",
+          "clubName": "BODØ/GLIMT",
+          "club": "BODØ/GLIMT",
+          "teamId": "59333",
+          "points": 8,
+          "matchdays": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "playerId": 250134656,
+          "fullName": "Ansgar Knauff",
+          "name": "Ansgar Knauff",
+          "position": "MID",
+          "pos": "MID",
+          "clubName": "FRANKFURT",
+          "club": "FRANKFURT",
+          "teamId": "50072",
+          "points": 7,
+          "matchdays": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "playerId": 250187458,
+          "fullName": "Ruben van Bommel",
+          "name": "Ruben van Bommel",
+          "position": "MID",
+          "pos": "MID",
+          "clubName": "PSV",
+          "club": "PSV",
+          "teamId": "50062",
+          "points": 7,
+          "matchdays": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "playerId": 250179137,
+          "fullName": "Iván Fresneda",
+          "name": "Iván Fresneda",
+          "position": "DEF",
+          "pos": "DEF",
+          "clubName": "SPORTING CP",
+          "club": "SPORTING CP",
+          "teamId": "50149",
+          "points": 7,
+          "matchdays": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "playerId": 250101472,
+          "fullName": "Timothy Weah",
+          "name": "Timothy Weah",
+          "position": "FWD",
+          "pos": "FWD",
+          "clubName": "MARSEILLE",
+          "club": "MARSEILLE",
+          "teamId": "52748",
+          "points": 6,
+          "matchdays": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "playerId": 250187698,
+          "fullName": "Abdukodir Khusanov",
+          "name": "Abdukodir Khusanov",
+          "position": "DEF",
+          "pos": "DEF",
+          "clubName": "MAN CITY",
+          "club": "MAN CITY",
+          "teamId": "52919",
+          "points": 6,
+          "matchdays": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "playerId": 250192321,
+          "fullName": "Sherhan Kalmurza",
+          "name": "Sherhan Kalmurza",
+          "position": "GK",
+          "pos": "GK",
+          "clubName": "KAIRAT ALMATY",
+          "club": "KAIRAT ALMATY",
+          "teamId": "79970",
+          "points": 6,
+          "matchdays": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "playerId": 250188504,
+          "fullName": "Adama Boiro",
+          "name": "Adama Boiro",
+          "position": "DEF",
+          "pos": "DEF",
+          "clubName": "ATHLETIC CLUB",
+          "club": "ATHLETIC CLUB",
+          "teamId": "50125",
+          "points": 6,
+          "matchdays": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "playerId": 250065792,
+          "fullName": "Vanja Milinkovic-Savic",
+          "name": "Vanja Milinkovic-Savic",
+          "position": "GK",
+          "pos": "GK",
+          "clubName": "NAPOLI",
+          "club": "NAPOLI",
+          "teamId": "50136",
+          "points": 3,
+          "matchdays": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "playerId": 250090955,
+          "fullName": "Philipp Köhn",
+          "name": "Philipp Köhn",
+          "position": "GK",
+          "pos": "GK",
+          "clubName": "MONACO",
+          "club": "MONACO",
+          "teamId": "50023",
+          "points": 2,
+          "matchdays": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        }
+      ],
+      "total": 214,
+      "available_clubs": [
+        {
+          "clubName": "Bayern München",
+          "teamId": "50037"
+        },
+        {
+          "clubName": "Real Madrid",
+          "teamId": "50051"
+        },
+        {
+          "clubName": "Chelsea",
+          "teamId": "52914"
+        },
+        {
+          "clubName": "Atleti",
+          "teamId": "50124"
+        },
+        {
+          "clubName": "Galatasaray",
+          "teamId": "50067"
+        },
+        {
+          "clubName": "Juventus",
+          "teamId": "50139"
+        },
+        {
+          "clubName": "Newcastle",
+          "teamId": "59324"
+        },
+        {
+          "clubName": "Leverkusen",
+          "teamId": "50109"
+        },
+        {
+          "clubName": "Atalanta",
+          "teamId": "52816"
+        },
+        {
+          "clubName": "Ajax",
+          "teamId": "50143"
+        },
+        {
+          "clubName": "Villarreal",
+          "teamId": "70691"
+        }
+      ]
+    }
   }
 }

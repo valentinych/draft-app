@@ -164,12 +164,26 @@ document.addEventListener('DOMContentLoaded', () => {
   const render = data => {
     const rawManagers = data.managers || [];
     const lineups = data.lineups || {};
+    
+    // Separate regular managers from special teams with transfers
+    const regularManagers = rawManagers.filter(m => 
+      m !== 'Optimal Team (1 трансфер/тур)' && 
+      m !== 'Непикнутые (1 трансфер/тур)'
+    );
+    const specialTeamsWithTransfers = rawManagers.filter(m => 
+      m === 'Optimal Team (1 трансфер/тур)' || 
+      m === 'Непикнутые (1 трансфер/тур)'
+    );
+    
     // Сортировка менеджеров от большего к меньшему по очкам (как на странице лайнапов)
-    const managers = rawManagers.slice().sort((a, b) => {
+    const managers = regularManagers.slice().sort((a, b) => {
       const totalA = Number(lineups[a] && lineups[a].total) || 0;
       const totalB = Number(lineups[b] && lineups[b].total) || 0;
       return totalB - totalA;
     });
+    
+    // Add special teams with transfers at the end
+    const allManagers = managers.concat(specialTeamsWithTransfers);
     container.innerHTML = '';
 
     const tabs = document.createElement('div');
@@ -181,7 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const contents = document.createElement('div');
     contents.style.display = 'block';
 
-    managers.forEach((m, idx) => {
+    allManagers.forEach((m, idx) => {
       const li = document.createElement('li');
       if (idx === 0) li.classList.add('is-active');
       const a = document.createElement('a');
@@ -205,7 +219,10 @@ document.addEventListener('DOMContentLoaded', () => {
       const mgrDiv = document.createElement('div');
       mgrDiv.style.display = idx === 0 ? 'block' : 'none';
       const players = (lineups[m] && lineups[m].players) || [];
-      const hue = idx * 60;
+      
+      // Special styling for optimal teams with transfers
+      const isSpecialTeam = m === 'Optimal Team (1 трансфер/тур)' || m === 'Непикнутые (1 трансфер/тур)';
+      const hue = isSpecialTeam ? 280 : idx * 60; // Purple for special teams
       const c1 = `hsl(${hue}, 70%, 90%)`;
       const c2 = `hsl(${hue}, 70%, 80%)`;
       players.sort((a, b) => {
@@ -273,7 +290,8 @@ document.addEventListener('DOMContentLoaded', () => {
         infoWrap.appendChild(nameSpan);
         
         // Add matchdays indicator (как на странице лайнапов)
-        if (Array.isArray(p.matchdays) && p.matchdays.length) {
+        // Don't show matchdays for optimal teams with transfers
+        if (!isSpecialTeam && Array.isArray(p.matchdays) && p.matchdays.length) {
           const spanMatchdays = document.createElement('span');
           spanMatchdays.className = 'player-matchdays';
           spanMatchdays.textContent = `Туры: ${p.matchdays.join(',')}`;

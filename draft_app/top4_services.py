@@ -16,6 +16,7 @@ except Exception:  # boto3 may be missing in some environments
     BotoConfig = None
 
 from .config import BASE_DIR, TOP4_USERS, TOP4_POSITION_LIMITS, TOP4_STATE_FILE
+from .api_football_client import api_football_client
 
 BASE = Path(BASE_DIR)
 STATE_FILE = Path(TOP4_STATE_FILE)
@@ -323,7 +324,89 @@ def _fetch_players() -> List[Dict[str, Any]]:
             players_map[p["playerId"]] = p
     return list(players_map.values())
 
-def load_players() -> List[Dict[str, Any]]:
+def _fetch_players_from_api_football() -> List[Dict[str, Any]]:
+    """Fetch players from API Football instead of fantasy-h2h.ru"""
+    print("Fetching players from API Football...")
+    
+    try:
+        all_players_data = api_football_client.get_all_top4_players(season=2024)
+        players = []
+        
+        for player_data in all_players_data:
+            stats = player_data.get("statistics", {})
+            games = stats.get("games", {})
+            goals = stats.get("goals", {})
+            
+            # Calculate popularity based on appearances and goals
+            appearances = games.get("appearences", 0)
+            goals_total = goals.get("total", 0)
+            assists = goals.get("assists", 0)
+            popularity = appearances * 2 + goals_total * 4 + assists * 3
+            
+            # Format player to match existing structure
+            formatted_player = {
+                "playerId": player_data.get("api_football_id"),
+                "fullName": player_data.get("name", ""),
+                "clubName": player_data.get("team", {}).get("name", ""),
+                "position": player_data.get("position", "MID"),
+                "league": player_data.get("league", ""),
+                "price": 0.0,  # API Football doesn't provide prices
+                "popularity": float(popularity),
+                "fp_last": 0.0,  # Last season points - would need to fetch from previous season
+                "api_football_data": player_data,  # Store full data for reference
+            }
+            players.append(formatted_player)
+        
+        print(f"Fetched {len(players)} players from API Football")
+        return players
+    except Exception as e:
+        print(f"Error fetching players from API Football: {e}")
+        import traceback
+        traceback.print_exc()
+        return []
+
+
+def load_players(use_api_football: bool = True) -> List[Dict[str, Any]]:
+    """Load players, optionally from API Football"""
+    # Check if we should use API Football (default: True)
+    use_api_football = os.getenv("TOP4_USE_API_FOOTBALL", "true").lower() == "true" if use_api_football else False
+    
+    if use_api_football:
+        # Try to load from cache first
+        if _s3_enabled():
+            bucket = _s3_bucket()
+            key = _s3_players_key()
+            data = _s3_get_json(bucket, key) if bucket and key else None
+            if isinstance(data, list) and data and len(data) > 0:
+                # Check if it's API Football data
+                if data[0].get("api_football_data") is not None:
+                    print("Loading players from S3 cache (API Football data)")
+                    return data
+        
+        data = _json_load(PLAYERS_CACHE)
+        if isinstance(data, list) and data and len(data) > 0:
+            # Check if it's API Football data
+            if data[0].get("api_football_data") is not None:
+                print("Loading players from local cache (API Football data)")
+                return data
+        
+        # Fetch from API Football
+        print("Fetching fresh data from API Football...")
+        players = _fetch_players_from_api_football()
+        
+        if players:
+            # Save to cache
+            if _s3_enabled():
+                bucket = _s3_bucket()
+                key = _s3_players_key()
+                if bucket and key and not _s3_put_json(bucket, key, players):
+                    print("[TOP4:S3] save_players_cache failed")
+            _json_dump_atomic(PLAYERS_CACHE, players)
+            return players
+        else:
+            print("Warning: API Football fetch returned no players, falling back to original source")
+    
+    # Fallback to original method
     if _s3_enabled():
         bucket = _s3_bucket()
         key = _s3_players_key()

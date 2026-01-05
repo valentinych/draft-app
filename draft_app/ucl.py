@@ -2685,8 +2685,80 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
         
         results[manager] = {"players": lineup, "total": total, "available_clubs": available_clubs}
     
-    # Build optimal teams with 1 transfer per matchday rule
-    if finished_matchdays:
+    # Load pre-calculated optimal teams with transfers if available
+    optimal_teams_with_transfers = state.get("optimal_teams_with_transfers", {})
+    if optimal_teams_with_transfers and finished_matchdays:
+        # Use pre-calculated teams
+        optimal_with_transfers = optimal_teams_with_transfers.get("optimal_team", {})
+        optimal_unpicked = optimal_teams_with_transfers.get("unpicked_geniuses", {})
+        
+        # Convert to display format (similar to optimal_teams)
+        def convert_team_format(team_data: Dict[str, Any]) -> Dict[str, Any]:
+            players = team_data.get("players", [])
+            converted_players = []
+            for p in players:
+                pid = p.get("playerId")
+                stat_payload = {}
+                team_id = p.get("teamId")
+                
+                # Load stats if needed
+                if pid:
+                    try:
+                        pid_int = int(pid)
+                        stats = get_player_stats_cached(pid_int)
+                        if isinstance(stats, dict):
+                            # Get stats for first finished MD
+                            md_stat = _ucl_points_for_md(stats, finished_mds_list[0] if finished_mds_list else 1)
+                            if md_stat:
+                                stat_payload = md_stat
+                            
+                            # Try to extract teamId from stats
+                            data = stats.get("data", {})
+                            value = data.get("value", {}) if isinstance(data, dict) else {}
+                            
+                            for candidate in (
+                                value.get("tId"),
+                                value.get("teamId"),
+                                data.get("tId"),
+                                data.get("teamId"),
+                                stats.get("tId"),
+                                stats.get("teamId"),
+                            ):
+                                if candidate:
+                                    try:
+                                        team_id = str(int(candidate))
+                                        break
+                                    except Exception:
+                                        pass
+                    except Exception:
+                        pass
+                
+                converted_players.append({
+                    "name": p.get("fullName") or p.get("name") or str(p.get("playerId", "")),
+                    "pos": p.get("pos") or p.get("position"),
+                    "club": p.get("club") or p.get("clubName"),
+                    "teamId": team_id or p.get("teamId"),
+                    "points": p.get("points", 0),
+                    "stat": stat_payload,
+                    "statsCount": stat_payload.get("_stats_count", 0),
+                    "playerId": str(p.get("playerId", "")),
+                    "matchdays": p.get("matchdays", []),
+                })
+            
+            return {
+                "players": converted_players,
+                "total": team_data.get("total", 0),
+                "available_clubs": team_data.get("available_clubs", [])
+            }
+        
+        finished_mds_list = sorted(list(finished_matchdays))
+        results["Optimal Team (1 трансфер/тур)"] = convert_team_format(optimal_with_transfers)
+        results["Непикнутые (1 трансфер/тур)"] = convert_team_format(optimal_unpicked)
+        
+        # Add to managers list
+        managers = managers + ["Optimal Team (1 трансфер/тур)", "Непикнутые (1 трансфер/тур)"]
+    elif finished_matchdays:
+        # Build on the fly if not pre-calculated (fallback)
         def build_optimal_team_with_transfers(
             finished_mds: List[int],
             exclude_picked: bool = False
