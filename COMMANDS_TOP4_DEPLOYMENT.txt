@@ -1,0 +1,48 @@
+ПОСЛЕДОВАТЕЛЬНОСТЬ КОМАНД ДЛЯ ДЕПЛОЯ TOP-4 МАППИНГА
+====================================================
+
+ШАГ 1: Маппинг всех игроков
+----------------------------
+heroku run --app val-draft-app "python3 scripts/map_all_top4_players.py"
+
+(Время выполнения: 5-10 минут)
+
+
+ШАГ 2: Обновление очков для всех завершенных туров
+---------------------------------------------------
+heroku run --app val-draft-app "python3 scripts/refresh_top4_scores_all_finished.py"
+
+(Время выполнения: 10-20 минут)
+
+
+ШАГ 3: Проверка переменных окружения
+------------------------------------
+heroku config:get TOP4_USE_API_FOOTBALL --app val-draft-app
+heroku config:get API_FOOTBALL_KEY --app val-draft-app
+
+
+ШАГ 4: Установка переменных (если нужно)
+----------------------------------------
+Если TOP4_USE_API_FOOTBALL не установлен или не равен true:
+heroku config:set TOP4_USE_API_FOOTBALL=true --app val-draft-app
+
+Если API_FOOTBALL_KEY не установлен:
+heroku config:set API_FOOTBALL_KEY=<ваш_api_ключ> --app val-draft-app
+
+
+ШАГ 5: Перезапуск приложения
+-----------------------------
+heroku restart --app val-draft-app
+
+
+ШАГ 6: Проверка работы
+-----------------------
+Откройте страницы и проверьте, что очки отображаются:
+1. Лайнапы: https://val-draft-app-b4a5eee9bd9a.herokuapp.com/top4/lineups?round=6
+2. Результаты: https://val-draft-app-b4a5eee9bd9a.herokuapp.com/top4/results
+
+
+ПРОВЕРКА ЛОГОВ (если что-то не работает)
+-----------------------------------------
+heroku logs --tail --app val-draft-app
+

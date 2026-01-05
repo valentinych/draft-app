@@ -10,7 +10,7 @@ from datetime import datetime
 
 # API Football configuration
 API_FOOTBALL_BASE_URL = "https://v3.football.api-sports.io"
-API_FOOTBALL_KEY = os.getenv("API_FOOTBALL_KEY", "db093905c47e849c124fd69a9d94df57")
+API_FOOTBALL_KEY = os.getenv("API_FOOTBALL_KEY")
 
 # League IDs for Top-4 leagues (EPL, La Liga, Serie A, Bundesliga)
 # Season 2024-2025
