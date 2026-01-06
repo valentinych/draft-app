@@ -31,7 +31,7 @@ from .top4_services import (
 )
 from .mantra_store import mantra_store
 from .top4_schedule import build_schedule
-from .player_map_store import load_player_map, save_player_map
+from .player_map_store import load_player_map, save_player_map, load_top4_player_map, save_top4_player_map
 from .top4_score_store import load_top4_score, save_top4_score, SCORE_CACHE_TTL
 from .top4_player_info_store import load_player_info, save_player_info
 from .api_football_client import api_football_client
@@ -339,7 +339,7 @@ def _ensure_player_info(state: dict) -> None:
     eventually contains a JSON file for each drafted footballer.
     """
 
-    mapping = load_player_map()
+    mapping = load_top4_player_map()
     rosters = (state.get("rosters") or {}).values()
     processed = 0
     missing_map: list[str] = []
@@ -468,8 +468,9 @@ def mapping():
         abort(403)
     
     from .api_football_client import api_football_client, LEAGUE_IDS
+    from .player_map_store import load_top4_player_map, save_top4_player_map
     
-    mapping_data = load_player_map()
+    mapping_data = load_top4_player_map()
     players = load_top4_players()
     pidx = top4_players_index(players)
     state = load_top4_state()
@@ -483,28 +484,47 @@ def mapping():
         reverse_mapping[str(draft_id)] = str(api_id)
     
     # Load API Football players data for display
+    # Use cached players from top4_services instead of fetching fresh
     api_football_players_cache = {}
     try:
-        # Try to load from cache or fetch for all leagues
-        for league_name, league_id in LEAGUE_IDS.items():
-            try:
-                api_players = api_football_client.get_players(league_id, 2025)
-                for api_player in api_players or []:
-                    player_info = api_player.get("player", {})
-                    team_info = api_player.get("team", {})
-                    api_id = str(player_info.get("id", ""))
-                    if api_id:
-                        api_football_players_cache[api_id] = {
-                            "id": api_id,
-                            "name": player_info.get("name", ""),
-                            "firstname": player_info.get("firstname", ""),
-                            "lastname": player_info.get("lastname", ""),
-                            "team": team_info if isinstance(team_info, dict) else {},
-                            "league": league_name,
-                        }
-            except Exception as e:
-                print(f"[mapping] Error loading API Football players for {league_name}: {e}")
-                continue
+        # Try to load from cached Top-4 players (which includes API Football data)
+        cached_players = load_top4_players()
+        for player in cached_players:
+            # Check if player has API Football data
+            api_football_id = player.get("api_football_id") or player.get("api_football_data", {}).get("id")
+            if api_football_id:
+                api_id_str = str(api_football_id)
+                api_football_players_cache[api_id_str] = {
+                    "id": api_id_str,
+                    "name": player.get("api_football_data", {}).get("name") or player.get("fullName", ""),
+                    "firstname": player.get("api_football_data", {}).get("firstname", ""),
+                    "lastname": player.get("api_football_data", {}).get("lastname", ""),
+                    "team": player.get("api_football_data", {}).get("team", {}),
+                    "league": player.get("league", "N/A"),
+                }
+        
+        # If cache is empty, try to load from API Football (but this is slow)
+        if not api_football_players_cache:
+            print("[mapping] Cache empty, loading from API Football (this may take time)...")
+            for league_name, league_id in LEAGUE_IDS.items():
+                try:
+                    api_players = api_football_client.get_players(league_id, 2025)
+                    for api_player in api_players or []:
+                        player_info = api_player.get("player", {})
+                        team_info = api_player.get("team", {})
+                        api_id = str(player_info.get("id", ""))
+                        if api_id:
+                            api_football_players_cache[api_id] = {
+                                "id": api_id,
+                                "name": player_info.get("name", ""),
+                                "firstname": player_info.get("firstname", ""),
+                                "lastname": player_info.get("lastname", ""),
+                                "team": team_info if isinstance(team_info, dict) else {},
+                                "league": league_name,
+                            }
+                except Exception as e:
+                    print(f"[mapping] Error loading API Football players for {league_name}: {e}")
+                    continue
     except Exception as e:
         print(f"[mapping] Error loading API Football players: {e}")
 
@@ -529,7 +549,7 @@ def mapping():
             # Note: In Top-4, the mapping format is {api_football_id: draft_id}
             # But the form uses fpl_id (draft_id) and mantra_id (which should be api_football_id)
             mapping_data[str(mantra_id)] = int(fpl_id)
-            save_player_map(mapping_data)
+            save_top4_player_map(mapping_data)
             flash("Сохранено", "success")
         return redirect(url_for("top4.mapping"))
 
@@ -634,7 +654,7 @@ def _resolve_round() -> tuple[int, int, dict]:
 
 
 def _build_lineups(round_no: int, current_round: int, state: dict) -> dict:
-    mapping = load_player_map()
+    mapping = load_top4_player_map()
     players = load_top4_players()
     pidx = top4_players_index(players)
     rosters = state.get("rosters") or {}
@@ -690,7 +710,7 @@ def _build_lineups(round_no: int, current_round: int, state: dict) -> dict:
                     if use_api_football:
                         # Try to get stats from API Football
                         # First, check if we have mapping from draft ID to API Football ID
-                        mapping = load_player_map()
+                        mapping = load_top4_player_map()
                         api_football_id = None
                         # Reverse mapping: find API Football ID for this draft ID
                         for api_id, draft_id in mapping.items():
@@ -865,7 +885,7 @@ def _build_lineups(round_no: int, current_round: int, state: dict) -> dict:
 
 
 def _build_results(state: dict) -> dict:
-    mapping = load_player_map()
+    mapping = load_top4_player_map()
     players = load_top4_players()
     pidx = top4_players_index(players)
     rosters = state.get("rosters") or {}
@@ -1155,7 +1175,7 @@ def run_stats_refresh():
         stats_refresh_status['message'] = 'Starting stats refresh...'
         
         state = load_top4_state()
-        mapping = load_player_map()
+        mapping = load_top4_player_map()
         rosters = state.get("rosters") or {}
         
         # Collect all player IDs from rosters

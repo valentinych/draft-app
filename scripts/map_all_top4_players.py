@@ -28,7 +28,7 @@ sys.path.insert(0, str(BASE_DIR))
 
 from draft_app.api_football_client import api_football_client, LEAGUE_IDS
 from draft_app.top4_services import load_players as load_top4_players
-from draft_app.player_map_store import load_player_map, save_player_map
+from draft_app.player_map_store import load_player_map, save_player_map, load_top4_player_map, save_top4_player_map
 from draft_app.mantra_api import PlayerMatcher
 
 
@@ -329,7 +329,7 @@ def main():
     print("=" * 80)
     
     try:
-        save_player_map(new_mapping)
+        save_top4_player_map(new_mapping)
         print(f"✅ Маппинг сохранен: {len(new_mapping)} записей")
     except Exception as e:
         print(f"❌ Ошибка при сохранении маппинга: {e}")
