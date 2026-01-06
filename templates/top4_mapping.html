@@ -38,6 +38,8 @@
       <th>API Football ID</th>
       <th>English Name</th>
       <th>Russian Name</th>
+      <th>Club Name</th>
+      <th>League</th>
       <th>Base ID (Draft)</th>
       <th>Mantra ID</th>
       <th>Third ID</th>
@@ -50,6 +52,8 @@
         <td>{{ p.api_football_id or "N/A" }}</td>
         <td>{{ p.api_english_name or "N/A" }}</td>
         <td>{{ p.draft_name }}</td>
+        <td>{{ p.club_name or "N/A" }}</td>
+        <td>{{ p.league or "N/A" }}</td>
         <td>{{ p.base_id }}</td>
         <td>{{ p.mantra_id or "N/A" }}</td>
         <td>{{ p.third_id or "N/A" }}</td>
@@ -57,7 +61,7 @@
       {% endfor %}
     {% else %}
       <tr>
-        <td colspan="6" class="has-text-centered has-text-grey">
+        <td colspan="8" class="has-text-centered has-text-grey">
           Нет замаппленных игроков. Запустите скрипт маппинга: <code>python3 scripts/map_all_top4_players.py</code>
         </td>
       </tr>

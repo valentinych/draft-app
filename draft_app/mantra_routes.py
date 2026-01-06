@@ -491,6 +491,7 @@ def mapping():
                 api_players = api_football_client.get_players(league_id, 2024)
                 for api_player in api_players or []:
                     player_info = api_player.get("player", {})
+                    team_info = api_player.get("team", {})
                     api_id = str(player_info.get("id", ""))
                     if api_id:
                         api_football_players_cache[api_id] = {
@@ -498,6 +499,8 @@ def mapping():
                             "name": player_info.get("name", ""),
                             "firstname": player_info.get("firstname", ""),
                             "lastname": player_info.get("lastname", ""),
+                            "team": team_info if isinstance(team_info, dict) else {},
+                            "league": league_name,
                         }
             except Exception as e:
                 print(f"[mapping] Error loading API Football players for {league_name}: {e}")
@@ -538,22 +541,38 @@ def mapping():
     # Show ALL mapped players, not just drafted ones
     for api_id, draft_id in mapping_data.items():
         draft_id_str = str(draft_id)
+        api_id_str = str(api_id)
         
         # Get draft player data (Russian name) - try to find in all players, not just drafted
         meta = pidx.get(draft_id_str, {})
         
         # Get API Football data
-        api_data = api_football_players_cache.get(str(api_id), {})
-        api_football_id = api_id
+        api_data = api_football_players_cache.get(api_id_str, {})
+        api_football_id = api_id_str
         api_english_name = api_data.get("name", "")
         api_firstname = api_data.get("firstname", "")
         api_lastname = api_data.get("lastname", "")
         if not api_english_name and (api_firstname or api_lastname):
             api_english_name = f"{api_firstname} {api_lastname}".strip()
         
+        # Get API Football team/club info
+        api_team_info = api_data.get("team", {})
+        api_club_name = "N/A"
+        api_league_name = api_data.get("league", "N/A")
+        if isinstance(api_team_info, dict):
+            api_club_name = api_team_info.get("name", "N/A")
+        
         # Get draft player data (Russian name)
         draft_name = meta.get("fullName") or meta.get("shortName") or f"Player {draft_id_str}"
         draft_short_name = meta.get("shortName", "")
+        draft_club_name = meta.get("clubName") or meta.get("club", "N/A")
+        draft_league = meta.get("league", "N/A")
+        
+        # Use draft club/league if API Football data not available
+        if api_club_name == "N/A" and draft_club_name != "N/A":
+            api_club_name = draft_club_name
+        if api_league_name == "N/A" and draft_league != "N/A":
+            api_league_name = draft_league
         
         # Mantra ID - try to get from player_info, otherwise use API Football ID
         mantra_id = None
@@ -572,7 +591,7 @@ def mapping():
         
         # If no Mantra ID found, use API Football ID as fallback
         if not mantra_id:
-            mantra_id = api_id
+            mantra_id = api_id_str
         
         # Base ID (FPL ID equivalent) - this is the draft_id
         base_id = draft_id_str
@@ -586,6 +605,8 @@ def mapping():
             "mantra_id": str(mantra_id) if mantra_id else "N/A",
             "base_id": base_id,
             "third_id": str(third_id) if third_id else "N/A",
+            "club_name": api_club_name,
+            "league": api_league_name,
         })
     mapped.sort(key=lambda x: x["draft_name"])
     return render_template("top4_mapping.html", mapped=mapped, players=options)
