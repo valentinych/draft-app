@@ -43,7 +43,7 @@ def load_all_api_football_players() -> Dict[str, List[Dict]]:
     for league_name, league_id in LEAGUE_IDS.items():
         print(f"\n📥 Загрузка игроков из {league_name} (league_id={league_id})...")
         try:
-            players = api_football_client.get_players(league_id, 2024)
+            players = api_football_client.get_players(league_id, 2025)
             if players:
                 # Add league name to each player for filtering
                 for player in players:

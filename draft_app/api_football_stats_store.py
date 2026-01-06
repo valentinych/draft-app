@@ -100,7 +100,7 @@ def save_api_football_stats(pid: int, data: Dict) -> None:
     os.replace(tmp_name, API_FOOTBALL_STATS_DIR / f"{int(pid)}.json")
 
 
-def fetch_player_stats_from_api_football(api_football_id: int, league_id: int, season: int = 2024) -> Optional[Dict]:
+def fetch_player_stats_from_api_football(api_football_id: int, league_id: int, season: int = 2025) -> Optional[Dict]:
     """Fetch player statistics from API Football for a specific league"""
     try:
         stats = api_football_client.get_player_statistics(api_football_id, league_id, season)
@@ -115,7 +115,7 @@ def get_player_round_stats_from_api_football(
     api_football_id: int,
     league_id: int,
     round_no: int,
-    season: int = 2024
+    season: int = 2025
 ) -> Optional[Dict]:
     """
     Get player statistics for a specific round from API Football

@@ -13,7 +13,7 @@ API_FOOTBALL_BASE_URL = "https://v3.football.api-sports.io"
 API_FOOTBALL_KEY = os.getenv("API_FOOTBALL_KEY")
 
 # League IDs for Top-4 leagues (EPL, La Liga, Serie A, Bundesliga)
-# Season 2024-2025
+# Season 2025-2026
 LEAGUE_IDS = {
     "EPL": 39,  # Premier League
     "La Liga": 140,  # La Liga
@@ -68,12 +68,81 @@ class APIFootballClient:
             print(f"Unexpected error in API Football request: {e}")
             return None
     
-    def get_leagues(self, season: int = 2024) -> List[Dict]:
+    def _make_request_with_pagination(self, endpoint: str, params: Optional[Dict] = None, max_pages: int = 100) -> List[Dict]:
+        """Make API request with pagination support
+        
+        API Football returns data in format:
+        {
+            "get": "...",
+            "parameters": {...},
+            "errors": {...},
+            "results": N,
+            "paging": {"current": 1, "total": 10},
+            "response": [...]
+        }
+        """
+        all_results = []
+        page = 1
+        
+        while page <= max_pages:
+            if params is None:
+                params = {}
+            params_with_page = {**params, "page": page}
+            
+            # Make raw request to get full response with paging info
+            url = f"{self.base_url}/{endpoint}"
+            try:
+                response = self.session.get(url, params=params_with_page, timeout=30)
+                response.raise_for_status()
+                data = response.json()
+            except requests.exceptions.RequestException as e:
+                print(f"API Football pagination error on page {page}: {e}")
+                if hasattr(e, 'response') and e.response is not None:
+                    try:
+                        error_data = e.response.json()
+                        print(f"Error response: {error_data}")
+                    except:
+                        print(f"Error status: {e.response.status_code}")
+                break
+            except Exception as e:
+                print(f"Unexpected error in pagination request: {e}")
+                break
+            
+            # Extract response data
+            response_data = data.get("response", [])
+            if not response_data:
+                break  # No more results
+            
+            # Add results
+            if isinstance(response_data, list):
+                all_results.extend(response_data)
+            elif isinstance(response_data, dict):
+                all_results.append(response_data)
+            
+            # Check pagination info
+            paging = data.get("paging", {})
+            current_page = paging.get("current", page)
+            total_pages = paging.get("total", 1)
+            
+            # Debug output
+            if page == 1:
+                print(f"   [Pagination] Page {current_page}/{total_pages}, results: {len(response_data)}")
+            
+            # Check if we've reached the last page
+            if current_page >= total_pages:
+                break
+            
+            page += 1
+        
+        print(f"   [Pagination] Total loaded: {len(all_results)} players")
+        return all_results
+    
+    def get_leagues(self, season: int = 2025) -> List[Dict]:
         """Get all leagues for a season"""
         params = {"season": season}
         return self._make_request("leagues", params) or []
     
-    def get_teams(self, league_id: int, season: int = 2024) -> List[Dict]:
+    def get_teams(self, league_id: int, season: int = 2025) -> List[Dict]:
         """Get teams for a league"""
         params = {
             "league": league_id,
@@ -81,8 +150,8 @@ class APIFootballClient:
         }
         return self._make_request("teams", params) or []
     
-    def get_players(self, league_id: int, season: int = 2024, team_id: Optional[int] = None) -> List[Dict]:
-        """Get players for a league (optionally filtered by team)"""
+    def get_players(self, league_id: int, season: int = 2025, team_id: Optional[int] = None) -> List[Dict]:
+        """Get players for a league (optionally filtered by team) with pagination support"""
         params = {
             "league": league_id,
             "season": season,
@@ -90,9 +159,18 @@ class APIFootballClient:
         if team_id:
             params["team"] = team_id
         
-        return self._make_request("players", params) or []
+        # Try with pagination first
+        players = self._make_request_with_pagination("players", params, max_pages=100)
+        if players:
+            return players
+        
+        # Fallback to single request (for backwards compatibility)
+        result = self._make_request("players", params)
+        if isinstance(result, list):
+            return result
+        return []
     
-    def get_player_statistics(self, player_id: int, league_id: int, season: int = 2024) -> Optional[Dict]:
+    def get_player_statistics(self, player_id: int, league_id: int, season: int = 2025) -> Optional[Dict]:
         """Get detailed statistics for a player"""
         params = {
             "player": player_id,
@@ -115,7 +193,7 @@ class APIFootballClient:
             return result[0]
         return None
     
-    def get_fixtures(self, league_id: int, season: int = 2024, round: Optional[str] = None) -> List[Dict]:
+    def get_fixtures(self, league_id: int, season: int = 2025, round: Optional[str] = None) -> List[Dict]:
         """Get fixtures for a league"""
         params = {
             "league": league_id,
@@ -126,7 +204,7 @@ class APIFootballClient:
         
         return self._make_request("fixtures", params) or []
     
-    def get_standings(self, league_id: int, season: int = 2024) -> Optional[Dict]:
+    def get_standings(self, league_id: int, season: int = 2025) -> Optional[Dict]:
         """Get standings for a league"""
         params = {
             "league": league_id,
@@ -137,7 +215,7 @@ class APIFootballClient:
             return result[0]
         return None
     
-    def get_all_top4_players(self, season: int = 2024) -> List[Dict]:
+    def get_all_top4_players(self, season: int = 2025) -> List[Dict]:
         """Get all players from Top-4 leagues"""
         all_players = []
         seen_player_ids = set()  # Track unique players across leagues

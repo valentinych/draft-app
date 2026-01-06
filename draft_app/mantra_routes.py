@@ -488,7 +488,7 @@ def mapping():
         # Try to load from cache or fetch for all leagues
         for league_name, league_id in LEAGUE_IDS.items():
             try:
-                api_players = api_football_client.get_players(league_id, 2024)
+                api_players = api_football_client.get_players(league_id, 2025)
                 for api_player in api_players or []:
                     player_info = api_player.get("player", {})
                     team_info = api_player.get("team", {})
@@ -717,7 +717,7 @@ def _build_lineups(round_no: int, current_round: int, state: dict) -> dict:
                                     # Fetch player stats from API Football
                                     # Note: API Football provides season stats, not per-round
                                     # We'll use season stats and calculate per-round approximation
-                                    api_stats = api_football_client.get_player_statistics(api_football_id, league_id, 2024)
+                                    api_stats = api_football_client.get_player_statistics(api_football_id, league_id, 2025)
                                     if api_stats and "statistics" in api_stats and len(api_stats["statistics"]) > 0:
                                         # Convert to Top-4 format
                                         formatted_stats = api_football_client._format_statistics(api_stats["statistics"][0])
@@ -936,7 +936,7 @@ def _build_results(state: dict) -> dict:
                         if league_id:
                             try:
                                 # Fetch player stats from API Football
-                                api_stats = api_football_client.get_player_statistics(api_football_id, league_id, 2024)
+                                api_stats = api_football_client.get_player_statistics(api_football_id, league_id, 2025)
                                 if api_stats and "statistics" in api_stats:
                                     # Convert to Top-4 format
                                     formatted_stats = api_football_client._format_statistics(api_stats["statistics"][0] if api_stats["statistics"] else {})

@@ -262,7 +262,7 @@ def main():
     # Load API Football players
     print("\n📥 Загрузка игроков из API Football...")
     try:
-        api_players_data = api_football_client.get_all_top4_players(season=2024)
+        api_players_data = api_football_client.get_all_top4_players(season=2025)
         print(f"✅ Загружено игроков из API Football: {len(api_players_data)}")
     except Exception as e:
         print(f"❌ Ошибка загрузки из API Football: {e}")

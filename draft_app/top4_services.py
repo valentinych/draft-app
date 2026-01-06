@@ -329,7 +329,7 @@ def _fetch_players_from_api_football() -> List[Dict[str, Any]]:
     print("Fetching players from API Football...")
     
     try:
-        all_players_data = api_football_client.get_all_top4_players(season=2024)
+        all_players_data = api_football_client.get_all_top4_players(season=2025)
         players = []
         
         for player_data in all_players_data:
