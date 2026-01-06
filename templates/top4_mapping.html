@@ -23,11 +23,25 @@
     <div class="control"><button class="button is-link" type="submit">Добавить</button></div>
   </div>
 </form>
-<table class="table is-striped is-compact">
-  <thead><tr><th>FPL ID</th><th>Имя</th><th>Mantra ID</th></tr></thead>
+<table class="table is-striped is-compact is-fullwidth">
+  <thead>
+    <tr>
+      <th>API Football ID</th>
+      <th>English Name</th>
+      <th>Russian Name</th>
+      <th>Base ID</th>
+      <th>Mantra ID</th>
+    </tr>
+  </thead>
   <tbody>
     {% for p in mapped %}
-    <tr><td>{{ p.fpl_id }}</td><td>{{ p.name }}</td><td>{{ p.mantra_id }}</td></tr>
+    <tr>
+      <td>{{ p.api_football_id or "N/A" }}</td>
+      <td>{{ p.api_english_name or "N/A" }}</td>
+      <td>{{ p.draft_name }}</td>
+      <td>{{ p.base_id }}</td>
+      <td>{{ p.mantra_id }}</td>
+    </tr>
     {% endfor %}
   </tbody>
 </table>

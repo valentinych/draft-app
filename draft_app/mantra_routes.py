@@ -466,18 +466,51 @@ def _calc_score(stat: dict, pos: str) -> int:
 def mapping():
     if not session.get("godmode"):
         abort(403)
-    mapping = load_player_map()
+    
+    from .api_football_client import api_football_client, LEAGUE_IDS
+    
+    mapping_data = load_player_map()
     players = load_top4_players()
     pidx = top4_players_index(players)
     state = load_top4_state()
     rosters = state.get("rosters") or {}
     top4_ids = {str(p.get("playerId") or p.get("id")) for roster in rosters.values() for p in roster or []}
 
+    # Build reverse mapping: draft_id -> api_football_id
+    # mapping_data format: {api_football_id: draft_id}
+    reverse_mapping = {}
+    for api_id, draft_id in mapping_data.items():
+        reverse_mapping[str(draft_id)] = str(api_id)
+    
+    # Load API Football players data for display
+    api_football_players_cache = {}
+    try:
+        # Try to load from cache or fetch for all leagues
+        for league_name, league_id in LEAGUE_IDS.items():
+            try:
+                api_players = api_football_client.get_players(league_id, 2024)
+                for api_player in api_players or []:
+                    player_info = api_player.get("player", {})
+                    api_id = str(player_info.get("id", ""))
+                    if api_id:
+                        api_football_players_cache[api_id] = {
+                            "id": api_id,
+                            "name": player_info.get("name", ""),
+                            "firstname": player_info.get("firstname", ""),
+                            "lastname": player_info.get("lastname", ""),
+                        }
+            except Exception as e:
+                print(f"[mapping] Error loading API Football players for {league_name}: {e}")
+                continue
+    except Exception as e:
+        print(f"[mapping] Error loading API Football players: {e}")
+
     # Build selector options from drafted players that are not yet mapped
-    mapped_ids = set(mapping.keys())
+    # Note: mapping_data format is {api_football_id: draft_id}
+    mapped_draft_ids = set(str(v) for v in mapping_data.values())
     options = []
     for fid in top4_ids:
-        if fid in mapped_ids:
+        if fid in mapped_draft_ids:
             continue
         meta = pidx.get(fid, {})
         name = meta.get("fullName") or meta.get("shortName") or fid
@@ -490,22 +523,52 @@ def mapping():
         if not fpl_id or not mantra_id or str(fpl_id) not in pidx or str(fpl_id) not in top4_ids:
             flash("Некорректные ID", "danger")
         else:
-            mapping[str(fpl_id)] = int(mantra_id)
-            save_player_map(mapping)
+            # Note: In Top-4, the mapping format is {api_football_id: draft_id}
+            # But the form uses fpl_id (draft_id) and mantra_id (which should be api_football_id)
+            mapping_data[str(mantra_id)] = int(fpl_id)
+            save_player_map(mapping_data)
             flash("Сохранено", "success")
         return redirect(url_for("top4.mapping"))
 
     mapped = []
-    for fid, mid in mapping.items():
-        if str(fid) not in top4_ids:
+    # mapping_data format: {api_football_id: draft_id}
+    for api_id, draft_id in mapping_data.items():
+        draft_id_str = str(draft_id)
+        if draft_id_str not in top4_ids:
             continue
-        meta = pidx.get(str(fid), {})
+        
+        meta = pidx.get(draft_id_str, {})
+        
+        # Get API Football data
+        api_data = api_football_players_cache.get(str(api_id), {})
+        api_football_id = api_id
+        api_english_name = api_data.get("name", "")
+        api_firstname = api_data.get("firstname", "")
+        api_lastname = api_data.get("lastname", "")
+        if not api_english_name and (api_firstname or api_lastname):
+            api_english_name = f"{api_firstname} {api_lastname}".strip()
+        
+        # Get draft player data (Russian name)
+        draft_name = meta.get("fullName") or meta.get("shortName") or draft_id_str
+        draft_short_name = meta.get("shortName", "")
+        
+        # Mantra ID - in Top-4, this is typically the same as draft_id, but we show the API Football ID
+        # since that's what's used for fetching stats
+        mantra_id = api_id  # API Football ID is used as Mantra ID equivalent
+        
+        # Base ID (FPL ID equivalent) - this is the draft_id
+        base_id = draft_id_str
+        
         mapped.append({
-            "fpl_id": fid,
-            "name": meta.get("fullName") or meta.get("shortName") or fid,
-            "mantra_id": mid,
+            "api_football_id": api_football_id,
+            "api_english_name": api_english_name or "N/A",
+            "draft_id": draft_id_str,
+            "draft_name": draft_name,
+            "draft_short_name": draft_short_name,
+            "mantra_id": mantra_id,
+            "base_id": base_id,
         })
-    mapped.sort(key=lambda x: x["name"])
+    mapped.sort(key=lambda x: x["draft_name"])
     return render_template("top4_mapping.html", mapped=mapped, players=options)
 
 
