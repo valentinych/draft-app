@@ -27,7 +27,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(BASE_DIR))
 
 from draft_app.api_football_client import api_football_client, LEAGUE_IDS
-from draft_app.top4_services import load_top4_players
+from draft_app.top4_services import load_players as load_top4_players
 from draft_app.player_map_store import load_player_map, save_player_map
 from draft_app.mantra_api import PlayerMatcher
 
