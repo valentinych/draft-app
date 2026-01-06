@@ -2,6 +2,15 @@
 {% block title %}Маппинг игроков{% endblock %}
 {% block content %}
 <h1 class="title">Маппинг игроков</h1>
+{% if not mapped %}
+<div class="notification is-warning">
+  <p class="subtitle is-5">⚠️ Маппинг пуст</p>
+  <p>Для создания маппинга выполните команду:</p>
+  <pre><code>heroku run --app val-draft-app "python3 scripts/map_all_top4_players.py"</code></pre>
+  <p>Или локально (если установлен API_FOOTBALL_KEY):</p>
+  <pre><code>python3 scripts/map_all_top4_players.py</code></pre>
+</div>
+{% endif %}
 <form method="post" class="mb-4">
   <div class="field">
     <label class="label">Игрок</label>
@@ -29,20 +38,30 @@
       <th>API Football ID</th>
       <th>English Name</th>
       <th>Russian Name</th>
-      <th>Base ID</th>
+      <th>Base ID (Draft)</th>
       <th>Mantra ID</th>
+      <th>Third ID</th>
     </tr>
   </thead>
   <tbody>
-    {% for p in mapped %}
-    <tr>
-      <td>{{ p.api_football_id or "N/A" }}</td>
-      <td>{{ p.api_english_name or "N/A" }}</td>
-      <td>{{ p.draft_name }}</td>
-      <td>{{ p.base_id }}</td>
-      <td>{{ p.mantra_id }}</td>
-    </tr>
-    {% endfor %}
+    {% if mapped %}
+      {% for p in mapped %}
+      <tr>
+        <td>{{ p.api_football_id or "N/A" }}</td>
+        <td>{{ p.api_english_name or "N/A" }}</td>
+        <td>{{ p.draft_name }}</td>
+        <td>{{ p.base_id }}</td>
+        <td>{{ p.mantra_id or "N/A" }}</td>
+        <td>{{ p.third_id or "N/A" }}</td>
+      </tr>
+      {% endfor %}
+    {% else %}
+      <tr>
+        <td colspan="6" class="has-text-centered has-text-grey">
+          Нет замаппленных игроков. Запустите скрипт маппинга: <code>python3 scripts/map_all_top4_players.py</code>
+        </td>
+      </tr>
+    {% endif %}
   </tbody>
 </table>
 {% endblock %}

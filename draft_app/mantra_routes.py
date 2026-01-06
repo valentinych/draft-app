@@ -530,13 +530,16 @@ def mapping():
             flash("Сохранено", "success")
         return redirect(url_for("top4.mapping"))
 
+    # Load player info to get Mantra IDs (third ID)
+    from .top4_player_info_store import load_player_info
+    
     mapped = []
     # mapping_data format: {api_football_id: draft_id}
+    # Show ALL mapped players, not just drafted ones
     for api_id, draft_id in mapping_data.items():
         draft_id_str = str(draft_id)
-        if draft_id_str not in top4_ids:
-            continue
         
+        # Get draft player data (Russian name) - try to find in all players, not just drafted
         meta = pidx.get(draft_id_str, {})
         
         # Get API Football data
@@ -549,12 +552,27 @@ def mapping():
             api_english_name = f"{api_firstname} {api_lastname}".strip()
         
         # Get draft player data (Russian name)
-        draft_name = meta.get("fullName") or meta.get("shortName") or draft_id_str
+        draft_name = meta.get("fullName") or meta.get("shortName") or f"Player {draft_id_str}"
         draft_short_name = meta.get("shortName", "")
         
-        # Mantra ID - in Top-4, this is typically the same as draft_id, but we show the API Football ID
-        # since that's what's used for fetching stats
-        mantra_id = api_id  # API Football ID is used as Mantra ID equivalent
+        # Mantra ID - try to get from player_info, otherwise use API Football ID
+        mantra_id = None
+        third_id = None
+        try:
+            player_info = load_player_info(int(draft_id))
+            if player_info:
+                # Try to get Mantra ID from player_info
+                mantra_id = player_info.get("id") or player_info.get("mantra_id")
+                # Third ID could be from mantra_data or other sources
+                mantra_data = player_info.get("mantra_data", {})
+                if isinstance(mantra_data, dict):
+                    third_id = mantra_data.get("id") or mantra_data.get("mantra_id")
+        except:
+            pass
+        
+        # If no Mantra ID found, use API Football ID as fallback
+        if not mantra_id:
+            mantra_id = api_id
         
         # Base ID (FPL ID equivalent) - this is the draft_id
         base_id = draft_id_str
@@ -565,8 +583,9 @@ def mapping():
             "draft_id": draft_id_str,
             "draft_name": draft_name,
             "draft_short_name": draft_short_name,
-            "mantra_id": mantra_id,
+            "mantra_id": str(mantra_id) if mantra_id else "N/A",
             "base_id": base_id,
+            "third_id": str(third_id) if third_id else "N/A",
         })
     mapped.sort(key=lambda x: x["draft_name"])
     return render_template("top4_mapping.html", mapped=mapped, players=options)
