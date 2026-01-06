@@ -302,9 +302,9 @@ def main():
     print("МАППИНГ ВСЕХ ИГРОКОВ ИЗ TOP-4 ЛИГ")
     print("=" * 80)
     
-    # Load existing mapping
-    print("\n📥 Загрузка существующего маппинга...")
-    existing_mapping = load_player_map()
+    # Load existing Top-4 mapping
+    print("\n📥 Загрузка существующего Top-4 маппинга...")
+    existing_mapping = load_top4_player_map()
     print(f"   ✅ Загружено существующих маппингов: {len(existing_mapping)}")
     
     # Load all API Football players
