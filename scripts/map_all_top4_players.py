@@ -160,6 +160,8 @@ def perform_mapping(
                 # Find best match in draft players
                 best_match = None
                 best_score = 0.0
+                best_name_score = 0.0
+                best_club_score = 0.0
                 
                 for draft_id, norm_draft in normalized_draft.items():
                     # Only match players from the same league
@@ -167,21 +169,38 @@ def perform_mapping(
                     if draft_league and draft_league != league_name:
                         continue
                     
-                    # Calculate similarity using PlayerMatcher methods
-                    norm_api_name = matcher.normalize_name(norm_api["name"])
-                    norm_draft_name = matcher.normalize_name(norm_draft["name"])
-                    norm_api_club = matcher.normalize_club_name(norm_api["club"])
-                    norm_draft_club = matcher.normalize_club_name(norm_draft["club"])
+                    # Skip if this draft_id is already mapped to a different API player
+                    api_id_str = str(api_id)
+                    already_mapped_to_other = False
+                    for mapped_api_id, mapped_draft_id in new_mapping.items():
+                        if mapped_draft_id == draft_id and mapped_api_id != api_id_str:
+                            already_mapped_to_other = True
+                            break
+                    if already_mapped_to_other:
+                        continue
                     
-                    # Simple similarity calculation
-                    name_score = SequenceMatcher(None, norm_api_name, norm_draft_name).ratio()
-                    club_score = SequenceMatcher(None, norm_api_club, norm_draft_club).ratio()
+                    # Use PlayerMatcher's advanced similarity methods
+                    name_score = matcher.calculate_name_similarity(norm_api["name"], norm_draft["name"])
+                    club_score = matcher.calculate_club_similarity(norm_api["club"], norm_draft["club"])
                     
-                    # Combined score (weighted)
-                    combined_score = (name_score * 0.7) + (club_score * 0.3)
+                    # Combined score (weighted: name is more important, but club must match reasonably)
+                    # If club matches well, we can be more lenient with name
+                    if club_score >= 0.7:
+                        # Club matches well - name threshold is lower
+                        combined_score = (name_score * 0.6) + (club_score * 0.4)
+                        threshold = 0.5  # Lower threshold for well-matched clubs
+                    elif club_score >= 0.4:
+                        # Club matches moderately - require better name match
+                        combined_score = (name_score * 0.7) + (club_score * 0.3)
+                        threshold = 0.6
+                    else:
+                        # Club doesn't match well - skip
+                        continue
                     
-                    if combined_score > best_score and combined_score >= 0.7:  # Minimum threshold
+                    if combined_score > best_score and combined_score >= threshold:
                         best_score = combined_score
+                        best_name_score = name_score
+                        best_club_score = club_score
                         best_match = draft_id
                 
                 if best_match:
@@ -196,6 +215,11 @@ def perform_mapping(
                             league_updated += 1
                         else:
                             league_new += 1
+                        
+                        # Debug output for first few matches
+                        if league_new <= 5:
+                            norm_draft = normalized_draft[best_match]
+                            print(f"      ✅ {norm_api['name']} ({norm_api['club']}) -> {norm_draft['name']} ({norm_draft['club']}) [name:{best_name_score:.2f} club:{best_club_score:.2f} total:{best_score:.2f}]")
                             
             except Exception as e:
                 print(f"   ⚠️  Ошибка при обработке игрока: {e}")
