@@ -6,6 +6,7 @@ popupstats/
 !players_80_en_1.json
 !data/cache/top4_players.json
 !data/ucl_rosters_matchdays_example.json
+!draft_state_top4 (6).json
 !s3_exports/
 !s3_exports/**/*.json
 !s3_exports/**/*.md
