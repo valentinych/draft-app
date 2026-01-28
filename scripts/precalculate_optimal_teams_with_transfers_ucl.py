@@ -24,6 +24,7 @@ from draft_app.ucl import (
     _players_from_ucl,
     _player_matchdays,
     _get_all_ucl_clubs,
+    _normalize_position,
 )
 from draft_app.ucl_stats_store import get_player_stats_cached
 from draft_app.ucl import _ucl_points_for_md, _safe_int
@@ -71,12 +72,95 @@ def build_optimal_team_with_transfers(
     raw_players = _json_load(UCL_PLAYERS) or []
     all_ucl_players = _players_from_ucl(raw_players)
     
-    # Get picked player IDs for each MD
+    # Get transfer history from state
+    state = _ucl_state_load()
+    old_transfer_history = state.get("transfer_history", [])
+    new_transfer_history = state.get("transfers", {}).get("history", [])
+    
+    # Get picked player IDs for each MD (considering transfer history)
     def get_roster_for_md(manager: str, target_md: int) -> List[Dict]:
-        """Get manager's roster as it was for the specific MD"""
+        """Get manager's roster as it was for the specific MD, considering transfer history"""
         current_roster = list(rosters.get(manager, []))
-        # Simplified version - just return current roster
-        # In production, this should rollback transfers properly
+        
+        # First, filter out players who were transferred out before or at target_md
+        filtered_roster = []
+        for player in current_roster:
+            if not isinstance(player, dict):
+                continue
+            payload = player.get("player") if isinstance(player, dict) and player.get("player") else player
+            if not isinstance(payload, dict):
+                continue
+            
+            # Check if player was transferred out before or at target_md
+            transferred_out_gw = payload.get("transferred_out_gw")
+            if transferred_out_gw is not None:
+                try:
+                    out_gw = int(transferred_out_gw)
+                    # If player was transferred out before or at target_md, exclude them
+                    if out_gw <= target_md:
+                        continue
+                except (ValueError, TypeError):
+                    pass
+            
+            # Check if player was transferred in after target_md
+            transferred_in_gw = payload.get("transferred_in_gw")
+            if transferred_in_gw is not None:
+                try:
+                    in_gw = int(transferred_in_gw)
+                    # If player was transferred in after target_md, exclude them
+                    if in_gw > target_md:
+                        continue
+                except (ValueError, TypeError):
+                    pass
+            
+            filtered_roster.append(player)
+        current_roster = filtered_roster
+        
+        # Apply old format transfers (legacy)
+        for transfer in old_transfer_history:
+            if (transfer.get("manager") == manager and 
+                transfer.get("matchday", 999) < target_md):
+                if "player_out" in transfer:
+                    out_id = transfer["player_out"].get("playerId")
+                    current_roster = [p for p in current_roster if p.get("playerId") != out_id]
+                if "player_in" in transfer:
+                    in_player = transfer["player_in"]
+                    in_player_id = in_player.get("playerId")
+                    already_in_roster = any(p.get("playerId") == in_player_id for p in current_roster)
+                    if not already_in_roster:
+                        current_roster.append(in_player)
+        
+        # Rollback transfers that happened AFTER the target MD
+        # Transfers are applied from the next MD after the transfer GW
+        # So a transfer in GW=7 applies from MD7 onwards
+        rollback_transfers = []
+        for transfer in new_transfer_history:
+            transfer_gw = transfer.get("gw", 999)
+            transfer_manager = transfer.get("manager")
+            if transfer_manager == manager and transfer_gw >= target_md:
+                rollback_transfers.append(transfer)
+        
+        # Sort rollback transfers by GW descending (most recent first)
+        rollback_transfers.sort(key=lambda t: t.get("gw", 0), reverse=True)
+        
+        # Rollback each transfer
+        for transfer in rollback_transfers:
+            action = transfer.get("action")
+            if action == "transfer_out":
+                # Rollback: add back the player that was transferred out
+                out_player = transfer.get("out_player")
+                if out_player and isinstance(out_player, dict):
+                    out_id = out_player.get("playerId")
+                    # Check if player is not already in roster
+                    if not any(p.get("playerId") == out_id for p in current_roster):
+                        current_roster.append(out_player)
+            elif action == "transfer_in":
+                # Rollback: remove the player that was transferred in
+                in_player = transfer.get("in_player")
+                if in_player and isinstance(in_player, dict):
+                    in_id = in_player.get("playerId")
+                    current_roster = [p for p in current_roster if p.get("playerId") != in_id]
+        
         return current_roster
     
     picked_ids_by_md: Dict[int, Set[int]] = {}
@@ -208,10 +292,11 @@ def build_optimal_team_with_transfers(
             except Exception:
                 continue
             
-            # Skip if exclude_picked and player is picked in any remaining MD
+            # Skip if exclude_picked and player is picked in the current MD
+            # Important: check if player was picked in THIS specific MD, not just any remaining MD
             if exclude_picked:
-                is_picked = any(pid_int in picked_ids_by_md.get(m, set()) for m in remaining_mds)
-                if is_picked:
+                # For transfer decisions, we need to check if player is available in the current MD
+                if pid_int in picked_ids_by_md.get(md, set()):
                     continue
             
             # Check if player played in at least one remaining MD
