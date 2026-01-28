@@ -2322,7 +2322,9 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
                         if transferred_out_gw is not None:
                             try:
                                 out_gw = int(transferred_out_gw)
-                                    matchdays_set = {md for md in range(1, out_gw + 1) if md <= UCL_TOTAL_MATCHDAYS}
+                                matchdays_set = {md for md in range(1, out_gw + 1) if md <= UCL_TOTAL_MATCHDAYS}
+                            except (TypeError, ValueError):
+                                pass
                                 except (TypeError, ValueError):
                                     # Fallback to transfer_gw logic
                                     # If player was transferred out after GW pivot, they played in MDs 1 to pivot
