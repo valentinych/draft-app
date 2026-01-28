@@ -2324,17 +2324,15 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
                                 out_gw = int(transferred_out_gw)
                                 matchdays_set = {md for md in range(1, out_gw + 1) if md <= UCL_TOTAL_MATCHDAYS}
                             except (TypeError, ValueError):
-                                pass
-                                except (TypeError, ValueError):
-                                    # Fallback to transfer_gw logic
-                                    # If player was transferred out after GW pivot, they played in MDs 1 to pivot
-                                    # (e.g., if transferred after GW3 (transfer_gw=3), they played in MDs 1-3)
-                                    matchdays_set = {md for md in range(1, pivot + 1) if md <= UCL_TOTAL_MATCHDAYS}
-                            else:
-                                # If no transferred_out_gw in payload, use transfer_gw to calculate matchdays
+                                # Fallback to transfer_gw logic
                                 # If player was transferred out after GW pivot, they played in MDs 1 to pivot
                                 # (e.g., if transferred after GW3 (transfer_gw=3), they played in MDs 1-3)
                                 matchdays_set = {md for md in range(1, pivot + 1) if md <= UCL_TOTAL_MATCHDAYS}
+                        else:
+                            # If no transferred_out_gw in payload, use transfer_gw to calculate matchdays
+                            # If player was transferred out after GW pivot, they played in MDs 1 to pivot
+                            # (e.g., if transferred after GW3 (transfer_gw=3), they played in MDs 1-3)
+                            matchdays_set = {md for md in range(1, pivot + 1) if md <= UCL_TOTAL_MATCHDAYS}
                     elif status == "transfer_in":
                         # For transfer_in, check if _transferred_in_gw_for_matchdays is set
                         # This is set when registering from roster with transferred_in_gw
