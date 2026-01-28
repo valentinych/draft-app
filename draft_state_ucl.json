@@ -360,10 +360,11 @@
         "position": "DEF",
         "price": 4.5,
         "matchdays": [
-          1
+          1,
+          7,
+          8
         ],
-        "status": "transfer_out",
-        "transferred_out_gw": 2
+        "transferred_in_gw": 7
       },
       {
         "playerId": 103823,
@@ -439,14 +440,13 @@
         "clubName": "Slavia Praha",
         "position": "DEF",
         "price": 4.0,
-        "status": "active",
+        "status": "transfer_out",
         "transferred_in_gw": 4,
+        "transferred_out_gw": 6,
         "matchdays": [
           4,
           5,
-          6,
-          7,
-          8
+          6
         ],
         "gws_active": [
           3,
@@ -705,10 +705,22 @@
           3,
           4,
           5,
-          6,
+          6
+        ],
+        "status": "transfer_out",
+        "transferred_out_gw": 6
+      },
+      {
+        "playerId": 250138957,
+        "fullName": "Carlos Forbs",
+        "clubName": "Club Brugge",
+        "position": "FWD",
+        "price": 5.5,
+        "matchdays": [
           7,
           8
-        ]
+        ],
+        "transferred_in_gw": 7
       },
       {
         "playerId": 250069832,
@@ -1125,10 +1137,22 @@
           3,
           4,
           5,
-          6,
+          6
+        ],
+        "status": "transfer_out",
+        "transferred_out_gw": 6
+      },
+      {
+        "playerId": 250169725,
+        "fullName": "Matt O'Riley",
+        "clubName": "Marseille",
+        "position": "MID",
+        "price": 5.5,
+        "matchdays": [
           7,
           8
-        ]
+        ],
+        "transferred_in_gw": 7
       },
       {
         "playerId": 250136464,
@@ -1576,10 +1600,22 @@
           3,
           4,
           5,
-          6,
+          6
+        ],
+        "status": "transfer_out",
+        "transferred_out_gw": 6
+      },
+      {
+        "playerId": 250102497,
+        "fullName": "Harvey Barnes",
+        "clubName": "Newcastle",
+        "position": "MID",
+        "price": 6.5,
+        "matchdays": [
           7,
           8
-        ]
+        ],
+        "transferred_in_gw": 7
       },
       {
         "playerId": 250063984,
@@ -3359,10 +3395,25 @@
           3,
           4,
           5,
-          6,
+          6
+        ],
+        "status": "transfer_out",
+        "transferred_out_gw": 6
+      },
+      {
+        "playerId": 250113276,
+        "fullName": "Jeremie Frimpong",
+        "clubName": "Liverpool",
+        "position": "DEF",
+        "price": 5.5,
+        "matchdays": [
+          1,
+          2,
+          3,
           7,
           8
-        ]
+        ],
+        "transferred_in_gw": 7
       },
       {
         "playerId": 250066739,
@@ -5654,7 +5705,8 @@
     3,
     4,
     5,
-    6
+    6,
+    7
   ],
   "transfers": {
     "history": [
@@ -5780,12 +5832,7 @@
           "matchdays": [
             1,
             2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            8
+            3
           ],
           "status": "transfer_out",
           "transferred_out_gw": 3
@@ -5821,12 +5868,7 @@
           "matchdays": [
             1,
             2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            8
+            3
           ],
           "status": "transfer_out",
           "transferred_out_gw": 3
@@ -5951,6 +5993,178 @@
         },
         "ts": "2025-12-27T17:07:31",
         "draft_type": "UCL"
+      },
+      {
+        "gw": 7,
+        "manager": "Саша",
+        "out_player": {
+          "playerId": 250127284,
+          "fullName": "Joško Gvardiol",
+          "clubName": "Man City",
+          "position": "DEF",
+          "price": 5.5,
+          "matchdays": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "transferred_out_gw": 6
+        },
+        "in_player": {
+          "playerId": 250169725,
+          "fullName": "Matt O'Riley",
+          "clubName": "Marseille",
+          "position": "MID",
+          "price": 5.5,
+          "matchdays": [
+            7,
+            8
+          ],
+          "transferred_in_gw": 7
+        },
+        "ts": "2025-01-06T12:00:00+00:00",
+        "draft_type": "UCL"
+      },
+      {
+        "gw": 7,
+        "manager": "Сергей",
+        "out_player": {
+          "playerId": 250112220,
+          "fullName": "Josip Stanišić",
+          "clubName": "Bayern München",
+          "position": "DEF",
+          "price": 4.5,
+          "matchdays": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "transferred_out_gw": 6
+        },
+        "in_player": {
+          "playerId": 250113276,
+          "fullName": "Jeremie Frimpong",
+          "clubName": "Liverpool",
+          "position": "DEF",
+          "price": 5.5,
+          "matchdays": [
+            1,
+            2,
+            3,
+            7,
+            8
+          ],
+          "transferred_in_gw": 7
+        },
+        "ts": "2025-01-06T12:00:00+00:00",
+        "draft_type": "UCL"
+      },
+      {
+        "gw": 7,
+        "manager": "Андрей",
+        "out_player": {
+          "playerId": 250155025,
+          "fullName": "Georges Mikautadze",
+          "clubName": "Villarreal",
+          "position": "FWD",
+          "price": 6.0,
+          "matchdays": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "transferred_out_gw": 6
+        },
+        "in_player": {
+          "playerId": 250138957,
+          "fullName": "Carlos Forbs",
+          "clubName": "Club Brugge",
+          "position": "FWD",
+          "price": 5.5,
+          "matchdays": [
+            7,
+            8
+          ],
+          "transferred_in_gw": 7
+        },
+        "ts": "2025-01-06T12:00:00+00:00",
+        "draft_type": "UCL"
+      },
+      {
+        "gw": 7,
+        "manager": "Руслан",
+        "out_player": {
+          "playerId": 250166964,
+          "fullName": "Can Uzun",
+          "clubName": "Frankfurt",
+          "position": "MID",
+          "price": 5.0,
+          "matchdays": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ],
+          "transferred_out_gw": 6
+        },
+        "in_player": {
+          "playerId": 250102497,
+          "fullName": "Harvey Barnes",
+          "clubName": "Newcastle",
+          "position": "MID",
+          "price": 6.5,
+          "matchdays": [
+            7,
+            8
+          ],
+          "transferred_in_gw": 7
+        },
+        "ts": "2025-01-06T12:00:00+00:00",
+        "draft_type": "UCL"
+      },
+      {
+        "gw": 7,
+        "manager": "Ксана",
+        "out_player": {
+          "playerId": 250212115,
+          "fullName": "El Hadji Youssoupha Mbodji",
+          "clubName": "Slavia Praha",
+          "position": "DEF",
+          "price": 4.0,
+          "matchdays": [
+            4,
+            5,
+            6
+          ],
+          "transferred_in_gw": 4,
+          "transferred_out_gw": 6
+        },
+        "in_player": {
+          "playerId": 250092668,
+          "fullName": "Dávid Hancko",
+          "clubName": "Atleti",
+          "position": "DEF",
+          "price": 4.5,
+          "matchdays": [
+            1,
+            7,
+            8
+          ],
+          "transferred_in_gw": 7
+        },
+        "ts": "2025-01-06T12:00:00+00:00",
+        "draft_type": "UCL"
       }
     ],
     "available_players": [
@@ -5977,12 +6191,7 @@
         "matchdays": [
           1,
           2,
-          3,
-          4,
-          5,
-          6,
-          7,
-          8
+          3
         ],
         "status": "transfer_out",
         "transferred_out_gw": 3
@@ -5996,12 +6205,7 @@
         "matchdays": [
           1,
           2,
-          3,
-          4,
-          5,
-          6,
-          7,
-          8
+          3
         ],
         "status": "transfer_out",
         "transferred_out_gw": 3
@@ -6015,12 +6219,7 @@
         "matchdays": [
           1,
           2,
-          3,
-          4,
-          5,
-          6,
-          7,
-          8
+          3
         ],
         "status": "transfer_out",
         "transferred_out_gw": 3
