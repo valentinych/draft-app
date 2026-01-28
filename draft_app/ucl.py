@@ -2315,13 +2315,13 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
                                 # Fallback to transfer_gw logic
                                 # If transferred_out_gw is passed as transfer_gw, use it directly
                                 # (e.g., if transfer_gw=3, they played in MDs 1-3)
-                        matchdays_set = {md for md in range(1, pivot + 1) if md <= UCL_TOTAL_MATCHDAYS}
+                                matchdays_set = {md for md in range(1, pivot + 1) if md <= UCL_TOTAL_MATCHDAYS}
                     else:
-                            # If no explicit GW, check if transferred_out_gw is in payload
-                            transferred_out_gw = player_payload.get("transferred_out_gw")
-                            if transferred_out_gw is not None:
-                                try:
-                                    out_gw = int(transferred_out_gw)
+                        # If no explicit GW, check if transferred_out_gw is in payload
+                        transferred_out_gw = player_payload.get("transferred_out_gw")
+                        if transferred_out_gw is not None:
+                            try:
+                                out_gw = int(transferred_out_gw)
                                     matchdays_set = {md for md in range(1, out_gw + 1) if md <= UCL_TOTAL_MATCHDAYS}
                                 except (TypeError, ValueError):
                                     # Fallback to transfer_gw logic
