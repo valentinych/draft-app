@@ -19,7 +19,8 @@ from draft_app.ucl import (
     UCL_PARTICIPANTS,
     UCL_TOTAL_MATCHDAYS,
     _json_load,
-    _json_dump_atomic,
+    _ucl_state_load,
+    _ucl_state_save,
     _players_from_ucl,
     _player_matchdays,
     _get_all_ucl_clubs,
@@ -410,8 +411,8 @@ def main():
     print("ПРЕДВАРИТЕЛЬНЫЙ РАСЧЕТ ОПТИМАЛЬНЫХ СБОРНЫХ С ТРАНСФЕРАМИ UCL")
     print("=" * 80)
     
-    # Load state
-    state = _json_load(UCL_STATE)
+    # Load state (from S3 if enabled, otherwise local file)
+    state = _ucl_state_load()
     if not state:
         print("❌ Не удалось загрузить draft_state_ucl.json")
         return
@@ -475,13 +476,13 @@ def main():
         "unpicked_geniuses": optimal_unpicked
     }
     
-    # Save state
+    # Save state (to S3 if enabled, otherwise local file)
     print(f"\n💾 Сохранение данных...")
-    _json_dump_atomic(UCL_STATE, state)
-    print(f"✅ Оптимальные сборные с трансферами сохранены в draft_state_ucl.json")
+    _ucl_state_save(state)
+    print(f"✅ Оптимальные сборные с трансферами сохранены в draft_state_ucl.json (и на S3 если настроено)")
     
     # Verify
-    verify_state = _json_load(UCL_STATE)
+    verify_state = _ucl_state_load()
     if verify_state and "optimal_teams_with_transfers" in verify_state:
         saved_data = verify_state["optimal_teams_with_transfers"]
         opt_team = saved_data.get("optimal_team", {})
