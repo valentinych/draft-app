@@ -2333,7 +2333,7 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
                             # If player was transferred out after GW pivot, they played in MDs 1 to pivot
                             # (e.g., if transferred after GW3 (transfer_gw=3), they played in MDs 1-3)
                             matchdays_set = {md for md in range(1, pivot + 1) if md <= UCL_TOTAL_MATCHDAYS}
-                    elif status == "transfer_in":
+                    if status == "transfer_in":
                         # For transfer_in, check if _transferred_in_gw_for_matchdays is set
                         # This is set when registering from roster with transferred_in_gw
                         explicit_in_gw = player_payload.get("_transferred_in_gw_for_matchdays")
