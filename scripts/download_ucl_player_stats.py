@@ -1,15 +1,13 @@
 #!/usr/bin/env python3
 """
-Скачивание статистики всех игроков UCL локально.
-Скачивает popupstats для всех игроков из players_80_en_1.json
+Скачивание статистики всех игроков UCL и сохранение в S3.
+Использует функции из ucl_stats_store для сохранения в S3 (ucl/popupstats_80_{pid}.json)
 """
 from __future__ import annotations
-import json
 import sys
 import time
 from pathlib import Path
 from typing import Any, Dict, List
-import requests
 
 # Add parent directory to path
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -20,74 +18,17 @@ from draft_app.ucl import (
     _players_from_ucl,
     UCL_PLAYERS,
 )
-
-POPUPSTATS_DIR = BASE_DIR / "popupstats"
-POPUPSTATS_DIR.mkdir(exist_ok=True)
-
-def download_player_stats(pid: int, retries: int = 5) -> Dict[str, Any] | None:
-    """Download player stats from UEFA API with improved timeout and retry logic"""
-    url = f"https://gaming.uefa.com/en/uclfantasy/services/feeds/popupstats/popupstats_80_{pid}.json"
-    local_path = POPUPSTATS_DIR / f"popupstats_80_{pid}.json"
-    
-    # If file exists and is recent (less than 1 hour old), skip
-    if local_path.exists():
-        stat = local_path.stat()
-        age_seconds = time.time() - stat.st_mtime
-        if age_seconds < 3600:  # 1 hour
-            try:
-                with open(local_path, 'r', encoding='utf-8') as f:
-                    return json.load(f)
-            except Exception:
-                pass
-    
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-        'Accept': 'application/json',
-    }
-    
-    # Increased timeout: 30 seconds for connection, 60 seconds for reading
-    timeout = (30, 60)
-    
-    for attempt in range(retries):
-        try:
-            response = requests.get(url, headers=headers, timeout=timeout)
-            response.raise_for_status()
-            data = response.json()
-            
-            # Save to local file
-            with open(local_path, 'w', encoding='utf-8') as f:
-                json.dump(data, f, ensure_ascii=False, indent=2)
-            
-            return data
-        except requests.exceptions.Timeout as e:
-            if attempt < retries - 1:
-                # Exponential backoff: 2^attempt seconds
-                wait_time = 2 ** attempt
-                time.sleep(wait_time)
-                continue
-            print(f"  ❌ Таймаут для игрока {pid} после {retries} попыток: {e}")
-            return None
-        except requests.exceptions.RequestException as e:
-            if attempt < retries - 1:
-                # Exponential backoff: 2^attempt seconds
-                wait_time = 2 ** attempt
-                time.sleep(wait_time)
-                continue
-            print(f"  ❌ Ошибка для игрока {pid} после {retries} попыток: {e}")
-            return None
-        except Exception as e:
-            if attempt < retries - 1:
-                wait_time = 2 ** attempt
-                time.sleep(wait_time)
-                continue
-            print(f"  ❌ Неожиданная ошибка для игрока {pid}: {e}")
-            return None
-    
-    return None
+from draft_app.ucl_stats_store import (
+    stats_s3_key,
+    stats_bucket,
+)
+# Import private functions directly from module
+from draft_app import ucl_stats_store
+from datetime import datetime
 
 def main():
     print("=" * 80)
-    print("СКАЧИВАНИЕ СТАТИСТИКИ ИГРОКОВ UCL")
+    print("СКАЧИВАНИЕ СТАТИСТИКИ ИГРОКОВ UCL В S3")
     print("=" * 80)
     
     # Load players
@@ -111,8 +52,10 @@ def main():
                 pass
     
     print(f"✅ Найдено ID игроков: {len(player_ids)}")
-    print(f"📁 Сохранение в: {POPUPSTATS_DIR}")
-    print(f"\n📥 Начинаю скачивание...")
+    bucket = stats_bucket()
+    print(f"📦 S3 Bucket: {bucket}")
+    print(f"📁 S3 Prefix: ucl/")
+    print(f"\n📥 Начинаю скачивание и загрузку в S3...")
     
     downloaded = 0
     skipped = 0
@@ -120,36 +63,51 @@ def main():
     
     for i, pid in enumerate(player_ids, 1):
         if i % 50 == 0:
-            print(f"  Прогресс: {i}/{len(player_ids)} (скачано: {downloaded}, пропущено: {skipped}, ошибок: {errors})")
+            print(f"  Прогресс: {i}/{len(player_ids)} (скачано: {downloaded}, пропущено: {skipped}, ошибок: {errors})", flush=True)
         
-        local_path = POPUPSTATS_DIR / f"popupstats_80_{pid}.json"
-        
-        # Check if already exists and recent
-        if local_path.exists():
-            stat = local_path.stat()
-            age_seconds = time.time() - stat.st_mtime
-            if age_seconds < 3600:  # 1 hour
+        try:
+            # First check S3 cache to avoid unnecessary downloads
+            s3_payload = ucl_stats_store._load_s3(pid)
+            if ucl_stats_store._fresh(s3_payload):
+                # Already in S3, skip
                 skipped += 1
                 continue
-        
-        # Download
-        result = download_player_stats(pid)
-        if result:
-            downloaded += 1
-        else:
+            
+            # Not in S3, download from remote
+            remote = ucl_stats_store._fetch_remote_player(pid)
+            if remote is not None:
+                payload = {
+                    "cached_at": datetime.utcnow().isoformat(),
+                    "data": remote,
+                }
+                # Save directly to S3 (no local save needed on Heroku)
+                ucl_stats_store._save_s3(pid, payload)
+                downloaded += 1
+            else:
+                # Failed to download
+                errors += 1
+                print(f"  ⚠️  Не удалось скачать данные для игрока {pid}", flush=True)
+            
+        except KeyboardInterrupt:
+            print(f"\n⚠️  Прервано пользователем на игроке {pid}", flush=True)
+            raise
+        except Exception as e:
             errors += 1
+            print(f"  ❌ Ошибка для игрока {pid}: {e}", flush=True)
             # Longer delay after error to avoid rate limiting
             time.sleep(2)
         
-        # Small delay to avoid rate limiting (increased for stability)
-        time.sleep(0.2)
+        # Small delay to avoid rate limiting
+        time.sleep(0.3)
     
     print(f"\n✅ Завершено!")
-    print(f"   Скачано: {downloaded}")
-    print(f"   Пропущено (уже есть): {skipped}")
+    print(f"   Скачано и загружено в S3: {downloaded}")
+    print(f"   Пропущено (уже в кеше): {skipped}")
     print(f"   Ошибок: {errors}")
+    print(f"   S3 Bucket: {bucket}")
+    print(f"   S3 Prefix: ucl/")
+    print(f"   S3 Path: s3://{bucket}/ucl/popupstats_80_*.json")
     print("=" * 80)
 
 if __name__ == "__main__":
     main()
-
