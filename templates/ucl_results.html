@@ -290,8 +290,8 @@ document.addEventListener('DOMContentLoaded', () => {
         infoWrap.appendChild(nameSpan);
         
         // Add matchdays indicator (как на странице лайнапов)
-        // Don't show matchdays for optimal teams with transfers
-        if (!isSpecialTeam && Array.isArray(p.matchdays) && p.matchdays.length) {
+        // Show matchdays for all teams, including optimal teams with transfers
+        if (Array.isArray(p.matchdays) && p.matchdays.length) {
           const spanMatchdays = document.createElement('span');
           spanMatchdays.className = 'player-matchdays';
           spanMatchdays.textContent = `Туры: ${p.matchdays.join(',')}`;
