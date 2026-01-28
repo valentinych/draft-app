@@ -24,7 +24,6 @@ from draft_app.ucl import (
     _players_from_ucl,
     _player_matchdays,
     _get_all_ucl_clubs,
-    _normalize_position,
 )
 from draft_app.ucl_stats_store import get_player_stats_cached
 from draft_app.ucl import _ucl_points_for_md, _safe_int
