@@ -116,6 +116,11 @@ def build_optimal_team_with_transfers(
     current_team: List[Dict[str, Any]] = []
     current_clubs: Set[str] = set()
     current_pos_counts = {"GK": 0, "DEF": 0, "MID": 0, "FWD": 0}
+    # Track which matchdays each player was in the team
+    # Key: player_id, Value: list of MDs when player was in team
+    player_matchdays_in_team: Dict[int, List[int]] = {}
+    # Track all players who were ever in the team (including transferred out)
+    all_players_in_team_history: List[Dict[str, Any]] = []
     
     # Get available players for MD1
     available_for_md1 = []
@@ -171,12 +176,16 @@ def build_optimal_team_with_transfers(
         current_pos_counts[pos] += 1
         if club:
             current_clubs.add(club)
+        # Track that this player starts in team from MD1
+        # Will be updated if player is transferred out later
+        player_matchdays_in_team[player["playerId"]] = finished_mds.copy()  # Start with all MDs, will be trimmed on transfer
         
         if sum(current_pos_counts.values()) >= 25:
             break
     
     # Now iterate through remaining MDs and make transfers if beneficial
     # We consider total points across all remaining MDs when making transfers
+    transfers_made = 0
     for md_idx, md in enumerate(finished_mds[1:], start=1):
         # Remaining MDs after this one (including current)
         remaining_mds = finished_mds[md_idx:]
@@ -262,7 +271,19 @@ def build_optimal_team_with_transfers(
         
         # Make transfer if beneficial
         if best_total_improvement > 0 and best_out_player and best_in_player:
+            transfers_made += 1
             out_idx, out_player = best_out_player
+            out_pid = out_player["playerId"]
+            in_pid = best_in_player["playerId"]
+            
+            # Update matchdays tracking: out_player was in team until md-1, in_player starts from md
+            if out_pid in player_matchdays_in_team:
+                # out_player was in team from start until md-1 (inclusive)
+                # Keep only MDs before current md (md-1 and earlier)
+                player_matchdays_in_team[out_pid] = [m for m in finished_mds if m < md]
+            # in_player starts from current md (inclusive)
+            player_matchdays_in_team[in_pid] = [m for m in finished_mds if m >= md]
+            
             # Remove old player's club if no other player from that club
             out_club = out_player["club"]
             if out_club and not any(p["club"] == out_club for i, p in enumerate(current_team) if i != out_idx):
@@ -273,14 +294,73 @@ def build_optimal_team_with_transfers(
             in_club = best_in_player["club"]
             if in_club:
                 current_clubs.add(in_club)
+        elif md_idx == 1:  # Debug first MD transfer attempt
+            print(f"    [DEBUG] MD{md}: No transfer made. best_improvement={best_total_improvement}, candidates checked")
     
     # Calculate total points across all finished MDs
-    total_points = 0
-    for md in finished_mds:
-        for player in current_team:
-            total_points += get_player_points_for_md(player["playerId"], md)
+    # We need to count points for ALL players who were ever in the team (including transferred out)
+    # Build complete list: current team + all players who were transferred out
+    all_players_ever_in_team: Dict[int, Dict[str, Any]] = {}
     
-    # Format players for output
+    # Add all current players
+    for player in current_team:
+        pid = player["playerId"]
+        all_players_ever_in_team[pid] = player
+    
+    # Add all players from history (those who were transferred out)
+    # We can find them by checking player_matchdays_in_team for players not in current_team
+    current_team_pids = {p["playerId"] for p in current_team}
+    for pid, mds_list in player_matchdays_in_team.items():
+        if pid not in current_team_pids and mds_list:
+            # This player was transferred out, need to find their data
+            # Search in all_ucl_players
+            for p in all_ucl_players:
+                if p.get("playerId") == pid:
+                    pos = _normalize_position(p.get("position"))
+                    club = _get_player_club(p, pid, finished_mds[0]).upper()
+                    all_players_ever_in_team[pid] = {
+                        "playerId": pid,
+                        "fullName": p.get("fullName") or p.get("name") or str(pid),
+                        "name": p.get("fullName") or p.get("name") or str(pid),
+                        "pos": pos,
+                        "club": club,
+                        "player": p,
+                    }
+                    break
+    
+    # Calculate total points: sum points for each MD, counting only players who were in team that MD
+    total_points = 0
+    md_breakdown = {}  # For debugging
+    for md in finished_mds:
+        md_points = 0
+        players_in_md = []
+        for pid, player in all_players_ever_in_team.items():
+            mds_in_team = player_matchdays_in_team.get(pid, [])
+            if md in mds_in_team:
+                points = get_player_points_for_md(pid, md)
+                md_points += points
+                players_in_md.append((pid, points))
+        total_points += md_points
+        md_breakdown[md] = {"points": md_points, "players": len(players_in_md)}
+    
+    # Debug: print breakdown if total seems wrong
+    if exclude_picked:
+        debug_label = "Непикнутые"
+    else:
+        debug_label = "Optimal Team"
+    if total_points < 300:  # Suspiciously low
+        print(f"    [DEBUG {debug_label}] Total: {total_points}, Breakdown by MD:")
+        for md, info in sorted(md_breakdown.items()):
+            print(f"      MD{md}: {info['points']} pts ({info['players']} players)")
+        print(f"    [DEBUG {debug_label}] Players in team history: {len(all_players_ever_in_team)}")
+        print(f"    [DEBUG {debug_label}] Current team size: {len(current_team)}")
+        print(f"    [DEBUG {debug_label}] Transfers made: {transfers_made}")
+        # Show sample player matchdays
+        print(f"    [DEBUG {debug_label}] Sample player matchdays (first 3):")
+        for i, (pid, mds) in enumerate(list(player_matchdays_in_team.items())[:3]):
+            print(f"      Player {pid}: MDs {mds}")
+    
+    # Format players for output (only current team, but with correct points)
     formatted_players = []
     all_clubs = _get_all_ucl_clubs()
     
@@ -293,8 +373,9 @@ def build_optimal_team_with_transfers(
             if md_stat:
                 team_id = md_stat.get("tId") or md_stat.get("teamId")
         
-        # Calculate total points across all MDs
-        player_total = sum(get_player_points_for_md(pid, md) for md in finished_mds)
+        # Calculate total points only for MDs when player was in team
+        mds_in_team = player_matchdays_in_team.get(pid, finished_mds)  # Default to all MDs if not tracked
+        player_total = sum(get_player_points_for_md(pid, md) for md in mds_in_team if md in finished_mds)
         
         formatted_players.append({
             "playerId": pid,
@@ -306,7 +387,7 @@ def build_optimal_team_with_transfers(
             "club": player["club"],
             "teamId": str(team_id) if team_id else None,
             "points": player_total,
-            "matchdays": finished_mds,  # Player was in team for all finished MDs
+            "matchdays": sorted(mds_in_team),  # Only MDs when player was in team
         })
     
     # Calculate unused clubs
@@ -368,7 +449,12 @@ def main():
         finished_mds_list, rosters, managers, exclude_picked=False
     )
     calculated_total = sum(p.get("points", 0) for p in optimal_with_transfers["players"])
-    print(f"    Игроков: {len(optimal_with_transfers['players'])}, Баллов: {calculated_total}")
+    stored_total = optimal_with_transfers.get("total", 0)
+    print(f"    Игроков: {len(optimal_with_transfers['players'])}, Баллов (сумма игроков): {calculated_total}, Баллов (stored): {stored_total}")
+    if calculated_total != stored_total:
+        print(f"    ⚠️  РАСХОЖДЕНИЕ! Сумма очков игроков ({calculated_total}) != stored total ({stored_total})")
+        # Update stored total to match calculated
+        optimal_with_transfers["total"] = calculated_total
     
     # Непикнутые гении
     print(f"  • Непикнутые (1 трансфер/тур)...")
@@ -376,7 +462,12 @@ def main():
         finished_mds_list, rosters, managers, exclude_picked=True
     )
     calculated_total_unpicked = sum(p.get("points", 0) for p in optimal_unpicked["players"])
-    print(f"    Игроков: {len(optimal_unpicked['players'])}, Баллов: {calculated_total_unpicked}")
+    stored_total_unpicked = optimal_unpicked.get("total", 0)
+    print(f"    Игроков: {len(optimal_unpicked['players'])}, Баллов (сумма игроков): {calculated_total_unpicked}, Баллов (stored): {stored_total_unpicked}")
+    if calculated_total_unpicked != stored_total_unpicked:
+        print(f"    ⚠️  РАСХОЖДЕНИЕ! Сумма очков игроков ({calculated_total_unpicked}) != stored total ({stored_total_unpicked})")
+        # Update stored total to match calculated
+        optimal_unpicked["total"] = calculated_total_unpicked
     
     # Save to state
     state["optimal_teams_with_transfers"] = {
