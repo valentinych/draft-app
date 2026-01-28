@@ -24,8 +24,8 @@ from draft_app.ucl import (
 POPUPSTATS_DIR = BASE_DIR / "popupstats"
 POPUPSTATS_DIR.mkdir(exist_ok=True)
 
-def download_player_stats(pid: int, retries: int = 3) -> Dict[str, Any] | None:
-    """Download player stats from UEFA API"""
+def download_player_stats(pid: int, retries: int = 5) -> Dict[str, Any] | None:
+    """Download player stats from UEFA API with improved timeout and retry logic"""
     url = f"https://gaming.uefa.com/en/uclfantasy/services/feeds/popupstats/popupstats_80_{pid}.json"
     local_path = POPUPSTATS_DIR / f"popupstats_80_{pid}.json"
     
@@ -45,9 +45,12 @@ def download_player_stats(pid: int, retries: int = 3) -> Dict[str, Any] | None:
         'Accept': 'application/json',
     }
     
+    # Increased timeout: 30 seconds for connection, 60 seconds for reading
+    timeout = (30, 60)
+    
     for attempt in range(retries):
         try:
-            response = requests.get(url, headers=headers, timeout=10)
+            response = requests.get(url, headers=headers, timeout=timeout)
             response.raise_for_status()
             data = response.json()
             
@@ -56,13 +59,27 @@ def download_player_stats(pid: int, retries: int = 3) -> Dict[str, Any] | None:
                 json.dump(data, f, ensure_ascii=False, indent=2)
             
             return data
+        except requests.exceptions.Timeout as e:
+            if attempt < retries - 1:
+                # Exponential backoff: 2^attempt seconds
+                wait_time = 2 ** attempt
+                time.sleep(wait_time)
+                continue
+            print(f"  ❌ Таймаут для игрока {pid} после {retries} попыток: {e}")
+            return None
         except requests.exceptions.RequestException as e:
             if attempt < retries - 1:
-                time.sleep(1)
+                # Exponential backoff: 2^attempt seconds
+                wait_time = 2 ** attempt
+                time.sleep(wait_time)
                 continue
-            print(f"  ❌ Ошибка для игрока {pid}: {e}")
+            print(f"  ❌ Ошибка для игрока {pid} после {retries} попыток: {e}")
             return None
         except Exception as e:
+            if attempt < retries - 1:
+                wait_time = 2 ** attempt
+                time.sleep(wait_time)
+                continue
             print(f"  ❌ Неожиданная ошибка для игрока {pid}: {e}")
             return None
     
@@ -121,9 +138,11 @@ def main():
             downloaded += 1
         else:
             errors += 1
+            # Longer delay after error to avoid rate limiting
+            time.sleep(2)
         
-        # Small delay to avoid rate limiting
-        time.sleep(0.1)
+        # Small delay to avoid rate limiting (increased for stability)
+        time.sleep(0.2)
     
     print(f"\n✅ Завершено!")
     print(f"   Скачано: {downloaded}")
