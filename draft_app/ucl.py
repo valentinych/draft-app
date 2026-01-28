@@ -2126,7 +2126,23 @@ def ucl_lineups_data():
     # Add special teams to managers list
     all_managers = managers + ["Team of The MD", "Непикнутые гении"]
 
-    return jsonify({"lineups": results, "managers": all_managers, "md": md})
+    # Convert all sets to lists for JSON serialization
+    def convert_sets_to_lists(obj):
+        """Recursively convert all sets to lists for JSON serialization"""
+        if isinstance(obj, set):
+            return sorted(list(obj))
+        elif isinstance(obj, dict):
+            return {k: convert_sets_to_lists(v) for k, v in obj.items()}
+        elif isinstance(obj, list):
+            return [convert_sets_to_lists(item) for item in obj]
+        else:
+            return obj
+    
+    # Convert results to ensure no sets remain
+    results_serializable = convert_sets_to_lists(results)
+    all_managers_serializable = convert_sets_to_lists(all_managers)
+
+    return jsonify({"lineups": results_serializable, "managers": all_managers_serializable, "md": md})
 
 @bp.get("/ucl/status")
 def status():
@@ -2227,7 +2243,8 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
         managers = sorted(rosters.keys())
 
     # Get list of finished matchdays - only count points from these
-    finished_matchdays = set(state.get("finished_matchdays", []))
+    finished_matchdays_list = state.get("finished_matchdays", [])
+    finished_matchdays = set(finished_matchdays_list)  # For set operations only
     
     # Get the last finished matchday for available clubs calculation
     # If no matchdays are finished, use 1 as default
