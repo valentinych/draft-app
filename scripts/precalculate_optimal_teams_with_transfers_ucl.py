@@ -467,7 +467,8 @@ def main():
     print(f"    Игроков: {len(optimal_unpicked['players'])}, Баллов (сумма игроков): {calculated_total_unpicked}, Баллов (stored): {stored_total_unpicked}")
     if calculated_total_unpicked != stored_total_unpicked:
         print(f"    ⚠️  РАСХОЖДЕНИЕ! Сумма очков игроков ({calculated_total_unpicked}) != stored total ({stored_total_unpicked})")
-        # Update stored total to match calculated
+        print(f"    ✅ Исправляю: устанавливаю total = {calculated_total_unpicked}")
+        # Update stored total to match calculated (sum of player points is the source of truth)
         optimal_unpicked["total"] = calculated_total_unpicked
     
     # Save to state

@@ -2315,8 +2315,8 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
                                 # Fallback to transfer_gw logic
                                 # If transferred_out_gw is passed as transfer_gw, use it directly
                                 # (e.g., if transfer_gw=3, they played in MDs 1-3)
-                                matchdays_set = {md for md in range(1, pivot + 1) if md <= UCL_TOTAL_MATCHDAYS}
-                        else:
+                        matchdays_set = {md for md in range(1, pivot + 1) if md <= UCL_TOTAL_MATCHDAYS}
+                    else:
                             # If no explicit GW, check if transferred_out_gw is in payload
                             transferred_out_gw = player_payload.get("transferred_out_gw")
                             if transferred_out_gw is not None:
@@ -2345,7 +2345,7 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
                             except (TypeError, ValueError):
                                 # Fallback to transfer_gw logic
                                 start = max(1, pivot + 1)
-                                matchdays_set = {md for md in range(start, UCL_TOTAL_MATCHDAYS + 1)}
+                        matchdays_set = {md for md in range(start, UCL_TOTAL_MATCHDAYS + 1)}
                         else:
                             # For transfer_in, use transfer_gw+1 to calculate matchdays
                             # If transferred after GW pivot, they play from MD pivot+1 onwards
@@ -2403,7 +2403,7 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
                     existing["transfer_status"] = status
                 else:
                     # For "current" status, update active_mds (union)
-                    existing["active_mds"].update(matchdays_set)
+                existing["active_mds"].update(matchdays_set)
                 
                 if status_priority.get(status, 0) >= status_priority.get(existing.get("transfer_status"), 0):
                     existing["player"] = player_copy
@@ -2441,7 +2441,7 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
                 register_player(player_with_gw, "transfer_in", transferred_in_gw - 1)
             else:
                 # Regular current player
-                register_player(player, "current")
+            register_player(player, "current")
 
         # Process transfer history entries
         all_transfers: List[Dict[str, Any]] = []
@@ -2746,6 +2746,7 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
                 pid = p.get("playerId")
                 stat_payload = {}
                 team_id = p.get("teamId")
+                breakdown = []
                 
                 # Load stats if needed
                 if pid:
@@ -2753,15 +2754,31 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
                         pid_int = int(pid)
                         stats = get_player_stats_cached(pid_int)
                         if isinstance(stats, dict):
-                            # Get stats for first finished MD
+                            # Get matchdays when player was in team
+                            player_matchdays = p.get("matchdays", [])
+                            
+                            # Build breakdown from matchdayPoints for each MD when player was in team
+                            data = stats.get("data", {})
+                            value = data.get("value", {}) if isinstance(data, dict) else {}
+                            matchday_points = value.get("matchdayPoints", [])
+                            
+                            if isinstance(matchday_points, list):
+                                for md_stat in matchday_points:
+                                    if isinstance(md_stat, dict):
+                                        md_num = md_stat.get("mdId")
+                                        if md_num and md_num in player_matchdays and md_num in finished_mds_list:
+                                            md_points = _safe_int(md_stat.get("tPoints", 0))
+                                            breakdown.append({
+                                                "label": f"MD{md_num}",
+                                                "value": md_points
+                                            })
+                            
+                            # Get stats for first finished MD (for stat_payload)
                             md_stat = _ucl_points_for_md(stats, finished_mds_list[0] if finished_mds_list else 1)
                             if md_stat:
                                 stat_payload = md_stat
                             
                             # Try to extract teamId from stats
-                            data = stats.get("data", {})
-                            value = data.get("value", {}) if isinstance(data, dict) else {}
-                            
                             for candidate in (
                                 value.get("tId"),
                                 value.get("teamId"),
@@ -2785,15 +2802,22 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
                     "club": p.get("club") or p.get("clubName"),
                     "teamId": team_id or p.get("teamId"),
                     "points": p.get("points", 0),
+                    "breakdown": breakdown,
                     "stat": stat_payload,
                     "statsCount": stat_payload.get("_stats_count", 0),
                     "playerId": str(p.get("playerId", "")),
                     "matchdays": p.get("matchdays", []),
                 })
             
+            # Calculate total as sum of player points (to ensure consistency)
+            calculated_total = sum(p.get("points", 0) for p in converted_players)
+            stored_total = team_data.get("total", 0)
+            # Use calculated total if it differs from stored (stored might be wrong)
+            final_total = calculated_total if calculated_total != stored_total else stored_total
+            
             return {
                 "players": converted_players,
-                "total": team_data.get("total", 0),
+                "total": final_total,
                 "available_clubs": team_data.get("available_clubs", [])
             }
         
