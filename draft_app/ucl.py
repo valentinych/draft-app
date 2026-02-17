@@ -54,6 +54,7 @@ UCL_TOTAL_MATCHDAYS = 8
 
 _PLAYOFF_GW_ALLOWED = {9, 10}
 _PLAYOFF_POSITION_ORDER = {"GK": 0, "DEF": 1, "MID": 2, "FWD": 3}
+_PLAYOFF_LINEUP_CAPACITY = {"GK": 2, "DEF": 6, "MID": 6, "FWD": 4}
 
 _PLAYOFF_BENCH_CLUB_ALIASES = {
     "arsenal", "арсенал",
@@ -1711,6 +1712,29 @@ def ucl_playoff():
             )
         return prepared
 
+    def build_lineup_template(players: List[Dict[str, Any]]) -> Dict[str, Dict[str, Any]]:
+        grouped: Dict[str, List[Dict[str, Any]]] = {"GK": [], "DEF": [], "MID": [], "FWD": []}
+        for player in players:
+            pos = player.get("position") or "FWD"
+            if pos not in grouped:
+                pos = "FWD"
+            grouped[pos].append(player)
+
+        view: Dict[str, Dict[str, Any]] = {}
+        for pos in ("GK", "DEF", "MID", "FWD"):
+            cap = _PLAYOFF_LINEUP_CAPACITY[pos]
+            pos_players = grouped[pos]
+            in_limit = pos_players[:cap]
+            overflow = pos_players[cap:]
+            view[pos] = {
+                "label": "GKP" if pos == "GK" else pos,
+                "capacity": cap,
+                "in_limit": in_limit,
+                "overflow": overflow,
+                "empty_count": max(0, cap - len(in_limit)),
+            }
+        return view
+
     managers_data: List[Dict[str, Any]] = []
     for manager in managers:
         roster = get_roster_for_gw(manager, gw)
@@ -1736,6 +1760,7 @@ def ucl_playoff():
             {
                 "manager": manager,
                 "lineup": buckets["lineup"],
+                "lineup_template": build_lineup_template(buckets["lineup"]),
                 "bench": buckets["bench"],
                 "eliminated": buckets["eliminated"],
             }
