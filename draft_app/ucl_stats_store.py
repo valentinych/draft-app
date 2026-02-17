@@ -79,6 +79,7 @@ CURL_EXTRA_ARGS = [
 
 _REMOTE_FAILURE_AT: float = 0.0
 _S3_CLIENT = None
+_S3_DISABLED_REASON: Optional[str] = None
 _SESSION_PREPARED: bool = False
 _SESSION_WARMED: bool = False
 
@@ -93,6 +94,8 @@ def _stats_bucket() -> Optional[str]:
 
 def _stats_client():
     global _S3_CLIENT
+    if _S3_DISABLED_REASON:
+        return None
     if _S3_CLIENT is not None:
         return _S3_CLIENT
     bucket = _stats_bucket()
@@ -119,6 +122,7 @@ def _stats_enabled() -> bool:
 
 
 def _stats_get_json(key: str) -> Optional[Dict]:
+    global _S3_DISABLED_REASON
     client = _stats_client()
     bucket = _stats_bucket()
     if not client or not bucket:
@@ -130,6 +134,10 @@ def _stats_get_json(key: str) -> Optional[Dict]:
         code = exc.response.get("Error", {}).get("Code")
         if code in {"NoSuchKey", "404"}:
             return None
+        if code in {"InvalidAccessKeyId", "SignatureDoesNotMatch", "AccessDenied", "ExpiredToken"}:
+            _S3_DISABLED_REASON = code
+            print(f"[UCL:S3] disabled after auth error code={code}")
+            return None
         print(f"[UCL:S3] get {key} failed: {exc}")
         return None
     except Exception as exc:
@@ -138,6 +146,7 @@ def _stats_get_json(key: str) -> Optional[Dict]:
 
 
 def _stats_put_json(key: str, payload: Dict) -> None:
+    global _S3_DISABLED_REASON
     client = _stats_client()
     bucket = _stats_bucket()
     if not client or not bucket:
@@ -150,6 +159,13 @@ def _stats_put_json(key: str, payload: Dict) -> None:
             ContentType="application/json; charset=utf-8",
             CacheControl="max-age=10800, public",
         )
+    except ClientError as exc:
+        code = exc.response.get("Error", {}).get("Code")
+        if code in {"InvalidAccessKeyId", "SignatureDoesNotMatch", "AccessDenied", "ExpiredToken"}:
+            _S3_DISABLED_REASON = code
+            print(f"[UCL:S3] disabled after auth error code={code}")
+            return
+        print(f"[UCL:S3] put {key} failed: {exc}")
     except Exception as exc:
         print(f"[UCL:S3] put {key} failed: {exc}")
 

@@ -52,6 +52,39 @@ UCL_PARTICIPANTS = ["Ксана", "Андрей", "Саша", "Руслан", "�
 UCL_ROUNDS = 25
 UCL_TOTAL_MATCHDAYS = 8
 
+_PLAYOFF_GW_ALLOWED = {9, 10}
+_PLAYOFF_POSITION_ORDER = {"GK": 0, "DEF": 1, "MID": 2, "FWD": 3}
+
+_PLAYOFF_BENCH_CLUB_ALIASES = {
+    "arsenal", "арсенал",
+    "bayern", "bayernmunich", "bayernmunchen", "бавария",
+    "liverpool", "ливерпуль",
+    "tottenham", "tottenhamhotspur", "spurs", "тоттенхэмхотспур",
+    "barcelona", "fcbarcelona", "барселона",
+    "chelsea", "челси",
+    "sporting", "sportingcp", "спортинг",
+    "manchestercity", "mancity", "city", "манчестерсити",
+}
+
+_PLAYOFF_LINEUP_CLUB_ALIASES = {
+    "realmadrid", "real", "реалмадрид",
+    "internazionale", "inter", "интер", "интернационале",
+    "parissaintgermain", "psg", "парисенжермен",
+    "newcastle", "newcastleunited", "ньюкасл", "ньюкаслюнайтед",
+    "juventus", "juve", "ювентус",
+    "atleticomadrid", "atletico", "atleti", "атлетикомадрид",
+    "atalanta", "аталанта",
+    "bayer04", "bayerleverkusen", "leverkusen", "байер04",
+    "borussiadortmund", "dortmund", "bvb", "боруссиядортмунд",
+    "olympiacos", "олимпиакос",
+    "clubbrugge", "brugge", "брюгге",
+    "galatasaray", "галатасарай",
+    "monaco", "монако",
+    "qarabag", "karabakh", "карабах",
+    "bodoglimt", "glimt", "будеглимт",
+    "benfica", "бенфика",
+}
+
 # ----------------- helpers -----------------
 def _json_load(p: Path) -> Any:
     try:
@@ -129,6 +162,41 @@ def _player_matchdays(entry: Optional[Dict[str, Any]]) -> Set[int]:
     if not normalized:
         normalized = _default_matchdays()
     return set(normalized)
+
+
+def _normalize_position_for_playoff(pos_raw: Any) -> str:
+    text = str(pos_raw or "").strip().upper()
+    if text.startswith("GOAL") or text in {"GK", "GKP"}:
+        return "GK"
+    if text.startswith("DEF"):
+        return "DEF"
+    if text.startswith("MID"):
+        return "MID"
+    if text.startswith("FWD") or text.startswith("FOR"):
+        return "FWD"
+    return "FWD"
+
+
+def _normalize_club_alias_key(club_raw: Any) -> str:
+    text = str(club_raw or "").strip().lower()
+    if not text:
+        return ""
+    out: List[str] = []
+    for ch in text:
+        if ("a" <= ch <= "z") or ("а" <= ch <= "я") or ("0" <= ch <= "9"):
+            out.append(ch)
+        elif ch == "ё":
+            out.append("е")
+    return "".join(out)
+
+
+def _playoff_section_for_club(club_name: str) -> str:
+    key = _normalize_club_alias_key(club_name)
+    if key in _PLAYOFF_BENCH_CLUB_ALIASES:
+        return "bench"
+    if key in _PLAYOFF_LINEUP_CLUB_ALIASES:
+        return "lineup"
+    return "eliminated"
 
 # Optional S3-backed state for UCL
 def _ucl_s3_enabled() -> bool:
@@ -1529,6 +1597,132 @@ def ucl_lineups():
         "ucl_lineups.html",
         md=md,
         stats_refresh_running=_stats_refresh_running(),
+    )
+
+
+@bp.get("/ucl/playoff")
+def ucl_playoff():
+    gw = request.args.get("gw", type=int) or 9
+    if gw not in _PLAYOFF_GW_ALLOWED:
+        gw = 9
+
+    state = _ucl_state_load()
+    state = _ensure_ucl_state_shape(state)
+
+    rosters = state.get("rosters") or {}
+    managers = [m for m in UCL_PARTICIPANTS if m in rosters]
+    if not managers:
+        managers = sorted(rosters.keys())
+
+    old_transfer_history = state.get("transfer_history", [])
+    new_transfer_history = state.get("transfers", {}).get("history", [])
+
+    def get_roster_for_gw(manager: str, target_gw: int) -> List[Dict[str, Any]]:
+        current_roster = list(rosters.get(manager, []))
+
+        for transfer in old_transfer_history:
+            if (
+                transfer.get("manager") == manager
+                and transfer.get("matchday", 999) < target_gw
+            ):
+                if "player_out" in transfer:
+                    out_id = transfer["player_out"].get("playerId")
+                    current_roster = [
+                        p for p in current_roster if p.get("playerId") != out_id
+                    ]
+                if "player_in" in transfer:
+                    in_player = transfer["player_in"]
+                    in_player_id = in_player.get("playerId")
+                    already_in_roster = any(
+                        p.get("playerId") == in_player_id for p in current_roster
+                    )
+                    if not already_in_roster:
+                        current_roster.append(in_player)
+
+        rollback_transfers = []
+        for transfer in new_transfer_history:
+            transfer_gw = transfer.get("gw", 999)
+            transfer_manager = transfer.get("manager")
+            if transfer_manager == manager and transfer_gw >= target_gw:
+                rollback_transfers.append(transfer)
+
+        rollback_transfers.sort(key=lambda x: x.get("ts", ""), reverse=True)
+
+        for transfer in rollback_transfers:
+            transfer_action = transfer.get("action")
+            if transfer_action == "transfer_in" and "in_player" in transfer:
+                in_player_id = transfer["in_player"].get("playerId")
+                current_roster = [
+                    p for p in current_roster if p.get("playerId") != in_player_id
+                ]
+            elif transfer_action == "transfer_out" and "out_player" in transfer:
+                out_player = transfer["out_player"]
+                out_player_id = out_player.get("playerId")
+                already_in_roster = any(
+                    p.get("playerId") == out_player_id for p in current_roster
+                )
+                if not already_in_roster:
+                    current_roster.append(out_player)
+
+        prepared: List[Dict[str, Any]] = []
+        for entry in current_roster:
+            payload = (
+                entry.get("player")
+                if isinstance(entry, dict) and isinstance(entry.get("player"), dict)
+                else entry
+            )
+            if not isinstance(payload, dict):
+                continue
+            try:
+                pid = int(payload.get("playerId") or payload.get("id") or payload.get("pid"))
+            except Exception:
+                continue
+            position = _normalize_position_for_playoff(payload.get("position"))
+            prepared.append(
+                {
+                    "playerId": pid,
+                    "name": payload.get("fullName") or payload.get("name") or str(pid),
+                    "club": payload.get("clubName") or payload.get("club") or "",
+                    "position": position,
+                }
+            )
+        return prepared
+
+    managers_data: List[Dict[str, Any]] = []
+    for manager in managers:
+        roster = get_roster_for_gw(manager, gw)
+        buckets: Dict[str, List[Dict[str, Any]]] = {
+            "lineup": [],
+            "bench": [],
+            "eliminated": [],
+        }
+
+        for player in roster:
+            section = _playoff_section_for_club(player.get("club") or "")
+            buckets[section].append(player)
+
+        for section_players in buckets.values():
+            section_players.sort(
+                key=lambda p: (
+                    _PLAYOFF_POSITION_ORDER.get(p.get("position") or "", 9),
+                    (p.get("name") or "").lower(),
+                )
+            )
+
+        managers_data.append(
+            {
+                "manager": manager,
+                "lineup": buckets["lineup"],
+                "bench": buckets["bench"],
+                "eliminated": buckets["eliminated"],
+            }
+        )
+
+    return render_template(
+        "ucl_playoff.html",
+        gw=gw,
+        gw_options=sorted(_PLAYOFF_GW_ALLOWED),
+        managers_data=managers_data,
     )
 
 

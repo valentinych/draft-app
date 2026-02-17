@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% block title %}UCL Play-off{% endblock %}
+{% block content %}
+<h1 class="title">UCL Play-off GW{{ gw }}</h1>
+
+<form method="get" class="mb-4">
+  <label class="label">Gameweek</label>
+  <div class="field has-addons">
+    {% for option in gw_options %}
+    <div class="control">
+      <button
+        class="button {% if option == gw %}is-link{% else %}is-light{% endif %}"
+        type="submit"
+        name="gw"
+        value="{{ option }}"
+      >
+        GW{{ option }}
+      </button>
+    </div>
+    {% endfor %}
+  </div>
+</form>
+
+<style>
+  .playoff-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .playoff-card .section-title {
+    font-weight: 700;
+    margin-top: 10px;
+    margin-bottom: 6px;
+  }
+  .playoff-player {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 8px;
+    border-radius: 6px;
+    margin-bottom: 4px;
+    background: #f7f9fc;
+    font-size: 0.95rem;
+  }
+  .playoff-player .left {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-right: 12px;
+  }
+  .playoff-player .pos {
+    font-weight: 700;
+    color: #1d4ed8;
+    margin-right: 8px;
+  }
+  .playoff-empty {
+    color: #8a8a8a;
+    font-size: 0.9rem;
+    margin-bottom: 4px;
+  }
+  @media (min-width: 1024px) {
+    .playoff-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+</style>
+
+<div class="playoff-grid">
+  {% for data in managers_data %}
+  <div class="box playoff-card">
+    <h2 class="subtitle is-5 mb-2">{{ data.manager }}</h2>
+
+    <div class="section-title">Состав ({{ data.lineup|length }})</div>
+    {% if data.lineup %}
+      {% for p in data.lineup %}
+      <div class="playoff-player">
+        <div class="left"><span class="pos">{{ p.position }}</span>{{ p.name }}</div>
+        <div>{{ p.club }}</div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="playoff-empty">Нет игроков</div>
+    {% endif %}
+
+    <div class="section-title">Скамейка ({{ data.bench|length }})</div>
+    {% if data.bench %}
+      {% for p in data.bench %}
+      <div class="playoff-player">
+        <div class="left"><span class="pos">{{ p.position }}</span>{{ p.name }}</div>
+        <div>{{ p.club }}</div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="playoff-empty">Нет игроков</div>
+    {% endif %}
+
+    <div class="section-title">Вылетели ({{ data.eliminated|length }})</div>
+    {% if data.eliminated %}
+      {% for p in data.eliminated %}
+      <div class="playoff-player">
+        <div class="left"><span class="pos">{{ p.position }}</span>{{ p.name }}</div>
+        <div>{{ p.club }}</div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="playoff-empty">Нет игроков</div>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}
