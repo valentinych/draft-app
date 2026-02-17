@@ -57,7 +57,7 @@ _PLAYOFF_POSITION_ORDER = {"GK": 0, "DEF": 1, "MID": 2, "FWD": 3}
 
 _PLAYOFF_BENCH_CLUB_ALIASES = {
     "arsenal", "арсенал",
-    "bayern", "bayernmunich", "bayernmunchen", "бавария",
+    "bayern", "bayernmunich", "bayernmunchen", "bayernmnchen", "бавария",
     "liverpool", "ливерпуль",
     "tottenham", "tottenhamhotspur", "spurs", "тоттенхэмхотспур",
     "barcelona", "fcbarcelona", "барселона",
@@ -69,19 +69,19 @@ _PLAYOFF_BENCH_CLUB_ALIASES = {
 _PLAYOFF_LINEUP_CLUB_ALIASES = {
     "realmadrid", "real", "реалмадрид",
     "internazionale", "inter", "интер", "интернационале",
-    "parissaintgermain", "psg", "парисенжермен",
+    "parissaintgermain", "psg", "paris", "парисенжермен",
     "newcastle", "newcastleunited", "ньюкасл", "ньюкаслюнайтед",
     "juventus", "juve", "ювентус",
     "atleticomadrid", "atletico", "atleti", "атлетикомадрид",
     "atalanta", "аталанта",
     "bayer04", "bayerleverkusen", "leverkusen", "байер04",
-    "borussiadortmund", "dortmund", "bvb", "боруссиядортмунд",
+    "borussiadortmund", "dortmund", "bdortmund", "bvb", "боруссиядортмунд",
     "olympiacos", "олимпиакос",
     "clubbrugge", "brugge", "брюгге",
     "galatasaray", "галатасарай",
     "monaco", "монако",
     "qarabag", "karabakh", "карабах",
-    "bodoglimt", "glimt", "будеглимт",
+    "bodoglimt", "bodglimt", "glimt", "будеглимт",
     "benfica", "бенфика",
 }
 
@@ -181,12 +181,19 @@ def _normalize_club_alias_key(club_raw: Any) -> str:
     text = str(club_raw or "").strip().lower()
     if not text:
         return ""
+    replacements = {
+        "ё": "е",
+        "ü": "u",
+        "ö": "o",
+        "ä": "a",
+        "ø": "o",
+        "ß": "ss",
+    }
     out: List[str] = []
     for ch in text:
+        ch = replacements.get(ch, ch)
         if ("a" <= ch <= "z") or ("а" <= ch <= "я") or ("0" <= ch <= "9"):
             out.append(ch)
-        elif ch == "ё":
-            out.append("е")
     return "".join(out)
 
 
@@ -1617,6 +1624,8 @@ def ucl_playoff():
     old_transfer_history = state.get("transfer_history", [])
     new_transfer_history = state.get("transfers", {}).get("history", [])
 
+    gw8_snapshot = 8
+
     def get_roster_for_gw(manager: str, target_gw: int) -> List[Dict[str, Any]]:
         current_roster = list(rosters.get(manager, []))
 
@@ -1672,6 +1681,20 @@ def ucl_playoff():
                 else entry
             )
             if not isinstance(payload, dict):
+                continue
+            transferred_out_gw = _coerce_matchday(payload.get("transferred_out_gw"))
+            if transferred_out_gw is not None and transferred_out_gw <= gw8_snapshot:
+                continue
+            transferred_in_gw = _coerce_matchday(payload.get("transferred_in_gw"))
+            if transferred_in_gw is not None and transferred_in_gw > gw8_snapshot:
+                continue
+            # If player was transferred out after their last transfer in,
+            # treat them as no longer active in roster.
+            if (
+                transferred_out_gw is not None
+                and transferred_in_gw is not None
+                and transferred_out_gw > transferred_in_gw
+            ):
                 continue
             try:
                 pid = int(payload.get("playerId") or payload.get("id") or payload.get("pid"))
