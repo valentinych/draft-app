@@ -23,6 +23,7 @@ except Exception:
     boto3 = None
 
 from .ucl_stats_store import (
+    get_players_feed,
     get_current_matchday,
     get_current_matchday_cached,
     get_player_stats,
@@ -1019,7 +1020,8 @@ def index():
     draft_title = "UCL Fantasy Draft"
 
     # load data
-    raw = _json_load(UCL_PLAYERS) or []
+    # Prefer live UEFA players feed (cached in S3/local) so FP 2025/26 stays fresh.
+    raw = get_players_feed() or _json_load(UCL_PLAYERS) or []
     players = _players_from_ucl(raw)
 
     # points from previous season
