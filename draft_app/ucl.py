@@ -292,6 +292,8 @@ def _players_from_ucl(raw: Any) -> List[Dict[str, Any]]:
                     "fullName": p.get("fullName") or p.get("name"),
                     "clubName": p.get("clubName") or p.get("club") or p.get("team"),
                     "position": p.get("position") or p.get("pos"),
+                    "totPts": p.get("totPts", 0),
+                    "curGDPts": p.get("curGDPts", 0),
                     "price": p.get("price") if isinstance(p.get("price"), (int, float)) else (
                         p.get("value") if isinstance(p.get("value"), (int, float)) else None
                     ),
@@ -308,6 +310,8 @@ def _players_from_ucl(raw: Any) -> List[Dict[str, Any]]:
                     "fullName": p.get("fullName") or p.get("name"),
                     "clubName": p.get("clubName") or p.get("team"),
                     "position": p.get("position"),
+                    "totPts": p.get("totPts", 0),
+                    "curGDPts": p.get("curGDPts", 0),
                     "price": p.get("price") if isinstance(p.get("price"), (int, float)) else (
                         p.get("value") if isinstance(p.get("value"), (int, float)) else None
                     ),
@@ -345,6 +349,7 @@ def _players_from_ucl(raw: Any) -> List[Dict[str, Any]]:
                         # Optional status-like fields for UI
                         "status": p.get("pStatus") or p.get("qStatus") or "",
                         "news": p.get("trained") or "",
+                        "totPts": p.get("totPts", 0),
                         # Current season points from UEFA feed
                         "curGDPts": p.get("curGDPts", 0),
                         # Assume can pick by default; server can refine later
