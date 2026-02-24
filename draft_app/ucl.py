@@ -400,10 +400,11 @@ def _get_all_ucl_clubs() -> Dict[str, Dict[str, Any]]:
 
 
 def _ensure_fp_current_from_uefa_feed(players: List[Dict[str, Any]]) -> None:
-    """Ensure all players have fp_current set from curGDPts (UEFA feed)"""
+    """Ensure all players have fp_current set from UEFA total points."""
     for player in players:
         if isinstance(player, dict):
-            player["fp_current"] = int(player.get("curGDPts", 0) or 0)
+            # UEFA feed: totPts is season total; curGDPts is recent/current round points.
+            player["fp_current"] = int(player.get("totPts", 0) or player.get("curGDPts", 0) or 0)
 
 def _ucl_points_map(raw: Any) -> Dict[int, int]:
     """Extract mapping playerId -> total points from raw JSON."""
