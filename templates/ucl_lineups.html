@@ -387,7 +387,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const availableClubs = lineups[manager] && Array.isArray(lineups[manager].available_clubs)
         ? lineups[manager].available_clubs
         : [];
-      if (availableClubs.length > 0) {
+      if (availableClubs.length > 0 && MD < 9) {
         const hr = document.createElement('hr');
         hr.className = 'my-2';
         block.appendChild(hr);
