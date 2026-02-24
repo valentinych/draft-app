@@ -56,6 +56,19 @@ UCL_TOTAL_MATCHDAYS = 8
 _PLAYOFF_GW_ALLOWED = {9, 10}
 _PLAYOFF_POSITION_ORDER = {"GK": 0, "DEF": 1, "MID": 2, "FWD": 3}
 _PLAYOFF_LINEUP_CAPACITY = {"GK": 2, "DEF": 6, "MID": 6, "FWD": 4}
+_MD9_MANUAL_REMOVALS: Dict[str, Set[int]] = {
+    "Женя": {250113444},  # Anatoliy Trubin
+}
+_MD9_MANUAL_ADDITIONS: Dict[str, List[Dict[str, Any]]] = {
+    "Саша": [{"playerId": 250064064, "name": "Marquinhos", "club": "Paris", "position": "DEF"}],
+    "Сергей": [{"playerId": 250136465, "name": "Nuno Mendes", "club": "Paris", "position": "DEF"}],
+    "Женя": [{"playerId": 250112224, "name": "Felix Nmecha", "club": "B. Dortmund", "position": "MID"}],
+    "Андрей": [{"playerId": 250019498, "name": "Antoine Griezmann", "club": "Atleti", "position": "FWD"}],
+    "Серёга Б": [{"playerId": 250146919, "name": "Luis Henrique", "club": "Inter", "position": "MID"}],
+    "Руслан": [{"playerId": 250117809, "name": "Sandro Tonali", "club": "Newcastle", "position": "MID"}],
+    "Ксана": [{"playerId": 250174126, "name": "Willian Pacho", "club": "Paris", "position": "DEF"}],
+    "Макс": [{"playerId": 250101284, "name": "Federico Valverde", "club": "Real Madrid", "position": "MID"}],
+}
 
 _PLAYOFF_BENCH_CLUB_ALIASES = {
     "arsenal", "арсенал",
@@ -280,7 +293,7 @@ def _get_playoff_roster_for_gw(
                 "position": _normalize_position_for_playoff(payload.get("position")),
             }
         )
-    return prepared
+    return _apply_md9_manual_overrides(manager, target_gw, prepared)
 
 
 def _build_playoff_buckets(players: List[Dict[str, Any]]) -> Dict[str, List[Dict[str, Any]]]:
@@ -297,6 +310,32 @@ def _build_playoff_buckets(players: List[Dict[str, Any]]) -> Dict[str, List[Dict
             )
         )
     return buckets
+
+
+def _apply_md9_manual_overrides(manager: str, target_gw: int, roster: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    if target_gw != 9:
+        return roster
+
+    removed_ids = _MD9_MANUAL_REMOVALS.get(manager, set())
+    if removed_ids:
+        roster = [p for p in roster if int(p.get("playerId") or 0) not in removed_ids]
+
+    additions = _MD9_MANUAL_ADDITIONS.get(manager, [])
+    existing_ids = {int(p.get("playerId") or 0) for p in roster}
+    for add in additions:
+        pid = int(add.get("playerId") or 0)
+        if pid <= 0 or pid in existing_ids:
+            continue
+        roster.append(
+            {
+                "playerId": pid,
+                "name": add.get("name") or str(pid),
+                "club": add.get("club") or "",
+                "position": _normalize_position_for_playoff(add.get("position")),
+            }
+        )
+        existing_ids.add(pid)
+    return roster
 
 # Optional S3-backed state for UCL
 def _ucl_s3_enabled() -> bool:
