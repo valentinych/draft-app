@@ -257,6 +257,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const players = lineups[manager] && Array.isArray(lineups[manager].players)
         ? lineups[manager].players.slice()
         : [];
+      const benchPlayers = lineups[manager] && Array.isArray(lineups[manager].bench)
+        ? lineups[manager].bench.slice()
+        : [];
       
       // Special styling for special teams
       let c1, c2;
@@ -271,7 +274,6 @@ document.addEventListener('DOMContentLoaded', () => {
         c1 = `hsl(${hue}, 70%, 90%)`;
         c2 = `hsl(${hue}, 70%, 80%)`;
       }
-      const buckets = { GK: [], DEF: [], MID: [], FWD: [], OTHER: [] };
       const normalizePos = (pos) => {
         const upper = (pos || '').toString().toUpperCase();
         if (upper.startsWith('GOAL')) return 'GK';
@@ -282,82 +284,104 @@ document.addEventListener('DOMContentLoaded', () => {
         if (upper === 'GKP') return 'GK';
         return upper;
       };
-      players.forEach(player => {
-        const key = normalizePos(player.pos);
-        if (buckets[key]) {
-          buckets[key].push(player);
-        } else {
-          buckets.OTHER.push(player);
-        }
-      });
       const order = ['GK', 'DEF', 'MID', 'FWD', 'OTHER'];
       let rowIndex = 0;
-      order.forEach((posKey, posIdx) => {
-        const group = buckets[posKey];
-        if (!group.length) return;
-        if (rowIndex > 0) {
-          const hr = document.createElement('hr');
-          hr.className = 'my-1';
-          block.appendChild(hr);
+      const renderPlayersByPosition = (items, titleText = '') => {
+        if (!Array.isArray(items) || !items.length) return;
+        if (titleText) {
+          if (rowIndex > 0) {
+            const hr = document.createElement('hr');
+            hr.className = 'my-2';
+            block.appendChild(hr);
+          }
+          const title = document.createElement('div');
+          title.style.fontWeight = 'bold';
+          title.style.marginBottom = '8px';
+          title.textContent = titleText;
+          block.appendChild(title);
         }
-        group.forEach((player) => {
-          const row = document.createElement('div');
-          row.className = 'ucl-player-row';
-          row.style.backgroundColor = rowIndex % 2 === 0 ? c1 : c2;
-          const infoWrap = document.createElement('span');
-          infoWrap.className = 'ucl-player-info';
-          const logo = document.createElement('img');
-          logo.className = 'ucl-team-logo';
-          if (player.teamId) {
-            logo.src = `https://img.uefa.com/imgml/TP/teams/logos/140x140/${player.teamId}.png`;
+        const grouped = { GK: [], DEF: [], MID: [], FWD: [], OTHER: [] };
+        items.forEach(player => {
+          const key = normalizePos(player.pos);
+          if (grouped[key]) {
+            grouped[key].push(player);
           } else {
-            logo.src = 'https://img.uefa.com/imgml/TP/teams/logos/140x140/0.png';
+            grouped.OTHER.push(player);
           }
-          logo.alt = player.club || '';
-          infoWrap.appendChild(logo);
-
-          const portrait = document.createElement('img');
-          portrait.className = 'ucl-player-portrait';
-          if (player.playerId) {
-            portrait.src = `https://img.uefa.com/imgml/TP/players/1/2026/324x324/${player.playerId}.jpg`;
-          } else {
-            portrait.src = 'https://gaming.uefa.com/en/uclfantasy/static-assets/ucl2020/images/default_player@2x.png';
-          }
-          portrait.onerror = () => {
-            portrait.src = 'https://gaming.uefa.com/en/uclfantasy/static-assets/ucl2020/images/default_player@2x.png';
-          };
-          portrait.alt = player.name;
-          infoWrap.appendChild(portrait);
-          const spanName = document.createElement('span');
-          spanName.className = player.teamId ? 'ucl-player-text' : 'ucl-player-name';
-          spanName.textContent = player.name;
-          if (player.club && !player.teamId) {
-            spanName.textContent += ` (${player.club})`;
-          }
-          infoWrap.appendChild(spanName);
-          
-          // For optimal teams, show manager info instead of matchdays
-          if (manager === "Team of The MD" && player.manager) {
-            const managerSpan = document.createElement('span');
-            managerSpan.className = 'ucl-player-matchdays';
-            managerSpan.textContent = player.manager;
-            infoWrap.appendChild(managerSpan);
-          } else if (manager !== "Team of The MD" && manager !== "Непикнутые гении" && Array.isArray(player.matchdays) && player.matchdays.length) {
-            const spanMatchdays = document.createElement('span');
-            spanMatchdays.className = 'ucl-player-matchdays';
-            spanMatchdays.textContent = `Туры: ${player.matchdays.join(', ')}`;
-            infoWrap.appendChild(spanMatchdays);
-          }
-          const spanPoints = document.createElement('span');
-          spanPoints.className = 'ucl-points-box';
-          spanPoints.textContent = player.points;
-          spanPoints.addEventListener('click', () => showPopup(player));
-          row.appendChild(infoWrap);
-          row.appendChild(spanPoints);
-          block.appendChild(row);
-          rowIndex += 1;
         });
-      });
+
+        order.forEach((posKey) => {
+          const group = grouped[posKey];
+          if (!group.length) return;
+          if (rowIndex > 0 && !titleText) {
+            const hr = document.createElement('hr');
+            hr.className = 'my-1';
+            block.appendChild(hr);
+          }
+          group.forEach((player) => {
+            const row = document.createElement('div');
+            row.className = 'ucl-player-row';
+            row.style.backgroundColor = rowIndex % 2 === 0 ? c1 : c2;
+            const infoWrap = document.createElement('span');
+            infoWrap.className = 'ucl-player-info';
+            const logo = document.createElement('img');
+            logo.className = 'ucl-team-logo';
+            if (player.teamId) {
+              logo.src = `https://img.uefa.com/imgml/TP/teams/logos/140x140/${player.teamId}.png`;
+            } else {
+              logo.src = 'https://img.uefa.com/imgml/TP/teams/logos/140x140/0.png';
+            }
+            logo.alt = player.club || '';
+            infoWrap.appendChild(logo);
+
+            const portrait = document.createElement('img');
+            portrait.className = 'ucl-player-portrait';
+            if (player.playerId) {
+              portrait.src = `https://img.uefa.com/imgml/TP/players/1/2026/324x324/${player.playerId}.jpg`;
+            } else {
+              portrait.src = 'https://gaming.uefa.com/en/uclfantasy/static-assets/ucl2020/images/default_player@2x.png';
+            }
+            portrait.onerror = () => {
+              portrait.src = 'https://gaming.uefa.com/en/uclfantasy/static-assets/ucl2020/images/default_player@2x.png';
+            };
+            portrait.alt = player.name;
+            infoWrap.appendChild(portrait);
+            const spanName = document.createElement('span');
+            spanName.className = player.teamId ? 'ucl-player-text' : 'ucl-player-name';
+            spanName.textContent = player.name;
+            if (player.club && !player.teamId) {
+              spanName.textContent += ` (${player.club})`;
+            }
+            infoWrap.appendChild(spanName);
+
+            if (manager === "Team of The MD" && player.manager) {
+              const managerSpan = document.createElement('span');
+              managerSpan.className = 'ucl-player-matchdays';
+              managerSpan.textContent = player.manager;
+              infoWrap.appendChild(managerSpan);
+            } else if (manager !== "Team of The MD" && manager !== "Непикнутые гении" && Array.isArray(player.matchdays) && player.matchdays.length) {
+              const spanMatchdays = document.createElement('span');
+              spanMatchdays.className = 'ucl-player-matchdays';
+              spanMatchdays.textContent = `Туры: ${player.matchdays.join(', ')}`;
+              infoWrap.appendChild(spanMatchdays);
+            }
+            const spanPoints = document.createElement('span');
+            spanPoints.className = 'ucl-points-box';
+            spanPoints.textContent = player.points;
+            spanPoints.addEventListener('click', () => showPopup(player));
+            row.appendChild(infoWrap);
+            row.appendChild(spanPoints);
+            block.appendChild(row);
+            rowIndex += 1;
+          });
+        });
+      };
+
+      renderPlayersByPosition(players, '');
+
+      if (benchPlayers.length && manager !== 'Team of The MD' && manager !== 'Непикнутые гении') {
+        renderPlayersByPosition(benchPlayers, `Скамейка (${benchPlayers.length})`);
+      }
       
       // Add available clubs section
       const availableClubs = lineups[manager] && Array.isArray(lineups[manager].available_clubs)

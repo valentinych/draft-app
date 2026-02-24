@@ -207,6 +207,97 @@ def _playoff_section_for_club(club_name: str) -> str:
         return "lineup"
     return "eliminated"
 
+
+def _get_playoff_roster_for_gw(
+    manager: str,
+    target_gw: int,
+    rosters: Dict[str, Any],
+    old_transfer_history: List[Dict[str, Any]],
+    new_transfer_history: List[Dict[str, Any]],
+    gw8_snapshot: int = 8,
+) -> List[Dict[str, Any]]:
+    current_roster = list(rosters.get(manager, []))
+
+    for transfer in old_transfer_history:
+        if transfer.get("manager") == manager and transfer.get("matchday", 999) < target_gw:
+            if "player_out" in transfer:
+                out_id = transfer["player_out"].get("playerId")
+                current_roster = [p for p in current_roster if p.get("playerId") != out_id]
+            if "player_in" in transfer:
+                in_player = transfer["player_in"]
+                in_player_id = in_player.get("playerId")
+                if not any(p.get("playerId") == in_player_id for p in current_roster):
+                    current_roster.append(in_player)
+
+    rollback_transfers: List[Dict[str, Any]] = []
+    for transfer in new_transfer_history:
+        transfer_gw = transfer.get("gw", 999)
+        if transfer.get("manager") == manager and transfer_gw >= target_gw:
+            rollback_transfers.append(transfer)
+
+    rollback_transfers.sort(key=lambda x: x.get("ts", ""), reverse=True)
+    for transfer in rollback_transfers:
+        transfer_action = transfer.get("action")
+        if transfer_action == "transfer_in" and "in_player" in transfer:
+            in_player_id = transfer["in_player"].get("playerId")
+            current_roster = [p for p in current_roster if p.get("playerId") != in_player_id]
+        elif transfer_action == "transfer_out" and "out_player" in transfer:
+            out_player = transfer["out_player"]
+            out_player_id = out_player.get("playerId")
+            if not any(p.get("playerId") == out_player_id for p in current_roster):
+                current_roster.append(out_player)
+
+    prepared: List[Dict[str, Any]] = []
+    for entry in current_roster:
+        payload = (
+            entry.get("player")
+            if isinstance(entry, dict) and isinstance(entry.get("player"), dict)
+            else entry
+        )
+        if not isinstance(payload, dict):
+            continue
+        transferred_out_gw = _coerce_matchday(payload.get("transferred_out_gw"))
+        if transferred_out_gw is not None and transferred_out_gw <= gw8_snapshot:
+            continue
+        transferred_in_gw = _coerce_matchday(payload.get("transferred_in_gw"))
+        if transferred_in_gw is not None and transferred_in_gw > gw8_snapshot:
+            continue
+        if (
+            transferred_out_gw is not None
+            and transferred_in_gw is not None
+            and transferred_out_gw > transferred_in_gw
+        ):
+            continue
+        try:
+            pid = int(payload.get("playerId") or payload.get("id") or payload.get("pid"))
+        except Exception:
+            continue
+        prepared.append(
+            {
+                "playerId": pid,
+                "name": payload.get("fullName") or payload.get("name") or str(pid),
+                "club": payload.get("clubName") or payload.get("club") or "",
+                "position": _normalize_position_for_playoff(payload.get("position")),
+            }
+        )
+    return prepared
+
+
+def _build_playoff_buckets(players: List[Dict[str, Any]]) -> Dict[str, List[Dict[str, Any]]]:
+    buckets: Dict[str, List[Dict[str, Any]]] = {"lineup": [], "bench": [], "eliminated": []}
+    for player in players:
+        section = _playoff_section_for_club(player.get("club") or "")
+        buckets[section].append(player)
+
+    for section_players in buckets.values():
+        section_players.sort(
+            key=lambda p: (
+                _PLAYOFF_POSITION_ORDER.get(p.get("position") or "", 9),
+                (p.get("name") or "").lower(),
+            )
+        )
+    return buckets
+
 # Optional S3-backed state for UCL
 def _ucl_s3_enabled() -> bool:
     """Return True when UCL state should be synchronised with S3."""
@@ -1633,93 +1724,6 @@ def ucl_playoff():
     old_transfer_history = state.get("transfer_history", [])
     new_transfer_history = state.get("transfers", {}).get("history", [])
 
-    gw8_snapshot = 8
-
-    def get_roster_for_gw(manager: str, target_gw: int) -> List[Dict[str, Any]]:
-        current_roster = list(rosters.get(manager, []))
-
-        for transfer in old_transfer_history:
-            if (
-                transfer.get("manager") == manager
-                and transfer.get("matchday", 999) < target_gw
-            ):
-                if "player_out" in transfer:
-                    out_id = transfer["player_out"].get("playerId")
-                    current_roster = [
-                        p for p in current_roster if p.get("playerId") != out_id
-                    ]
-                if "player_in" in transfer:
-                    in_player = transfer["player_in"]
-                    in_player_id = in_player.get("playerId")
-                    already_in_roster = any(
-                        p.get("playerId") == in_player_id for p in current_roster
-                    )
-                    if not already_in_roster:
-                        current_roster.append(in_player)
-
-        rollback_transfers = []
-        for transfer in new_transfer_history:
-            transfer_gw = transfer.get("gw", 999)
-            transfer_manager = transfer.get("manager")
-            if transfer_manager == manager and transfer_gw >= target_gw:
-                rollback_transfers.append(transfer)
-
-        rollback_transfers.sort(key=lambda x: x.get("ts", ""), reverse=True)
-
-        for transfer in rollback_transfers:
-            transfer_action = transfer.get("action")
-            if transfer_action == "transfer_in" and "in_player" in transfer:
-                in_player_id = transfer["in_player"].get("playerId")
-                current_roster = [
-                    p for p in current_roster if p.get("playerId") != in_player_id
-                ]
-            elif transfer_action == "transfer_out" and "out_player" in transfer:
-                out_player = transfer["out_player"]
-                out_player_id = out_player.get("playerId")
-                already_in_roster = any(
-                    p.get("playerId") == out_player_id for p in current_roster
-                )
-                if not already_in_roster:
-                    current_roster.append(out_player)
-
-        prepared: List[Dict[str, Any]] = []
-        for entry in current_roster:
-            payload = (
-                entry.get("player")
-                if isinstance(entry, dict) and isinstance(entry.get("player"), dict)
-                else entry
-            )
-            if not isinstance(payload, dict):
-                continue
-            transferred_out_gw = _coerce_matchday(payload.get("transferred_out_gw"))
-            if transferred_out_gw is not None and transferred_out_gw <= gw8_snapshot:
-                continue
-            transferred_in_gw = _coerce_matchday(payload.get("transferred_in_gw"))
-            if transferred_in_gw is not None and transferred_in_gw > gw8_snapshot:
-                continue
-            # If player was transferred out after their last transfer in,
-            # treat them as no longer active in roster.
-            if (
-                transferred_out_gw is not None
-                and transferred_in_gw is not None
-                and transferred_out_gw > transferred_in_gw
-            ):
-                continue
-            try:
-                pid = int(payload.get("playerId") or payload.get("id") or payload.get("pid"))
-            except Exception:
-                continue
-            position = _normalize_position_for_playoff(payload.get("position"))
-            prepared.append(
-                {
-                    "playerId": pid,
-                    "name": payload.get("fullName") or payload.get("name") or str(pid),
-                    "club": payload.get("clubName") or payload.get("club") or "",
-                    "position": position,
-                }
-            )
-        return prepared
-
     def build_lineup_template(players: List[Dict[str, Any]]) -> Dict[str, Dict[str, Any]]:
         grouped: Dict[str, List[Dict[str, Any]]] = {"GK": [], "DEF": [], "MID": [], "FWD": []}
         for player in players:
@@ -1745,24 +1749,14 @@ def ucl_playoff():
 
     managers_data: List[Dict[str, Any]] = []
     for manager in managers:
-        roster = get_roster_for_gw(manager, gw)
-        buckets: Dict[str, List[Dict[str, Any]]] = {
-            "lineup": [],
-            "bench": [],
-            "eliminated": [],
-        }
-
-        for player in roster:
-            section = _playoff_section_for_club(player.get("club") or "")
-            buckets[section].append(player)
-
-        for section_players in buckets.values():
-            section_players.sort(
-                key=lambda p: (
-                    _PLAYOFF_POSITION_ORDER.get(p.get("position") or "", 9),
-                    (p.get("name") or "").lower(),
-                )
-            )
+        roster = _get_playoff_roster_for_gw(
+            manager,
+            gw,
+            rosters,
+            old_transfer_history,
+            new_transfer_history,
+        )
+        buckets = _build_playoff_buckets(roster)
 
         managers_data.append(
             {
@@ -1963,14 +1957,123 @@ def ucl_lineups_data():
     # Get all UCL clubs
     all_clubs = _get_all_ucl_clubs()
 
+    def _build_lineup_entry(payload: Dict[str, Any], matchdays: Optional[List[int]] = None) -> Optional[Dict[str, Any]]:
+        pid = payload.get("playerId") or payload.get("id") or payload.get("pid")
+        if pid is None:
+            return None
+        try:
+            pid_int = int(pid)
+        except Exception:
+            return None
+
+        stats = get_player_stats_cached(pid_int)
+        stat_payload, points_dict, raw_stats, data_section, value_section = _stat_sections(stats)
+        team_id = _resolve_team_id(payload, stat_payload, points_dict, raw_stats, data_section, value_section, stats)
+        if not team_id:
+            fresh_stats = get_player_stats(pid_int)
+            if isinstance(fresh_stats, dict):
+                stats = fresh_stats
+                stat_payload, points_dict, raw_stats, data_section, value_section = _stat_sections(stats)
+                team_id = _resolve_team_id(payload, stat_payload, points_dict, raw_stats, data_section, value_section, stats)
+
+        points = _safe_int(stat_payload.get("tPoints"))
+        base_stats = stats if isinstance(stats, dict) else {}
+        stats_data = base_stats.get("data") if isinstance(base_stats.get("data"), dict) else {}
+        stats_value = base_stats.get("value") if isinstance(base_stats.get("value"), dict) else {}
+        club_name = _first_non_empty(
+            payload.get("club"),
+            payload.get("clubName"),
+            stat_payload.get("teamName"),
+            stat_payload.get("tName"),
+            raw_stats.get("teamName"),
+            raw_stats.get("tName"),
+            points_dict.get("teamName"),
+            points_dict.get("tName"),
+            value_section.get("teamName"),
+            value_section.get("tName"),
+            data_section.get("teamName"),
+            stats_value.get("teamName"),
+            stats_value.get("tName"),
+            stats_data.get("teamName"),
+            stats_data.get("tName"),
+            base_stats.get("teamName"),
+            base_stats.get("tName"),
+        )
+
+        return {
+            "name": payload.get("name") or payload.get("fullName") or str(pid_int),
+            "pos": payload.get("position") or payload.get("pos"),
+            "club": club_name,
+            "teamId": team_id,
+            "points": points,
+            "stat": stat_payload,
+            "statsCount": stat_payload.get("_stats_count", 0),
+            "playerId": str(pid_int),
+            "matchdays": matchdays if matchdays is not None else (payload.get("matchdays") or _default_matchdays()),
+        }
+
     results: Dict[str, Dict[str, Any]] = {}
+    use_playoff_layout = md in _PLAYOFF_GW_ALLOWED
     for manager in managers:
-        # Get roster as it was for this specific MD
-        roster = get_roster_for_md(manager, md)
         lineup: List[Dict[str, Any]] = []
+        bench: List[Dict[str, Any]] = []
         total = 0
-        
-        # Get clubs in manager's roster for this MD
+
+        if use_playoff_layout:
+            playoff_roster = _get_playoff_roster_for_gw(
+                manager,
+                md,
+                rosters,
+                old_transfer_history,
+                new_transfer_history,
+            )
+            buckets = _build_playoff_buckets(playoff_roster)
+            roster_for_clubs = buckets["lineup"] + buckets["bench"] + buckets["eliminated"]
+
+            manager_clubs = {str(p.get("club") or "").strip() for p in roster_for_clubs if str(p.get("club") or "").strip()}
+            available_clubs = [club_data for club_name, club_data in all_clubs.items() if club_name not in manager_clubs]
+            available_clubs.sort(key=lambda x: x.get("clubName", ""))
+
+            for player in buckets["lineup"]:
+                entry = _build_lineup_entry(
+                    {
+                        "playerId": player.get("playerId"),
+                        "name": player.get("name"),
+                        "position": player.get("position"),
+                        "club": player.get("club"),
+                        "clubName": player.get("club"),
+                    },
+                    matchdays=[],
+                )
+                if not entry:
+                    continue
+                total += int(entry.get("points") or 0)
+                lineup.append(entry)
+
+            for player in buckets["bench"]:
+                entry = _build_lineup_entry(
+                    {
+                        "playerId": player.get("playerId"),
+                        "name": player.get("name"),
+                        "position": player.get("position"),
+                        "club": player.get("club"),
+                        "clubName": player.get("club"),
+                    },
+                    matchdays=[],
+                )
+                if entry:
+                    bench.append(entry)
+
+            results[manager] = {
+                "players": lineup,
+                "bench": bench,
+                "total": total,
+                "available_clubs": available_clubs,
+            }
+            continue
+
+        roster = get_roster_for_md(manager, md)
+
         manager_clubs: Set[str] = set()
         for item in roster:
             payload = item.get("player") if isinstance(item, dict) and item.get("player") else item
@@ -1978,73 +2081,22 @@ def ucl_lineups_data():
                 club = payload.get("clubName") or ""
                 if club:
                     manager_clubs.add(club)
-        
-        # Calculate available clubs (not in roster)
-        available_clubs: List[Dict[str, Any]] = []
-        for club_name, club_data in all_clubs.items():
-            if club_name not in manager_clubs:
-                available_clubs.append(club_data)
+
+        available_clubs = [club_data for club_name, club_data in all_clubs.items() if club_name not in manager_clubs]
         available_clubs.sort(key=lambda x: x.get("clubName", ""))
+
         for item in roster:
             payload = item.get("player") if isinstance(item, dict) and item.get("player") else item
             if not isinstance(payload, dict):
                 continue
-            pid = (
-                payload.get("playerId")
-                or payload.get("id")
-                or payload.get("pid")
-            )
-            if pid is None:
+            payload_copy = dict(payload)
+            payload_copy["name"] = payload.get("fullName") or payload.get("name")
+            entry = _build_lineup_entry(payload_copy)
+            if not entry:
                 continue
-            try:
-                pid_int = int(pid)
-            except Exception:
-                continue
-            stats = get_player_stats_cached(pid_int)
-            stat_payload, points_dict, raw_stats, data_section, value_section = _stat_sections(stats)
-            team_id = _resolve_team_id(payload, stat_payload, points_dict, raw_stats, data_section, value_section, stats)
-            if not team_id:
-                fresh_stats = get_player_stats(pid_int)
-                if isinstance(fresh_stats, dict):
-                    stats = fresh_stats
-                    stat_payload, points_dict, raw_stats, data_section, value_section = _stat_sections(stats)
-                    team_id = _resolve_team_id(payload, stat_payload, points_dict, raw_stats, data_section, value_section, stats)
-            points = _safe_int(stat_payload.get("tPoints"))
-            base_stats = stats if isinstance(stats, dict) else {}
-            stats_data = base_stats.get("data") if isinstance(base_stats.get("data"), dict) else {}
-            stats_value = base_stats.get("value") if isinstance(base_stats.get("value"), dict) else {}
-            club_name = _first_non_empty(
-                payload.get("clubName"),
-                stat_payload.get("teamName"),
-                stat_payload.get("tName"),
-                raw_stats.get("teamName"),
-                raw_stats.get("tName"),
-                points_dict.get("teamName"),
-                points_dict.get("tName"),
-                value_section.get("teamName"),
-                value_section.get("tName"),
-                data_section.get("teamName"),
-                stats_value.get("teamName"),
-                stats_value.get("tName"),
-                stats_data.get("teamName"),
-                stats_data.get("tName"),
-                base_stats.get("teamName"),
-                base_stats.get("tName"),
-            )
-            total += points
-            lineup.append(
-                {
-                    "name": payload.get("fullName") or payload.get("name") or str(pid_int),
-                    "pos": payload.get("position"),
-                    "club": club_name,
-                    "teamId": team_id,
-                    "points": points,
-                    "stat": stat_payload,
-                    "statsCount": stat_payload.get("_stats_count", 0),
-                    "playerId": str(pid_int),
-                    "matchdays": payload.get("matchdays") or _default_matchdays(),
-                }
-            )
+            total += int(entry.get("points") or 0)
+            lineup.append(entry)
+
         results[manager] = {"players": lineup, "total": total, "available_clubs": available_clubs}
 
     # Load optimal teams from state if available (for finished matchdays)
