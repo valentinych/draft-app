@@ -69,6 +69,15 @@ _MD9_MANUAL_ADDITIONS: Dict[str, List[Dict[str, Any]]] = {
     "Ксана": [{"playerId": 250174126, "name": "Willian Pacho", "club": "Paris", "position": "DEF"}],
     "Макс": [{"playerId": 250101284, "name": "Federico Valverde", "club": "Real Madrid", "position": "MID"}],
 }
+_MD10_MANUAL_ADDITIONS: Dict[str, List[Dict[str, Any]]] = {
+    "Саша": [{"playerId": 250156423, "name": "Daniel Svensson", "club": "B. Dortmund", "position": "DEF"}],
+    "Сергей": [{"playerId": 250153945, "name": "Alvaro Carreras", "club": "Real Madrid", "position": "DEF"}],
+    "Андрей": [{"playerId": 98023, "name": "Henrikh Mkhitaryan", "club": "Inter", "position": "MID"}],
+    "Серёга Б": [{"playerId": 250091165, "name": "Noa Lang", "club": "Galatasaray", "position": "MID"}],
+    "Ксана": [{"playerId": 250051291, "name": "Janis Blaswich", "club": "Leverkusen", "position": "GK"}],
+    "Руслан": [{"playerId": 250085369, "name": "Manuel Akanji", "club": "Inter", "position": "DEF"}],
+    "Макс": [{"playerId": 250042631, "name": "Mario Pasalic", "club": "Atalanta", "position": "MID"}],
+}
 
 _PLAYOFF_BENCH_CLUB_ALIASES = {
     "arsenal", "арсенал",
@@ -313,14 +322,15 @@ def _build_playoff_buckets(players: List[Dict[str, Any]]) -> Dict[str, List[Dict
 
 
 def _apply_md9_manual_overrides(manager: str, target_gw: int, roster: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    if target_gw != 9:
+    if target_gw not in {9, 10}:
         return roster
 
-    removed_ids = _MD9_MANUAL_REMOVALS.get(manager, set())
+    removed_ids = _MD9_MANUAL_REMOVALS.get(manager, set()) if target_gw == 9 else set()
     if removed_ids:
         roster = [p for p in roster if int(p.get("playerId") or 0) not in removed_ids]
 
-    additions = _MD9_MANUAL_ADDITIONS.get(manager, [])
+    additions_by_gw = {9: _MD9_MANUAL_ADDITIONS, 10: _MD10_MANUAL_ADDITIONS}
+    additions = additions_by_gw.get(target_gw, {}).get(manager, [])
     existing_ids = {int(p.get("playerId") or 0) for p in roster}
     for add in additions:
         pid = int(add.get("playerId") or 0)
