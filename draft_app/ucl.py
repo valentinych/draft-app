@@ -1771,28 +1771,40 @@ def cache_stats():
 @bp.get("/ucl/player/<int:pid>/stats")
 def player_stats_ajax(pid: int):
     """Return per-MD points breakdown for a single player (AJAX)."""
-    stats = get_player_stats_cached(pid)
-    if not stats:
+    raw = get_player_stats_cached(pid)
+    if not raw:
         return jsonify({"ok": False, "error": "no data"}), 404
 
-    data = stats.get("data") if isinstance(stats.get("data"), dict) else stats
+    data = raw.get("data") if isinstance(raw.get("data"), dict) else raw
     value = data.get("value") if isinstance(data.get("value"), dict) else data
+    if not isinstance(value, dict):
+        return jsonify({"ok": False, "error": "bad format"}), 404
+
+    stats_by_md: dict = {}
+    for entry in (value.get("stats") or []):
+        if isinstance(entry, dict) and entry.get("mdId"):
+            stats_by_md[entry["mdId"]] = entry
 
     rows: list = []
     for key in ("matchdayPoints", "points"):
-        entries = value.get(key) if isinstance(value, dict) else None
-        if isinstance(entries, list):
-            for entry in entries:
-                if isinstance(entry, dict):
-                    rows.append({
-                        "md": entry.get("matchday") or entry.get("md") or entry.get("gameday"),
-                        "pts": entry.get("tPoints", 0),
-                        "mins": entry.get("minsPlayed", 0),
-                        "goals": entry.get("goals", 0),
-                        "assists": entry.get("assists", 0),
-                    })
-            if rows:
-                break
+        entries = value.get(key)
+        if not isinstance(entries, list):
+            continue
+        for entry in entries:
+            if not isinstance(entry, dict):
+                continue
+            md = entry.get("mdId")
+            st = stats_by_md.get(md, {})
+            rows.append({
+                "md": md,
+                "pts": entry.get("tPoints", 0),
+                "mins": st.get("oF", 0),
+                "goals": st.get("gS", 0),
+                "assists": st.get("gA", 0),
+                "cs": st.get("cS", 0),
+            })
+        if rows:
+            break
 
     total = sum(r["pts"] for r in rows)
     return jsonify({"ok": True, "rows": rows, "total": total})

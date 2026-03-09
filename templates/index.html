@@ -368,6 +368,20 @@
               <td>{{ p.position }}</td>
               {% if table_league == 'top4' %}
               <td class="num">{{ '%.1f'|format(p.fp_last or 0) }}</td>
+              {% elif table_league == 'ucl' %}
+              <td>
+                {% if p.news %}
+                  {% set news_lower = (p.news or '')|lower %}
+                  {% if 'in contention' in news_lower %}
+                    <span class="status-circle status-green"></span>
+                  {% elif 'unlikely' in news_lower %}
+                    <span class="status-circle status-orange"></span>
+                  {% elif p.news %}
+                    <span class="status-circle status-red"></span>
+                  {% endif %}
+                  {{ p.news }}
+                {% endif %}
+              </td>
               {% else %}
               <td>
                 {% if p.status and p.status != 'a' %}
@@ -474,13 +488,14 @@
               <th class="num">Мин</th>
               <th class="num">Голы</th>
               <th class="num">Ассисты</th>
+              <th class="num">CS</th>
               <th class="num">Очки</th>
             </tr>
           </thead>
           <tbody id="ucl-detail-tbody"></tbody>
           <tfoot>
             <tr style="font-weight:bold;">
-              <td colspan="4" style="text-align:right;">Итого</td>
+              <td colspan="5" style="text-align:right;">Итого</td>
               <td class="num" id="ucl-detail-total"></td>
             </tr>
           </tfoot>
@@ -523,6 +538,7 @@
             '<td class="num">' + (row.mins || 0) + '</td>' +
             '<td class="num">' + (row.goals || 0) + '</td>' +
             '<td class="num">' + (row.assists || 0) + '</td>' +
+            '<td class="num">' + (row.cs || 0) + '</td>' +
             '<td class="num">' + (row.pts || 0) + '</td>';
           tbody.appendChild(tr);
         });

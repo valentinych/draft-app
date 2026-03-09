@@ -75,6 +75,7 @@ table.tbl tbody tr:nth-child(even) { background:#f5f7fb; }
   border-radius:50%;
   margin-right:4px;
 }
+.status-green { background:#28a745; }
 .status-yellow { background:#ffba00; }
 .status-orange { background:#ff9100; }
 .status-red { background:#d00000; }
