@@ -94,6 +94,16 @@ _MD11_PLUS_ALLOWED_CLUBS = {
     "parissaintgermain",
     "realmadrid",
 }
+_MD11_PLUS_MANUAL_REMOVALS: Dict[str, Set[str]] = {
+    "Сергей": {"nikitahaikin"},
+    "Женя": {"rodrygo"},
+    "Руслан": {"leroysane"},
+    "Андрей": {"mohammedkudus", "judebellingham"},
+    "Серёга Б": {"conorgallagher"},
+    "Серега Б": {"conorgallagher"},
+    "Макс": {"mariopasalic"},
+    "Ксана": {"janisblaswich"},
+}
 
 _PLAYOFF_BENCH_CLUB_ALIASES = {
     "arsenal", "арсенал",
@@ -342,7 +352,7 @@ def _build_md11_plus_lineup_from_md10(
     rosters: Dict[str, Any],
     old_transfer_history: List[Dict[str, Any]],
     new_transfer_history: List[Dict[str, Any]],
-) -> List[Dict[str, Any]]:
+) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
     md10_roster = _get_playoff_roster_for_gw(
         manager,
         10,
@@ -371,13 +381,79 @@ def _build_md11_plus_lineup_from_md10(
             selected.append(player)
             seen_ids.add(pid)
 
+    removed_players: List[Dict[str, Any]] = []
+    blocked_name_keys = _MD11_PLUS_MANUAL_REMOVALS.get(manager, set())
+    if blocked_name_keys:
+        filtered: List[Dict[str, Any]] = []
+        for player in selected:
+            name_key = _normalize_club_alias_key(player.get("name") or "")
+            if name_key in blocked_name_keys:
+                removed_players.append(player)
+                continue
+            filtered.append(player)
+        selected = filtered
+
     selected.sort(
         key=lambda p: (
             _PLAYOFF_POSITION_ORDER.get(p.get("position") or "", 9),
             (p.get("name") or "").lower(),
         )
     )
-    return selected
+    return selected, removed_players
+
+
+def _build_md11_plus_lineups_for_managers(
+    managers: List[str],
+    rosters: Dict[str, Any],
+    old_transfer_history: List[Dict[str, Any]],
+    new_transfer_history: List[Dict[str, Any]],
+) -> Dict[str, List[Dict[str, Any]]]:
+    lineups: Dict[str, List[Dict[str, Any]]] = {}
+    removed_pool: List[Tuple[str, Dict[str, Any]]] = []
+
+    for manager in managers:
+        lineup, removed = _build_md11_plus_lineup_from_md10(
+            manager,
+            rosters,
+            old_transfer_history,
+            new_transfer_history,
+        )
+        lineups[manager] = lineup
+        for player in removed:
+            removed_pool.append((manager, player))
+
+    for owner, player in removed_pool:
+        pos = _normalize_position_for_playoff(player.get("position"))
+        cap = int(_PLAYOFF_LINEUP_CAPACITY.get(pos, 0))
+        if cap <= 0:
+            continue
+        pid = int(player.get("playerId") or 0)
+        if pid <= 0:
+            continue
+
+        for target_manager in managers:
+            if target_manager == owner:
+                continue
+            target_lineup = lineups.get(target_manager, [])
+            if any(int(p.get("playerId") or 0) == pid for p in target_lineup):
+                continue
+            position_count = sum(
+                1 for p in target_lineup if _normalize_position_for_playoff(p.get("position")) == pos
+            )
+            if position_count >= cap:
+                continue
+            target_lineup.append(player)
+            break
+
+    for manager in managers:
+        lineups[manager].sort(
+            key=lambda p: (
+                _PLAYOFF_POSITION_ORDER.get(p.get("position") or "", 9),
+                (p.get("name") or "").lower(),
+            )
+        )
+
+    return lineups
 
 
 def _apply_md9_manual_overrides(manager: str, target_gw: int, roster: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
@@ -2122,6 +2198,14 @@ def ucl_lineups_data():
 
     results: Dict[str, Dict[str, Any]] = {}
     use_playoff_layout = md >= 9
+    md11_plus_lineups_by_manager: Dict[str, List[Dict[str, Any]]] = {}
+    if use_playoff_layout and md >= 11:
+        md11_plus_lineups_by_manager = _build_md11_plus_lineups_for_managers(
+            managers,
+            rosters,
+            old_transfer_history,
+            new_transfer_history,
+        )
     for manager in managers:
         lineup: List[Dict[str, Any]] = []
         bench: List[Dict[str, Any]] = []
@@ -2129,12 +2213,7 @@ def ucl_lineups_data():
 
         if use_playoff_layout:
             if md >= 11:
-                md11_plus_lineup = _build_md11_plus_lineup_from_md10(
-                    manager,
-                    rosters,
-                    old_transfer_history,
-                    new_transfer_history,
-                )
+                md11_plus_lineup = list(md11_plus_lineups_by_manager.get(manager, []))
                 buckets = {"lineup": md11_plus_lineup, "bench": [], "eliminated": []}
                 roster_for_clubs = md11_plus_lineup
             else:
