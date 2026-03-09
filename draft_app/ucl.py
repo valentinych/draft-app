@@ -2616,6 +2616,40 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
             return int(value or 0)
         except (ValueError, TypeError):
             return 0
+
+    def _md_weight(md: int) -> float:
+        if 1 <= md <= 8:
+            return 1.0
+        if 9 <= md <= 12:
+            return 1.2
+        if 13 <= md <= 14:
+            return 1.5
+        if 15 <= md <= 16:
+            return 2.0
+        if md == 17:
+            return 3.0
+        return 1.0
+
+    def _weighted_score(md: int, raw_points: int) -> float:
+        return round(float(raw_points) * _md_weight(md), 2)
+
+    def _to_display_number(value: float) -> Any:
+        if abs(value - round(value)) < 1e-9:
+            return int(round(value))
+        return round(value, 2)
+
+    def _coerce_md_num(raw_md: Any) -> Optional[int]:
+        try:
+            return int(raw_md)
+        except (TypeError, ValueError):
+            if isinstance(raw_md, str):
+                digits = "".join(ch for ch in raw_md if ch.isdigit())
+                if digits:
+                    try:
+                        return int(digits)
+                    except (TypeError, ValueError):
+                        return None
+        return None
     
     def get_all_manager_players(manager: str) -> Dict[str, Dict]:
         """Get all players who were ever in manager's roster with their active periods"""
@@ -3044,21 +3078,24 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
                                 if isinstance(md_stat, dict):
                                     md_points = safe_int(md_stat.get("tPoints", 0))
                                     md_num = md_stat.get("mdId")
-                                    if md_num:
+                                    md_num_int = _coerce_md_num(md_num)
+                                    if md_num_int:
                                         # Only include if matchday is finished AND player was active in this MD
-                                        if md_num in finished_matchdays and md_num in active_mds:
+                                        if md_num_int in finished_matchdays and md_num_int in active_mds:
                                             # Include even if points = 0, to show player played in this MD
+                                            weighted_md_points = _weighted_score(md_num_int, md_points)
                                             breakdown.append({
-                                                "label": f"MD{md_num}",
-                                                "value": md_points
+                                                "label": f"MD{md_num_int}",
+                                                "value": _to_display_number(weighted_md_points)
                                             })
-                                            points += md_points
+                                            points += weighted_md_points
                 
                 # Fallback: try to get team ID if not found
                 if not team_id:
                     team_id = stats.get("tId") or stats.get("teamId")
             
-            total += points
+            points = _to_display_number(points)
+            total += float(points)
             # Use active_mds for matchdays display, not payload.matchdays
             # active_mds is correctly calculated based on transfer history
             display_matchdays = sorted(active_mds)
@@ -3080,7 +3117,7 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
                 "is_active": is_active,  # Whether player is currently in roster
             })
         
-        results[manager] = {"players": lineup, "total": total, "available_clubs": available_clubs}
+        results[manager] = {"players": lineup, "total": _to_display_number(total), "available_clubs": available_clubs}
     
     # Load pre-calculated optimal teams with transfers if available
     optimal_teams_with_transfers = state.get("optimal_teams_with_transfers", {})
@@ -3117,11 +3154,13 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
                                 for md_stat in matchday_points:
                                     if isinstance(md_stat, dict):
                                         md_num = md_stat.get("mdId")
-                                        if md_num and md_num in player_matchdays and md_num in finished_mds_list:
+                                        md_num_int = _coerce_md_num(md_num)
+                                        if md_num_int and md_num_int in player_matchdays and md_num_int in finished_mds_list:
                                             md_points = _safe_int(md_stat.get("tPoints", 0))
+                                            weighted_md_points = _weighted_score(md_num_int, md_points)
                                             breakdown.append({
-                                                "label": f"MD{md_num}",
-                                                "value": md_points
+                                                "label": f"MD{md_num_int}",
+                                                "value": _to_display_number(weighted_md_points)
                                             })
                             
                             # Get stats for first finished MD (for stat_payload)
@@ -3152,7 +3191,7 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
                     "pos": p.get("pos") or p.get("position"),
                     "club": p.get("club") or p.get("clubName"),
                     "teamId": team_id or p.get("teamId"),
-                    "points": p.get("points", 0),
+                    "points": _to_display_number(sum(float(item.get("value", 0) or 0) for item in breakdown)) if breakdown else p.get("points", 0),
                     "breakdown": breakdown,
                     "stat": stat_payload,
                     "statsCount": stat_payload.get("_stats_count", 0),
@@ -3161,14 +3200,14 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
                 })
             
             # Calculate total as sum of player points (to ensure consistency)
-            calculated_total = sum(p.get("points", 0) for p in converted_players)
-            stored_total = team_data.get("total", 0)
+            calculated_total = sum(float(p.get("points", 0) or 0) for p in converted_players)
+            stored_total = float(team_data.get("total", 0) or 0)
             # Use calculated total if it differs from stored (stored might be wrong)
             final_total = calculated_total if calculated_total != stored_total else stored_total
             
             return {
                 "players": converted_players,
-                "total": final_total,
+                "total": _to_display_number(final_total),
                 "available_clubs": team_data.get("available_clubs", [])
             }
         
