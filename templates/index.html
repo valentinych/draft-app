@@ -51,6 +51,14 @@
         <form method="post" action="{{ url_for('ucl.open_transfer_window') }}" style="display:inline; margin-left:8px;">
           <button type="submit" class="btn btn-info">Открыть трансферное окно</button>
         </form>
+        <form method="post" action="{{ url_for('ucl.open_md11_draft') }}" style="display:inline; margin-left:8px;">
+          <button type="submit" class="btn" style="background:#6c5ce7;color:#fff;">Открыть MD11+ драфт</button>
+        </form>
+        {% if md11_draft_active|default(false) %}
+        <form method="post" action="{{ url_for('ucl.undo_md11_draft_pick') }}" style="display:inline; margin-left:8px;">
+          <button type="submit" class="btn btn-warning">Отменить последний пик MD11+</button>
+        </form>
+        {% endif %}
         <form method="post" action="{{ url_for('ucl.return_transfer_out_player') }}" style="display:inline; margin-left:8px;">
           <button type="submit" class="btn btn-success">Вернуть последнего скинутого игрока</button>
         </form>
@@ -226,8 +234,31 @@
   </div>
   {% endif %}
 
+  {# MD11+ draft interface #}
+  {% if table_league == 'ucl' and md11_draft_active and md11_draft_manager %}
+  <div class="card" style="margin:10px 0; border: 2px solid #6c5ce7;">
+    <div class="card-title" style="background: #6c5ce7; color: white;">
+      MD11+ Драфт — Раунд {{ md11_draft_round }}
+    </div>
+    <div class="card-body">
+      <p><strong>Сейчас ход:</strong> {{ md11_draft_manager }}</p>
+      <p style="margin:4px 0;"><small>Лимиты: GK=2, DEF=6, MID=6, FWD=4. Выберите игрока из таблицы ниже.</small></p>
+      {% if md11_draft_picks %}
+      <details style="margin-top:8px;">
+        <summary style="cursor:pointer;">Последние пики ({{ md11_draft_picks|length }})</summary>
+        <ul style="margin:4px 0; padding-left:20px; font-size:13px;">
+        {% for pick in md11_draft_picks|reverse %}
+          <li>R{{ pick.round }} {{ pick.manager }}: {{ pick.name }} ({{ pick.club }}, {{ pick.position }})</li>
+        {% endfor %}
+        </ul>
+      </details>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
   {# Transfer interface for UCL when window is active #}
-  {% if table_league == 'ucl' and transfer_window_active and current_user == current_transfer_manager %}
+  {% if table_league == 'ucl' and transfer_window_active and not md11_draft_active and current_user == current_transfer_manager %}
     {% if current_transfer_phase == 'out' %}
     <div class="card" style="margin:10px 0; border: 2px solid #ff6b35;">
       <div class="card-title" style="background: #ff6b35; color: white;">
@@ -259,7 +290,7 @@
       </div>
     </div>
     {% endif %}
-  {% elif table_league == 'ucl' and transfer_window_active and current_transfer_manager %}
+  {% elif table_league == 'ucl' and transfer_window_active and not md11_draft_active and current_transfer_manager %}
   <div class="card" style="margin:10px 0; border: 2px solid #74b9ff;">
     <div class="card-title" style="background: #74b9ff; color: white;">
       🕒 Трансферное окно активно
@@ -355,7 +386,7 @@
         </thead>
         <tbody>
           {% for p in players %}
-            {% set disabled = (draft_completed or (not p.canPick and not session.get('godmode'))) and not (table_league == 'top4' and transfer_window_active and is_current_manager) %}
+            {% set disabled = (draft_completed or (not p.canPick and not session.get('godmode'))) and not (table_league == 'top4' and transfer_window_active and is_current_manager) and not (md11_draft_active|default(false) and (session.get('godmode') or current_user == md11_draft_manager|default(''))) %}
             <tr data-player-id="{{ p.playerId }}" data-can-pick="{{ '1' if p.canPick else '0' }}"
                 data-status="{{ p.status or '' }}" data-chance="{{ p.chance or 0 }}"
                 data-news="{{ (p.news or '')|lower|e }}">
