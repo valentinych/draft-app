@@ -3621,6 +3621,7 @@ def _build_ucl_results_md_table(state: Dict[str, Any]) -> Dict[str, Any]:
         return 1.0
 
     md9_plus_scores: Dict[str, Dict[int, float]] = {m: {} for m in managers}
+    md9_plus_raw_scores: Dict[str, Dict[int, float]] = {m: {} for m in managers}
     for md in sorted(_PLAYOFF_GW_ALLOWED):
         md_set.add(md)
         for manager in managers:
@@ -3633,6 +3634,7 @@ def _build_ucl_results_md_table(state: Dict[str, Any]) -> Dict[str, Any]:
             )
             buckets = _build_playoff_buckets(roster)
             total_md_points = 0.0
+            total_md_raw_points = 0.0
             for player in buckets.get("lineup", []):
                 pid_raw = player.get("playerId")
                 try:
@@ -3642,8 +3644,10 @@ def _build_ucl_results_md_table(state: Dict[str, Any]) -> Dict[str, Any]:
                 stats = get_player_stats_cached(pid)
                 stat_payload = _ucl_points_for_md(stats, md) if isinstance(stats, dict) else {}
                 raw_points = _safe_int((stat_payload or {}).get("tPoints", 0))
+                total_md_raw_points += float(raw_points)
                 total_md_points += float(raw_points) * _md_weight(md)
             md9_plus_scores[manager][md] = round(total_md_points, 2)
+            md9_plus_raw_scores[manager][md] = round(total_md_raw_points, 2)
 
     md_columns = sorted(md for md in md_set if md > 0)
 
@@ -3666,10 +3670,19 @@ def _build_ucl_results_md_table(state: Dict[str, Any]) -> Dict[str, Any]:
                 md_scores[md] = value
 
         total = sum(md_scores.values())
+        by_md_values: List[Any] = []
+        for md in md_columns:
+            weighted_value = _to_display(md_scores[md])
+            if md >= 9:
+                raw_value = _to_display((md9_plus_raw_scores.get(manager) or {}).get(md, md_scores[md] / (_md_weight(md) or 1.0)))
+                by_md_values.append(f"{weighted_value} ({raw_value})")
+            else:
+                by_md_values.append(weighted_value)
+
         rows.append(
             {
                 "manager": manager,
-                "by_md": [_to_display(md_scores[md]) for md in md_columns],
+                "by_md": by_md_values,
                 "total": _to_display(total),
                 "sort_total": total,
             }
