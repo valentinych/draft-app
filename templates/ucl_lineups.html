@@ -41,6 +41,8 @@
   #ucl-lineups-container .tabs ul { flex-grow:0; }
   .ucl-player-row { display:flex; justify-content:space-between; align-items:center; white-space:nowrap; }
   .ucl-player-row.is-empty { background:#eceff1 !important; color:#7a7a7a; }
+  .ucl-player-row.is-overflow { background:#ffdddd !important; color:#8b0000; }
+  .ucl-player-row.is-overflow .ucl-points-box { background:#ffb3b3; color:#7f1d1d; }
   .ucl-player-row.is-empty .ucl-points-box { background:#d5d9dd; cursor:default; color:#6b7280; }
   .ucl-player-name { overflow:hidden; text-overflow:ellipsis; margin-right:6px; }
   .ucl-points-box { background:#add8e6; border-radius:4px; padding:0 6px; min-width:2.4em; text-align:center; cursor:pointer; }
@@ -296,8 +298,9 @@ document.addEventListener('DOMContentLoaded', () => {
       let rowIndex = 0;
       const createPlayerRow = (player, opts = {}) => {
         const isEmpty = !!opts.isEmpty;
+        const isOverflow = !!opts.isOverflow;
         const row = document.createElement('div');
-        row.className = `ucl-player-row${isEmpty ? ' is-empty' : ''}`;
+        row.className = `ucl-player-row${isEmpty ? ' is-empty' : ''}${isOverflow ? ' is-overflow' : ''}`;
         row.style.backgroundColor = rowIndex % 2 === 0 ? c1 : c2;
         const infoWrap = document.createElement('span');
         infoWrap.className = 'ucl-player-info';
@@ -380,6 +383,7 @@ document.addEventListener('DOMContentLoaded', () => {
           title.style.fontWeight = 'bold';
           title.style.marginBottom = '6px';
           const inLimit = grouped[slot.key].slice(0, slot.cap);
+          const overflow = grouped[slot.key].slice(slot.cap);
           title.textContent = `${slot.label} (${inLimit.length}/${slot.cap})`;
           block.appendChild(title);
 
@@ -389,6 +393,8 @@ document.addEventListener('DOMContentLoaded', () => {
           for (let i = 0; i < emptyCount; i += 1) {
             createPlayerRow(null, { isEmpty: true, posLabel: slot.label });
           }
+
+          overflow.forEach(player => createPlayerRow(player, { isOverflow: true }));
         });
       };
 
@@ -436,7 +442,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderPlayersByPosition(players, '');
       }
 
-      if (benchPlayers.length && manager !== 'Team of The MD' && manager !== 'Непикнутые гении') {
+      if (benchPlayers.length && MD < 11 && manager !== 'Team of The MD' && manager !== 'Непикнутые гении') {
         renderPlayersByPosition(benchPlayers, `Скамейка (${benchPlayers.length})`);
       }
       

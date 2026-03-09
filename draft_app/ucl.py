@@ -78,6 +78,22 @@ _MD10_MANUAL_ADDITIONS: Dict[str, List[Dict[str, Any]]] = {
     "Руслан": [{"playerId": 250085369, "name": "Manuel Akanji", "club": "Inter", "position": "DEF"}],
     "Макс": [{"playerId": 250042631, "name": "Mario Pasalic", "club": "Atalanta", "position": "MID"}],
 }
+_MD11_PLUS_ALLOWED_CLUBS = {
+    "galatasaray",
+    "atalanta",
+    "atleticomadrid",
+    "atleti",
+    "newcastle",
+    "newcastleunited",
+    "leverkusen",
+    "bayer04",
+    "bayerleverkusen",
+    "bodoglimt",
+    "bodglimt",
+    "paris",
+    "parissaintgermain",
+    "realmadrid",
+}
 
 _PLAYOFF_BENCH_CLUB_ALIASES = {
     "arsenal", "арсенал",
@@ -319,6 +335,49 @@ def _build_playoff_buckets(players: List[Dict[str, Any]]) -> Dict[str, List[Dict
             )
         )
     return buckets
+
+
+def _build_md11_plus_lineup_from_md10(
+    manager: str,
+    rosters: Dict[str, Any],
+    old_transfer_history: List[Dict[str, Any]],
+    new_transfer_history: List[Dict[str, Any]],
+) -> List[Dict[str, Any]]:
+    md10_roster = _get_playoff_roster_for_gw(
+        manager,
+        10,
+        rosters,
+        old_transfer_history,
+        new_transfer_history,
+    )
+    md10_buckets = _build_playoff_buckets(md10_roster)
+
+    selected: List[Dict[str, Any]] = []
+    seen_ids: Set[int] = set()
+
+    for player in md10_buckets.get("bench", []):
+        pid = int(player.get("playerId") or 0)
+        if pid <= 0 or pid in seen_ids:
+            continue
+        selected.append(player)
+        seen_ids.add(pid)
+
+    for player in md10_roster:
+        pid = int(player.get("playerId") or 0)
+        if pid <= 0 or pid in seen_ids:
+            continue
+        club_key = _normalize_club_alias_key(player.get("club") or "")
+        if club_key in _MD11_PLUS_ALLOWED_CLUBS:
+            selected.append(player)
+            seen_ids.add(pid)
+
+    selected.sort(
+        key=lambda p: (
+            _PLAYOFF_POSITION_ORDER.get(p.get("position") or "", 9),
+            (p.get("name") or "").lower(),
+        )
+    )
+    return selected
 
 
 def _apply_md9_manual_overrides(manager: str, target_gw: int, roster: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
@@ -2062,22 +2121,32 @@ def ucl_lineups_data():
         }
 
     results: Dict[str, Dict[str, Any]] = {}
-    use_playoff_layout = md in _PLAYOFF_GW_ALLOWED
+    use_playoff_layout = md >= 9
     for manager in managers:
         lineup: List[Dict[str, Any]] = []
         bench: List[Dict[str, Any]] = []
         total = 0
 
         if use_playoff_layout:
-            playoff_roster = _get_playoff_roster_for_gw(
-                manager,
-                md,
-                rosters,
-                old_transfer_history,
-                new_transfer_history,
-            )
-            buckets = _build_playoff_buckets(playoff_roster)
-            roster_for_clubs = buckets["lineup"] + buckets["bench"] + buckets["eliminated"]
+            if md >= 11:
+                md11_plus_lineup = _build_md11_plus_lineup_from_md10(
+                    manager,
+                    rosters,
+                    old_transfer_history,
+                    new_transfer_history,
+                )
+                buckets = {"lineup": md11_plus_lineup, "bench": [], "eliminated": []}
+                roster_for_clubs = md11_plus_lineup
+            else:
+                playoff_roster = _get_playoff_roster_for_gw(
+                    manager,
+                    md,
+                    rosters,
+                    old_transfer_history,
+                    new_transfer_history,
+                )
+                buckets = _build_playoff_buckets(playoff_roster)
+                roster_for_clubs = buckets["lineup"] + buckets["bench"] + buckets["eliminated"]
 
             manager_clubs = {str(p.get("club") or "").strip() for p in roster_for_clubs if str(p.get("club") or "").strip()}
             available_clubs = [club_data for club_name, club_data in all_clubs.items() if club_name not in manager_clubs]
