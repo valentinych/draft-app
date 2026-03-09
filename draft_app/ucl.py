@@ -3562,6 +3562,76 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
     return {"lineups": results, "managers": managers}
 
 
+def _build_ucl_results_md_table(state: Dict[str, Any]) -> Dict[str, Any]:
+    data = _build_ucl_results(state)
+    lineups = data.get("lineups") or {}
+    participant_set = set(UCL_PARTICIPANTS)
+    managers = [m for m in UCL_PARTICIPANTS if m in lineups]
+    if not managers:
+        managers = sorted([m for m in lineups.keys() if m in participant_set])
+
+    def _parse_md(label: Any) -> Optional[int]:
+        text = str(label or "").strip().upper()
+        if not text.startswith("MD"):
+            return None
+        digits = "".join(ch for ch in text[2:] if ch.isdigit())
+        if not digits:
+            return None
+        try:
+            return int(digits)
+        except (TypeError, ValueError):
+            return None
+
+    def _to_display(value: float) -> Any:
+        if abs(value - round(value)) < 1e-9:
+            return int(round(value))
+        return round(value, 2)
+
+    md_set: Set[int] = set()
+    for raw_md in state.get("finished_matchdays", []) or []:
+        try:
+            md_set.add(int(raw_md))
+        except (TypeError, ValueError):
+            continue
+
+    for manager in managers:
+        for player in (lineups.get(manager) or {}).get("players", []) or []:
+            for item in player.get("breakdown", []) or []:
+                md = _parse_md(item.get("label"))
+                if md is not None:
+                    md_set.add(md)
+
+    md_columns = sorted(md for md in md_set if md > 0)
+
+    rows: List[Dict[str, Any]] = []
+    for manager in managers:
+        md_scores: Dict[int, float] = {md: 0.0 for md in md_columns}
+        for player in (lineups.get(manager) or {}).get("players", []) or []:
+            for item in player.get("breakdown", []) or []:
+                md = _parse_md(item.get("label"))
+                if md is None or md not in md_scores:
+                    continue
+                try:
+                    md_scores[md] += float(item.get("value") or 0)
+                except (TypeError, ValueError):
+                    continue
+        total = sum(md_scores.values())
+        rows.append(
+            {
+                "manager": manager,
+                "by_md": [_to_display(md_scores[md]) for md in md_columns],
+                "total": _to_display(total),
+                "sort_total": total,
+            }
+        )
+
+    rows.sort(key=lambda row: row.get("sort_total", 0), reverse=True)
+    for row in rows:
+        row.pop("sort_total", None)
+
+    return {"md_columns": md_columns, "rows": rows}
+
+
 @bp.get("/ucl/results")
 def ucl_results():
     """UCL results page"""
@@ -3575,6 +3645,14 @@ def ucl_results_data():
     state = _ensure_ucl_state_shape(state)
     data = _build_ucl_results(state)
     return jsonify(data)
+
+
+@bp.get("/ucl/results/table")
+def ucl_results_table():
+    state = _ucl_state_load()
+    state = _ensure_ucl_state_shape(state)
+    table_data = _build_ucl_results_md_table(state)
+    return render_template("ucl_results_table.html", **table_data)
 
 
 @bp.route("/ucl/return_transfer_out_player", methods=["POST"])

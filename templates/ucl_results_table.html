@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}UCL Таблица по MD{% endblock %}
+{% block content %}
+<h1 class="title">UCL Таблица по MD</h1>
+<div class="table-container">
+  <table class="table is-striped is-hoverable is-fullwidth is-compact">
+    <thead>
+      <tr>
+        <th>Менеджер</th>
+        {% for md in md_columns %}
+        <th class="has-text-centered">MD{{ md }}</th>
+        {% endfor %}
+        <th class="has-text-centered">Сумма</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in rows %}
+      <tr>
+        <td><strong>{{ row.manager }}</strong></td>
+        {% for value in row.by_md %}
+        <td class="has-text-centered">{{ value }}</td>
+        {% endfor %}
+        <td class="has-text-centered"><strong>{{ row.total }}</strong></td>
+      </tr>
+      {% endfor %}
+      {% if not rows %}
+      <tr>
+        <td colspan="{{ (md_columns|length) + 2 }}" class="has-text-centered muted">Нет данных для отображения.</td>
+      </tr>
+      {% endif %}
+    </tbody>
+  </table>
+</div>
+<p class="small muted">Таблица строится из breakdown на странице UCL Результаты и уже учитывает коэффициенты по MD.</p>
+{% endblock %}
