@@ -3601,6 +3601,50 @@ def _build_ucl_results_md_table(state: Dict[str, Any]) -> Dict[str, Any]:
                 if md is not None:
                     md_set.add(md)
 
+    # For playoff matchdays (MD9+), the lineups page uses dedicated GW roster logic.
+    # Mirror that logic here so the MD table matches what users see on lineups pages.
+    rosters = state.get("rosters") or {}
+    old_transfer_history = state.get("transfer_history", [])
+    new_transfer_history = state.get("transfers", {}).get("history", [])
+
+    def _md_weight(md: int) -> float:
+        if 1 <= md <= 8:
+            return 1.0
+        if 9 <= md <= 12:
+            return 1.2
+        if 13 <= md <= 14:
+            return 1.5
+        if 15 <= md <= 16:
+            return 2.0
+        if md == 17:
+            return 3.0
+        return 1.0
+
+    md9_plus_scores: Dict[str, Dict[int, float]] = {m: {} for m in managers}
+    for md in sorted(_PLAYOFF_GW_ALLOWED):
+        md_set.add(md)
+        for manager in managers:
+            roster = _get_playoff_roster_for_gw(
+                manager,
+                md,
+                rosters,
+                old_transfer_history,
+                new_transfer_history,
+            )
+            buckets = _build_playoff_buckets(roster)
+            total_md_points = 0.0
+            for player in buckets.get("lineup", []):
+                pid_raw = player.get("playerId")
+                try:
+                    pid = int(pid_raw)
+                except (TypeError, ValueError):
+                    continue
+                stats = get_player_stats_cached(pid)
+                stat_payload = _ucl_points_for_md(stats, md) if isinstance(stats, dict) else {}
+                raw_points = _safe_int((stat_payload or {}).get("tPoints", 0))
+                total_md_points += float(raw_points) * _md_weight(md)
+            md9_plus_scores[manager][md] = round(total_md_points, 2)
+
     md_columns = sorted(md for md in md_set if md > 0)
 
     rows: List[Dict[str, Any]] = []
@@ -3615,6 +3659,12 @@ def _build_ucl_results_md_table(state: Dict[str, Any]) -> Dict[str, Any]:
                     md_scores[md] += float(item.get("value") or 0)
                 except (TypeError, ValueError):
                     continue
+
+        # Override playoff MD values with lineup-based calculation to include MD9/MD10 correctly.
+        for md, value in (md9_plus_scores.get(manager) or {}).items():
+            if md in md_scores:
+                md_scores[md] = value
+
         total = sum(md_scores.values())
         rows.append(
             {
