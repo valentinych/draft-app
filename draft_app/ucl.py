@@ -679,12 +679,51 @@ def _get_all_ucl_clubs() -> Dict[str, Dict[str, Any]]:
     return clubs_map
 
 
+def _total_points_from_popupstats(stats: Dict[str, Any]) -> int:
+    """Sum tPoints across all matchdays in a popupstats payload."""
+    if not isinstance(stats, dict):
+        return 0
+    data = stats.get("data") if isinstance(stats.get("data"), dict) else stats
+    value = data.get("value") if isinstance(data.get("value"), dict) else data
+    total = 0
+    for key in ("matchdayPoints", "points"):
+        entries = value.get(key) if isinstance(value, dict) else None
+        if isinstance(entries, list):
+            for entry in entries:
+                if isinstance(entry, dict):
+                    total += _safe_int(entry.get("tPoints", 0))
+            if total:
+                return total
+    return total
+
+
 def _ensure_fp_current_from_uefa_feed(players: List[Dict[str, Any]]) -> None:
-    """Ensure all players have fp_current set from UEFA total points."""
+    """Ensure all players have fp_current set from UEFA total points.
+
+    First uses the feed-level totPts/curGDPts, then enriches from
+    individual popupstats cached in S3 (which are updated by
+    download_ucl_player_stats.py --force).
+    """
     for player in players:
         if isinstance(player, dict):
-            # UEFA feed: totPts is season total; curGDPts is recent/current round points.
             player["fp_current"] = int(player.get("totPts", 0) or player.get("curGDPts", 0) or 0)
+
+    for player in players:
+        if not isinstance(player, dict):
+            continue
+        pid = player.get("playerId")
+        if not pid:
+            continue
+        try:
+            pid_int = int(pid)
+        except (TypeError, ValueError):
+            continue
+        stats = get_player_stats_cached(pid_int)
+        if not stats:
+            continue
+        popup_total = _total_points_from_popupstats(stats)
+        if popup_total and popup_total > int(player.get("fp_current", 0) or 0):
+            player["fp_current"] = popup_total
 
 def _ucl_points_map(raw: Any) -> Dict[int, int]:
     """Extract mapping playerId -> total points from raw JSON."""
