@@ -410,41 +410,15 @@ def _build_md11_plus_lineups_for_managers(
     state: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, List[Dict[str, Any]]]:
     lineups: Dict[str, List[Dict[str, Any]]] = {}
-    removed_pool: List[Tuple[str, Dict[str, Any]]] = []
 
     for manager in managers:
-        lineup, removed = _build_md11_plus_lineup_from_md10(
+        lineup, _removed = _build_md11_plus_lineup_from_md10(
             manager,
             rosters,
             old_transfer_history,
             new_transfer_history,
         )
         lineups[manager] = lineup
-        for player in removed:
-            removed_pool.append((manager, player))
-
-    for owner, player in removed_pool:
-        pos = _normalize_position_for_playoff(player.get("position"))
-        cap = int(_PLAYOFF_LINEUP_CAPACITY.get(pos, 0))
-        if cap <= 0:
-            continue
-        pid = int(player.get("playerId") or 0)
-        if pid <= 0:
-            continue
-
-        for target_manager in managers:
-            if target_manager == owner:
-                continue
-            target_lineup = lineups.get(target_manager, [])
-            if any(int(p.get("playerId") or 0) == pid for p in target_lineup):
-                continue
-            position_count = sum(
-                1 for p in target_lineup if _normalize_position_for_playoff(p.get("position")) == pos
-            )
-            if position_count >= cap:
-                continue
-            target_lineup.append(player)
-            break
 
     if state:
         _inject_md11_draft_picks(lineups, state)
