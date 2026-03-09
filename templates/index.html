@@ -326,6 +326,7 @@
                 FP 2025/26 <span id="fp-cur-sort-arrow">↓</span>
               </button>
             </th>
+            <th>Детали</th>
             {% endif %}
             {% if table_league == 'top4' %}
               <th class="num">
@@ -393,6 +394,9 @@
               <td class="num">
                 <span class="fp-cur-cell" data-fp="{{ (p.fp_current or 0)|int }}">{{ (p.fp_current or 0)|int }}</span>
               </td>
+              <td>
+                <button type="button" class="link ucl-details-btn" data-pid="{{ p.playerId }}" data-name="{{ p.shortName or p.fullName }}">детали</button>
+              </td>
               {% endif %}
               {% if table_league == 'top4' %}<td class="num">{{ '%.1f'|format(p.popularity) }}</td>{% endif %}
               {% if show_price %}<td class="num">{{ '%.1f'|format(p.price) }}</td>{% endif %}
@@ -448,6 +452,111 @@
     </div>
   </div>
 </div>
+{% endif %}
+
+{% if table_league == 'ucl' %}
+<!-- Modal для детальной статистики UCL -->
+<div id="ucl-detail-modal" class="modal" aria-hidden="true">
+  <div class="modal-backdrop" data-close-ucl="1"></div>
+  <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="ucl-detail-title" style="max-width:520px;">
+    <div class="modal-header">
+      <div id="ucl-detail-title" class="modal-title">Детали</div>
+      <button type="button" class="modal-close" data-close-ucl="1" aria-label="Закрыть">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div id="ucl-detail-loading" class="muted">Загрузка…</div>
+      <div id="ucl-detail-empty" class="muted" style="display:none;">Нет данных</div>
+      <div class="table-wrap" id="ucl-detail-table-wrap" style="display:none;">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>MD</th>
+              <th class="num">Мин</th>
+              <th class="num">Голы</th>
+              <th class="num">Ассисты</th>
+              <th class="num">Очки</th>
+            </tr>
+          </thead>
+          <tbody id="ucl-detail-tbody"></tbody>
+          <tfoot>
+            <tr style="font-weight:bold;">
+              <td colspan="4" style="text-align:right;">Итого</td>
+              <td class="num" id="ucl-detail-total"></td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  const modal = document.getElementById('ucl-detail-modal');
+  const loading = document.getElementById('ucl-detail-loading');
+  const empty = document.getElementById('ucl-detail-empty');
+  const wrap = document.getElementById('ucl-detail-table-wrap');
+  const tbody = document.getElementById('ucl-detail-tbody');
+  const total = document.getElementById('ucl-detail-total');
+  const title = document.getElementById('ucl-detail-title');
+
+  function openModal(pid, name){
+    title.textContent = name + ' — детали по MD';
+    loading.style.display = '';
+    empty.style.display = 'none';
+    wrap.style.display = 'none';
+    tbody.innerHTML = '';
+    modal.classList.add('open');
+    modal.setAttribute('aria-hidden','false');
+
+    fetch('/ucl/player/' + pid + '/stats')
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        loading.style.display = 'none';
+        if(!d.ok || !d.rows || d.rows.length === 0){
+          empty.style.display = '';
+          return;
+        }
+        d.rows.forEach(function(row){
+          var tr = document.createElement('tr');
+          tr.innerHTML =
+            '<td>' + (row.md || '—') + '</td>' +
+            '<td class="num">' + (row.mins || 0) + '</td>' +
+            '<td class="num">' + (row.goals || 0) + '</td>' +
+            '<td class="num">' + (row.assists || 0) + '</td>' +
+            '<td class="num">' + (row.pts || 0) + '</td>';
+          tbody.appendChild(tr);
+        });
+        total.textContent = d.total;
+        wrap.style.display = '';
+      })
+      .catch(function(){
+        loading.style.display = 'none';
+        empty.style.display = '';
+      });
+  }
+
+  function closeModal(){
+    modal.classList.remove('open');
+    modal.setAttribute('aria-hidden','true');
+  }
+
+  document.addEventListener('click', function(e){
+    var btn = e.target.closest('.ucl-details-btn');
+    if(btn){
+      e.preventDefault();
+      openModal(btn.dataset.pid, btn.dataset.name);
+      return;
+    }
+    if(e.target.closest('[data-close-ucl]')){
+      closeModal();
+    }
+  });
+
+  document.addEventListener('keydown', function(e){
+    if(e.key === 'Escape' && modal.classList.contains('open')) closeModal();
+  });
+})();
+</script>
 {% endif %}
 
 {% if table_league == 'epl' %}

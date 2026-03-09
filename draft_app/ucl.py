@@ -700,30 +700,12 @@ def _total_points_from_popupstats(stats: Dict[str, Any]) -> int:
 def _ensure_fp_current_from_uefa_feed(players: List[Dict[str, Any]]) -> None:
     """Ensure all players have fp_current set from UEFA total points.
 
-    First uses the feed-level totPts/curGDPts, then enriches from
-    individual popupstats cached in S3 (which are updated by
-    download_ucl_player_stats.py --force).
+    Uses the feed-level totPts/curGDPts only (fast, no S3 calls).
+    Per-player popupstats are loaded on demand via /ucl/player/<pid>/stats.
     """
     for player in players:
         if isinstance(player, dict):
             player["fp_current"] = int(player.get("totPts", 0) or player.get("curGDPts", 0) or 0)
-
-    for player in players:
-        if not isinstance(player, dict):
-            continue
-        pid = player.get("playerId")
-        if not pid:
-            continue
-        try:
-            pid_int = int(pid)
-        except (TypeError, ValueError):
-            continue
-        stats = get_player_stats_cached(pid_int)
-        if not stats:
-            continue
-        popup_total = _total_points_from_popupstats(stats)
-        if popup_total and popup_total > int(player.get("fp_current", 0) or 0):
-            player["fp_current"] = popup_total
 
 def _ucl_points_map(raw: Any) -> Dict[int, int]:
     """Extract mapping playerId -> total points from raw JSON."""
@@ -1784,6 +1766,36 @@ def cache_stats():
     else:
         flash(f"Запущено обновление статистики для {len(player_ids)} игроков", "info")
     return redirect(url_for("ucl.index"))
+
+
+@bp.get("/ucl/player/<int:pid>/stats")
+def player_stats_ajax(pid: int):
+    """Return per-MD points breakdown for a single player (AJAX)."""
+    stats = get_player_stats_cached(pid)
+    if not stats:
+        return jsonify({"ok": False, "error": "no data"}), 404
+
+    data = stats.get("data") if isinstance(stats.get("data"), dict) else stats
+    value = data.get("value") if isinstance(data.get("value"), dict) else data
+
+    rows: list = []
+    for key in ("matchdayPoints", "points"):
+        entries = value.get(key) if isinstance(value, dict) else None
+        if isinstance(entries, list):
+            for entry in entries:
+                if isinstance(entry, dict):
+                    rows.append({
+                        "md": entry.get("matchday") or entry.get("md") or entry.get("gameday"),
+                        "pts": entry.get("tPoints", 0),
+                        "mins": entry.get("minsPlayed", 0),
+                        "goals": entry.get("goals", 0),
+                        "assists": entry.get("assists", 0),
+                    })
+            if rows:
+                break
+
+    total = sum(r["pts"] for r in rows)
+    return jsonify({"ok": True, "rows": rows, "total": total})
 
 
 def _safe_int(val: Any) -> int:
