@@ -120,9 +120,9 @@ _MD11_PLUS_ALLOWED_CLUBS = {
 }
 _MD11_PLUS_MANUAL_REMOVALS: Dict[str, Set[str]] = {
     "Сергей": {"nikitahaikin"},
-    "Женя": {"rodrygo"},
-    "Руслан": {"leroysane", "leroysan"},
-    "Андрей": {"mohammedkudus", "judebellingham"},
+    "Женя": {"rodrygo", "nunomendes"},
+    "Руслан": {"leroysane", "leroysan", "sandrotonali"},
+    "Андрей": {"mohammedkudus", "judebellingham", "alexanderisak"},
     "Серёга Б": {"conorgallagher"},
     "Серега Б": {"conorgallagher"},
     "Макс": {"mariopasalic"},
