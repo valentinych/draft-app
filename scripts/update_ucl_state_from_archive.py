@@ -6,7 +6,7 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 STATE_PATH = BASE_DIR / "draft_state_ucl.json"
-ARCHIVE_PLAYERS_PATH = BASE_DIR / "players_80_en_1.json"
+ARCHIVE_PLAYERS_PATH = BASE_DIR / "players_80_en_10.json"
 BACKUP_DIR = BASE_DIR / "data" / "backups" / "ucl"
 BACKUP_DIR.mkdir(parents=True, exist_ok=True)
 BACKUP_PATH = BACKUP_DIR / "draft_state_ucl_archive.json"

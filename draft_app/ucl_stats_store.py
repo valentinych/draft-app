@@ -54,7 +54,7 @@ POPUP_DIR = BASE_DIR / "popupstats"
 
 TTL = None  # TTL disabled: cached payloads stay until explicitly refreshed
 FEED_TTL = None
-PLAYERS_FEED_LOCAL = BASE_DIR / "players_80_en_1.json"
+PLAYERS_FEED_LOCAL = BASE_DIR / "players_80_en_10.json"
 REQUEST_CONNECT_TIMEOUT = _env_float("UCL_STATS_CONNECT_TIMEOUT", 4.0)
 REQUEST_READ_TIMEOUT = _env_float("UCL_STATS_READ_TIMEOUT", 15.0)
 REQUEST_TIMEOUT = (REQUEST_CONNECT_TIMEOUT, REQUEST_READ_TIMEOUT)
@@ -792,7 +792,7 @@ def _save_feed_s3(payload: Dict) -> None:
 
 
 def _fetch_feed_remote() -> Optional[Dict]:
-    url = "https://gaming.uefa.com/en/uclfantasy/services/feeds/players/players_80_en_1.json"
+    url = "https://gaming.uefa.com/en/uclfantasy/services/feeds/players/players_80_en_10.json"
     return _fetch_remote(url)
 
 

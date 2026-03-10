@@ -174,7 +174,7 @@ def build_optimal_team_for_md(
         if md not in matchdays:
             continue
         
-        # Get teamId from raw players data first (from players_80_en_1.json)
+        # Get teamId from raw players data first (from players_80_en_10.json)
         # In UCL data, teamId is stored as "tId" in the raw player data
         team_id = None
         if raw_players_data:
@@ -300,7 +300,7 @@ def main():
     # Load players
     raw_players = _json_load(UCL_PLAYERS)
     if not raw_players:
-        print("❌ Ошибка: не удалось загрузить players_80_en_1.json")
+        print("❌ Ошибка: не удалось загрузить players_80_en_10.json")
         print(f"   Путь: {UCL_PLAYERS}")
         return
     

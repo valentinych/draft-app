@@ -43,7 +43,7 @@ def main():
     # Load players
     raw_players = _json_load(UCL_PLAYERS)
     if not raw_players:
-        print("❌ Ошибка: не удалось загрузить players_80_en_1.json")
+        print("❌ Ошибка: не удалось загрузить players_80_en_10.json")
         print(f"   Путь: {UCL_PLAYERS}")
         return
     

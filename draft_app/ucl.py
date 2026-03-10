@@ -45,7 +45,7 @@ _STATS_REFRESH_LOCK = threading.Lock()
 # --- файлы данных (подгони пути под свой проект при необходимости) ---
 BASE_DIR = Path(__file__).resolve().parent.parent
 UCL_STATE = BASE_DIR / "draft_state_ucl.json"
-UCL_PLAYERS = BASE_DIR / "players_80_en_1.json"  # актуальный список игроков
+UCL_PLAYERS = BASE_DIR / "players_80_en_10.json"  # актуальный список игроков
 UCL_POINTS = BASE_DIR / "players_70_en_3.json"   # очки прошлого сезона
 
 # --- параметры UCL драфта ---

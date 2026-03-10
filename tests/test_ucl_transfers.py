@@ -34,7 +34,7 @@ def isolated_ucl_state(tmp_path, monkeypatch):
     top4_state_path = tmp_path / "draft_state_top4.json"
 
     monkeypatch.setattr(ucl_module, "UCL_STATE", ucl_state_path)
-    monkeypatch.setattr(ucl_module, "UCL_PLAYERS", tmp_path / "players_80_en_1.json")
+    monkeypatch.setattr(ucl_module, "UCL_PLAYERS", tmp_path / "players_80_en_10.json")
 
     def _create_transfer_system(draft_type: str):
         draft_type_upper = (draft_type or "").upper()
@@ -67,7 +67,7 @@ def isolated_ucl_state(tmp_path, monkeypatch):
             "price": 8,
         },
     ]
-    (tmp_path / "players_80_en_1.json").write_text(
+    (tmp_path / "players_80_en_10.json").write_text(
         json.dumps(players_payload, ensure_ascii=False),
         encoding="utf-8",
     )
