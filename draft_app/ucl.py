@@ -122,7 +122,7 @@ _MD11_PLUS_MANUAL_REMOVALS: Dict[str, Set[str]] = {
     "Сергей": {"nikitahaikin"},
     "Женя": {"rodrygo", "nunomendes"},
     "Руслан": {"leroysane", "leroysan", "sandrotonali"},
-    "Андрей": {"mohammedkudus", "judebellingham", "alexanderisak", "pedrogonalves"},
+    "Андрей": {"mohammedkudus", "judebellingham", "alexanderisak", "pedrogonalves", "daniolmo"},
     "Серёга Б": {"conorgallagher"},
     "Серега Б": {"conorgallagher"},
     "Макс": {"mariopasalic", "moisescaicedo"},
