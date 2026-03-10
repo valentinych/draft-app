@@ -103,6 +103,7 @@ _MD11_PLUS_MANUAL_REMOVALS: Dict[str, Set[str]] = {
     "Серега Б": {"conorgallagher"},
     "Макс": {"mariopasalic"},
     "Ксана": {"janisblaswich"},
+    "Саша": {"nickwoltemade"},
 }
 
 _PLAYOFF_BENCH_CLUB_ALIASES = {
