@@ -70,13 +70,37 @@ _MD9_MANUAL_ADDITIONS: Dict[str, List[Dict[str, Any]]] = {
     "Макс": [{"playerId": 250101284, "name": "Federico Valverde", "club": "Real Madrid", "position": "MID"}],
 }
 _MD10_MANUAL_ADDITIONS: Dict[str, List[Dict[str, Any]]] = {
-    "Саша": [{"playerId": 250156423, "name": "Daniel Svensson", "club": "B. Dortmund", "position": "DEF"}],
-    "Сергей": [{"playerId": 250153945, "name": "Alvaro Carreras", "club": "Real Madrid", "position": "DEF"}],
-    "Андрей": [{"playerId": 98023, "name": "Henrikh Mkhitaryan", "club": "Inter", "position": "MID"}],
-    "Серёга Б": [{"playerId": 250091165, "name": "Noa Lang", "club": "Galatasaray", "position": "MID"}],
-    "Ксана": [{"playerId": 250051291, "name": "Janis Blaswich", "club": "Leverkusen", "position": "GK"}],
-    "Руслан": [{"playerId": 250085369, "name": "Manuel Akanji", "club": "Inter", "position": "DEF"}],
-    "Макс": [{"playerId": 250042631, "name": "Mario Pasalic", "club": "Atalanta", "position": "MID"}],
+    "Саша": [
+        {"playerId": 250156423, "name": "Daniel Svensson", "club": "B. Dortmund", "position": "DEF"},
+        {"playerId": 250064064, "name": "Marquinhos", "club": "Paris", "position": "DEF"},
+    ],
+    "Сергей": [
+        {"playerId": 250153945, "name": "Alvaro Carreras", "club": "Real Madrid", "position": "DEF"},
+        {"playerId": 250136465, "name": "Nuno Mendes", "club": "Paris", "position": "DEF"},
+    ],
+    "Андрей": [
+        {"playerId": 98023, "name": "Henrikh Mkhitaryan", "club": "Inter", "position": "MID"},
+        {"playerId": 250019498, "name": "Antoine Griezmann", "club": "Atleti", "position": "FWD"},
+    ],
+    "Серёга Б": [
+        {"playerId": 250091165, "name": "Noa Lang", "club": "Galatasaray", "position": "MID"},
+        {"playerId": 250146919, "name": "Luis Henrique", "club": "Inter", "position": "MID"},
+    ],
+    "Ксана": [
+        {"playerId": 250051291, "name": "Janis Blaswich", "club": "Leverkusen", "position": "GK"},
+        {"playerId": 250174126, "name": "Willian Pacho", "club": "Paris", "position": "DEF"},
+    ],
+    "Руслан": [
+        {"playerId": 250085369, "name": "Manuel Akanji", "club": "Inter", "position": "DEF"},
+        {"playerId": 250117809, "name": "Sandro Tonali", "club": "Newcastle", "position": "MID"},
+    ],
+    "Макс": [
+        {"playerId": 250042631, "name": "Mario Pasalic", "club": "Atalanta", "position": "MID"},
+        {"playerId": 250101284, "name": "Federico Valverde", "club": "Real Madrid", "position": "MID"},
+    ],
+    "Женя": [
+        {"playerId": 250112224, "name": "Felix Nmecha", "club": "B. Dortmund", "position": "MID"},
+    ],
 }
 _MD11_PLUS_ALLOWED_CLUBS = {
     "galatasaray",
