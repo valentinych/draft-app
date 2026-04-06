@@ -51,7 +51,7 @@ UCL_POINTS = BASE_DIR / "players_70_en_3.json"   # очки прошлого с�
 # --- параметры UCL драфта ---
 UCL_PARTICIPANTS = ["Ксана", "Андрей", "Саша", "Руслан", "Женя", "Макс", "Серёга Б", "Сергей"]
 UCL_ROUNDS = 25
-UCL_TOTAL_MATCHDAYS = 8
+UCL_TOTAL_MATCHDAYS = 17
 
 _PLAYOFF_GW_ALLOWED = {9, 10}
 _PLAYOFF_POSITION_ORDER = {"GK": 0, "DEF": 1, "MID": 2, "FWD": 3}
@@ -3352,9 +3352,54 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
         
         return current_roster
     
+    md11_plus_lineups = _build_md11_plus_lineups_for_managers(
+        managers,
+        rosters,
+        old_transfer_history,
+        new_transfer_history,
+        state,
+    )
+
     for manager in managers:
         # Get all players who were ever in this manager's roster
         all_manager_players = get_all_manager_players(manager)
+
+        # Extend active_mds for playoff (MD9-10) players
+        for playoff_gw in sorted(_PLAYOFF_GW_ALLOWED):
+            playoff_roster = _get_playoff_roster_for_gw(
+                manager, playoff_gw, rosters, old_transfer_history, new_transfer_history,
+            )
+            playoff_buckets = _build_playoff_buckets(playoff_roster)
+            for po_player in playoff_buckets.get("lineup", []):
+                po_pid = po_player.get("playerId") or po_player.get("id")
+                if po_pid is None:
+                    continue
+                key = str(int(po_pid))
+                if key in all_manager_players:
+                    all_manager_players[key]["active_mds"].add(playoff_gw)
+                else:
+                    all_manager_players[key] = {
+                        "player": po_player,
+                        "active_mds": {playoff_gw},
+                        "transfer_status": "current",
+                    }
+
+        # Extend active_mds for MD11+ players
+        md11_plus_mds = set(range(11, UCL_TOTAL_MATCHDAYS + 1))
+        for md11_player in md11_plus_lineups.get(manager, []):
+            md11_pid = md11_player.get("playerId") or md11_player.get("id")
+            if md11_pid is None:
+                continue
+            key = str(int(md11_pid))
+            if key in all_manager_players:
+                all_manager_players[key]["active_mds"] |= md11_plus_mds
+            else:
+                all_manager_players[key] = {
+                    "player": md11_player,
+                    "active_mds": set(md11_plus_mds),
+                    "transfer_status": "current",
+                }
+
         lineup = []
         total = 0
         
