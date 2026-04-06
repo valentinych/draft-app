@@ -29,6 +29,7 @@ from .ucl_stats_store import (
     get_player_stats,
     get_player_stats_cached,
     refresh_players_batch,
+    refresh_players_feed,
 )
 
 bp = Blueprint("ucl", __name__)
@@ -931,7 +932,10 @@ def _start_stats_refresh_job(app, player_ids: List[int]) -> bool:
 
 def _stats_refresh_worker(app, player_ids: List[int]) -> None:
     try:
+        # Refresh per-player popup stats
         summary = refresh_players_batch(player_ids)
+        # Also refresh the main players feed so totPts (FP 2025/26 column) is up-to-date
+        refresh_players_feed()
         error = None
         app.logger.info(
             "[UCL] popup stats refresh finished: %s total, %s failures",

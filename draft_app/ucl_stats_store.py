@@ -833,6 +833,21 @@ def get_players_feed() -> Dict:
     return (cached or {}).get("data", {})
 
 
+def refresh_players_feed() -> bool:
+    """Force-refresh the main players feed from UEFA and update caches."""
+    remote = _fetch_feed_remote()
+    if remote is None:
+        return False
+    payload = {
+        "cached_at": datetime.utcnow().isoformat(),
+        "data": remote,
+    }
+    _save_feed_local(payload)
+    _save_feed_s3(payload)
+    print("[ucl:feed] players feed refreshed", flush=True)
+    return True
+
+
 def get_current_matchday() -> Optional[int]:
     feed = get_players_feed()
     player_list = []
