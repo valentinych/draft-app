@@ -1459,8 +1459,25 @@ def index():
     state = _ensure_turn_started(state)
     _flash_stats_refresh_result()
 
-    # Hide already picked players
+    # Hide already picked players (main rosters + picks)
     picked_ids = _picked_ids_from_state(state)
+
+    # Also hide players who are in any manager's MD11+ lineup
+    rosters = state.get("rosters") or {}
+    managers = [m for m in UCL_PARTICIPANTS if m in rosters]
+    if not managers:
+        managers = sorted(rosters.keys())
+    old_th = state.get("transfer_history", [])
+    new_th = state.get("transfers", {}).get("history", [])
+    md11_lineups = _build_md11_plus_lineups_for_managers(
+        managers, rosters, old_th, new_th, state,
+    )
+    for lineup in md11_lineups.values():
+        for p in lineup:
+            pid = p.get("playerId") or p.get("id")
+            if pid is not None:
+                picked_ids.add(str(int(pid)))
+
     players = [p for p in players if str(p.get("playerId")) not in picked_ids]
 
     # Show only QF clubs on the main page
@@ -1518,6 +1535,14 @@ def index():
             clubs = _uniq_sorted([p.get("clubName") for p in _players_from_ucl(raw)])
             positions = _uniq_sorted([p.get("position") for p in _players_from_ucl(raw)])
             picked_ids = _picked_ids_from_state(state)
+            _md11_lin = _build_md11_plus_lineups_for_managers(
+                managers, rosters, old_th, new_th, state,
+            )
+            for _lu in _md11_lin.values():
+                for _pl in _lu:
+                    _pid = _pl.get("playerId") or _pl.get("id")
+                    if _pid is not None:
+                        picked_ids.add(str(int(_pid)))
             players = [p for p in _players_from_ucl(raw) if str(p.get("playerId")) not in picked_ids]
             filtered = _apply_filters(players, club_filter, pos_filter)
             _annotate_can_pick_ucl(filtered, state, current_user)
@@ -1988,26 +2013,27 @@ def player_stats_ajax(pid: int):
         if isinstance(entry, dict) and entry.get("mdId"):
             stats_by_md[entry["mdId"]] = entry
 
-    rows: list = []
+    # Prefer the array with the most entries so knockout-round MDs are included
+    best_entries: list = []
     for key in ("matchdayPoints", "points"):
         entries = value.get(key)
-        if not isinstance(entries, list):
+        if isinstance(entries, list) and len(entries) > len(best_entries):
+            best_entries = entries
+
+    rows: list = []
+    for entry in best_entries:
+        if not isinstance(entry, dict):
             continue
-        for entry in entries:
-            if not isinstance(entry, dict):
-                continue
-            md = entry.get("mdId")
-            st = stats_by_md.get(md, {})
-            rows.append({
-                "md": md,
-                "pts": entry.get("tPoints", 0),
-                "mins": st.get("oF", 0),
-                "goals": st.get("gS", 0),
-                "assists": st.get("gA", 0),
-                "cs": st.get("cS", 0),
-            })
-        if rows:
-            break
+        md = entry.get("mdId")
+        st = stats_by_md.get(md, {})
+        rows.append({
+            "md": md,
+            "pts": entry.get("tPoints", 0),
+            "mins": st.get("oF", 0),
+            "goals": st.get("gS", 0),
+            "assists": st.get("gA", 0),
+            "cs": st.get("cS", 0),
+        })
 
     total = sum(r["pts"] for r in rows)
     return jsonify({"ok": True, "rows": rows, "total": total})
@@ -2982,6 +3008,18 @@ def undo_last_pick():
     raw = _json_load(UCL_PLAYERS) or []
     players = _players_from_ucl(raw)
     picked_ids = _picked_ids_from_state(state)
+    _undo_rosters = state.get("rosters") or {}
+    _undo_mgrs = [m for m in UCL_PARTICIPANTS if m in _undo_rosters] or sorted(_undo_rosters.keys())
+    _undo_old_th = state.get("transfer_history", [])
+    _undo_new_th = state.get("transfers", {}).get("history", [])
+    _undo_md11 = _build_md11_plus_lineups_for_managers(
+        _undo_mgrs, _undo_rosters, _undo_old_th, _undo_new_th, state,
+    )
+    for _lu in _undo_md11.values():
+        for _pl in _lu:
+            _pid = _pl.get("playerId") or _pl.get("id")
+            if _pid is not None:
+                picked_ids.add(str(int(_pid)))
     players = [p for p in players if str(p.get("playerId")) not in picked_ids]
     clubs = _uniq_sorted([p.get("clubName") for p in players])
     positions = _uniq_sorted([p.get("position") for p in players])
