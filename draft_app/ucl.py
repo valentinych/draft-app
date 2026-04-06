@@ -118,6 +118,17 @@ _MD11_PLUS_ALLOWED_CLUBS = {
     "parissaintgermain",
     "realmadrid",
 }
+_MD13_PLUS_ALLOWED_CLUBS = {
+    "arsenal",
+    "sportingcp", "sporting",
+    "bayernmunchen", "bayernmnchen", "bayern", "bayernmunich",
+    "realmadrid",
+    "barcelona", "fcbarcelona",
+    "atleticomadrid", "atleti",
+    "paris", "parissaintgermain", "psg",
+    "liverpool",
+}
+
 _MD11_PLUS_MANUAL_REMOVALS: Dict[str, Set[str]] = {
     "Сергей": {"nikitahaikin"},
     "Женя": {"rodrygo", "nunomendes"},
@@ -457,6 +468,24 @@ def _build_md11_plus_lineups_for_managers(
         )
 
     return lineups
+
+
+def _allowed_clubs_for_md(md: int) -> Optional[Set[str]]:
+    """Return the allowed-clubs filter for a given matchday, or None if no filtering."""
+    if md >= 13:
+        return _MD13_PLUS_ALLOWED_CLUBS
+    return None
+
+
+def _filter_lineup_by_clubs(
+    lineup: List[Dict[str, Any]],
+    allowed: Set[str],
+) -> List[Dict[str, Any]]:
+    """Keep only players whose club normalises to one of *allowed*."""
+    return [
+        p for p in lineup
+        if _normalize_club_alias_key(p.get("club") or p.get("clubName") or "") in allowed
+    ]
 
 
 _MD11_DRAFT_ORDER = ["Саша", "Женя", "Серёга Б", "Сергей", "Андрей", "Руслан", "Ксана", "Макс"]
@@ -2446,6 +2475,9 @@ def ucl_lineups_data():
         if use_playoff_layout:
             if md >= 11:
                 md11_plus_lineup = list(md11_plus_lineups_by_manager.get(manager, []))
+                md_club_filter = _allowed_clubs_for_md(md)
+                if md_club_filter:
+                    md11_plus_lineup = _filter_lineup_by_clubs(md11_plus_lineup, md_club_filter)
                 buckets = {"lineup": md11_plus_lineup, "bench": [], "eliminated": []}
                 roster_for_clubs = md11_plus_lineup
             else:
@@ -3384,21 +3416,28 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
                         "transfer_status": "current",
                     }
 
-        # Extend active_mds for MD11+ players
-        md11_plus_mds = set(range(11, UCL_TOTAL_MATCHDAYS + 1))
-        for md11_player in md11_plus_lineups.get(manager, []):
-            md11_pid = md11_player.get("playerId") or md11_player.get("id")
-            if md11_pid is None:
-                continue
-            key = str(int(md11_pid))
-            if key in all_manager_players:
-                all_manager_players[key]["active_mds"] |= md11_plus_mds
-            else:
-                all_manager_players[key] = {
-                    "player": md11_player,
-                    "active_mds": set(md11_plus_mds),
-                    "transfer_status": "current",
-                }
+        # Extend active_mds for MD11+ players, respecting per-MD club filters
+        md11_full_lineup = md11_plus_lineups.get(manager, [])
+        for target_md in range(11, UCL_TOTAL_MATCHDAYS + 1):
+            md_club_filter = _allowed_clubs_for_md(target_md)
+            md_lineup = (
+                _filter_lineup_by_clubs(md11_full_lineup, md_club_filter)
+                if md_club_filter
+                else md11_full_lineup
+            )
+            for md11_player in md_lineup:
+                md11_pid = md11_player.get("playerId") or md11_player.get("id")
+                if md11_pid is None:
+                    continue
+                key = str(int(md11_pid))
+                if key in all_manager_players:
+                    all_manager_players[key]["active_mds"].add(target_md)
+                else:
+                    all_manager_players[key] = {
+                        "player": md11_player,
+                        "active_mds": {target_md},
+                        "transfer_status": "current",
+                    }
 
         lineup = []
         total = 0
@@ -4088,8 +4127,10 @@ def _build_ucl_results_md_table(state: Dict[str, Any]) -> Dict[str, Any]:
     for md in range(11, 18):
         md_set.add(md)
         md11_lineups = _get_md11_lineups()
+        md_club_filter = _allowed_clubs_for_md(md)
         for manager in managers:
-            lineup = md11_lineups.get(manager, [])
+            raw_lineup = md11_lineups.get(manager, [])
+            lineup = _filter_lineup_by_clubs(raw_lineup, md_club_filter) if md_club_filter else raw_lineup
             total_md_points = 0.0
             total_md_raw_points = 0.0
             for player in lineup:
