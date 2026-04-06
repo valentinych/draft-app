@@ -1463,6 +1463,12 @@ def index():
     picked_ids = _picked_ids_from_state(state)
     players = [p for p in players if str(p.get("playerId")) not in picked_ids]
 
+    # Show only QF clubs on the main page
+    players = [
+        p for p in players
+        if _normalize_club_alias_key(p.get("clubName") or "") in _MD13_PLUS_ALLOWED_CLUBS
+    ]
+
     # Handle POST (pick)
     if request.method == "POST":
         current_user = session.get("user_name")
