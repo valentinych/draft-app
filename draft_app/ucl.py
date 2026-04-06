@@ -877,6 +877,20 @@ def _collect_player_ids_for_stats(state: Dict[str, Any]) -> List[int]:
         except Exception:
             continue
 
+    # Also include QF-club players from the feed so unpicked players get refreshed too
+    raw = get_players_feed() or _json_load(UCL_PLAYERS) or []
+    for p in _players_from_ucl(raw):
+        club_key = _normalize_club_alias_key(p.get("clubName") or "")
+        if club_key not in _MD13_PLUS_ALLOWED_CLUBS:
+            continue
+        pid = p.get("playerId")
+        if pid is None:
+            continue
+        try:
+            seen.add(int(pid))
+        except Exception:
+            continue
+
     return sorted(seen)
 
 
