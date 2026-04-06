@@ -492,6 +492,9 @@ def _filter_lineup_by_clubs(
 _MD11_DRAFT_ORDER = ["Саша", "Женя", "Серёга Б", "Сергей", "Андрей", "Руслан", "Ксана", "Макс"]
 _MD11_DRAFT_TOTAL_ROUNDS = 2
 
+_MD13_DRAFT_ORDER = ["Серёга Б", "Женя", "Сергей", "Саша", "Андрей", "Руслан", "Ксана", "Макс"]
+_MD13_DRAFT_TOTAL_ROUNDS = 2
+
 
 def _inject_md11_draft_picks(lineups: Dict[str, List[Dict[str, Any]]], state: Dict[str, Any]) -> None:
     """Append players picked in the MD11+ draft to manager lineups."""
@@ -552,6 +555,63 @@ def _md11_draft_all_picked_ids(state: Dict[str, Any],
     ids: Set[str] = set()
     for lineup in lineups.values():
         for p in lineup:
+            pid = p.get("playerId")
+            if pid:
+                ids.add(str(pid))
+    return ids
+
+
+# --------------- MD13+ draft helpers ---------------
+
+def _inject_md13_draft_picks(lineups: Dict[str, List[Dict[str, Any]]], state: Dict[str, Any]) -> None:
+    """Append players picked in the MD13+ draft to manager lineups."""
+    draft = state.get("md13_draft")
+    if not draft or not isinstance(draft, dict):
+        return
+    for pick in draft.get("picks", []):
+        manager = pick.get("manager")
+        if not manager:
+            continue
+        lineups.setdefault(manager, [])
+        pid = int(pick.get("playerId") or 0)
+        if pid <= 0:
+            continue
+        existing = lineups.get(manager, [])
+        if any(int(p.get("playerId") or 0) == pid for p in existing):
+            continue
+        existing.append({
+            "playerId": pid,
+            "name": pick.get("name", ""),
+            "club": pick.get("club", ""),
+            "position": pick.get("position", ""),
+        })
+
+
+def _md13_draft_on_clock(state: Dict[str, Any]) -> Optional[str]:
+    """Return the manager who is currently on clock for the MD13 draft, or None."""
+    draft = state.get("md13_draft")
+    if not draft or not draft.get("active"):
+        return None
+    order = draft.get("order", _MD13_DRAFT_ORDER)
+    idx = draft.get("current_pick_index", 0)
+    total = len(order) * draft.get("total_rounds", _MD13_DRAFT_TOTAL_ROUNDS)
+    if idx >= total:
+        return None
+    return order[idx % len(order)]
+
+
+def _md13_draft_all_picked_ids(state: Dict[str, Any],
+                                rosters: Dict[str, Any],
+                                old_th: List, new_th: List) -> Set[str]:
+    """Return set of all player IDs already in any manager's MD13+ lineup."""
+    managers = list(rosters.keys())
+    lineups = _build_md11_plus_lineups_for_managers(managers, rosters, old_th, new_th, state)
+    md_club_filter = _allowed_clubs_for_md(13)
+    ids: Set[str] = set()
+    for mgr, lineup in lineups.items():
+        filtered = _filter_lineup_by_clubs(lineup, md_club_filter) if md_club_filter else lineup
+        _inject_md13_draft_picks({mgr: filtered}, state)
+        for p in filtered:
             pid = p.get("playerId")
             if pid:
                 ids.add(str(pid))
@@ -1496,6 +1556,12 @@ def index():
             if pid is not None:
                 picked_ids.add(str(int(pid)))
 
+    # Also hide players picked in MD13+ draft
+    for pick in (state.get("md13_draft") or {}).get("picks", []):
+        pid = pick.get("playerId")
+        if pid is not None:
+            picked_ids.add(str(int(pid)))
+
     players = [p for p in players if str(p.get("playerId")) not in picked_ids]
 
     # Show only QF clubs on the main page
@@ -1620,6 +1686,38 @@ def index():
                                 next_mgr = _md11_draft_on_clock(state)
                                 flash(f"{on_clock_mgr} выбрал {player.get('shortName') or player.get('fullName')}. Следующий: {next_mgr}", "info")
                             _ucl_state_save(state)
+                    return redirect(url_for("ucl.index"))
+
+        # --- MD13+ draft pick handling ---
+        md13_draft = state.get("md13_draft")
+        if md13_draft and md13_draft.get("active"):
+            on_clock_mgr = _md13_draft_on_clock(state)
+            acting_as = current_user
+            if godmode and request.form.get("as_user"):
+                acting_as = request.form.get("as_user", "").strip()
+            if on_clock_mgr and (acting_as == on_clock_mgr or godmode):
+                pid = request.form.get("player_id")
+                if pid:
+                    pidx = {str(p["playerId"]): p for p in _players_from_ucl(raw)}
+                    player = pidx.get(pid)
+                    if player:
+                        md13_draft.setdefault("picks", []).append({
+                            "round": (md13_draft["current_pick_index"] // len(md13_draft["order"])) + 1,
+                            "manager": on_clock_mgr,
+                            "playerId": int(pid),
+                            "name": player.get("shortName") or player.get("fullName") or "",
+                            "club": player.get("clubName") or "",
+                            "position": _normalize_position_for_playoff(player.get("position")),
+                        })
+                        md13_draft["current_pick_index"] = md13_draft.get("current_pick_index", 0) + 1
+                        total = len(md13_draft["order"]) * md13_draft.get("total_rounds", _MD13_DRAFT_TOTAL_ROUNDS)
+                        if md13_draft["current_pick_index"] >= total:
+                            md13_draft["active"] = False
+                            flash("MD13+ драфт завершён!", "success")
+                        else:
+                            next_mgr = _md13_draft_on_clock(state)
+                            flash(f"{on_clock_mgr} выбрал {player.get('shortName') or player.get('fullName')}. Следующий: {next_mgr}", "info")
+                        _ucl_state_save(state)
                     return redirect(url_for("ucl.index"))
 
         # Check if transfer window is active and handle transfers
@@ -1942,6 +2040,18 @@ def index():
     md11_draft_round = ((md11_draft.get("current_pick_index", 0) // len(md11_draft.get("order", _MD11_DRAFT_ORDER))) + 1) if md11_draft_active else 0
     md11_draft_picks_list = md11_draft.get("picks", [])
 
+    # --- MD13+ draft state for template ---
+    md13_draft = state.get("md13_draft") or {}
+    md13_draft_active = bool(md13_draft.get("active"))
+    md13_draft_manager = _md13_draft_on_clock(state) if md13_draft_active else None
+    md13_draft_round = ((md13_draft.get("current_pick_index", 0) // len(md13_draft.get("order", _MD13_DRAFT_ORDER))) + 1) if md13_draft_active else 0
+    md13_draft_picks_list = md13_draft.get("picks", [])
+
+    # Determine which draft is currently active (MD13 takes priority over MD11)
+    active_draft_manager = md13_draft_manager or md11_draft_manager
+    active_draft_round = md13_draft_round or md11_draft_round
+    any_draft_active = md13_draft_active or md11_draft_active
+
     if md11_draft_active and md11_draft_manager:
         rosters_for_filter = state.get("rosters") or {}
         old_th = state.get("transfer_history", [])
@@ -1966,6 +2076,10 @@ def index():
             cap = int(_PLAYOFF_LINEUP_CAPACITY.get(pos, 0))
             p["canPick"] = mgr_counts.get(pos, 0) < cap
 
+    if md13_draft_active and md13_draft_manager:
+        for p in filtered:
+            p["canPick"] = True
+
     return render_template(
         "index.html",
         draft_title=draft_title,
@@ -1976,17 +2090,17 @@ def index():
         pos_filter=pos_filter,
         table_league="ucl",
         current_user=current_user_name,
-        next_user=md11_draft_manager or next_user,
-        next_round=md11_draft_round or next_round,
-        draft_completed=draft_completed and not md11_draft_active,
+        next_user=active_draft_manager or next_user,
+        next_round=active_draft_round or next_round,
+        draft_completed=draft_completed and not any_draft_active,
         status_url=url_for("ucl.status"),
         undo_url=url_for("ucl.undo_last_pick"),
         managers=sorted((state.get("rosters") or {}).keys()),
         stats_refresh_running=_stats_refresh_running(),
         # Transfer window info
-        transfer_window_active=transfer_window_active or md11_draft_active,
-        current_transfer_manager=md11_draft_manager or current_transfer_manager,
-        current_transfer_phase=transfer_system.get_current_transfer_phase(transfer_state) if 'transfer_system' in locals() and not md11_draft_active else None,
+        transfer_window_active=transfer_window_active or any_draft_active,
+        current_transfer_manager=active_draft_manager or current_transfer_manager,
+        current_transfer_phase=transfer_system.get_current_transfer_phase(transfer_state) if 'transfer_system' in locals() and not any_draft_active else None,
         user_roster=user_roster,
         md11_draft_active=md11_draft_active,
         md11_draft_manager=md11_draft_manager,
@@ -2528,6 +2642,8 @@ def ucl_lineups_data():
                 md_club_filter = _allowed_clubs_for_md(md)
                 if md_club_filter:
                     md11_plus_lineup = _filter_lineup_by_clubs(md11_plus_lineup, md_club_filter)
+                if md >= 13:
+                    _inject_md13_draft_picks({manager: md11_plus_lineup}, state)
                 buckets = {"lineup": md11_plus_lineup, "bench": [], "eliminated": []}
                 roster_for_clubs = md11_plus_lineup
             else:
@@ -3487,6 +3603,9 @@ def _build_ucl_results(state: Dict[str, Any]) -> Dict[str, Any]:
                 if md_club_filter
                 else md11_full_lineup
             )
+            if target_md >= 13:
+                md_lineup = list(md_lineup)
+                _inject_md13_draft_picks({manager: md_lineup}, state)
             for md11_player in md_lineup:
                 md11_pid = md11_player.get("playerId") or md11_player.get("id")
                 if md11_pid is None:
@@ -4193,6 +4312,9 @@ def _build_ucl_results_md_table(state: Dict[str, Any]) -> Dict[str, Any]:
         for manager in managers:
             raw_lineup = md11_lineups.get(manager, [])
             lineup = _filter_lineup_by_clubs(raw_lineup, md_club_filter) if md_club_filter else raw_lineup
+            if md >= 13:
+                lineup = list(lineup)
+                _inject_md13_draft_picks({manager: lineup}, state)
             total_md_points = 0.0
             total_md_raw_points = 0.0
             for player in lineup:
@@ -4497,6 +4619,54 @@ def undo_md11_draft_pick():
     draft["active"] = True
     _ucl_state_save(state)
     flash(f"Отменён пик: {removed.get('name')} ({removed.get('manager')})", "info")
+    return redirect(url_for("ucl.index"))
+
+
+@bp.route("/ucl/open_md13_draft", methods=["POST"])
+def open_md13_draft():
+    """Start the MD13+ add-only draft (godmode only)."""
+    if not session.get("godmode"):
+        abort(403)
+    state = _ucl_state_load()
+    state = _ensure_ucl_state_shape(state)
+    order = list(_MD13_DRAFT_ORDER)
+    total_rounds = _MD13_DRAFT_TOTAL_ROUNDS
+    state["md13_draft"] = {
+        "active": True,
+        "order": order,
+        "current_pick_index": 0,
+        "total_rounds": total_rounds,
+        "picks": [],
+    }
+    _ucl_state_save(state)
+    flash(
+        "MD13+ драфт открыт! Очередь: " + " → ".join(order)
+        + f" ({total_rounds} круга, {len(order) * total_rounds} пиков)",
+        "success",
+    )
+    return redirect(url_for("ucl.index"))
+
+
+@bp.route("/ucl/undo_md13_draft_pick", methods=["POST"])
+def undo_md13_draft_pick():
+    """Undo last MD13+ draft pick (godmode only)."""
+    if not session.get("godmode"):
+        abort(403)
+    state = _ucl_state_load()
+    state = _ensure_ucl_state_shape(state)
+    draft = state.get("md13_draft")
+    if not draft:
+        flash("Нет активного MD13+ драфта", "warning")
+        return redirect(url_for("ucl.index"))
+    picks = draft.get("picks", [])
+    if not picks:
+        flash("Нет пиков для отмены", "warning")
+        return redirect(url_for("ucl.index"))
+    removed = picks.pop()
+    draft["current_pick_index"] = max(0, draft.get("current_pick_index", 1) - 1)
+    draft["active"] = True
+    _ucl_state_save(state)
+    flash(f"Отменён пик MD13: {removed.get('name')} ({removed.get('manager')})", "info")
     return redirect(url_for("ucl.index"))
 
 
