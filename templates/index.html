@@ -257,8 +257,8 @@
   </div>
   {% endif %}
 
-  {# Transfer interface for UCL when window is active #}
-  {% if table_league == 'ucl' and transfer_window_active and not md11_draft_active and current_user == current_transfer_manager %}
+  {# Transfer interface for UCL when window is active (not during any supplementary draft) #}
+  {% if table_league == 'ucl' and transfer_window_active and not any_supp_draft_active|default(false) and current_user == current_transfer_manager %}
     {% if current_transfer_phase == 'out' %}
     <div class="card" style="margin:10px 0; border: 2px solid #ff6b35;">
       <div class="card-title" style="background: #ff6b35; color: white;">
@@ -290,7 +290,7 @@
       </div>
     </div>
     {% endif %}
-  {% elif table_league == 'ucl' and transfer_window_active and not md11_draft_active and current_transfer_manager %}
+  {% elif table_league == 'ucl' and transfer_window_active and not any_supp_draft_active|default(false) and current_transfer_manager %}
   <div class="card" style="margin:10px 0; border: 2px solid #74b9ff;">
     <div class="card-title" style="background: #74b9ff; color: white;">
       🕒 Трансферное окно активно
@@ -386,7 +386,7 @@
         </thead>
         <tbody>
           {% for p in players %}
-            {% set disabled = (draft_completed or (not p.canPick and not session.get('godmode'))) and not (table_league == 'top4' and transfer_window_active and is_current_manager) and not (md11_draft_active|default(false) and (session.get('godmode') or current_user == md11_draft_manager|default(''))) %}
+            {% set disabled = (draft_completed or (not p.canPick and not session.get('godmode'))) and not (table_league == 'top4' and transfer_window_active and is_current_manager) and not (md11_draft_active|default(false) and (session.get('godmode') or current_user == md11_draft_manager|default(''))) and not (md13_draft_active|default(false) and (session.get('godmode') or current_user == next_user|default(''))) %}
             <tr data-player-id="{{ p.playerId }}" data-can-pick="{{ '1' if p.canPick else '0' }}"
                 data-status="{{ p.status or '' }}" data-chance="{{ p.chance or 0 }}"
                 data-news="{{ (p.news or '')|lower|e }}">
@@ -613,8 +613,8 @@
 {% endif %}
 <script src="{{ url_for('static', filename='wishlist.js') }}"></script>
 
-{# Transfer functionality for UCL #}
-{% if table_league == 'ucl' and transfer_window_active %}
+{# Transfer functionality for UCL (disabled during supplementary drafts) #}
+{% if table_league == 'ucl' and transfer_window_active and not any_supp_draft_active|default(false) %}
 <script>
 // Transfer functions for UCL main page
 function selectPlayerForTransferOut(playerId, playerName, playerClub, playerPosition) {

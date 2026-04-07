@@ -2111,6 +2111,8 @@ def index():
         md11_draft_manager=md11_draft_manager,
         md11_draft_round=md11_draft_round,
         md11_draft_picks=md11_draft_picks_list,
+        md13_draft_active=md13_draft_active,
+        any_supp_draft_active=any_draft_active,
     )
 
 
