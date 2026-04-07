@@ -1979,12 +1979,15 @@ def index():
         current_transfer_manager = None
         user_roster = []
 
-    # Check if MD11+ draft is active — it takes priority over the transfer window
+    # Check if any supplementary draft is active — it takes priority over the transfer window
     _md11_pre = state.get("md11_draft") or {}
     _md11_draft_is_active = bool(_md11_pre.get("active"))
+    _md13_pre = state.get("md13_draft") or {}
+    _md13_draft_is_active = bool(_md13_pre.get("active"))
+    _any_supp_draft_active = _md11_draft_is_active or _md13_draft_is_active
 
-    # If transfer window is active and it's current user's turn (skip when MD11+ draft is running)
-    if transfer_window_active and current_user_name == current_transfer_manager and not _md11_draft_is_active:
+    # If transfer window is active and it's current user's turn (skip when any draft is running)
+    if transfer_window_active and current_user_name == current_transfer_manager and not _any_supp_draft_active:
         # Get current transfer phase
         current_phase = transfer_system.get_current_transfer_phase(transfer_state)
         print(f"[UCL] Transfer mode: phase={current_phase}, manager={current_transfer_manager}")

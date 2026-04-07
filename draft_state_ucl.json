@@ -2996,23 +2996,6 @@
         ]
       },
       {
-        "playerId": 250088039,
-        "fullName": "Brahim Díaz",
-        "clubName": "Real Madrid",
-        "position": "MID",
-        "price": 6.5,
-        "matchdays": [
-          1,
-          2,
-          3,
-          4,
-          5,
-          6,
-          7,
-          8
-        ]
-      },
-      {
         "playerId": 250112998,
         "fullName": "Sergiño Dest",
         "clubName": "PSV",
@@ -4820,15 +4803,6 @@
       "pos": "MID",
       "ts": null,
       "playerId": 250181610
-    },
-    {
-      "round": 15,
-      "user": "Серёга Б",
-      "player_name": "Brahim Díaz",
-      "club": "Real Madrid",
-      "pos": "MID",
-      "ts": null,
-      "playerId": 250088039
     },
     {
       "round": 16,
