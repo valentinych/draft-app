@@ -1753,7 +1753,9 @@ def index():
                     return redirect(url_for('ucl.index'))
 
         # Initialize variables needed for regular draft picks (if not transfer mode)
-        if not transfer_window_active:
+        # Also allow through when a supplementary draft is running (it takes priority)
+        _any_post_draft = bool((state.get("md11_draft") or {}).get("active")) or bool((state.get("md13_draft") or {}).get("active"))
+        if not transfer_window_active or _any_post_draft:
             clubs = _uniq_sorted([p.get("clubName") for p in players])
             positions = _uniq_sorted([p.get("position") for p in players])
             club_filter = request.args.get("club", "").strip()
