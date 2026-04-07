@@ -1690,11 +1690,13 @@ def index():
 
         # --- MD13+ draft pick handling ---
         md13_draft = state.get("md13_draft")
+        print(f"[MD13 POST] md13_draft active={md13_draft.get('active') if md13_draft else 'N/A'}, current_user={current_user!r}, godmode={godmode}", flush=True)
         if md13_draft and md13_draft.get("active"):
             on_clock_mgr = _md13_draft_on_clock(state)
             acting_as = current_user
             if godmode and request.form.get("as_user"):
                 acting_as = request.form.get("as_user", "").strip()
+            print(f"[MD13 POST] on_clock_mgr={on_clock_mgr!r}, acting_as={acting_as!r}, match={acting_as == on_clock_mgr}", flush=True)
             if on_clock_mgr and (acting_as == on_clock_mgr or godmode):
                 pid = request.form.get("player_id")
                 if pid:
