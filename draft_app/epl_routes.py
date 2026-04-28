@@ -679,8 +679,12 @@ def lineups():
                 })
             extra.sort(key=lambda p: (pos_order.get(p.get("pos"), 99), p.get("name")))
             bench.extend(extra)
+            # Тур считается полностью завершённым: тогда игроки с 0 минут — это
+            # пропуск (включая случай "пустого" тура для клуба без матча),
+            # а не просто игра, которая ещё не сыграна.
+            gw_finished = last_finished >= gw
             for s in starters:
-                if s["status"] == "finished" and s.get("minutes", 0) == 0:
+                if s.get("minutes", 0) == 0 and (s["status"] == "finished" or gw_finished):
                     s["subbed_out"] = True
                     replaced = False
                     for b in bench:
@@ -911,10 +915,11 @@ def results():
                     meta = pidx.get(str(pid), {})
                     s = stats.get(pid, {})
                     pos = meta.get("position")
-                    status = s.get("status")
                     minutes = int(s.get("minutes", 0))
                     pts = int(s.get("points", 0))
-                    if status == "finished" and minutes == 0:
+                    # Тур уже в списке завершённых (gws), поэтому 0 минут значит
+                    # пропуск тура — включая клубы без матча в этом туре.
+                    if minutes == 0:
                         sub = None
                         for b in bench_pool:
                             if b["pos"] == pos and b["minutes"] > 0 and not b["used"]:
