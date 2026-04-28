@@ -257,6 +257,29 @@
   </div>
   {% endif %}
 
+  {# MD15+ draft interface (semi-finals: Arsenal, Atletico, Bayern, PSG) #}
+  {% if table_league == 'ucl' and md15_draft_active and md15_draft_manager %}
+  <div class="card" style="margin:10px 0; border: 2px solid #d63031;">
+    <div class="card-title" style="background: #d63031; color: white;">
+      MD15+ Драфт — Раунд {{ md15_draft_round }}
+    </div>
+    <div class="card-body">
+      <p><strong>Сейчас ход:</strong> {{ md15_draft_manager }}</p>
+      <p style="margin:4px 0;"><small>Только клубы 1/2: Arsenal, Atletico, Bayern, PSG. По 1 игроку, 2 раунда (от аутсайдера к лидеру).</small></p>
+      {% if md15_draft_picks %}
+      <details style="margin-top:8px;">
+        <summary style="cursor:pointer;">Последние пики ({{ md15_draft_picks|length }})</summary>
+        <ul style="margin:4px 0; padding-left:20px; font-size:13px;">
+        {% for pick in md15_draft_picks|reverse %}
+          <li>R{{ pick.round }} {{ pick.manager }}: {{ pick.name }} ({{ pick.club }}, {{ pick.position }})</li>
+        {% endfor %}
+        </ul>
+      </details>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+
   {# Transfer interface for UCL when window is active (not during any supplementary draft) #}
   {% if table_league == 'ucl' and transfer_window_active and not any_supp_draft_active|default(false) and current_user == current_transfer_manager %}
     {% if current_transfer_phase == 'out' %}
@@ -386,7 +409,7 @@
         </thead>
         <tbody>
           {% for p in players %}
-            {% set disabled = (draft_completed or (not p.canPick and not session.get('godmode'))) and not (table_league == 'top4' and transfer_window_active and is_current_manager) and not (md11_draft_active|default(false) and (session.get('godmode') or current_user == md11_draft_manager|default(''))) and not (md13_draft_active|default(false) and (session.get('godmode') or current_user == next_user|default(''))) %}
+            {% set disabled = (draft_completed or (not p.canPick and not session.get('godmode'))) and not (table_league == 'top4' and transfer_window_active and is_current_manager) and not (md11_draft_active|default(false) and (session.get('godmode') or current_user == md11_draft_manager|default(''))) and not (md13_draft_active|default(false) and (session.get('godmode') or current_user == next_user|default(''))) and not (md15_draft_active|default(false) and (session.get('godmode') or current_user == md15_draft_manager|default(''))) %}
             <tr data-player-id="{{ p.playerId }}" data-can-pick="{{ '1' if p.canPick else '0' }}"
                 data-status="{{ p.status or '' }}" data-chance="{{ p.chance or 0 }}"
                 data-news="{{ (p.news or '')|lower|e }}">

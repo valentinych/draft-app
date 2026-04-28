@@ -504,8 +504,13 @@ def lineups():
             prev_lineup = load_lineup(m, gw - 1, prefer_s3=True)
             if prev_lineup:
                 file_lineup = dict(prev_lineup)
-                # Обновляем timestamp, но сохраняем структуру
-                file_lineup["ts"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
+                # Автосостав должен иметь ts = дедлайну тура, чтобы в тай-брейке
+                # (сортировка по ts asc) он шёл после живых составов, поставленных
+                # до дедлайна. Если дедлайн неизвестен — fallback на now().
+                if deadline is not None:
+                    file_lineup["ts"] = deadline.isoformat(timespec="seconds")
+                else:
+                    file_lineup["ts"] = datetime.now(timezone.utc).isoformat(timespec="seconds")
                 prev_lineup_used = True
         # Используем состав из state, если он есть, иначе из файла/S3
         lineup = stored_lineup or file_lineup
